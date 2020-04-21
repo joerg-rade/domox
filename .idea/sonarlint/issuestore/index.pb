@@ -1,0 +1,25 @@
+
+F
+docs/FromRADtoMAD.adoc,c\2\c2f754fd28df7ab6b4d0010f9fad79bf93922b8b
+9
+	README.md,8\e\8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
+d
+4module-simple/src/main/java/META-INF/persistence.xml,3\4\34bc1c4922d11698e07f3762ef8fc1a4a205d138
+7
+pom.xml,4\4\442292b8a7efeabbe4cc176709b833b1792140ec
+>
+enhance-all.sh,8\8\886da30be1504c1248c30169c0168639f5864166
+B
+docs/Overview.adoc,9\3\935e528b7ff8cfd8d4b181723846bae047ff061a
+g
+7webapp/src/main/resources/config/application.properties,7\f\7f977081dbabeaa98c2a2e6f9b5b93d617d5acda
+d
+4webapp/src/main/java/domainapp/webapp/SimpleApp.java,8\e\8e459def7fde2427d99c703a6e773b34b24c7f12
+†
+Vwebapp/src/main/java/domainapp/webapp/application/fixture/scenarios/DomainAppDemo.java,1\d\1d70e965f6210b9f4ce84eec677fe74c64217970
+U
+%webapp/target/classes/application.yml,e\d\edf598cf9ca676de43a187fc97a7313b9f3579d6
+E
+module-simple/pom.xml,9\8\983bf5c4541661d4327fcb391a0ee66ab6476c2d
+‹
+[module-ksimple/src/main/kotlin/org.apache.isis.domox/modules/ksimple/dom/so/SimpleObject.kt,4\8\48b8fbd55a369079b90b91ceefd91c56bc89e30e

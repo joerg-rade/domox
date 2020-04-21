@@ -1,0 +1,29 @@
+.Overview
+[plantuml,file="Overview.png"]
+--
+@startuml
+skinparam nodesep 20
+skinparam ranksep 5
+
+top to bottom direction
+
+Tokenizer
+Sentence Splitter
+POS Tagger
+Named Entity Recognizer
+Parser (Phrase Structure + Dependency)
+Coreference Resolver
+
+
+Process Requirement Statements
+Noun Phrases, VerbPhrases, Dependencies
+Lift Dependencies to Semantic Units
+Construct Domain Model
+
+
+note left of DESn
+package.json.lock
+end note
+
+@enduml
+--

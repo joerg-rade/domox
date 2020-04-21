@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <echo message="Running Cucumber CLI"/>
+  <java newenvironment="true" fork="true" classname="io.cucumber.core.cli.Main" maxmemory="1024m" failonerror="true" classpathref="maven.test.classpath">
+    <arg value="--plugin"/>
+    <arg value="json:C:\data\master\domox\webapp\target/cucumber-no-clobber.json"/>
+    <arg value="--glue"/>
+    <arg value="domainapp.webapp.bdd.stepdefs"/>
+    <arg value="C:\data\master\domox\webapp\target/test-classes/domainapp/webapp/bdd/specs"/>
+  </java>
+</target>
+</project>

@@ -1,0 +1,19 @@
+.From RAD to MAD
+[plantuml,file="FromRADtoMAD.png"]
+--
+@startuml
+skinparam nodesep 20
+skinparam ranksep 5
+
+top to bottom direction
+
+:Designer_1: as DES1
+:Designer_2: as DES2
+:Designer_n: as DESn
+
+note left of DESn
+package.json.lock
+end note
+
+@enduml
+--

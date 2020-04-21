@@ -1,0 +1,8 @@
+C:\data\master\domox\module-ksimple\src\main\kotlin\org\apache\isis\domox\modules\ksimple\dom\so\SimpleObject.kt
+C:\data\master\domox\module-ksimple\src\main\kotlin\org\apache\isis\domox\modules\ksimple\dom\so\SimpleObjects.kt
+C:\data\master\domox\module-ksimple\src\main\kotlin\org.apache.isis.domox\modules\ksimple\Application.kt
+C:\data\master\domox\module-ksimple\src\main\kotlin\org.apache.isis.domox\modules\ksimple\fixture\SimpleObjectBuilder.kt
+C:\data\master\domox\module-ksimple\src\main\kotlin\org.apache.isis.domox\modules\ksimple\fixture\SimpleObject_persona.kt
+C:\data\master\domox\module-ksimple\src\main\kotlin\org.apache.isis.domox\modules\ksimple\SimpleModule.kt
+C:\data\master\domox\module-ksimple\src\main\kotlin\org.apache.isis.domox\modules\ksimple\types\Name.kt
+C:\data\master\domox\module-ksimple\src\main\kotlin\org.apache.isis.domox\modules\ksimple\types\Notes.kt
