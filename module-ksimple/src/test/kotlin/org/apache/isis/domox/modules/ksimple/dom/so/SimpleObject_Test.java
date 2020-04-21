@@ -11,6 +11,7 @@ import org.apache.isis.applib.services.message.MessageService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.services.title.TitleService;
 
+import static org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject.withName();
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

@@ -2,27 +2,38 @@
 [plantuml,file="Overview.png"]
 --
 @startuml
-skinparam nodesep 20
-skinparam ranksep 5
 
-top to bottom direction
+(*) -down-> "Tokenizer" as TK #PINK
+note left
+ Process
+ Requirement
+ Statements
+end note
 
-Tokenizer
-Sentence Splitter
-POS Tagger
-Named Entity Recognizer
-Parser (Phrase Structure + Dependency)
-Coreference Resolver
+TK -down-> "Sentence\nSplitter" as SS #PINK
 
+SS -down-> "POS\nTagger" as POS #PINK
+note left
+ POS = PartOfSpeech
+end note
 
-Process Requirement Statements
-Noun Phrases, VerbPhrases, Dependencies
-Lift Dependencies to Semantic Units
-Construct Domain Model
+POS -down->  "Named Entity\nRecognizer" as NER #PINK
+note left
+ Noun Phrases
+ VerbPhrases
+ "Dependencies"
+end note
 
+NER -down->   "Parser" as PAR #PINK
+note left
+  Phrase Structure + Dependency
+  Lift Dependencies to Semantic Units
+end note
 
-note left of DESn
-package.json.lock
+PAR -down-> "Coreference\nResolver"  as CR #PINK
+CR -down-> (*)
+note left
+  Construct Domain Model
 end note
 
 @enduml

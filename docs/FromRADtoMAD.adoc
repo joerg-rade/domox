@@ -2,18 +2,20 @@
 [plantuml,file="FromRADtoMAD.png"]
 --
 @startuml
-skinparam nodesep 20
-skinparam ranksep 5
 
-top to bottom direction
+package P1
 
-:Designer_1: as DES1
-:Designer_2: as DES2
-:Designer_n: as DESn
 
-note left of DESn
-package.json.lock
-end note
+cloud {
+    package 1 as P {
+actor DES2
+    }
+     [component] as C1
+}
+
+actor DES1
+DES1 -> P
+
 
 @enduml
 --
