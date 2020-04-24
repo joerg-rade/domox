@@ -12,7 +12,7 @@ import org.apache.isis.testing.fixtures.applib.modules.ModuleWithFixtures;
 
 import lombok.Data;
 
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject;
+import domainapp.modules.simple.dom.so.SimpleObject;
 
 @org.springframework.context.annotation.Configuration
 @Import({})

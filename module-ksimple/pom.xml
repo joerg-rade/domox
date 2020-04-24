@@ -10,7 +10,7 @@
         <version>2.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>simpleapp-module-simple</artifactId>
+    <artifactId>simpleapp-module-ksimple</artifactId>
     <name>Apache Isis App - SimpleApp Simple Module</name>
 
     <build>
@@ -20,7 +20,7 @@
             </resource>
             <resource>
                 <filtering>false</filtering>
-                <directory>src/main/java</directory>
+                <directory>src/main/kotlin</directory>
                 <includes>
                     <include>**</include>
                 </includes>

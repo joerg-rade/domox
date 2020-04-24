@@ -6,8 +6,8 @@ import java.util.UUID;
 import javax.inject.Inject;
 
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject;
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects;
+import domainapp.modules.simple.dom.so.SimpleObject;
+import domainapp.modules.simple.dom.so.SimpleObjects;
 
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;

@@ -14,8 +14,8 @@ import org.apache.isis.testing.integtestsupport.applib.ThrowableMatchers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject;
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects;
+import domainapp.modules.simple.dom.so.SimpleObject;
+import domainapp.modules.simple.dom.so.SimpleObjects;
 import domainapp.modules.simple.fixture.SimpleObject_persona;
 import org.apache.isis.domox.modules.ksimple.integtests.SimpleModuleIntegTestAbstract;
 

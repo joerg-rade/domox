@@ -1,15 +1,12 @@
-package domainapp.modules.simple.fixture
+package org.apache.isis.domox.modules.ksimple.fixture
 
+import org.apache.isis.applib.services.registry.ServiceRegistry
 import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject
 import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects
-//import lombok.AllArgsConstructor
-import org.apache.isis.applib.services.registry.ServiceRegistry
-import org.apache.isis.domox.modules.ksimple.fixture.SimpleObjectBuilder
 import org.apache.isis.testing.fixtures.applib.api.PersonaWithBuilderScript
 import org.apache.isis.testing.fixtures.applib.api.PersonaWithFinder
 import org.apache.isis.testing.fixtures.applib.setup.PersonaEnumPersistAll
 
-//@AllArgsConstructor
 enum class SimpleObject_persona(name: String) :
         PersonaWithBuilderScript<SimpleObjectBuilder?>,
         PersonaWithFinder<SimpleObject?> {
@@ -35,8 +32,8 @@ enum class SimpleObject_persona(name: String) :
         return simpleObjects.findByNameExact(name)
     }
 
-
     class PersistAll : PersonaEnumPersistAll<
             SimpleObject_persona, SimpleObject?>(
             SimpleObject_persona::class.java)
+
 }

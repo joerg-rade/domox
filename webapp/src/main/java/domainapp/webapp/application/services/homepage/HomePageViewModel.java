@@ -10,8 +10,8 @@ import org.apache.isis.applib.annotation.HomePage;
 import org.apache.isis.applib.annotation.Nature;
 import org.apache.isis.applib.services.i18n.TranslatableString;
 
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject;
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects;
+import domainapp.modules.simple.dom.so.SimpleObject;
+import domainapp.modules.simple.dom.so.SimpleObjects;
 
 @DomainObject(
         nature = Nature.VIEW_MODEL,

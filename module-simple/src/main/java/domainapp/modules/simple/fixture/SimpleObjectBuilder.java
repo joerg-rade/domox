@@ -4,8 +4,8 @@ import javax.inject.Inject;
 
 import org.apache.isis.testing.fixtures.applib.fixturescripts.BuilderScriptWithResult;
 
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject;
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects;
+import domainapp.modules.simple.dom.so.SimpleObject;
+import domainapp.modules.simple.dom.so.SimpleObjects;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;

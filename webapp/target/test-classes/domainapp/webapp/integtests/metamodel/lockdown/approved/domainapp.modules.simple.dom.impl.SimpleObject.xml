@@ -675,7 +675,8 @@
                 <mml:facet id="org.apache.isis.core.metamodel.facets.actions.action.invocation.ActionInvocationFacet" fqcn="org.apache.isis.core.metamodel.facets.actions.action.invocation.ActionInvocationFacetForDomainEventFromDefault">
                     <mml:attr name="eventType">org.apache.isis.applib.events.domain.ActionDomainEvent.Default</mml:attr>
                     <mml:attr name="intent.delete">EXECUTE</mml:attr>
-                    <mml:attr name="methods">public void domainapp.modules.simple.dom.so.SimpleObject.delete()</mml:attr>
+                    <mml:attr name="methods">public void
+                        domainapp.modules.simple.dom.so.SimpleObject.delete()</mml:attr>
                     <mml:attr name="onType">domainapp.modules.simple.dom.so.SimpleObject</mml:attr>
                     <mml:attr name="returnType">void</mml:attr>
                 </mml:facet>

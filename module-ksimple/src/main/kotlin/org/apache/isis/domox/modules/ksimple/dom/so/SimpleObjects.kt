@@ -3,7 +3,6 @@ package org.apache.isis.domox.modules.ksimple.dom.so
 import org.apache.isis.applib.annotation.*
 import org.apache.isis.applib.services.repository.RepositoryService
 import org.apache.isis.domox.modules.ksimple.SimpleModule
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject
 import org.apache.isis.domox.modules.ksimple.types.Name
 import org.apache.isis.persistence.jdo.applib.services.IsisJdoSupport_v3_2
 import javax.jdo.JDOQLTypedQuery
@@ -66,13 +65,13 @@ class SimpleObjects {
         q.executeList()
     }
 
-    object QSimpleObject {
+    /*  object QSimpleObject {
 
-        var name: String = ""
+          var name: String = ""
 
-        fun candidate(): QSimpleObject {
-            return this
-        }
-    }
+          fun candidate(): QSimpleObject {
+              return this
+          }
+      }  */
 
 }

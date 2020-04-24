@@ -1,0 +1,48 @@
+.BuildEnhance
+[plantuml,file="BuildEnhance.png"]
+--
+@startuml
+
+
+
+package "/src/main/*" as SRC {
+  class "SimpleObject" as srcSO
+  class "SimpleObjects" as srcSOS
+}
+note left of SRC #PINK
+ (1) Compile
+ -- --
+ Read (*.java|*.kt)
+ Write *.class
+end note
+
+package "/target (mvn) | /build (gradle)" as BUILD {
+  class "SimpleObject.class" as clsSO
+  class "SimpleObjects.class" as clsSOS
+  class "QSimpleObject" as qSO
+}
+note top of BUILD #PINK
+  (2) Enhance
+-- --
+  Amend *.class with persistence Aspects
+  Create Q*.class(es)
+end note
+
+srcSO -down-> clsSO : compiled\ninto
+srcSOS -down-> clsSOS : compiled\ninto
+srcSOS -> qSO : references
+note on link
+    Compile Error in (1)
+    because QSimpleObject
+    does not exists yet,
+    is beeing generated in (2)
+end note
+
+
+
+
+
+
+
+@enduml
+--

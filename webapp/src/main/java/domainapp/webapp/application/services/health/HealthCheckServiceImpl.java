@@ -3,12 +3,12 @@ package domainapp.webapp.application.services.health;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.isis.applib.services.health.Health;
-import org.apache.isis.applib.services.health.HealthCheckService;
 import org.springframework.stereotype.Service;
 
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects;
+import org.apache.isis.applib.services.health.Health;
+import org.apache.isis.applib.services.health.HealthCheckService;
 
+import domainapp.modules.simple.dom.so.SimpleObjects;
 import lombok.extern.log4j.Log4j2;
 
 @Service

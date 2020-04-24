@@ -9,7 +9,6 @@ import org.apache.isis.applib.services.repository.RepositoryService
 import org.apache.isis.applib.services.title.TitleService
 import org.apache.isis.domox.modules.ksimple.SimpleModule
 import org.apache.isis.domox.modules.ksimple.types.Name
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.inject.Inject
@@ -55,9 +54,9 @@ class SimpleObject private constructor() : Comparable<SimpleObject?> {
 
     val notes: String? = null
 
-    class UpdateNameActionDomainEvent : ActionDomainEvent()
+    class UpdateNameActionDomainEvent : SimpleObject.ActionDomainEvent()
 
-    @Action(semantics = IDEMPOTENT, command = CommandReification.ENABLED, publishing = Publishing.ENABLED, associateWith = "name", domainEvent = UpdateNameActionDomainEvent::class)
+    @Action(semantics = IDEMPOTENT, command = CommandReification.ENABLED, publishing = Publishing.ENABLED, associateWith = "name", domainEvent = SimpleObject.UpdateNameActionDomainEvent::class)
     fun updateName(
             @Name name: String?): SimpleObject? {
         setName(name!!)
@@ -68,9 +67,9 @@ class SimpleObject private constructor() : Comparable<SimpleObject?> {
         return name
     }
 
-    class DeleteActionDomainEvent : ActionDomainEvent()
+    class DeleteActionDomainEvent : SimpleObject.ActionDomainEvent()
 
-    @Action(semantics = NON_IDEMPOTENT_ARE_YOU_SURE, domainEvent = DeleteActionDomainEvent::class)
+    @Action(semantics = NON_IDEMPOTENT_ARE_YOU_SURE, domainEvent = SimpleObject.DeleteActionDomainEvent::class)
     fun delete() {
         val title: String = titleService.titleOf(this)
         messageService.informUser(String.format("'%s' deleted", title))
@@ -78,7 +77,7 @@ class SimpleObject private constructor() : Comparable<SimpleObject?> {
     }
 
     override fun compareTo(other: SimpleObject?): Int {
-        return comparator!!.compare(this, other)
+        return SimpleObject.Companion.comparator!!.compare(this, other)
     }
 
     companion object {
@@ -89,6 +88,6 @@ class SimpleObject private constructor() : Comparable<SimpleObject?> {
         }
 
         private val comparator: Comparator<SimpleObject?>? =
-                Comparator.comparing { obj: SimpleObject? -> obj?.getName() }
+                Comparator.comparing { it.name() }
     }
 }

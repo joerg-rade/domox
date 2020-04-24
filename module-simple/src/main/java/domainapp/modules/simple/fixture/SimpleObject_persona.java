@@ -5,8 +5,8 @@ import org.apache.isis.testing.fixtures.applib.api.PersonaWithBuilderScript;
 import org.apache.isis.testing.fixtures.applib.api.PersonaWithFinder;
 import org.apache.isis.testing.fixtures.applib.setup.PersonaEnumPersistAll;
 
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject;
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects;
+import domainapp.modules.simple.dom.so.SimpleObject;
+import domainapp.modules.simple.dom.so.SimpleObjects;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor

@@ -22,7 +22,7 @@ import org.apache.isis.persistence.jdo.datanucleus5.jdosupport.mixins.Persistabl
 
 import lombok.Getter;
 
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject;
+import domainapp.modules.simple.dom.so.SimpleObject;
 import domainapp.modules.simple.fixture.SimpleObject_persona;
 import org.apache.isis.domox.modules.ksimple.integtests.SimpleModuleIntegTestAbstract;
 

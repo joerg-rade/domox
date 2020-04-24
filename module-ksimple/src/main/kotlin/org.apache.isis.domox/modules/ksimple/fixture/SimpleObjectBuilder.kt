@@ -1,4 +1,4 @@
-package  org.apache.isis.domox.modules.ksimple.fixture
+package org.apache.isis.domox.modules.ksimple.fixture
 
 import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject
 import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects

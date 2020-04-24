@@ -1,4 +1,4 @@
-package domainapp.modules.simple.types
+package org.apache.isis.domox.modules.ksimple.types
 
 import org.apache.isis.applib.annotation.*
 import java.lang.annotation.ElementType

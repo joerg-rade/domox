@@ -14,8 +14,8 @@ import org.apache.isis.applib.services.xactn.TransactionService;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import domainapp.webapp.integtests.ApplicationIntegTestAbstract;
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObject;
-import org.apache.isis.domox.modules.ksimple.dom.so.SimpleObjects;
+import domainapp.modules.simple.dom.so.SimpleObject;
+import domainapp.modules.simple.dom.so.SimpleObjects;
 
 @Transactional
 class Smoke_IntegTest extends ApplicationIntegTestAbstract {

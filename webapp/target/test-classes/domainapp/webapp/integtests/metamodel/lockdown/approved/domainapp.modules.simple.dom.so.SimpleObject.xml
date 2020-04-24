@@ -371,7 +371,8 @@
                 </mml:facet>
                 <mml:facet id="org.apache.isis.core.metamodel.facets.propcoll.accessor.PropertyOrCollectionAccessorFacet" fqcn="org.apache.isis.core.metamodel.facets.properties.accessor.PropertyAccessorFacetViaAccessor">
                     <mml:attr name="intent.getName">ACCESSOR</mml:attr>
-                    <mml:attr name="methods">public java.lang.String domainapp.modules.simple.dom.so.SimpleObject.getName()</mml:attr>
+                    <mml:attr name="methods">public java.lang.String
+                        domainapp.modules.simple.dom.so.SimpleObject.getName()</mml:attr>
                     <mml:attr name="onType">domainapp.modules.simple.dom.so.SimpleObject</mml:attr>
                 </mml:facet>
                 <mml:facet id="org.apache.isis.core.metamodel.facets.properties.defaults.PropertyDefaultFacet" fqcn="org.apache.isis.core.metamodel.facets.properties.defaults.fromtype.PropertyDefaultFacetDerivedFromDefaultedFacet">
@@ -393,7 +394,8 @@
                 </mml:facet>
                 <mml:facet id="org.apache.isis.core.metamodel.facets.properties.update.init.PropertyInitializationFacet" fqcn="org.apache.isis.core.metamodel.facets.properties.update.init.PropertyInitializationFacetViaSetterMethod">
                     <mml:attr name="intent.setName">MODIFY_PROPERTY</mml:attr>
-                    <mml:attr name="methods">public void domainapp.modules.simple.dom.so.SimpleObject.setName(java.lang.String)</mml:attr>
+                    <mml:attr name="methods">public void
+                        domainapp.modules.simple.dom.so.SimpleObject.setName(java.lang.String)</mml:attr>
                 </mml:facet>
                 <mml:facet id="org.apache.isis.core.metamodel.facets.properties.update.modify.PropertySetterFacet" fqcn="org.apache.isis.core.metamodel.facets.properties.property.modify.PropertySetterFacetForDomainEventFromDefault">
                     <mml:attr name="getterFacet">org.apache.isis.core.metamodel.facets.properties.accessor.PropertyAccessorFacetViaAccessor</mml:attr>
@@ -453,7 +455,8 @@
                 </mml:facet>
                 <mml:facet id="org.apache.isis.core.metamodel.facets.propcoll.accessor.PropertyOrCollectionAccessorFacet" fqcn="org.apache.isis.core.metamodel.facets.properties.accessor.PropertyAccessorFacetViaAccessor">
                     <mml:attr name="intent.getNotes">ACCESSOR</mml:attr>
-                    <mml:attr name="methods">public java.lang.String domainapp.modules.simple.dom.so.SimpleObject.getNotes()</mml:attr>
+                    <mml:attr name="methods">public java.lang.String
+                        domainapp.modules.simple.dom.so.SimpleObject.getNotes()</mml:attr>
                     <mml:attr name="onType">domainapp.modules.simple.dom.so.SimpleObject</mml:attr>
                 </mml:facet>
                 <mml:facet id="org.apache.isis.core.metamodel.facets.properties.defaults.PropertyDefaultFacet" fqcn="org.apache.isis.core.metamodel.facets.properties.defaults.fromtype.PropertyDefaultFacetDerivedFromDefaultedFacet">
@@ -475,7 +478,8 @@
                 </mml:facet>
                 <mml:facet id="org.apache.isis.core.metamodel.facets.properties.update.init.PropertyInitializationFacet" fqcn="org.apache.isis.core.metamodel.facets.properties.update.init.PropertyInitializationFacetViaSetterMethod">
                     <mml:attr name="intent.setNotes">MODIFY_PROPERTY</mml:attr>
-                    <mml:attr name="methods">public void domainapp.modules.simple.dom.so.SimpleObject.setNotes(java.lang.String)</mml:attr>
+                    <mml:attr name="methods">public void
+                        domainapp.modules.simple.dom.so.SimpleObject.setNotes(java.lang.String)</mml:attr>
                 </mml:facet>
                 <mml:facet id="org.apache.isis.core.metamodel.facets.properties.update.modify.PropertySetterFacet" fqcn="org.apache.isis.core.metamodel.facets.properties.property.modify.PropertySetterFacetForDomainEventFromDefault">
                     <mml:attr name="getterFacet">org.apache.isis.core.metamodel.facets.properties.accessor.PropertyAccessorFacetViaAccessor</mml:attr>
@@ -670,7 +674,8 @@
                 <mml:facet id="org.apache.isis.core.metamodel.facets.actions.action.invocation.ActionInvocationFacet" fqcn="org.apache.isis.core.metamodel.facets.actions.action.invocation.ActionInvocationFacetForDomainEventFromActionAnnotation">
                     <mml:attr name="eventType">domainapp.modules.simple.dom.so.SimpleObject.DeleteActionDomainEvent</mml:attr>
                     <mml:attr name="intent.delete">EXECUTE</mml:attr>
-                    <mml:attr name="methods">public void domainapp.modules.simple.dom.so.SimpleObject.delete()</mml:attr>
+                    <mml:attr name="methods">public void
+                        domainapp.modules.simple.dom.so.SimpleObject.delete()</mml:attr>
                     <mml:attr name="onType">domainapp.modules.simple.dom.so.SimpleObject</mml:attr>
                     <mml:attr name="returnType">void</mml:attr>
                 </mml:facet>
@@ -1209,7 +1214,8 @@
                 <mml:facet id="org.apache.isis.core.metamodel.facets.actions.action.invocation.ActionInvocationFacet" fqcn="org.apache.isis.core.metamodel.facets.actions.action.invocation.ActionInvocationFacetForDomainEventFromActionAnnotation">
                     <mml:attr name="eventType">domainapp.modules.simple.dom.so.SimpleObject.UpdateNameActionDomainEvent</mml:attr>
                     <mml:attr name="intent.updateName">EXECUTE</mml:attr>
-                    <mml:attr name="methods">public domainapp.modules.simple.dom.so.SimpleObject domainapp.modules.simple.dom.so.SimpleObject.updateName(java.lang.String)</mml:attr>
+                    <mml:attr name="methods">public domainapp.modules.simple.dom.so.SimpleObject
+                        domainapp.modules.simple.dom.so.SimpleObject.updateName(java.lang.String)</mml:attr>
                     <mml:attr name="onType">domainapp.modules.simple.dom.so.SimpleObject</mml:attr>
                     <mml:attr name="returnType">domainapp.modules.simple.dom.so.SimpleObject</mml:attr>
                 </mml:facet>
@@ -1294,7 +1300,8 @@
                         </mml:facet>
                         <mml:facet id="org.apache.isis.core.metamodel.facets.param.defaults.ActionParameterDefaultsFacet" fqcn="org.apache.isis.core.metamodel.facets.param.defaults.methodnum.ActionParameterDefaultsFacetViaMethod">
                             <mml:attr name="intent.default0UpdateName">DEFAULTS</mml:attr>
-                            <mml:attr name="methods">public java.lang.String domainapp.modules.simple.dom.so.SimpleObject.default0UpdateName()</mml:attr>
+                            <mml:attr name="methods">public java.lang.String
+                                domainapp.modules.simple.dom.so.SimpleObject.default0UpdateName()</mml:attr>
                         </mml:facet>
                     </mml:facets>
                     <mml:type>java.lang.String</mml:type>

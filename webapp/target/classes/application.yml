@@ -102,3 +102,9 @@ app:
           message: "'{character}' is invalid."
           prohibited-characters: "&%$!"
 
+  ksimple-module:
+    types:
+      name:
+        validation:
+          message: "'{character}' is invalid."
+          prohibited-characters: "&%$!"

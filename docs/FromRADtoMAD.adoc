@@ -3,18 +3,44 @@
 --
 @startuml
 
-package P1
-
-
-cloud {
-    package 1 as P {
-actor DES2
-    }
-     [component] as C1
+cloud "Model" as M {
+    (Domain\nModel) as DOM
+    note top of DOM #WHITE
+    {{
+        abstract Component
+        class Leaf
+        class Composite
+        Component <|-down- Leaf
+        Component <|-down- Composite
+        Composite *-up- Component
+    }}
+    end note
 }
 
-actor DES1
-DES1 -> P
+together {
+:User: -up-> DOM : analyze Domain and\n (1) create (first iteration) or\n (1+) refine (subsequent iterations)
+
+}
+
+(User\nInterface) as UI
+DOM -right-> UI : Apache\nIsis\ngenerates
+
+note top of UI #WHITE
+--Apache Isis Application--
+{{
+salt
+{+
+{* File | Edit | Source | Refactor }
+{/ <b>General | Fullscreen | Behavior | Saving }
+Name " "
+Modifiers: (X) public  () default  () private  () protected
+[] abstract [] final  [] static }
+Superclass: { "java.lang.Object " | [Browse...]
+}
+}}
+end note
+
+UI --> User : interact\nwith UI
 
 
 @enduml

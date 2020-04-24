@@ -10,6 +10,14 @@ note left
  Statements
 end note
 
+note right #WHITE
+{{
+class first
+class second
+first <|-right- second
+}}
+end note
+
 TK -down-> "Sentence\nSplitter" as SS #PINK
 
 SS -down-> "POS\nTagger" as POS #PINK
