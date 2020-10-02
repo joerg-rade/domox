@@ -7,12 +7,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.validation.annotation.Validated;
 
 import org.apache.isis.testing.fixtures.applib.fixturescripts.FixtureScript;
-import org.apache.isis.testing.fixtures.applib.teardown.TeardownFixtureAbstract;
 import org.apache.isis.testing.fixtures.applib.modules.ModuleWithFixtures;
-
-import lombok.Data;
+import org.apache.isis.testing.fixtures.applib.teardown.TeardownFixtureAbstract;
 
 import domainapp.modules.simple.dom.so.SimpleObject;
+import lombok.Data;
 
 @org.springframework.context.annotation.Configuration
 @Import({})

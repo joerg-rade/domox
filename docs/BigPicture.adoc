@@ -1,0 +1,23 @@
+.BigPicture
+[plantuml,file="BigPicture.png"]
+--
+@startuml
+
+top to bottom direction
+
+file "<<Raw Input Data>>\nRequirements" as REQ
+file "<<Annotated Document>>\nDomainModel.puml" as DM
+
+component DoMoX  as DMX {
+    component "Apache\nUIMA" as UIMA
+    database "..**<<RDBMS>>**..\nRequirements\nModel" as DB
+    UIMA -left-> REQ : "analyze\ \nimport"
+    UIMA -down-> DB
+}
+
+DMX --> DM : export
+component "Apache\nIsis" as AI
+AI --> DM : import
+
+@enduml
+--

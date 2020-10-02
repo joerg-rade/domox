@@ -3,16 +3,16 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
-      <profile name="Gradle Imported" enabled="true">
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.2.6.RELEASE/51c9bff7a5dc15403529a77f5861be643082ecea/spring-boot-configuration-processor-2.2.6.RELEASE.jar" />
-        </processorPath>
-        <module name="domox.module-ksimple.main" />
+        <module name="simpleapp-webapp" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="simpleapp-module-simple" target="1.8" />
+      <module name="domox.module-ksimple.main" target="1.8" />
+      <module name="domox.module-ksimple.test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

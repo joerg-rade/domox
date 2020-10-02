@@ -1,0 +1,51 @@
+.Overview
+[plantuml,file="Overview.png"]
+--
+@startuml
+
+class Corpus
+
+class Document {
+    url:String
+    created:TimeStamp
+    imported:TimeStamp
+}
+class DocumentContent {
+    content:String
+}
+Document -> DocumentContent
+Document -> AnnotationSet
+Document -> FeatureMap : features
+
+Corpus "1" --> "*" Document
+
+class Annotation {
+    id: Long
+    type:String
+    startNode: Long
+    endNode: Long
+
+}
+
+AnnotationSet *-- Annotation
+
+class FeatureMap {
+}
+
+class Analyzer {
+    execute(document:Document, corpus:Corpus)
+}
+Analyzer ..> Corpus : uses
+Analyzer ..> Document : uses
+
+
+class Relation {
+    id:Long
+    type: String
+}
+Relation -> FeatureMap : features
+Relation --> "*" Annotation : members
+Annotation -> FeatureMap : features
+
+@enduml
+--

@@ -1,8 +1,6 @@
 package domainapp.modules.simple.dom.so;
 
 import javax.annotation.Generated;
-import javax.jdo.query.*;
-import org.datanucleus.api.jdo.query.*;
 
 @Generated(value="org.datanucleus.jdo.query.JDOQueryProcessor")
 public class QSimpleObject extends PersistableExpressionImpl<SimpleObject> implements PersistableExpression<SimpleObject>

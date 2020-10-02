@@ -9,15 +9,14 @@ import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.apache.isis.domox.modules.ksimple.integtests.SimpleModuleIntegTestAbstract;
 import org.apache.isis.testing.integtestsupport.applib.ThrowableMatchers;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import domainapp.modules.simple.dom.so.SimpleObject;
 import domainapp.modules.simple.dom.so.SimpleObjects;
 import domainapp.modules.simple.fixture.SimpleObject_persona;
-import org.apache.isis.domox.modules.ksimple.integtests.SimpleModuleIntegTestAbstract;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Transactional
 public class SimpleObjects_IntegTest extends SimpleModuleIntegTestAbstract {

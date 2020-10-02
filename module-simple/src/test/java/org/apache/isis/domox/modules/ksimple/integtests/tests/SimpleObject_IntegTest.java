@@ -10,21 +10,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.services.wrapper.DisabledException;
 import org.apache.isis.applib.services.wrapper.InvalidException;
+import org.apache.isis.domox.modules.ksimple.integtests.SimpleModuleIntegTestAbstract;
 import org.apache.isis.persistence.jdo.datanucleus5.jdosupport.mixins.Persistable_datanucleusIdLong;
-
-import lombok.Getter;
 
 import domainapp.modules.simple.dom.so.SimpleObject;
 import domainapp.modules.simple.fixture.SimpleObject_persona;
-import org.apache.isis.domox.modules.ksimple.integtests.SimpleModuleIntegTestAbstract;
+import lombok.Getter;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Transactional
 public class SimpleObject_IntegTest extends SimpleModuleIntegTestAbstract {
