@@ -1,28 +1,37 @@
 # domox
-Domain Model Extractor: automatically extracts a (first iteration) domain model from requirements.
+Domain Model Extractor: automatically extract a (first iteration) domain model from requirements.
+By means of Natural Language Processing (NLP), it will try to identify candidates for:
+
+* Classes
+* Properties
+* Actions and
+* Associations
 
 ![Preview](./docs/BigPicture.png)
 
-Implementation follows the outline in https://people.svv.lu/sabetzadeh/pub/MODELS16.pdf
+Domox allows the user to:
+* Import Documents
+* Analyze Requirements therein
+* Extract Relations
+* Generate a Domain Model (UML)
+* Flag relations as irrelevant (ie. exclude them from the Domain Model)
+* View the (plant)UML model and
+* Export it (for subsequent processing by other tools, eg. Apache Isis)
+* Allow to trace back from the Domain Model elements to requirements.  
+
+Design follows the outline in [1]:
+
+![Preview](./docs/DomoxClassDiagram.png) 
+
+NLP Processing usually is as follows:
 
 ![Preview](./docs/Pipeline.png)
 
 
-### References
-Lucene NLP: https://fabian-kostadinov.github.io/2018/09/08/introduction-to-lucene-opennlp-part1/
-
-* Apache Uima
-* Apache Clerazza
-* Apache Stanbol
-* Apache OpenNLP
-* Domeo ?
-* Apache cTAKES
-* Apache Storm
-
-Rdd
-
-Def.
-* POS (Taggigng)
+### Glossary
+* NER - Named Entity Recognition
+* POS - Part of Speech (Taggigng)
+* Sofa - Subject of Analysis
 * Boilerplate
 * Tokenization
 * Sentence Splitting
@@ -30,13 +39,51 @@ Def.
 * Co-reference Resolution (synonyms)
 * Lemmatization
 * Stemming
-* Named Entity Recognition (NER)
+* Annotation (refrence to text, begin/end)
+* Type System - output 
+* AE - Analysis Engine
 
 
-ClassCandidate
-PropertyCandidate
-ActionCandidate
+### References
+[1] C. Arora, M. Sabetzadeh, L. Briand, and F. Zimmer. 
+Extracting Domain Models from Natural-Language Requirements: 
+Approach and Industrial Evaluation. 
+https://people.svv.lu/sabetzadeh/pub/MODELS16.pdf
 
-Colorize ClassCandidates by means of their properties/actions
+[2] P. Coad, E. Lefebvre, J. De Luca. Java Modeling in Color with UML.
 
-temporal relations -> activity diagrams
+#### Excerpt from [1]:
+Syntactic parsing (SP) is the key enabling NLP technology.
+It consists of:
+* Phrase structure parsing
+    * noun phrases (NP) 
+    * verb phrases (VP) / verb (VB)
+* dependency parsing (functional constituents, parse tree)
+    * subject
+    * object
+    
+There are four kinds of relations:
+* (regular) Association
+* Aggregation
+* Generalization
+* Attribute
+
+A Domain Model has:
+* 1..n Concepts
+* 1..n Attributes
+* 1..n Associations 
+
+### Various
+#### Ideas
+* Colorize ClassCandidates by means of their properties/actions [2]
+* temporal relations -> activity diagrams (HeidelTime?)
+
+#### Tools
+* Lucene NLP: https://fabian-kostadinov.github.io/2018/09/08/introduction-to-lucene-opennlp-part1/
+* Apache UIMA
+* Apache OpenNLP
+* Apache cTAKES
+* BRAT
+
+#### Search Terms
+* Rdd

@@ -9,14 +9,14 @@ file "<<Raw Input Data>>\nRequirements" as REQ
 file "<<Annotated Document>>\nDomainModel.puml" as DM
 
 component DoMoX  as DMX {
-    component "Apache\nUIMA" as UIMA
+    component "..<<NL Processor>>..\n{Stanford Parser | Apache OpenNLP}" as NLP
     database "..**<<RDBMS>>**..\nRequirements\nModel" as DB
-    UIMA -left-> REQ : "analyze\ \nimport"
-    UIMA -down-> DB
+    NLP -left-> REQ : "analyze\ \nimport"
+    NLP -down-> DB
 }
 
 DMX --> DM : export
-component "Apache\nIsis" as AI
+component "<<Naked Objects Framework>>\n..Apache Isis.." as AI
 AI --> DM : import
 
 @enduml

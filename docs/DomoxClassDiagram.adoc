@@ -1,0 +1,113 @@
+.ClassDiagram
+[plantuml,file="ClassDiagram.png"]
+--
+@startuml
+
+package requirements {
+    class Author {
+    }
+    class Document {
+        id: Long
+        title: String
+        version: SemVer
+        url:String
+        created:TimeStamp
+        imported:TimeStamp
+    }
+    Document "1..n" -up- "1..n" Author
+
+    class DocumentContent {
+        content:String
+    }
+    Document -left-> DocumentContent
+}
+
+class Analysis {
+    id: Long
+    started: TimeStamp
+    ended: TimeStamp
+    processRequrements()
+    constructDomainModel()
+}
+
+class DomainModel {
+    generatePlantUml()
+}
+
+package type_system {
+    abstract class Candidate {
+        name: String
+    }
+    class ClassCdd extends Candidate {}
+    class PropertyCdd extends Candidate {
+        type: Type
+    }
+    class ActionCdd extends Candidate {
+        inputTypes: List<Type>
+        outputType: Type
+    }
+    class AssociationCdd extends Candidate {
+        sourceCardinality: Integer
+        targetCardinality: Integer
+    }
+    ClassCdd -up-> "0..n" PropertyCdd : properties
+    ClassCdd -> "0..n" ActionCdd : actions
+    ClassCdd "2" -up-> "0..n" AssociationCdd : associations
+}
+DomainModel *-> "1..n" ClassCdd
+Analysis -> DomainModel : output
+Analysis -up-> "1..n" Document : input
+
+
+package nlp {
+    class Annotation {
+        id: Long
+        type:String
+        startNode: Long
+        endNode: Long
+    }
+    enum AnnotationType {
+        A1 .. A4
+        B1 .. B5
+        C1 .. C4
+        D1 .. D4
+        N1 .. N3
+    }
+
+    class Relation {
+        id:Long
+        relevant: Boolean
+    }
+    enum RelationType {
+        ASSOCIATION
+        AGGREGATION
+        GENERALIZATION
+        ATTRIBUTE
+        BEHAVIOUR
+    }
+
+    class PartOfSpeech {
+        content: String
+    }
+    enum PhraseType {
+        NOUN_PHRASE
+        VERB_PHRASE
+        VERB
+        ADVP
+        PP
+        P
+    }
+
+    Annotation -> DocumentContent
+
+    Annotation -up-> AnnotationType : type
+    Relation -up-> RelationType : type
+    PartOfSpeech -up-> PhraseType : type
+
+    Relation -> "2" PartOfSpeech
+    Annotation -left-> PartOfSpeech
+}
+Analysis -> "0..n" Relation
+
+@enduml
+--

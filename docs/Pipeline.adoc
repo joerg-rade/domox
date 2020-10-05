@@ -1,0 +1,48 @@
+.Pipeline
+[plantuml,file="Pipeline.png"]
+--
+@startuml
+
+(*) -down-> "Tokenizer" as TK #PINK
+note left
+ Process
+ Requirement
+ Statements
+end note
+
+note right #WHITE
+{{
+class first
+class second
+first <|-right- second
+}}
+end note
+
+TK -down-> "Sentence\nSplitter" as SS #PINK
+
+SS -down-> "POS\nTagger" as POS #PINK
+note left
+ POS = PartOfSpeech
+end note
+
+POS -down->  "Named Entity\nRecognizer" as NER #PINK
+note left
+ Noun Phrases
+ VerbPhrases
+ "Dependencies"
+end note
+
+NER -down->   "Parser" as PAR #PINK
+note left
+  Phrase Structure + Dependency
+  Lift Dependencies to Semantic Units
+end note
+
+PAR -down-> "Coreference\nResolver"  as CR #PINK
+CR -down-> (*)
+note left
+  Construct Domain Model
+end note
+
+@enduml
+--
