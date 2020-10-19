@@ -45,12 +45,15 @@ NLP Processing usually is as follows:
 
 
 ### References
-[1] C. Arora, M. Sabetzadeh, L. Briand, and F. Zimmer. 
+[1] C. Arora, M. Sabetzadeh, L. Briand, and F. Zimmer (2016). 
 Extracting Domain Models from Natural-Language Requirements: 
 Approach and Industrial Evaluation. 
 https://people.svv.lu/sabetzadeh/pub/MODELS16.pdf
 
-[2] P. Coad, E. Lefebvre, J. De Luca. Java Modeling in Color with UML.
+[2] P. Coad, E. Lefebvre, and J. De Luca (1999). 
+Java Modeling in Color with UML.
+Enterprise Components and Processes.
+ISBN 0-13-011510-X
 
 #### Excerpt from [1]:
 Syntactic parsing (SP) is the key enabling NLP technology.
@@ -79,11 +82,14 @@ A Domain Model has:
 * temporal relations -> activity diagrams (HeidelTime?)
 
 #### Tools
+* Apache OpenNLP 
+    * Home https://opennlp.apache.org/
+    * Tutorialspoint: https://www.tutorialspoint.com/opennlp/opennlp_command_line_interface.htm
+    * Baeldung: https://www.baeldung.com/apache-open-nlp
 * Lucene NLP: https://fabian-kostadinov.github.io/2018/09/08/introduction-to-lucene-opennlp-part1/
 * Apache UIMA
-* Apache OpenNLP
 * Apache cTAKES
-* BRAT
+* BRAT https://brat.nlplab.org/index.html
 
 #### Search Terms
 * Rdd
