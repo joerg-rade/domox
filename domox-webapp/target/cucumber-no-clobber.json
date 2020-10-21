@@ -1,0 +1,218 @@
+[
+  {
+    "line": 1,
+    "elements": [
+      {
+        "start_timestamp": "2020-10-21T16:48:05.341Z",
+        "before": [
+          {
+            "result": {
+              "duration": 15000000,
+              "status": "passed"
+            },
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.infrastructure.BootstrapStepDef.bootstrap()"
+            }
+          },
+          {
+            "result": {
+              "duration": 103000000,
+              "status": "passed"
+            },
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.infrastructure.TransactionalStepDef.beforeScenario()"
+            }
+          },
+          {
+            "result": {
+              "duration": 575000000,
+              "status": "passed"
+            },
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.fixtures.DomainAppDemoStepDef.runDomainAppDemo()"
+            }
+          }
+        ],
+        "line": 4,
+        "name": "Existing simple objects can be listed and new ones created",
+        "description": "",
+        "id": "list-and-create-new-simple-objects;existing-simple-objects-can-be-listed-and-new-ones-created",
+        "after": [
+          {
+            "result": {
+              "duration": 11000000,
+              "status": "passed"
+            },
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.infrastructure.TransactionalStepDef.afterScenario()"
+            }
+          }
+        ],
+        "type": "scenario",
+        "keyword": "Scenario",
+        "steps": [
+          {
+            "result": {
+              "duration": 135000000,
+              "status": "passed"
+            },
+            "line": 5,
+            "name": "there are initially 10 simple objects",
+            "match": {
+              "arguments": [
+                {
+                  "val": "10",
+                  "offset": 20
+                }
+              ],
+              "location": "domox.webapp.bdd.stepdefs.domain.SimpleObjectsStepDef.there_are_N_simple_objects(int)"
+            },
+            "keyword": "Given "
+          },
+          {
+            "result": {
+              "duration": 12000000,
+              "status": "passed"
+            },
+            "line": 6,
+            "name": "I create a new simple object",
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.domain.SimpleObjectsStepDef.create_a_simple_object()"
+            },
+            "keyword": "When "
+          },
+          {
+            "result": {
+              "duration": 13000000,
+              "status": "passed"
+            },
+            "line": 7,
+            "name": "there are 11 simple objects",
+            "match": {
+              "arguments": [
+                {
+                  "val": "11",
+                  "offset": 10
+                }
+              ],
+              "location": "domox.webapp.bdd.stepdefs.domain.SimpleObjectsStepDef.there_are_N_simple_objects(int)"
+            },
+            "keyword": "Then "
+          }
+        ],
+        "tags": [
+          {
+            "name": "@DomainAppDemo"
+          }
+        ]
+      },
+      {
+        "start_timestamp": "2020-10-21T16:48:06.295Z",
+        "before": [
+          {
+            "result": {
+              "status": "passed"
+            },
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.infrastructure.BootstrapStepDef.bootstrap()"
+            }
+          },
+          {
+            "result": {
+              "duration": 4000000,
+              "status": "passed"
+            },
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.infrastructure.TransactionalStepDef.beforeScenario()"
+            }
+          }
+        ],
+        "line": 9,
+        "name": "When there are no objects at all",
+        "description": "",
+        "id": "list-and-create-new-simple-objects;when-there-are-no-objects-at-all",
+        "after": [
+          {
+            "result": {
+              "duration": 2000000,
+              "status": "passed"
+            },
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.infrastructure.TransactionalStepDef.afterScenario()"
+            }
+          }
+        ],
+        "type": "scenario",
+        "keyword": "Scenario",
+        "steps": [
+          {
+            "result": {
+              "duration": 10000000,
+              "status": "passed"
+            },
+            "line": 10,
+            "name": "there are initially 0 simple objects",
+            "match": {
+              "arguments": [
+                {
+                  "val": "0",
+                  "offset": 20
+                }
+              ],
+              "location": "domox.webapp.bdd.stepdefs.domain.SimpleObjectsStepDef.there_are_N_simple_objects(int)"
+            },
+            "keyword": "Given "
+          },
+          {
+            "result": {
+              "duration": 8000000,
+              "status": "passed"
+            },
+            "line": 11,
+            "name": "I create a new simple object",
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.domain.SimpleObjectsStepDef.create_a_simple_object()"
+            },
+            "keyword": "When "
+          },
+          {
+            "result": {
+              "duration": 9000000,
+              "status": "passed"
+            },
+            "line": 12,
+            "name": "I create another new simple object",
+            "match": {
+              "location": "domox.webapp.bdd.stepdefs.domain.SimpleObjectsStepDef.create_a_simple_object()"
+            },
+            "keyword": "And "
+          },
+          {
+            "result": {
+              "duration": 10000000,
+              "status": "passed"
+            },
+            "line": 13,
+            "name": "there are 2 simple objects",
+            "match": {
+              "arguments": [
+                {
+                  "val": "2",
+                  "offset": 10
+                }
+              ],
+              "location": "domox.webapp.bdd.stepdefs.domain.SimpleObjectsStepDef.there_are_N_simple_objects(int)"
+            },
+            "keyword": "Then "
+          }
+        ]
+      }
+    ],
+    "name": "List and Create New Simple Objects",
+    "description": "",
+    "id": "list-and-create-new-simple-objects",
+    "keyword": "Feature",
+    "uri": "classpath:domox/webapp/specs/SimpleObjectSpec_listAllAndCreate.feature",
+    "tags": []
+  }
+]

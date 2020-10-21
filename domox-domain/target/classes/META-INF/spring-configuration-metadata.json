@@ -1,0 +1,38 @@
+{
+  "groups": [
+    {
+      "name": "app.simple-module",
+      "type": "domox.SimpleModule$Configuration",
+      "sourceType": "domox.SimpleModule$Configuration"
+    },
+    {
+      "name": "app.simple-module.types",
+      "type": "domox.SimpleModule$Configuration$Types",
+      "sourceType": "domox.SimpleModule$Configuration"
+    },
+    {
+      "name": "app.simple-module.types.name",
+      "type": "domox.SimpleModule$Configuration$Types$Name",
+      "sourceType": "domox.SimpleModule$Configuration$Types"
+    },
+    {
+      "name": "app.simple-module.types.name.validation",
+      "type": "domox.SimpleModule$Configuration$Types$Name$Validation",
+      "sourceType": "domox.SimpleModule$Configuration$Types$Name"
+    }
+  ],
+  "properties": [
+    {
+      "name": "app.simple-module.types.name.validation.message",
+      "type": "java.lang.String",
+      "sourceType": "domox.SimpleModule$Configuration$Types$Name$Validation",
+      "defaultValue": "Character '{character}' is not allowed"
+    },
+    {
+      "name": "app.simple-module.types.name.validation.prohibited-characters",
+      "type": "java.lang.Character[]",
+      "sourceType": "domox.SimpleModule$Configuration$Types$Name$Validation"
+    }
+  ],
+  "hints": []
+}

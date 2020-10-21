@@ -3,7 +3,7 @@
 --
 @startuml
 
-package requirements(1) {
+package requirement {
     class Author {
         firstName:String
         lastName:String
@@ -21,11 +21,11 @@ package requirements(1) {
     Document "1..n" -up- "1..n" Author
 }
 
-package nlp(2) {
+package nlp {
     class Sentence {
         id:Long
         raw: String
-        parsed: Tree
+        parsed: ParseTree
     }
 
     class PartOfSpeech {
@@ -42,29 +42,40 @@ package nlp(2) {
     }
     Sentence *- PartOfSpeech
 
-    enum ModelType{
-        acl
-        advcl_if
-        advmod
-        case
-        compound
-        det
-        dobj
-        mark
-        neg
-        nmod_by
-        nmod_on
-        nmod_to
+    enum DependencyType{
         nsubj
-        root
+        nsubjpass
+        dobj
+        iobj
+        pobj
+        nmod_of
+        nmod_in
+        nmod_to
+        nmod_for
+        nmod_from
+        nmod_as
+        nmod_by
+        nmod_agent
+        nmod_with
+        nmod_poss
+        amod
+        compound
+        conj_and
+        conj_or
+        nummod
+        det
         xcomp
-        ...
+        neg
+        advcl_if
+        mark
+        advmod_then
+        advmod_else
     }
 
-    class ModelDependency {
+    class Dependency {
         id: Long
     }
-    ModelDependency -up-> ModelType : type
+    Dependency -up-> DependencyType : type
 
     class Relation {
         id:Long
@@ -81,12 +92,12 @@ package nlp(2) {
 
     PartOfSpeech -up-> PosType : type
 
-    ModelDependency -left-> "A" PartOfSpeech
-    ModelDependency -left-> "B" PartOfSpeech
-    Relation -left-> "2" ModelDependency
+    Dependency -left-> "A" PartOfSpeech
+    Dependency -left-> "B" PartOfSpeech
+    Relation -left-> "2" Dependency
 }
 
-package type_system(3) {
+package type_system {
     abstract class Candidate {
         name: String
     }
@@ -135,3 +146,13 @@ Analysis -> DomainModel : output
         C1 .. C4
         D1 .. D4
         N1 .. N3
+
+
+        acl
+        case
+        cc
+        csubj
+        csubjpass
+        punct
+        root
+        xsubj

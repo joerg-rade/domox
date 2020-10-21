@@ -1,7 +1,0 @@
-domainapp\webapp\SimpleApp.class
-domainapp\webapp\application\services\health\HealthCheckServiceImpl.class
-domainapp\webapp\AppManifest.class
-domainapp\webapp\application\ApplicationModule.class
-domainapp\webapp\application\fixture\DomainAppFixtureScriptsSpecificationProvider.class
-domainapp\webapp\application\fixture\scenarios\DomainAppDemo.class
-domainapp\webapp\application\services\homepage\HomePageViewModel.class

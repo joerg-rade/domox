@@ -1,0 +1,16 @@
+domox\dom\rqm\SimpleObjects_Test$create.class
+domox\integtests\tests\SimpleObject_IntegTest$updateName.class
+domox\integtests\SimpleModuleIntegTestAbstract.class
+domox\integtests\tests\SimpleObject_IntegTest$name.class
+domox\integtests\tests\SimpleObject_IntegTest.class
+domox\dom\rqm\SimpleObjects_Test$ListAll.class
+domox\integtests\tests\SimpleObject_IntegTest$dataNucleusId.class
+domox\integtests\tests\SimpleObjects_IntegTest$create.class
+domox\dom\rqm\SimpleObjects_Test.class
+domox\dom\rqm\SimpleObject_Test.class
+domox\integtests\tests\SimpleObjects_IntegTest$listAll.class
+domox\integtests\SimpleModuleIntegTestAbstract$AppManifest.class
+domox\integtests\tests\SimpleObject_IntegTest$updateName$UpdateNameListener.class
+domox\dom\rqm\SimpleObject_Test$delete.class
+domox\integtests\tests\SimpleObjects_IntegTest.class
+domox\dom\rqm\SimpleObject_Test$updateName.class

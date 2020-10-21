@@ -1,0 +1,7 @@
+domox\webapp\SimpleApp.class
+domox\webapp\services\health\HealthCheckServiceImpl.class
+domox\webapp\services\homepage\HomePageViewModel.class
+domox\webapp\fixture\scenarios\DomainAppDemo.class
+domox\webapp\ApplicationModule.class
+domox\webapp\fixture\DomainAppFixtureScriptsSpecificationProvider.class
+domox\webapp\AppManifest.class

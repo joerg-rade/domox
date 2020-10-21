@@ -1,0 +1,17 @@
+domox\webapp\bdd\stepdefs\fixtures\DomainAppDemoStepDef.class
+domox\webapp\integtests\metamodel\ValidateDomainModel_IntegTest.class
+domox\webapp\bdd\stepdefs\domain\SimpleObjectsStepDef.class
+domox\webapp\bdd\stepdefs\infrastructure\BootstrapStepDef.class
+domox\webapp\unittests\mavendeps\lockdown\LockDownMavenDeps_Test.class
+domox\webapp\bdd\stepdefs\infrastructure\TransactionalStepDef.class
+domox\webapp\integtests\metamodel\lockdown\LockDownMetaModel_IntegTest$1.class
+domox\webapp\integtests\smoke\Smoke_IntegTest.class
+domox\webapp\unittests\archunit\ArchitectureTests.class
+domox\webapp\unittests\mavendeps\lockdown\LockDownMavenDeps_Test$1.class
+domox\webapp\bdd\CucumberTestAbstract.class
+domox\webapp\bdd\specs\CucumberTest.class
+domox\webapp\integtests\ApplicationIntegTestAbstract.class
+domox\webapp\util\CurrentVsApprovedApprovalTextWriter.class
+domox\webapp\integtests\ApplicationIntegTestAbstract$AppManifest.class
+domox\webapp\integtests\metamodel\SwaggerExport_IntegTest.class
+domox\webapp\integtests\metamodel\lockdown\LockDownMetaModel_IntegTest.class
