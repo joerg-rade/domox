@@ -16,17 +16,17 @@ import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.services.title.TitleService;
 
 @ExtendWith(MockitoExtension.class)
-class SimpleObject_Test {
+class Author_Test {
 
     @Mock TitleService mockTitleService;
     @Mock MessageService mockMessageService;
     @Mock RepositoryService mockRepositoryService;
 
-    SimpleObject object;
+    Author object;
 
     @BeforeEach
     public void setUp() throws Exception {
-        object = SimpleObject.withName("Foo");
+        object = Author.withName("Foo");
         object.titleService = mockTitleService;
         object.messageService = mockMessageService;
         object.repositoryService = mockRepositoryService;
@@ -38,13 +38,13 @@ class SimpleObject_Test {
         @Test
         void happy_case() {
             // given
-            assertThat(object.getName()).isEqualTo("Foo");
+            assertThat(object.getLastName()).isEqualTo("Foo");
 
             // when
-            object.updateName("Bar");
+   //         object.updateName("Bar");
 
             // then
-            assertThat(object.getName()).isEqualTo("Bar");
+            assertThat(object.getLastName()).isEqualTo("Bar");
         }
 
     }
@@ -61,7 +61,7 @@ class SimpleObject_Test {
             when(mockTitleService.titleOf(object)).thenReturn("Foo");
 
             // when
-            object.delete();
+  //          object.delete();
 
             // then
             verify(mockMessageService).informUser("'Foo' deleted");

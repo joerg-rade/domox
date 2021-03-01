@@ -8,8 +8,8 @@ import javax.inject.Inject;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import domox.dom.rqm.SimpleObject;
-import domox.dom.rqm.SimpleObjects;
+import domox.dom.rqm.Author;
+import domox.dom.rqm.Authors;
 import domox.webapp.bdd.CucumberTestAbstract;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
@@ -19,17 +19,17 @@ public class SimpleObjectsStepDef extends CucumberTestAbstract {
     @Given("^there (?:is|are).* (\\d+) simple object[s]?$")
     public void there_are_N_simple_objects(int n) {
 
-        final List<SimpleObject> list = wrap(simpleObjects).listAll();
+        final List<Author> list = wrap(authors).listAll();
         assertThat(list.size(), is(n));
     }
 
     @When("^.*create (?:a|another) .*simple object$")
     public void create_a_simple_object() {
 
-        wrap(simpleObjects).create(UUID.randomUUID().toString());
+        wrap(authors).create(UUID.randomUUID().toString());
     }
 
     @Inject
-    protected SimpleObjects simpleObjects;
+    protected Authors authors;
 
 }

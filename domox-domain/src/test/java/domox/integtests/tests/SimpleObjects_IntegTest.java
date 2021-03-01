@@ -14,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.apache.isis.testing.integtestsupport.applib.ThrowableMatchers;
 
-import domox.dom.rqm.SimpleObject;
-import domox.dom.rqm.SimpleObjects;
+import domox.dom.rqm.Author;
+import domox.dom.rqm.Authors;
 import domox.fixture.SimpleObject_persona;
 import domox.integtests.SimpleModuleIntegTestAbstract;
 
@@ -23,7 +23,7 @@ import domox.integtests.SimpleModuleIntegTestAbstract;
 public class SimpleObjects_IntegTest extends SimpleModuleIntegTestAbstract {
 
     @Inject
-    SimpleObjects menu;
+    Authors menu;
 
     public static class listAll extends SimpleObjects_IntegTest {
 
@@ -35,7 +35,7 @@ public class SimpleObjects_IntegTest extends SimpleModuleIntegTestAbstract {
             transactionService.flushTransaction();
 
             // when
-            final List<SimpleObject> all = wrap(menu).listAll();
+            final List<Author> all = wrap(menu).listAll();
 
             // then
             assertThat(all).hasSize(SimpleObject_persona.values().length);
@@ -45,7 +45,7 @@ public class SimpleObjects_IntegTest extends SimpleModuleIntegTestAbstract {
         public void whenNone() {
 
             // when
-            final List<SimpleObject> all = wrap(menu).listAll();
+            final List<Author> all = wrap(menu).listAll();
 
             // then
             assertThat(all).hasSize(0);
@@ -60,7 +60,7 @@ public class SimpleObjects_IntegTest extends SimpleModuleIntegTestAbstract {
             wrap(menu).create("Faz");
 
             // then
-            final List<SimpleObject> all = wrap(menu).listAll();
+            final List<Author> all = wrap(menu).listAll();
             assertThat(all).hasSize(1);
         }
 

@@ -14,24 +14,24 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.persistence.jdo.applib.services.IsisJdoSupport_v3_2;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
+import org.apache.isis.applib.services.repository.RepositoryService;
+import org.apache.isis.persistence.jdo.applib.services.IsisJdoSupport_v3_2;
+
 @ExtendWith(MockitoExtension.class)
-class SimpleObjects_Test {
+class Authors_Test {
 
     @Mock RepositoryService mockRepositoryService;
     @Mock IsisJdoSupport_v3_2 mockIsisJdoSupport_v3_2;
 
-    SimpleObjects objects;
+    Authors authors;
 
     @BeforeEach
     public void setUp() {
-        objects = new SimpleObjects(mockRepositoryService, mockIsisJdoSupport_v3_2);
+        authors = new Authors(mockRepositoryService, mockIsisJdoSupport_v3_2);
     }
 
     @Nested
@@ -45,15 +45,15 @@ class SimpleObjects_Test {
 
             // expect
             when(mockRepositoryService.persist(
-                    argThat((ArgumentMatcher<SimpleObject>) simpleObject -> Objects.equals(simpleObject.getName(), someName)))
-            ).then((Answer<SimpleObject>) invocation -> invocation.getArgument(0));
+                    argThat((ArgumentMatcher<Author>) author -> Objects.equals(author.getLastName(), someName)))
+            ).then((Answer<Author>) invocation -> invocation.getArgument(0));
 
             // when
-            final SimpleObject obj = objects.create(someName);
+            final Author obj = authors.create(someName);
 
             // then
             assertThat(obj).isNotNull();
-            assertThat(obj.getName()).isEqualTo(someName);
+            assertThat(obj.getLastName()).isEqualTo(someName);
         }
     }
 
@@ -64,14 +64,14 @@ class SimpleObjects_Test {
         void happyCase() {
 
             // given
-            final List<SimpleObject> all = new ArrayList<>();
+            final List<Author> all = new ArrayList<>();
 
             // expecting
-            when(mockRepositoryService.allInstances(SimpleObject.class))
+            when(mockRepositoryService.allInstances(Author.class))
                 .thenReturn(all);
 
             // when
-            final List<SimpleObject> list = objects.listAll();
+            final List<Author> list = authors.listAll();
 
             // then
             Assertions.assertThat(list).isEqualTo(all);

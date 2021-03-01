@@ -5,13 +5,14 @@ import org.apache.isis.testing.fixtures.applib.api.PersonaWithBuilderScript;
 import org.apache.isis.testing.fixtures.applib.api.PersonaWithFinder;
 import org.apache.isis.testing.fixtures.applib.setup.PersonaEnumPersistAll;
 
-import domox.dom.rqm.SimpleObject;
-import domox.dom.rqm.SimpleObjects;
 import lombok.AllArgsConstructor;
+
+import domox.dom.rqm.Author;
+import domox.dom.rqm.Authors;
 
 @AllArgsConstructor
 public enum SimpleObject_persona
-implements PersonaWithBuilderScript<SimpleObjectBuilder>, PersonaWithFinder<SimpleObject> {
+implements PersonaWithBuilderScript<SimpleObjectBuilder>, PersonaWithFinder<Author> {
 
     FOO("Foo"),
     BAR("Bar"),
@@ -32,13 +33,13 @@ implements PersonaWithBuilderScript<SimpleObjectBuilder>, PersonaWithFinder<Simp
     }
 
     @Override
-    public SimpleObject findUsing(final ServiceRegistry serviceRegistry) {
-        SimpleObjects simpleObjects = serviceRegistry.lookupService(SimpleObjects.class).orElse(null);
-        return simpleObjects.findByNameExact(name);
+    public Author findUsing(final ServiceRegistry serviceRegistry) {
+        Authors authors = serviceRegistry.lookupService(Authors.class).orElse(null);
+        return authors.findByNameExact(name);
     }
 
     public static class PersistAll
-    extends PersonaEnumPersistAll<SimpleObject_persona, SimpleObject> {
+    extends PersonaEnumPersistAll<SimpleObject_persona, Author> {
 
         public PersistAll() {
             super(SimpleObject_persona.class);

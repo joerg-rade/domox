@@ -8,25 +8,26 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import domox.dom.rqm.SimpleObject;
-import domox.dom.rqm.SimpleObjects;
+import domox.dom.rqm.Author;
+import domox.dom.rqm.Authors;
 
 @Accessors(chain = true)
-public class SimpleObjectBuilder extends BuilderScriptWithResult<SimpleObject> {
+public class SimpleObjectBuilder extends BuilderScriptWithResult<Author> {
 
     @Getter @Setter
     private String name;
 
     @Override
-    protected SimpleObject buildResult(final ExecutionContext ec) {
+    protected Author buildResult(final ExecutionContext ec) {
 
         checkParam("name", ec, String.class);
 
-        return wrap(simpleObjects).create(name);
+        return wrap(authors).create(name);
     }
 
     // -- DEPENDENCIES
 
-    @Inject SimpleObjects simpleObjects;
+    @Inject
+    Authors authors;
 
 }

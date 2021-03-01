@@ -13,15 +13,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.apache.isis.applib.services.wrapper.InvalidException;
 import org.apache.isis.applib.services.xactn.TransactionService;
 
-import domox.dom.rqm.SimpleObject;
-import domox.dom.rqm.SimpleObjects;
+import domox.dom.rqm.Author;
+import domox.dom.rqm.Authors;
 import domox.webapp.integtests.ApplicationIntegTestAbstract;
 
 @Transactional
 class Smoke_IntegTest extends ApplicationIntegTestAbstract {
 
     @Inject
-    SimpleObjects menu;
+    Authors menu;
     @Inject
     TransactionService transactionService;
 
@@ -29,14 +29,14 @@ class Smoke_IntegTest extends ApplicationIntegTestAbstract {
     void happy_case() {
 
         // when
-        List<SimpleObject> all = wrap(menu).listAll();
+        List<Author> all = wrap(menu).listAll();
 
         // then
         assertThat(all).isEmpty();
 
 
         // when
-        final SimpleObject fred = wrap(menu).create("Fred");
+        final Author fred = wrap(menu).create("Fred");
         transactionService.flushTransaction();
 
         // then
@@ -46,7 +46,7 @@ class Smoke_IntegTest extends ApplicationIntegTestAbstract {
 
 
         // when
-        final SimpleObject bill = wrap(menu).create("Bill");
+        final Author bill = wrap(menu).create("Bill");
         transactionService.flushTransaction();
 
         // then
@@ -56,33 +56,33 @@ class Smoke_IntegTest extends ApplicationIntegTestAbstract {
 
 
         // when
-        wrap(fred).updateName("Freddy");
+//        wrap(fred).updateName("Freddy");
         transactionService.flushTransaction();
 
         // then
-        assertThat(wrap(fred).getName()).isEqualTo("Freddy");
+        assertThat(wrap(fred).getLastName()).isEqualTo("Freddy");
 
 
         // when
-        wrap(fred).setNotes("These are some notes");
+//       wrap(fred).setNotes("These are some notes");
         transactionService.flushTransaction();
 
         // then
-        assertThat(wrap(fred).getNotes()).isEqualTo("These are some notes");
+//        assertThat(wrap(fred).getNotes()).isEqualTo("These are some notes");
 
 
         // when
         Assertions.assertThrows(InvalidException.class, () -> {
-            wrap(fred).updateName("New name !!!");
+  //          wrap(fred).updateName("New name !!!");
             transactionService.flushTransaction();
         }, "Exclamation mark is not allowed");
 
         // then
-        assertThat(wrap(fred).getNotes()).isEqualTo("These are some notes");
+     //   assertThat(wrap(fred).getNotes()).isEqualTo("These are some notes");
 
 
         // when
-        wrap(fred).delete();
+//        wrap(fred).delete();
         transactionService.flushTransaction();
 
         // then

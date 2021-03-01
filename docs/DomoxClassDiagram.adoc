@@ -3,7 +3,7 @@
 --
 @startuml
 
-package requirement {
+package "requirements/corpus" {
     class Author {
         firstName:String
         lastName:String
@@ -42,7 +42,7 @@ package nlp {
     }
     Sentence *- PartOfSpeech
 
-    enum DependencyType{
+    enum TDType{
         nsubj
         nsubjpass
         dobj
@@ -72,10 +72,10 @@ package nlp {
         advmod_else
     }
 
-    class Dependency {
+    class TypedDependency {
         id: Long
     }
-    Dependency -up-> DependencyType : type
+    TypedDependency -up-> TDType : type
 
     class Relation {
         id:Long
@@ -92,9 +92,9 @@ package nlp {
 
     PartOfSpeech -up-> PosType : type
 
-    Dependency -left-> "A" PartOfSpeech
-    Dependency -left-> "B" PartOfSpeech
-    Relation -left-> "2" Dependency
+    TypedDependency -left-> "A" PartOfSpeech
+    TypedDependency -left-> "B" PartOfSpeech
+    Relation -left-> "2" TypedDependency
 }
 
 package type_system {
@@ -138,6 +138,20 @@ class Analysis {
 Analysis -up-> "1..n" Document : input
 Analysis -> "0..n" Relation
 Analysis -> DomainModel : output
+
+note as N1
+    Stanford (Core) NLP steps:
+    * Sentence Splitter
+    * Part of Speech tagging
+    * Syntactic parsing (Typed Dependency)
+end note
+N1 .. nlp
+
+note as N2
+    * Rule based [1], [2]
+    * Stanford Glove (mord-level RNN)
+end note
+N2 .. Relation
 
 @enduml
 --

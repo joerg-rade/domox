@@ -10,7 +10,7 @@ import org.apache.isis.testing.fixtures.applib.fixturescripts.FixtureScript;
 import org.apache.isis.testing.fixtures.applib.modules.ModuleWithFixtures;
 import org.apache.isis.testing.fixtures.applib.teardown.TeardownFixtureAbstract;
 
-import domox.dom.rqm.SimpleObject;
+import domox.dom.rqm.Author;
 import lombok.Data;
 
 import static domox.SimpleModule.*;
@@ -28,7 +28,7 @@ public class SimpleModule implements ModuleWithFixtures {
         return new TeardownFixtureAbstract() {
             @Override
             protected void execute(ExecutionContext executionContext) {
-                deleteFrom(SimpleObject.class);
+                deleteFrom(Author.class);
             }
         };
     }
