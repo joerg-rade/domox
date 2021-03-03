@@ -13,7 +13,7 @@ import org.apache.isis.security.bypass.IsisModuleSecurityBypass;
 import org.apache.isis.testing.fixtures.applib.IsisModuleTestingFixturesApplib;
 import org.apache.isis.testing.integtestsupport.applib.IsisIntegrationTestAbstract;
 
-import domox.webapp.ApplicationModule;
+//import domox.webapp.ApplicationModule;
 
 @SpringBootTest(
     // we use a slightly different AppManifest compared to the production webapp (defined below)
@@ -41,7 +41,7 @@ public abstract class ApplicationIntegTestAbstract extends IsisIntegrationTestAb
         IsisModuleSecurityBypass.class,
         IsisModuleTestingFixturesApplib.class,
 
-        ApplicationModule.class,
+//        ApplicationModule.class,
     })
     public static class AppManifest {
     }

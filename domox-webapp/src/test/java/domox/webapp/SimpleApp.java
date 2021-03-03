@@ -1,11 +1,10 @@
 package domox.webapp;
 
+import org.apache.isis.core.config.presets.IsisPresets;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Import;
-
-import org.apache.isis.core.config.presets.IsisPresets;
 
 @SpringBootApplication
 @Import({

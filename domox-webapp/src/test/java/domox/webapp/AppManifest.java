@@ -1,10 +1,5 @@
 package domox.webapp;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
-
 import org.apache.isis.core.config.presets.IsisPresets;
 import org.apache.isis.core.runtimeservices.IsisModuleCoreRuntimeServices;
 import org.apache.isis.extensions.flyway.impl.IsisModuleExtFlywayImpl;
@@ -13,8 +8,10 @@ import org.apache.isis.testing.fixtures.applib.IsisModuleTestingFixturesApplib;
 import org.apache.isis.testing.h2console.ui.IsisModuleTestingH2ConsoleUi;
 import org.apache.isis.viewer.restfulobjects.jaxrsresteasy4.IsisModuleViewerRestfulObjectsJaxrsResteasy4;
 import org.apache.isis.viewer.wicket.viewer.IsisModuleViewerWicketViewer;
-
-import domox.webapp.fixture.scenarios.DomainAppDemo;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 
 @Configuration
 @Import({
@@ -29,10 +26,11 @@ import domox.webapp.fixture.scenarios.DomainAppDemo;
 
         IsisModuleExtFlywayImpl.class,
 
-        ApplicationModule.class,
+//        ApplicationModule.class,
+//        CustomModule.class,
 
         // discoverable fixtures
-        DomainAppDemo.class
+//        DomainAppDemo.class
 })
 @PropertySources({
         @PropertySource(IsisPresets.DebugDiscovery),
