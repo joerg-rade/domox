@@ -143,7 +143,7 @@ msgstr ""
 
 
 #: domainapp.modules.simple.dom.impl.SimpleObject#downloadLayoutXml()
-#: domox.webapp.application.services.homepage.HomePageViewModel#downloadLayoutXml()
+#: domox.webapp.application.application.services.homepage.HomePageViewModel#downloadLayoutXml()
 #: org.apache.isis.applib.domain.DomainObjectList#downloadLayoutXml()
 #: org.apache.isis.applib.services.confview.ConfigurationProperty#downloadLayoutXml()
 #: org.apache.isis.extensions.fixtures.fixturescripts.FixtureResult#downloadLayoutXml()
@@ -169,7 +169,7 @@ msgstr ""
 
 
 #: domainapp.modules.simple.dom.impl.SimpleObject#downloadMetaModelXml()
-#: domox.webapp.application.services.homepage.HomePageViewModel#downloadMetaModelXml()
+#: domox.webapp.application.application.services.homepage.HomePageViewModel#downloadMetaModelXml()
 #: org.apache.isis.applib.domain.DomainObjectList#downloadMetaModelXml()
 #: org.apache.isis.applib.services.confview.ConfigurationProperty#downloadMetaModelXml()
 #: org.apache.isis.extensions.fixtures.fixturescripts.FixtureResult#downloadMetaModelXml()
@@ -346,7 +346,7 @@ msgstr ""
 
 
 #: domainapp.modules.simple.dom.impl.SimpleObject#objectIdentifier()
-#: domox.webapp.application.services.homepage.HomePageViewModel#objectIdentifier()
+#: domox.webapp.application.application.services.homepage.HomePageViewModel#objectIdentifier()
 #: org.apache.isis.applib.domain.DomainObjectList#objectIdentifier()
 #: org.apache.isis.applib.services.confview.ConfigurationProperty#objectIdentifier()
 #: org.apache.isis.extensions.fixtures.fixturescripts.FixtureResult#objectIdentifier()
@@ -357,7 +357,7 @@ msgstr ""
 
 
 #: domainapp.modules.simple.dom.impl.SimpleObject#objectType()
-#: domox.webapp.application.services.homepage.HomePageViewModel#objectType()
+#: domox.webapp.application.application.services.homepage.HomePageViewModel#objectType()
 #: org.apache.isis.applib.domain.DomainObjectList#objectType()
 #: org.apache.isis.applib.services.confview.ConfigurationProperty#objectType()
 #: org.apache.isis.extensions.fixtures.fixturescripts.FixtureResult#objectType()
@@ -367,14 +367,14 @@ msgid "Object Type"
 msgstr ""
 
 
-#: domox.webapp.application.services.homepage.HomePageViewModel#objects
+#: domox.webapp.application.application.services.homepage.HomePageViewModel#objects
 #: org.apache.isis.applib.domain.DomainObjectList#objects
 msgid "Objects"
 msgstr "Objetos"
 
 
 #: domainapp.modules.simple.dom.impl.SimpleObject#openRestApi()
-#: domox.webapp.application.services.homepage.HomePageViewModel#openRestApi()
+#: domox.webapp.application.application.services.homepage.HomePageViewModel#openRestApi()
 #: org.apache.isis.applib.domain.DomainObjectList#openRestApi()
 #: org.apache.isis.applib.services.confview.ConfigurationProperty#openRestApi()
 #: org.apache.isis.applib.services.swagger.SwaggerServiceMenu#openRestApi()
@@ -437,7 +437,7 @@ msgstr ""
 
 
 #: domainapp.modules.simple.dom.impl.SimpleObject#rebuildMetamodel()
-#: domox.webapp.application.services.homepage.HomePageViewModel#rebuildMetamodel()
+#: domox.webapp.application.application.services.homepage.HomePageViewModel#rebuildMetamodel()
 #: org.apache.isis.applib.domain.DomainObjectList#rebuildMetamodel()
 #: org.apache.isis.applib.services.confview.ConfigurationProperty#rebuildMetamodel()
 #: org.apache.isis.extensions.fixtures.fixturescripts.FixtureResult#rebuildMetamodel()

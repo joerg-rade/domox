@@ -22,16 +22,16 @@ import javax.jdo.annotations.*;
         @Query(
                 name = "find", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.PartOfSpeech "),
+                        + "FROM domox.dom.nlp.PartOfSpeech "),
         @Query(
                 name = "findByIdContains", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.PartOfSpeech "
+                        + "FROM domox.dom.nlp.PartOfSpeech "
                         + "WHERE id.indexOf(:id) >= 0 "),
         @Query(
                 name = "findById", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.PartOfSpeech "
+                        + "FROM domox.dom.nlp.PartOfSpeech "
                         + "WHERE id == :id ")
 })
 @Unique(name = "PartOfSpeech_id_UNQ", members = {"id"})

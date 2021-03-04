@@ -59,33 +59,6 @@
             <!-- Work around. Surefire does not use JUnit's Test Engine discovery functionality -->
             <!-- generate cucumber json result -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>cucumber-cli</id>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <!--goal>run</goal-->
-                        </goals>
-                        <configuration>
-                            <target>
-                                <echo message="Running Cucumber CLI"/>
-                                <java classname="io.cucumber.core.cli.Main"
-                                      fork="true"
-                                      failonerror="true"
-                                      newenvironment="true"
-                                      maxmemory="1024m"
-                                      classpathref="maven.test.classpath">
-                                    <arg value="--plugin"/>
-                                    <arg value="json:${project.build.directory}/cucumber-no-clobber.json"/>
-                                </java>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>net.masterthought</groupId>
                 <artifactId>maven-cucumber-reporting</artifactId>
                 <version>${maven-cucumber-reporting.version}</version>
@@ -121,6 +94,14 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin-->
         </plugins>
     </build>
 

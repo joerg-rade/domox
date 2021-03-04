@@ -20,16 +20,16 @@ import javax.jdo.annotations.*;
         @Query(
                 name = "find", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.ModelDependency "),
+                        + "FROM domox.dom.nlp.ModelDependency "),
         @Query(
                 name = "findByIdContains", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.ModelDependency "
+                        + "FROM domox.dom.nlp.ModelDependency "
                         + "WHERE id.indexOf(:id) >= 0 "),
         @Query(
                 name = "findById", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.ModelDependency "
+                        + "FROM domox.dom.nlp.ModelDependency "
                         + "WHERE id == :id ")
 })
 @Unique(name = "ModelDependency_id_UNQ", members = {"id"})

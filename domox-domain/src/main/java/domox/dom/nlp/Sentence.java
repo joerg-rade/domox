@@ -40,16 +40,16 @@ import lombok.Setter;
         @Query(
                 name = "find", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.Sentence "),
+                        + "FROM domox.dom.nlp.Sentence "),
         @Query(
                 name = "findByIdContains", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.Sentence "
+                        + "FROM domox.dom.nlp.Sentence "
                         + "WHERE id.indexOf(:id) >= 0 "),
         @Query(
                 name = "findById", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.Sentence "
+                        + "FROM domox.dom.nlp.Sentence "
                         + "WHERE id == :id ")
 })
 @Unique(name = "Sentence_id_UNQ", members = {"id"})

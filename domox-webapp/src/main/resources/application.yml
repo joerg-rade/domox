@@ -54,8 +54,8 @@ isis:
           image: images/apache-isis/logo-48x48.png
           name: Apache Isis
 
-      themes:
-        show-chooser: true
+#      themes:
+#        show-chooser: true
 
       max-title-length-in-standalone-tables: 0
       max-title-length-in-parented-tables: 0

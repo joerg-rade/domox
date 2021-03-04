@@ -11,13 +11,13 @@ import com.tngtech.archunit.lang.ArchRule;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
+import domox.webapp.SimpleApp;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
 import org.apache.isis.applib.annotation.ViewModel;
 import org.apache.isis.applib.annotation.ViewModelLayout;
 
 import domox.SimpleModule;
-import domox.webapp.SimpleApp;
 
 @AnalyzeClasses(
         packagesOf = {SimpleModule.class, SimpleApp.class},

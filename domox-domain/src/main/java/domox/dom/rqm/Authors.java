@@ -12,7 +12,7 @@ import java.util.List;
 
 @DomainService(
         nature = NatureOfService.VIEW,
-        objectType = "Author"
+        objectType = "domox.Author"
 )
 @lombok.RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Authors {

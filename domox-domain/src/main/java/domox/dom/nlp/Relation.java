@@ -21,16 +21,16 @@ import java.util.List;
         @Query(
                 name = "find", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.Relation "),
+                        + "FROM domox.dom.nlp.Relation "),
         @Query(
                 name = "findByIdContains", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.Relation "
+                        + "FROM domox.dom.nlp.Relation "
                         + "WHERE id.indexOf(:id) >= 0 "),
         @Query(
                 name = "findById", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domox.dom.rqm.Relation "
+                        + "FROM domox.dom.nlp.Relation "
                         + "WHERE id == :id ")
 })
 @Unique(name = "Relation_id_UNQ", members = {"id"})

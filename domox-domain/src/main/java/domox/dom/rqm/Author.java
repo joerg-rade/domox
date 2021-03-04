@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @Version(
         strategy = VersionStrategy.VERSION_NUMBER,
         column = "version")
-@javax.jdo.annotations.Unique(name = "Author_id_UNQ", members = {"id"})
+@javax.jdo.annotations.Unique(name = "Author_eMail_UNQ", members = {"eMail"})
 @DomainObject()
 @DomainObjectLayout()
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
