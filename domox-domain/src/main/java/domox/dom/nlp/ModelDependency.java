@@ -6,6 +6,7 @@ import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
+import javax.persistence.FetchType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @javax.persistence.Entity
@@ -33,13 +34,19 @@ public class ModelDependency implements Comparable<domox.dom.nlp.ModelDependency
     @Property()
     private ModelType type;
 
-    @javax.persistence.Column(nullable = false)
+    @javax.persistence.OneToOne()
+    @javax.persistence.JoinColumn(name = "id")
     @Property()
     private PartOfSpeech partA;
 
-    @javax.persistence.Column(nullable = false)
+    @javax.persistence.OneToOne()
+    @javax.persistence.JoinColumn(name = "id")
     @Property()
     private PartOfSpeech partB;
+
+    @javax.persistence.ManyToOne()
+    @javax.persistence.JoinColumn(name = "id")
+    private Relation relation;
 
     //region > compareTo, toString
     @Override

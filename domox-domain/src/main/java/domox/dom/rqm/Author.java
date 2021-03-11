@@ -2,12 +2,10 @@ package domox.dom.rqm;
 
 import domox.SimpleModule;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.val;
-import org.apache.isis.applib.annotation.DomainObject;
-import org.apache.isis.applib.annotation.DomainObjectLayout;
-import org.apache.isis.applib.annotation.Editing;
-import org.apache.isis.applib.annotation.Programmatic;
+import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.services.message.MessageService;
 import org.apache.isis.applib.services.repository.RepositoryService;
@@ -16,6 +14,7 @@ import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPoin
 
 import javax.inject.Inject;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.util.Set;
 
 @javax.persistence.Entity
 @javax.persistence.Table(
@@ -26,7 +25,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 )
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
 @DomainObject(objectType = "domox.Author", editing = Editing.DISABLED)
-@DomainObjectLayout()
+@DomainObjectLayout(cssClassFa = "user")
+@NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
@@ -67,9 +67,6 @@ public class Author implements Comparable<domox.dom.rqm.Author> {
     @javax.persistence.Transient
     MessageService messageService;
 
-    private Author() {
-    }
-
     public String title() {
         return "Object: " + getFirstName() +
                 getMiddleInitial() +
@@ -80,5 +77,9 @@ public class Author implements Comparable<domox.dom.rqm.Author> {
     private String middleInitial;
     private String lastName;
     private String eMail;
+
+    @Property()
+    @javax.persistence.ManyToMany
+    public Set<Document> documents;
 
 }

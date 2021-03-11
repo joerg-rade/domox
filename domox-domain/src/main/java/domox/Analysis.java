@@ -10,7 +10,8 @@ import org.apache.isis.applib.services.repository.RepositoryService;
 import javax.inject.Inject;
 import java.util.List;
 
-@DomainService(nature = NatureOfService.VIEW)
+@DomainService(nature = NatureOfService.VIEW ,
+        objectType = "domox.Abalysis")
 @DomainServiceLayout(named = "Start", menuBar = DomainServiceLayout.MenuBar.PRIMARY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @Slf4j

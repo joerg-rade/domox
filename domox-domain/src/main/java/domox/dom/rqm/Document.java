@@ -10,7 +10,7 @@ import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPoin
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Set;
 
 @javax.persistence.Entity
 @javax.persistence.Table(
@@ -55,9 +55,9 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
     @Property()
     private Clob content;
 
-    @javax.persistence.Column(nullable = false)
     @Property()
-    private List<Author> authors;
+    @javax.persistence.ManyToMany
+    public Set<Author> authors;
 
     @javax.persistence.Column(nullable = false)
     @Property()

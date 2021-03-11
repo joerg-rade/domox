@@ -9,7 +9,9 @@ import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.value.Clob;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
+import javax.persistence.FetchType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.util.Set;
 
 @javax.persistence.Entity
 @javax.persistence.Table(
@@ -46,9 +48,13 @@ public class Sentence implements Comparable<Sentence> {
     @Property()
     private Clob parsed;
 
-    @javax.persistence.Column(nullable = false)
+    @javax.persistence.OneToOne()
+    @javax.persistence.JoinColumn(name = "id")
     @Property()
     private Document document;
+
+    @javax.persistence.OneToMany(mappedBy = "sentence")
+    private Set<PartOfSpeech> partsOfSpeech;
 
     //region > compareTo, toString
     @Override

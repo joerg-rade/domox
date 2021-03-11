@@ -7,6 +7,7 @@ import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
+import javax.persistence.FetchType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @javax.persistence.Entity
@@ -43,6 +44,10 @@ public class PartOfSpeech implements Comparable<PartOfSpeech> {
     @javax.persistence.Column(nullable = false)
     @Property()
     private PosType type;
+
+    @javax.persistence.ManyToOne()
+    @javax.persistence.JoinColumn(name = "id")
+    private Sentence sentence;
 
     //region > compareTo, toString
     @Override

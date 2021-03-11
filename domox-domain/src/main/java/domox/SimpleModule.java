@@ -1,5 +1,6 @@
 package domox;
 
+import domox.dom.nlp.Relation;
 import domox.dom.rqm.Author;
 import lombok.Data;
 import org.apache.isis.testing.fixtures.applib.fixturescripts.FixtureScript;
@@ -15,7 +16,7 @@ import org.springframework.validation.annotation.Validated;
 //@Import({})
 @ComponentScan
 @EnableJpaRepositories
-@EntityScan(basePackageClasses = {Author.class})
+@EntityScan(basePackageClasses = {Author.class, Relation.class})
 @EnableConfigurationProperties({
         SimpleModule.Configuration.class,
 })

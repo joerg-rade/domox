@@ -5,27 +5,28 @@ import domox.types.Name;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
-@Component
 @DomainService(
         nature = NatureOfService.VIEW,
         objectType = "domox.Authors"
 )
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
+@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Authors {
 
     private final RepositoryService repositoryService;
     private final JpaSupportService jpaSupportService;
     private final AuthorRepository authorRepository;
 
-    public static class ActionDomainEvent extends SimpleModule.ActionDomainEvent<Authors> {}
+    public static class ActionDomainEvent extends SimpleModule.ActionDomainEvent<Authors> {
+    }
 
-    public static class CreateActionDomainEvent extends ActionDomainEvent {}
+    public static class CreateActionDomainEvent extends ActionDomainEvent {
+    }
+
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT, domainEvent = CreateActionDomainEvent.class)
     @ActionLayout(promptStyle = PromptStyle.DIALOG_SIDEBAR)
     public Author create(
@@ -33,21 +34,25 @@ public class Authors {
         return repositoryService.persist(Author.withLastName(name));
     }
 
-    public static class FindByNameActionDomainEvent extends ActionDomainEvent {}
+    public static class FindByNameActionDomainEvent extends ActionDomainEvent {
+    }
+
     @Action(semantics = SemanticsOf.SAFE, domainEvent = FindByNameActionDomainEvent.class)
     @ActionLayout(bookmarking = BookmarkPolicy.AS_ROOT, promptStyle = PromptStyle.DIALOG_SIDEBAR)
     public List<Author> findByName(
             @Name final String name
     ) {
-        return authorRepository.findByNameContaining(name);
+        return authorRepository.findByLastNameContaining(name);
     }
 
     @Programmatic
     public Author findByNameExact(final String name) {
-        return authorRepository.findByName(name);
+        return authorRepository.findByLastName(name);
     }
 
-    public static class ListAllActionDomainEvent extends ActionDomainEvent {}
+    public static class ListAllActionDomainEvent extends ActionDomainEvent {
+    }
+
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(bookmarking = BookmarkPolicy.AS_ROOT)
     public List<Author> listAll() {

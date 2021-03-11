@@ -10,6 +10,7 @@ import org.apache.isis.applib.value.Clob;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @DomainService(
         nature = NatureOfService.VIEW,
@@ -24,7 +25,7 @@ public class Documents {
     }
 
     @MemberOrder(sequence = "2")
-    public Document create(String title, String url, Clob content, List<Author> authors) {
+    public Document create(String title, String url, Clob content, Set<Author> authors) {
         final Document obj = repositoryService.detachedEntity(Document.class);
         obj.setTitle(title);
         obj.setUrl(url);
@@ -35,7 +36,7 @@ public class Documents {
     }
 
     @MemberOrder(sequence = "3")
-    public List<Document> findByName(final String title) {
+    public List<Document> findByTitle(final String title) {
         List<Document> answer = new ArrayList<>();
         for (Document d : listAll()) {
             if (d.getTitle().equals(title)) {

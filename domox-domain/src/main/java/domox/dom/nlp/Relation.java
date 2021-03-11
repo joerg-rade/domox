@@ -6,6 +6,7 @@ import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
+import javax.persistence.FetchType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.List;
 
@@ -34,9 +35,10 @@ public class Relation implements Comparable<domox.dom.nlp.Relation> {
     @Property()
     private RelationType type;
 
-    @javax.persistence.Column(nullable = false)
+    @javax.persistence.JoinColumn(name = "id")
     //TODO cardinality 1:2
     @Property()
+    @javax.persistence.OneToMany(mappedBy = "relation")
     private List<ModelDependency> modelDependencies;
 
     //region > compareTo, toString
