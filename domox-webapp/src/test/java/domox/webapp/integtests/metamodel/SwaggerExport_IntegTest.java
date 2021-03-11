@@ -1,27 +1,21 @@
 package domox.webapp.integtests.metamodel;
 
-import java.io.IOException;
-
-import javax.inject.Inject;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
+import domox.webapp.integtests.ApplicationIntegTestAbstract;
+import lombok.val;
 import org.apache.isis.applib.services.registry.ServiceRegistry;
-import org.apache.isis.applib.services.swagger.SwaggerService;
+import org.apache.isis.applib.services.swagger.Format;
+import org.apache.isis.applib.services.swagger.Visibility;
 import org.apache.isis.testing.integtestsupport.applib.swagger.SwaggerExporter;
 import org.apache.isis.viewer.restfulobjects.jaxrsresteasy4.IsisModuleViewerRestfulObjectsJaxrsResteasy4;
+import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Import;
 
-import lombok.val;
+import javax.inject.Inject;
+import java.io.IOException;
 
-import domox.webapp.integtests.ApplicationIntegTestAbstract;
-
-@SpringBootTest(
-        classes = {
-                ApplicationIntegTestAbstract.AppManifest.class,
-                IsisModuleViewerRestfulObjectsJaxrsResteasy4.class
-        }
-)
+@Import({
+        IsisModuleViewerRestfulObjectsJaxrsResteasy4.class
+})
 class SwaggerExport_IntegTest extends ApplicationIntegTestAbstract {
 
     @Inject
@@ -30,6 +24,6 @@ class SwaggerExport_IntegTest extends ApplicationIntegTestAbstract {
     @Test
     void export() throws IOException {
         val swaggerExporter = new SwaggerExporter(serviceRegistry);
-        swaggerExporter.export(SwaggerService.Visibility.PRIVATE, SwaggerService.Format.JSON);
+        swaggerExporter.export(Visibility.PRIVATE, Format.JSON);
     }
 }

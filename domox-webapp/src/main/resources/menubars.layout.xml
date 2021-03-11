@@ -1,20 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<mb3:menuBars xsi:schemaLocation="http://isis.apache.org/applib/layout/menubars/bootstrap3 http://isis.apache.org/applib/layout/menubars/bootstrap3/menubars.xsd http://isis.apache.org/applib/layout/component http://isis.apache.org/applib/layout/component/component.xsd http://isis.apache.org/applib/layout/links http://isis.apache.org/applib/layout/links/links.xsd" xmlns:cpt="http://isis.apache.org/applib/layout/component" xmlns:lnk="http://isis.apache.org/applib/layout/links" xmlns:mb3="http://isis.apache.org/applib/layout/menubars/bootstrap3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<mb3:menuBars
+        xsi:schemaLocation="http://isis.apache.org/applib/layout/menubars/bootstrap3 http://isis.apache.org/applib/layout/menubars/bootstrap3/menubars.xsd http://isis.apache.org/applib/layout/component http://isis.apache.org/applib/layout/component/component.xsd"
+        xmlns:cpt="http://isis.apache.org/applib/layout/component"
+        xmlns:mb3="http://isis.apache.org/applib/layout/menubars/bootstrap3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <mb3:primary>
-        <mb3:menu>
+        <!--mb3:menu>
             <mb3:named>Authors</mb3:named>
             <mb3:section>
                 <mb3:serviceAction objectType="domox.Authors" id="create">
-                    <cpt:named>Create</cpt:named>
+                    <cpt:named>Create Author</cpt:named>
                 </mb3:serviceAction>
                 <mb3:serviceAction objectType="domox.Authors" id="findByName">
-                    <cpt:named>Find By Name</cpt:named>
+                    <cpt:named>Find Author By Name</cpt:named>
                 </mb3:serviceAction>
                 <mb3:serviceAction objectType="domox.Authors" id="listAll">
-                    <cpt:named>List All</cpt:named>
+                    <cpt:named>List All Authors</cpt:named>
                 </mb3:serviceAction>
             </mb3:section>
         </mb3:menu>
+        <mb3:menu>
+            <mb3:named>Documents</mb3:named>
+            <mb3:section>
+                <mb3:serviceAction objectType="domox.Documents" id="create">
+                    <cpt:named>Create Document</cpt:named>
+                </mb3:serviceAction>
+                <mb3:serviceAction objectType="domox.Documents" id="findByTitle">
+                    <cpt:named>Find Document By Title</cpt:named>
+                </mb3:serviceAction>
+                <mb3:serviceAction objectType="domox.Documents" id="listAll">
+                    <cpt:named>List All Documents</cpt:named>
+                </mb3:serviceAction>
+            </mb3:section>
+        </mb3:menu-->
         <mb3:menu unreferencedActions="true">
             <mb3:named>Other</mb3:named>
         </mb3:menu>

@@ -1,7 +1,5 @@
-C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\services\health\HealthCheckServiceImpl.java
-C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\fixture\scenarios\DomainAppDemo.java
-C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\services\homepage\HomePageViewModel.java
+C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\custom\CustomModule.java
+C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\custom\restapi\CustomController.java
+C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\application\ApplicationModule.java
 C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\SimpleApp.java
-C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\fixture\DomainAppFixtureScriptsSpecificationProvider.java
-C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\ApplicationModule.java
 C:\data\master\domox\domox-webapp\src\main\java\domox\webapp\AppManifest.java

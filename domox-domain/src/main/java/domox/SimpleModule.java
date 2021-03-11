@@ -1,34 +1,32 @@
 package domox;
 
+import domox.dom.rqm.Author;
+import lombok.Data;
+import org.apache.isis.testing.fixtures.applib.fixturescripts.FixtureScript;
+import org.apache.isis.testing.fixtures.applib.modules.ModuleWithFixtures;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.validation.annotation.Validated;
 
-import org.apache.isis.testing.fixtures.applib.fixturescripts.FixtureScript;
-import org.apache.isis.testing.fixtures.applib.modules.ModuleWithFixtures;
-import org.apache.isis.testing.fixtures.applib.teardown.TeardownFixtureAbstract;
-
-import domox.dom.rqm.Author;
-import lombok.Data;
-
-import static domox.SimpleModule.*;
-
 @org.springframework.context.annotation.Configuration
-@Import({})
+//@Import({})
 @ComponentScan
+@EnableJpaRepositories
+@EntityScan(basePackageClasses = {Author.class})
 @EnableConfigurationProperties({
-        Configuration.class,
+        SimpleModule.Configuration.class,
 })
 public class SimpleModule implements ModuleWithFixtures {
 
     @Override
     public FixtureScript getTeardownFixture() {
-        return new TeardownFixtureAbstract() {
+        return new FixtureScript() {
             @Override
             protected void execute(ExecutionContext executionContext) {
-                deleteFrom(Author.class);
+                repositoryService.removeAll(Author.class);
             }
         };
     }

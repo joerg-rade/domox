@@ -1,58 +1,46 @@
 package domox.dom.nlp;
 
-import domox.dom.rqm.Document;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.value.Clob;
+import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
+import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
-import javax.jdo.annotations.*;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@PersistenceCapable(
-        identityType = IdentityType.DATASTORE,
+@javax.persistence.Entity
+@javax.persistence.Table(
         schema = "domox",
-        table = "PartOfSpeech"
+        uniqueConstraints = {
+                @javax.persistence.UniqueConstraint(name = "PartOfSpeech_id_UNQ", columnNames = {"id"})
+        }
 )
-@DatastoreIdentity(
-        strategy = IdGeneratorStrategy.IDENTITY,
-        column = "id")
-@Version(
-        strategy = VersionStrategy.VERSION_NUMBER,
-        column = "version")
-@Queries({
-        @Query(
-                name = "find", language = "JDOQL",
-                value = "SELECT "
-                        + "FROM domox.dom.nlp.PartOfSpeech "),
-        @Query(
-                name = "findByIdContains", language = "JDOQL",
-                value = "SELECT "
-                        + "FROM domox.dom.nlp.PartOfSpeech "
-                        + "WHERE id.indexOf(:id) >= 0 "),
-        @Query(
-                name = "findById", language = "JDOQL",
-                value = "SELECT "
-                        + "FROM domox.dom.nlp.PartOfSpeech "
-                        + "WHERE id == :id ")
-})
-@Unique(name = "PartOfSpeech_id_UNQ", members = {"id"})
-@DomainObject(
-        editing = Editing.DISABLED
-)
-@DomainObjectLayout(
-        bookmarking = BookmarkPolicy.AS_ROOT
-)
+@javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
+@DomainObject(objectType = "domox.PartOfSpeech", editing = Editing.DISABLED)
+@DomainObjectLayout()
+@NoArgsConstructor
+@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+@ToString(onlyExplicitlyIncluded = true)
 @Data
 public class PartOfSpeech implements Comparable<PartOfSpeech> {
 
-    @Column(allowsNull = "false")
-    @Property()
+    @javax.persistence.Id
+    @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @javax.persistence.Column(nullable = false)
+    @Programmatic
     private Long id;
 
-    @Column(allowsNull = "false")
+    @javax.persistence.Version
+    @Programmatic
+    @javax.persistence.Column(name = "OPTLOCK")
+    private int version;
+
+    @javax.persistence.Column(nullable = false)
     @Property()
     private String content;
 
-    @Column(allowsNull = "false")
+    @javax.persistence.Column(nullable = false)
     @Property()
     private PosType type;
 

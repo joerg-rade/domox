@@ -2,6 +2,7 @@ domox\integtests\SimpleModuleIntegTestAbstract.class
 domox\dom\rqm\Authors_Test.class
 domox\dom\rqm\Author_Test.class
 domox\integtests\tests\Author_IntegTest.class
+domox\dom\rqm\DocumentsTest.class
 domox\integtests\tests\SimpleObjects_IntegTest$create.class
 domox\integtests\tests\SimpleObjects_IntegTest$listAll.class
 domox\dom\rqm\Authors_Test$ListAll.class

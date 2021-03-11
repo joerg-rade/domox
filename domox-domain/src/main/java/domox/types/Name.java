@@ -1,24 +1,19 @@
 package domox.types;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import javax.inject.Inject;
-import javax.jdo.annotations.Column;
-
+import domox.SimpleModule;
+import lombok.val;
 import org.apache.isis.applib.annotation.Parameter;
 import org.apache.isis.applib.annotation.ParameterLayout;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.services.i18n.TranslatableString;
 import org.apache.isis.applib.spec.AbstractSpecification2;
 
-import lombok.val;
+import javax.inject.Inject;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import domox.SimpleModule;
-
-@Column(length = Name.MAX_LEN, allowsNull = "false")
 @Property(mustSatisfy = Name.Specification.class, maxLength = Name.MAX_LEN)
 @Parameter(mustSatisfy = Name.Specification.class, maxLength = Name.MAX_LEN)
 @ParameterLayout(named = "Name")

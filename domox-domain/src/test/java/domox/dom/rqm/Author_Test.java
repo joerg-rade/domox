@@ -26,7 +26,7 @@ class Author_Test {
 
     @BeforeEach
     public void setUp() throws Exception {
-        object = Author.withName("Foo");
+        object = Author.withLastName("Foo");
         object.titleService = mockTitleService;
         object.messageService = mockMessageService;
         object.repositoryService = mockRepositoryService;

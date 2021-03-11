@@ -1,28 +1,26 @@
 package domox.webapp.integtests.metamodel.lockdown;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-
+import domox.webapp.integtests.ApplicationIntegTestAbstract;
+import domox.webapp.util.CurrentVsApprovedApprovalTextWriter;
+import org.apache.isis.applib.services.jaxb.JaxbService;
+import org.apache.isis.applib.services.metamodel.Config;
+import org.apache.isis.applib.services.metamodel.MetaModelService;
+import org.apache.isis.schema.metamodel.v2.DomainClassDto;
+import org.apache.isis.schema.metamodel.v2.MetamodelDto;
 import org.approvaltests.namer.StackTraceNamer;
 import org.approvaltests.reporters.DiffReporter;
 import org.approvaltests.reporters.UseReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.approvaltests.Approvals.getReporter;
 import static org.approvaltests.Approvals.verify;
 import static org.assertj.core.api.Assumptions.assumeThat;
-
-import org.apache.isis.applib.services.jaxb.JaxbService;
-import org.apache.isis.applib.services.metamodel.MetaModelService;
-import org.apache.isis.schema.metamodel.v2.DomainClassDto;
-import org.apache.isis.schema.metamodel.v2.MetamodelDto;
-
-import domox.webapp.integtests.ApplicationIntegTestAbstract;
-import domox.webapp.util.CurrentVsApprovedApprovalTextWriter;
 
 class LockDownMetaModel_IntegTest extends ApplicationIntegTestAbstract {
 
@@ -43,7 +41,7 @@ class LockDownMetaModel_IntegTest extends ApplicationIntegTestAbstract {
         // when
         MetamodelDto metamodelDto =
                 metaModelService.exportMetaModel(
-                        new MetaModelService.Config()
+                        new Config()
                                 .withIgnoreNoop()
                                 .withIgnoreAbstractClasses()
                                 .withIgnoreBuiltInValueTypes()

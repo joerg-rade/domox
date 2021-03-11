@@ -12,6 +12,5 @@ domox\webapp\bdd\CucumberTestAbstract.class
 domox\webapp\bdd\specs\CucumberTest.class
 domox\webapp\integtests\ApplicationIntegTestAbstract.class
 domox\webapp\util\CurrentVsApprovedApprovalTextWriter.class
-domox\webapp\integtests\ApplicationIntegTestAbstract$AppManifest.class
 domox\webapp\integtests\metamodel\SwaggerExport_IntegTest.class
 domox\webapp\integtests\metamodel\lockdown\LockDownMetaModel_IntegTest.class
