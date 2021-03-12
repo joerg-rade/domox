@@ -80,6 +80,10 @@ public class Author implements Comparable<domox.dom.rqm.Author> {
 
     @Property()
     @javax.persistence.ManyToMany
+    @javax.persistence.JoinTable(
+            name = "author_document",
+            joinColumns = @javax.persistence.JoinColumn(name = "author_id"),
+            inverseJoinColumns = @javax.persistence.JoinColumn(name = "document_id"))
     public Set<Document> documents;
 
 }

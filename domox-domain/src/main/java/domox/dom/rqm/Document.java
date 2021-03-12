@@ -58,7 +58,7 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
     private Clob content;
 
     @Property()
-    @javax.persistence.ManyToMany
+    @javax.persistence.ManyToMany(mappedBy = "documents")
     public Set<Author> authors;
 
     @javax.persistence.Column(nullable = false)
