@@ -46,7 +46,7 @@ isis:
         css: css/application.css
         favicon-url: images/favicon.png
         js: scripts/application.js
-        menubars-layout-xml: menubars.layout.xml
+        # menubars-layout-xml: menubars.layout.xml
         name: Simple App
         # https://stackoverflow.com/a/38983935/56880
         #version: @project.version@

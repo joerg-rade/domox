@@ -5,7 +5,7 @@
         xmlns:mb3="http://isis.apache.org/applib/layout/menubars/bootstrap3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <mb3:primary>
-        <!--mb3:menu>
+        <mb3:menu>
             <mb3:named>Authors</mb3:named>
             <mb3:section>
                 <mb3:serviceAction objectType="domox.Authors" id="create">
@@ -32,7 +32,7 @@
                     <cpt:named>List All Documents</cpt:named>
                 </mb3:serviceAction>
             </mb3:section>
-        </mb3:menu-->
+        </mb3:menu>
         <mb3:menu unreferencedActions="true">
             <mb3:named>Other</mb3:named>
         </mb3:menu>
