@@ -49,7 +49,7 @@ public class Sentence implements Comparable<Sentence> {
     private Clob parsed;
 
     @javax.persistence.OneToOne()
-    @javax.persistence.JoinColumn(name = "id")
+    @javax.persistence.JoinColumn(name = "documentId")
     @Property()
     private Document document;
 
@@ -60,11 +60,6 @@ public class Sentence implements Comparable<Sentence> {
     @Override
     public int compareTo(final Sentence other) {
         return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "id");
-    }
-
-    @Override
-    public String toString() {
-        return org.apache.isis.applib.util.ObjectContracts.toString(this, "id");
     }
     //endregion
 

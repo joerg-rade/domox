@@ -1,5 +1,6 @@
 package domox.dom.rqm;
 
+import domox.dom.nlp.Sentence;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -8,6 +9,7 @@ import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.value.Clob;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
+import javax.persistence.OneToOne;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
 import java.util.Set;
@@ -79,4 +81,14 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
     }
     //endregion
 
+    @OneToOne(mappedBy = "document", optional = false)
+    private Sentence sentence;
+
+    public Sentence getSentence() {
+        return sentence;
+    }
+
+    public void setSentence(Sentence sentence) {
+        this.sentence = sentence;
+    }
 }

@@ -35,28 +35,23 @@ public class ModelDependency implements Comparable<domox.dom.nlp.ModelDependency
     private ModelType type;
 
     @javax.persistence.OneToOne()
-    @javax.persistence.JoinColumn(name = "id")
+    @javax.persistence.JoinColumn(name = "partAId")
     @Property()
     private PartOfSpeech partA;
 
     @javax.persistence.OneToOne()
-    @javax.persistence.JoinColumn(name = "id")
+    @javax.persistence.JoinColumn(name = "partBId")
     @Property()
     private PartOfSpeech partB;
 
     @javax.persistence.ManyToOne()
-    @javax.persistence.JoinColumn(name = "id")
+    @javax.persistence.JoinColumn(name = "relation_id")
     private Relation relation;
 
     //region > compareTo, toString
     @Override
     public int compareTo(final ModelDependency other) {
         return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "id");
-    }
-
-    @Override
-    public String toString() {
-        return org.apache.isis.applib.util.ObjectContracts.toString(this, "id");
     }
     //endregion
 

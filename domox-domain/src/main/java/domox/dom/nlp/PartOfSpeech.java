@@ -34,7 +34,7 @@ public class PartOfSpeech implements Comparable<PartOfSpeech> {
 
     @javax.persistence.Version
     @Programmatic
-    @javax.persistence.Column(name = "OPTLOCK")
+    @javax.persistence.Column()
     private int version;
 
     @javax.persistence.Column(nullable = false)
@@ -46,18 +46,13 @@ public class PartOfSpeech implements Comparable<PartOfSpeech> {
     private PosType type;
 
     @javax.persistence.ManyToOne()
-    @javax.persistence.JoinColumn(name = "id")
+    @javax.persistence.JoinColumn(name = "sentence_id")
     private Sentence sentence;
 
     //region > compareTo, toString
     @Override
     public int compareTo(final PartOfSpeech other) {
         return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "id");
-    }
-
-    @Override
-    public String toString() {
-        return org.apache.isis.applib.util.ObjectContracts.toString(this, "id");
     }
     //endregion
 
