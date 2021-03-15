@@ -7,7 +7,6 @@ import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
-import javax.persistence.FetchType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @javax.persistence.Entity
@@ -18,7 +17,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
         }
 )
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.PartOfSpeech", editing = Editing.DISABLED)
+@DomainObject(objectType = "domox.PartOfSpeech", nature = Nature.ENTITY)
 @DomainObjectLayout()
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

@@ -9,7 +9,7 @@ import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.value.Clob;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
-import javax.persistence.OneToOne;
+import javax.persistence.CascadeType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
 import java.util.Set;
@@ -18,11 +18,11 @@ import java.util.Set;
 @javax.persistence.Table(
         schema = "domox",
         uniqueConstraints = {
-                @javax.persistence.UniqueConstraint(name = "Sentence_raw_UNQ", columnNames = {"raw"})
+                @javax.persistence.UniqueConstraint(name = "Document_title_UNQ", columnNames = {"title"})
         }
 )
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Document", editing = Editing.DISABLED)
+@DomainObject(objectType = "domox.Document", nature = Nature.ENTITY)
 @DomainObjectLayout()
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
@@ -58,7 +58,7 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
     private Clob content;
 
     @Property()
-    @javax.persistence.ManyToMany(mappedBy = "documents")
+    @javax.persistence.ManyToMany(mappedBy = "documents", cascade = CascadeType.PERSIST)
     public Set<Author> authors;
 
     @javax.persistence.Column(nullable = false)
@@ -81,14 +81,7 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
     }
     //endregion
 
-    @OneToOne(mappedBy = "document", optional = false)
-    private Sentence sentence;
+    @javax.persistence.OneToMany(mappedBy = "document")
+    private Set<Sentence> sentences;
 
-    public Sentence getSentence() {
-        return sentence;
-    }
-
-    public void setSentence(Sentence sentence) {
-        this.sentence = sentence;
-    }
 }

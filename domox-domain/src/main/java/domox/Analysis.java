@@ -1,13 +1,11 @@
 package domox;
 
 import domox.dom.rqm.Author;
-import domox.dom.rqm.Authors;
 import domox.dom.rqm.Document;
 import domox.dom.rqm.Documents;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.value.Clob;
 
 import javax.inject.Inject;
@@ -15,13 +13,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@DomainService(nature = NatureOfService.VIEW ,
-        objectType = "domox.Abalysis")
+@DomainService(nature = NatureOfService.VIEW,
+        objectType = "domox.Analysis")
 @DomainServiceLayout(named = "Start", menuBar = DomainServiceLayout.MenuBar.PRIMARY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @Slf4j
 public class Analysis {
-    private final RepositoryService repositoryService;
     private final Documents documents;
 
     @Action()
@@ -36,11 +33,11 @@ public class Analysis {
         final Author holland = Author.withLastName("Holland");
         holland.setFirstName("James");
         holland.setMiddleInitial("G.");
-        holland.setEMail("do_not_reply@apa.org");
+        holland.setEMail("james.g.holland@apa.division25.org");
         final Author skinner = Author.withLastName("Skinner");
-        skinner.setFirstName("Burroughs");
+        skinner.setFirstName("Burrhus");
         skinner.setMiddleInitial("F.");
-        skinner.setEMail("do_not_reply@apa.org");
+        skinner.setEMail("burrhus.f.skinner@apa.division25.org");
         final Set<Author> authors = new HashSet<>();
         authors.add(holland);
         authors.add(skinner);

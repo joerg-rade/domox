@@ -6,18 +6,17 @@ import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
-import javax.persistence.FetchType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.ModelDependency", editing = Editing.DISABLED)
+@DomainObject(objectType = "domox.ModelDependency", nature = Nature.ENTITY)
 @DomainObjectLayout()
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
-public class ModelDependency implements Comparable<domox.dom.nlp.ModelDependency> {
+public class ModelDependency implements  Comparable<domox.dom.nlp.ModelDependency> {
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)

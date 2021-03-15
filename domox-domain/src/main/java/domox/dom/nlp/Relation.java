@@ -6,14 +6,13 @@ import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
-import javax.persistence.FetchType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.List;
 
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Relation", editing = Editing.DISABLED)
+@DomainObject(objectType = "domox.Relation", nature = Nature.ENTITY)
 @DomainObjectLayout()
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)

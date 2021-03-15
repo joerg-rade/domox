@@ -31,7 +31,7 @@ public class Authors {
     @ActionLayout(promptStyle = PromptStyle.DIALOG_SIDEBAR)
     public Author create(
             @Name final String name) {
-        return repositoryService.persist(Author.withLastName(name));
+        return repositoryService.persistAndFlush(Author.withLastName(name));
     }
 
     public static class FindByNameActionDomainEvent extends ActionDomainEvent {

@@ -46,10 +46,11 @@ isis:
         css: css/application.css
         favicon-url: images/favicon.png
         js: scripts/application.js
-        # menubars-layout-xml: menubars.layout.xml
+        menubars-layout-xml: menubars.layout.xml
         name: Simple App
-        # https://stackoverflow.com/a/38983935/56880
         #version: @project.version@
+
+        # https://stackoverflow.com/a/38983935/56880
 
       credit:
         - url:  http://isis.apache.org
@@ -57,7 +58,7 @@ isis:
           name: Apache Isis
 
       themes:
-        show-chooser: true
+        show-chooser: false
 
       max-title-length-in-standalone-tables: 0
       max-title-length-in-parented-tables: 0

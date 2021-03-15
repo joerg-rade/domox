@@ -9,7 +9,6 @@ import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.value.Clob;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
-import javax.persistence.FetchType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Set;
 
@@ -21,7 +20,7 @@ import java.util.Set;
         }
 )
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Sentence", editing = Editing.DISABLED)
+@DomainObject(objectType = "domox.Sentence", nature = Nature.ENTITY)
 @DomainObjectLayout()
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
@@ -48,7 +47,7 @@ public class Sentence implements Comparable<Sentence> {
     @Property()
     private Clob parsed;
 
-    @javax.persistence.OneToOne()
+    @javax.persistence.ManyToOne()
     @javax.persistence.JoinColumn(name = "documentId")
     @Property()
     private Document document;

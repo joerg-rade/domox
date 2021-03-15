@@ -7,12 +7,9 @@ import lombok.ToString;
 import lombok.val;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.applib.services.message.MessageService;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.applib.services.title.TitleService;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
-import javax.inject.Inject;
+import javax.persistence.CascadeType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Set;
 
@@ -24,7 +21,7 @@ import java.util.Set;
         }
 )
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Author", editing = Editing.DISABLED)
+@DomainObject(objectType = "domox.Author", nature = Nature.ENTITY)
 @DomainObjectLayout(cssClassFa = "user")
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
@@ -57,16 +54,6 @@ public class Author implements Comparable<domox.dom.rqm.Author> {
     public static class ActionDomainEvent extends SimpleModule.ActionDomainEvent<Author> {
     }
 
-    @Inject
-    @javax.persistence.Transient
-    RepositoryService repositoryService;
-    @Inject
-    @javax.persistence.Transient
-    TitleService titleService;
-    @Inject
-    @javax.persistence.Transient
-    MessageService messageService;
-
     public String title() {
         return "Object: " + getFirstName() +
                 getMiddleInitial() +
@@ -79,7 +66,7 @@ public class Author implements Comparable<domox.dom.rqm.Author> {
     private String eMail;
 
     @Property()
-    @javax.persistence.ManyToMany
+    @javax.persistence.ManyToMany(cascade = CascadeType.PERSIST)
     @javax.persistence.JoinTable(
             name = "author_document",
             joinColumns = @javax.persistence.JoinColumn(name = "author_id"),
