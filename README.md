@@ -50,7 +50,9 @@ Extracting Domain Models from Natural-Language Requirements:
 Approach and Industrial Evaluation. 
 https://people.svv.lu/sabetzadeh/pub/MODELS16.pdf
 
-[2] P. Coad, E. Lefebvre, and J. De Luca (1999). 
+[2] M. Javed, and Y. Lin (2020). iMER: Iterative Process of Entity Relationship and Business Process Models Extraction from the Requirements.
+
+[3] P. Coad, E. Lefebvre, and J. De Luca (1999). 
 Java Modeling in Color with UML.
 Enterprise Components and Processes.
 ISBN 0-13-011510-X
@@ -78,7 +80,7 @@ A Domain Model has:
 
 ### Various
 #### Ideas
-* Colorize ClassCandidates by means of their properties/actions [2]
+* Colorize ClassCandidates by means of their properties/actions [3]
 * temporal relations -> activity diagrams (HeidelTime?)
 
 #### Tools
