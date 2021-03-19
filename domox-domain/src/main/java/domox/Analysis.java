@@ -52,7 +52,7 @@ public class Analysis {
         //https://www.reqview.com/papers/ReqView-Example_Software_Requirements_Specification_SRS_Document.pdf
         final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";
         final String urlContent = readStringFromURL(url);
-        final String txtContent = xml2text(urlContent);
+        final String txtContent = html2text(urlContent);
         final Clob content = new Clob("", mimeTypeBase, txtContent);
         // when
         final Document document = documents.create(title, url, content, authors);
@@ -91,15 +91,26 @@ public class Analysis {
 
         final List<CoreSentence> coreSentences = cd.sentences();
         for (CoreSentence cs : coreSentences) {
-            final String t = cs.text();
-            documents.addSentenceTo(t, doc);
+            String t = cs.text().trim();
+            if (!t.endsWith(":")) { //) && (!t.matches("\\d.$"))
+                if (t.contains(":")) {
+                    final int pos = t.lastIndexOf(":");
+                    t = t.substring(pos + 1).trim();
+                }
+                documents.addSentenceTo(t, doc);
+            }
         }
         System.out.println();
     }
 
-    private String xml2text(String xml) {
-         String out = xml.replaceAll("<[^>]+>", "");
-         return out.replaceAll("&nbsp;", " ");
+    private String html2text(String html) {
+        String out = html.replaceAll("\"<a [\\s\\S]*?</a>", "");
+        out = out.replaceAll("<h2>[\\s\\S]*?</h2>", "");
+        out = out.replaceAll("<h3>[\\s\\S]*?</h3>", "");
+        out = out.replaceAll("<dt>[\\s\\S]*?</dt>", "");
+        out = out.replaceAll("<title>[\\s\\S]*?</title>", "");
+        out = out.replaceAll("<[^>]+>", "");
+        return out.replaceAll("&nbsp;", " ");
     }
 
 }
