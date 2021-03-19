@@ -3,15 +3,20 @@ package domox;
 import domox.dom.rqm.Author;
 import domox.dom.rqm.Document;
 import domox.dom.rqm.Documents;
+import edu.stanford.nlp.pipeline.CoreDocument;
+import edu.stanford.nlp.pipeline.CoreSentence;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.value.Clob;
 
 import javax.inject.Inject;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 @DomainService(nature = NatureOfService.VIEW,
         objectType = "domox.Analysis")
@@ -42,11 +47,59 @@ public class Analysis {
         authors.add(holland);
         authors.add(skinner);
         final String title = "Analysis of Behaviour";
-        final String url = "";
         final String mimeTypeBase = "text/xml";
-        final Clob content = new Clob("", mimeTypeBase, "");
+
+        //https://www.reqview.com/papers/ReqView-Example_Software_Requirements_Specification_SRS_Document.pdf
+        final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";
+        final String urlContent = readStringFromURL(url);
+        final String txtContent = xml2text(urlContent);
+        final Clob content = new Clob("", mimeTypeBase, txtContent);
         // when
         final Document document = documents.create(title, url, content, authors);
+    }
+
+    private String readStringFromURL(String requestURL) {
+        InputStream is = null;
+        try {
+            is = new URL(requestURL).openStream();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+        final String csName = StandardCharsets.UTF_8.toString();
+        try (Scanner scanner = new Scanner(is, csName)) {
+            scanner.useDelimiter("\\A");
+            return scanner.hasNext() ? scanner.next() : "";
+        }
+    }
+
+    @Action()
+    @ActionLayout(cssClassFa = "indent")
+    public void splitIntoSentences() {
+        final Document document = documents.listAll().get(0);
+        if (document != null) split(document);
+    }
+
+    private void split(Document doc) {
+        final Properties props = new Properties();
+        props.setProperty("annotators", "tokenize,ssplit");
+        props.setProperty("coref.algorithm", "neural");
+        final StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+
+        final String text = doc.getContent().getChars().toString();
+        final CoreDocument cd = new CoreDocument(text);
+        pipeline.annotate(cd);
+
+        final List<CoreSentence> coreSentences = cd.sentences();
+        for (CoreSentence cs : coreSentences) {
+            final String t = cs.text();
+            documents.addSentenceTo(t, doc);
+        }
+        System.out.println();
+    }
+
+    private String xml2text(String xml) {
+         String out = xml.replaceAll("<[^>]+>", "");
+         return out.replaceAll("&nbsp;", " ");
     }
 
 }

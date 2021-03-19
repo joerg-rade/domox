@@ -1,6 +1,7 @@
 package domox.dom.rqm;
 
 import domox.SimpleModule;
+import domox.dom.nlp.Sentence;
 import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.services.repository.RepositoryService;
@@ -58,6 +59,15 @@ public class Documents {
             }
         }
         return answer;
+    }
+
+    public void addSentenceTo(String raw, Document document) {
+        final Sentence obj = repositoryService.detachedEntity(Sentence.class);
+        obj.setRaw(raw);
+        repositoryService.persistAndFlush(obj);
+//        obj.setDocument(document);
+        document.getSentences().add(obj);
+        repositoryService.persistAndFlush(document);
     }
 
 }

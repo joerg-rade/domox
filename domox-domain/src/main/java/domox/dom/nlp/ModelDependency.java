@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @javax.persistence.Table(schema = "domox")
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
 @DomainObject(objectType = "domox.ModelDependency", nature = Nature.ENTITY)
-@DomainObjectLayout()
+@DomainObjectLayout(cssClassFa = "scan")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data

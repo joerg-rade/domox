@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 )
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
 @DomainObject(objectType = "domox.PartOfSpeech", nature = Nature.ENTITY)
-@DomainObjectLayout()
+@DomainObjectLayout(cssClassFa = "speech")
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)

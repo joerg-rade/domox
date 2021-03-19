@@ -1,3 +1,4 @@
+domox\dom\rqm\Documents$CreateActionDomainEvent.class
 domox\dom\uml\AssociationCdc.class
 domox\dom\nlp\RelationRepository.class
 domox\Analysis.class
@@ -17,6 +18,7 @@ domox\dom\nlp\Sentence.class
 domox\dom\rqm\Author.class
 domox\SimpleModule$Configuration.class
 domox\SimpleModule$Configuration$Types$Name.class
+domox\dom\rqm\Documents$ActionDomainEvent.class
 domox\dom\uml\ClassCdc.class
 domox\dom\rqm\Authors.class
 domox\fixture\SimpleObject_persona$PersistAll.class

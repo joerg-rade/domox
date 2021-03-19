@@ -23,7 +23,7 @@ import java.util.Set;
 )
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
 @DomainObject(objectType = "domox.Document", nature = Nature.ENTITY)
-@DomainObjectLayout()
+@DomainObjectLayout(cssClassFa = "file")
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)

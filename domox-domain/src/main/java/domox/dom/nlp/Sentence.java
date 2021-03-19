@@ -14,14 +14,11 @@ import java.util.Set;
 
 @javax.persistence.Entity
 @javax.persistence.Table(
-        schema = "domox",
-        uniqueConstraints = {
-                @javax.persistence.UniqueConstraint(name = "Sentence_raw_UNQ", columnNames = {"raw"})
-        }
+        schema = "domox"
 )
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
 @DomainObject(objectType = "domox.Sentence", nature = Nature.ENTITY)
-@DomainObjectLayout()
+@DomainObjectLayout(cssClassFa = "paragraph")
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)

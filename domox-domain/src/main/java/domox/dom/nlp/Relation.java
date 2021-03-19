@@ -13,7 +13,7 @@ import java.util.List;
 @javax.persistence.Table(schema = "domox")
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
 @DomainObject(objectType = "domox.Relation", nature = Nature.ENTITY)
-@DomainObjectLayout()
+@DomainObjectLayout(cssClassFa = "arrows-h")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
