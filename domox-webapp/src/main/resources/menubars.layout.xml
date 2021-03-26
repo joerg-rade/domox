@@ -36,10 +36,10 @@
         <mb3:menu>
             <mb3:named>Analysis</mb3:named>
             <mb3:section>
-                <mb3:serviceAction objectType="domox.Analysis" id="init">
+                <mb3:serviceAction objectType="domox.dom.Analysis" id="init">
                     <cpt:named>initialize</cpt:named>
                 </mb3:serviceAction>
-                <mb3:serviceAction objectType="domox.Analysis" id="splitIntoSentences">
+                <mb3:serviceAction objectType="domox.dom.Analysis" id="splitIntoSentences">
                     <cpt:named>split into sentences</cpt:named>
                 </mb3:serviceAction>
             </mb3:section>

@@ -3,7 +3,7 @@
 --
 @startuml
 
-package "requirements/corpus" {
+package "req" {
     class Author {
         firstName:String
         lastName:String

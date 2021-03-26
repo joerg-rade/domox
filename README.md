@@ -29,6 +29,7 @@ NLP Processing usually is as follows:
 
 
 ### Glossary
+* Corpus - A list of documents
 * NER - Named Entity Recognition
 * POS - Part of Speech (Taggigng)
 * Sofa - Subject of Analysis
@@ -82,7 +83,11 @@ A Domain Model has:
 #### Ideas
 * Colorize ClassCandidates by means of their properties/actions [3]
 * temporal relations -> activity diagrams (HeidelTime?)
-
+  
+* Have StanfordNLP run in a docker image, using GPU:
+  * https://stackoverflow.com/questions/60718574/containerization-of-a-python-code-with-stanfordnlp-that-uses-gpu
+  * https://github.com/NLPbox/stanford-corenlp-docker
+  
 #### Tools
 * Apache OpenNLP 
     * Home https://opennlp.apache.org/
@@ -92,6 +97,8 @@ A Domain Model has:
 * Apache UIMA
 * Apache cTAKES
 * BRAT https://brat.nlplab.org/index.html
+* Heideltime https://github.com/HeidelTime/heideltime
+* FreeLing http://nlp.lsi.upc.edu/freeling/node/1
 
 #### Search Terms
 * Rdd
