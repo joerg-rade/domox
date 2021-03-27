@@ -1,5 +1,6 @@
 package domox.dom.rqm;
 
+import domox.HtmlDocumentReader;
 import domox.SimpleModule;
 import domox.dom.nlp.Sentence;
 import lombok.RequiredArgsConstructor;
@@ -61,11 +62,29 @@ public class Documents {
         return answer;
     }
 
+    @MemberOrder(sequence = "4")
+    @Action()
+    @ActionLayout(cssClassFa = "play")
+    public Document loadSample() {
+        //https://www.reqview.com/papers/ReqView-Example_Software_Requirements_Specification_SRS_Document.pdf
+        final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";
+        final String title = "Requirements Document Example";
+
+        final HtmlDocumentReader reader = new HtmlDocumentReader();
+        final String txtContent = reader.extractContentFromUrl(url);
+        final Clob content = new Clob("", "text/xml", txtContent);
+        final Document document = create(title, url, content, null);
+        final List<String> rawList = reader.split(document);
+        for (String r :rawList) {
+            addSentenceTo(r, document);
+        }
+        return document;
+    }
+
     public void addSentenceTo(String raw, Document document) {
         final Sentence obj = repositoryService.detachedEntity(Sentence.class);
         obj.setRaw(raw);
         repositoryService.persistAndFlush(obj);
-//        obj.setDocument(document);
         document.getSentences().add(obj);
         repositoryService.persistAndFlush(document);
     }
