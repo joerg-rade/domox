@@ -1,8 +1,9 @@
 package domox.dom.rqm;
 
-import domox.HtmlDocumentReader;
+import domox.svc.HtmlDocumentReader;
 import domox.SimpleModule;
 import domox.dom.nlp.Sentence;
+import domox.svc.NlpAdapter;
 import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.services.repository.RepositoryService;
@@ -74,10 +75,12 @@ public class Documents {
         final String txtContent = reader.extractContentFromUrl(url);
         final Clob content = new Clob("", "text/xml", txtContent);
         final Document document = create(title, url, content, null);
-        final List<String> rawList = reader.split(document);
-        for (String r :rawList) {
-            addSentenceTo(r, document);
-        }
+        NlpAdapter.parseTextAndAmend(document);
+        repositoryService.persistAndFlush(document);
+//        final List<String> rawList = reader.split(document);
+//        for (String r :rawList) {
+//            addSentenceTo(r, document);
+//        }
         return document;
     }
 

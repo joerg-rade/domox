@@ -2,7 +2,6 @@ domox\dom\rqm\Documents$CreateActionDomainEvent.class
 domox\dom\uml\AssociationCdc.class
 domox\dom\nlp\RelationRepository.class
 domox\dom\rqm\Authors$ListAllActionDomainEvent.class
-domox\HtmlDocumentReader.class
 META-INF\spring-configuration-metadata.json
 domox\SimpleModule$1.class
 domox\dom\nlp\Relation.class
@@ -11,11 +10,13 @@ domox\dom\nlp\PosType.class
 domox\types\Notes.class
 domox\dom\rqm\Corpora.class
 domox\dom\uml\DomainModel.class
+domox\dom\nlp\SentenceRepository.class
 domox\dom\nlp\RelationType.class
 domox\dom\nlp\Sentences.class
 domox\SimpleModule$Configuration$Types.class
 domox\dom\rqm\Authors$CreateActionDomainEvent.class
 domox\dom\nlp\Sentence.class
+domox\svc\NLProcessor.class
 domox\dom\rqm\Author.class
 domox\SimpleModule$Configuration.class
 domox\SimpleModule$Configuration$Types$Name.class
@@ -38,8 +39,10 @@ domox\SimpleModule$ActionDomainEvent.class
 domox\dom\rqm\Corpora$ActionDomainEvent.class
 domox\dom\nlp\ModelDependency.class
 domox\dom\rqm\Authors$ActionDomainEvent.class
+domox\svc\HtmlDocumentReader.class
 domox\dom\rqm\AuthorRepository.class
 domox\dom\uml\ActionCdc.class
+domox\svc\StanfordNLP.class
 domox\dom\rqm\Document.class
 domox\fixture\SimpleObjectBuilder.class
 domox\dom\nlp\PartOfSpeeches.class

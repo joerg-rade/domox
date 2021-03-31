@@ -19,6 +19,8 @@ C:\data\master\domox\domox-domain\src\main\java\domox\dom\nlp\ModelDependency.ja
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\rqm\Documents.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\rqm\Corpus.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\nlp\PartOfSpeech.java
+C:\data\master\domox\domox-domain\src\main\java\domox\svc\StanfordNLP.java
+C:\data\master\domox\domox-domain\src\main\java\domox\svc\NLProcessor.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\nlp\ModelDependencyRepository.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\nlp\PartOfSpeechRepository.java
 C:\data\master\domox\domox-domain\src\main\java\domox\fixture\SimpleObjectBuilder.java
@@ -26,9 +28,10 @@ C:\data\master\domox\domox-domain\src\main\java\domox\dom\uml\PropertyCdc.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\rqm\AuthorRepository.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\rqm\Authors.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\uml\ActionCdc.java
-C:\data\master\domox\domox-domain\src\main\java\domox\HtmlDocumentReader.java
+C:\data\master\domox\domox-domain\src\main\java\domox\dom\nlp\SentenceRepository.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\rqm\DocumentRepository.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\nlp\RelationRepository.java
+C:\data\master\domox\domox-domain\src\main\java\domox\svc\HtmlDocumentReader.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\uml\DomainModel.java
 C:\data\master\domox\domox-domain\src\main\java\domox\SimpleModule.java
 C:\data\master\domox\domox-domain\src\main\java\domox\dom\uml\ClassCdc.java

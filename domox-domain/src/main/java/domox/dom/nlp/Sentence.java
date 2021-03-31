@@ -2,15 +2,12 @@ package domox.dom.nlp;
 
 import domox.dom.rqm.Document;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.applib.value.Clob;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import java.util.Set;
 
 @javax.persistence.Entity
 @javax.persistence.Table(
@@ -19,7 +16,6 @@ import java.util.Set;
 @javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
 @DomainObject(objectType = "domox.Sentence", nature = Nature.ENTITY)
 @DomainObjectLayout(cssClassFa = "paragraph")
-@NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
@@ -42,16 +38,13 @@ public class Sentence implements Comparable<Sentence> {
 
     @javax.persistence.Column(nullable = true)
     @Property()
-    private Clob parsed;
+    private String typedDependencies;
 
     @javax.persistence.ManyToOne()
     @javax.persistence.JoinColumn(name = "documentId")
     @Property()
     private Document document;
-
-    @javax.persistence.OneToMany(mappedBy = "sentence")
-    private Set<PartOfSpeech> partsOfSpeech;
-
+    
     //region > compareTo, toString
     @Override
     public int compareTo(final Sentence other) {

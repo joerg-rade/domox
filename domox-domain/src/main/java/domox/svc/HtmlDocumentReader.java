@@ -1,4 +1,4 @@
-package domox;
+package domox.svc;
 
 import domox.dom.rqm.Document;
 import edu.stanford.nlp.pipeline.CoreDocument;
@@ -17,8 +17,7 @@ import java.util.Scanner;
 public class HtmlDocumentReader {
     public String extractContentFromUrl(String url) {
         final String rawContent = readStringFromURL(url);
-        final String txtContent = html2text(rawContent);
-        return txtContent;
+        return html2text(rawContent);
     }
 
     private String readStringFromURL(String requestURL) {

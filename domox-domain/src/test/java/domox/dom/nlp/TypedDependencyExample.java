@@ -32,10 +32,10 @@ public class TypedDependencyExample {
 
     @Test
     public void getNounPhrasesTest() {
-        final String q = "What is the meaning of life, the universe and everything?";
+        final String s = "What is the meaning of life, the universe and everything?";
         ArrayList<String> nounP = new ArrayList<>();
 
-        Annotation annotation = new Annotation(q);
+        Annotation annotation = new Annotation(s);
         pipeline.annotate(annotation);
 
         List<CoreMap> question = annotation.get(CoreAnnotations.SentencesAnnotation.class);

@@ -81,7 +81,7 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
     }
     //endregion
 
-    @javax.persistence.OneToMany(mappedBy = "document")
+    @javax.persistence.OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)
     private Set<Sentence> sentences;
 
     @javax.persistence.ManyToOne()
