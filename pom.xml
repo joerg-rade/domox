@@ -6,6 +6,8 @@
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
         <isis-version>2.0.0-M4.20210322-0430-f1c8cf76</isis-version>
+        <stanford-corenlp.version>4.0.0</stanford-corenlp.version>
+        <lombok.version>1.18.20</lombok.version>
     </properties>
 
     <parent>
@@ -42,6 +44,22 @@
                 <groupId>org.apache.isis.domox</groupId>
                 <artifactId>domox-webapp</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.stanford.nlp</groupId>
+                <artifactId>stanford-corenlp</artifactId>
+                <version>${stanford-corenlp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.stanford.nlp</groupId>
+                <artifactId>stanford-corenlp</artifactId>
+                <version>${stanford-corenlp.version}</version>
+                <classifier>models</classifier>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
             </dependency>
 
         </dependencies>
