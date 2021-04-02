@@ -1,0 +1,77 @@
+.SentenceAnalysis
+[plantuml,file="SentenceAnalysis"]
+--
+@startuml
+digraph g {
+    graph [nodesep=0.2 ranksep=0.1]
+    node [shape=none fontname=arial fontsize=12 style=filled fillcolor=white width=0.1 height=0]
+
+    edge [style=invis]
+    subgraph _1 {
+        p1 [label=DT shape=box fontsize=10 fillcolor=MAGENTA]
+        w1 [label=A]
+        p1 -> w1
+    }
+    subgraph _2 {
+        p2 [label=NN shape=box fontsize=10 fillcolor=CYAN]
+        w2 [label=language]
+        p2 -> w2
+    }
+    subgraph _3 {
+        p3 [label=NN shape=box fontsize=10 fillcolor=CYAN]
+        w3 [label=tape]
+        p3 -> w3
+    }
+    subgraph _4 {
+        p4 [label=VBZ shape=box fontsize=10 fillcolor=CHARTREUSE]
+        w4 [label=has]
+        p4 -> w4
+    }
+    subgraph _5 {
+        p5 [label=DT shape=box fontsize=10 fillcolor=MAGENTA]
+        w5 [label=a]
+        p5 -> w5
+    }
+    subgraph _6 {
+        p6 [label=NN shape=box fontsize=10 fillcolor=CYAN]
+        w6 [label=title]
+        p6 -> w6
+    }
+    subgraph _7 {
+        p7 [label=NN shape=box fontsize=10 fillcolor=CYAN]
+        w7 [label=language]
+        p7 -> w7
+    }
+    subgraph _8 {
+        p8 [label=CC shape=box fontsize=10 fillcolor=WHITE]
+        w8 [label=and]
+        p8 -> w8
+    }
+    subgraph _9 {
+        p9 [label=NN shape=box fontsize=10 fillcolor=CYAN]
+        w9 [label=level]
+        p9 -> w9
+    }
+    subgraph _10 {
+        p10 [label="." shape=box fontsize=10 fillcolor=LIGHTGREY]
+        w10 [label="."]
+        p10 -> w10
+    }
+    // glue together
+    w1 -> w2 -> w3 -> w4 -> w5 -> w6 -> w7 -> w8 -> w9 -> w10
+    rank=same {w1, w2, w3, w4, w5, w6, w7, w8, w9, w10}
+    p1 -> p2 -> p3 -> p4 -> p5 -> p6 -> p7 -> p8 -> p9 -> p10
+    rank=same {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10}
+
+edge [style=normal fontsize=10 fontname=arial color=GREY]
+p1 -> p3 [label=det dir=back]
+p2 -> p3 [label=compound dir=back]
+p3 -> p4 [label=nsubj dir=back]
+p4 -> p7 [label=dobj]
+p5 -> p7 [label=det dir=back]
+p6 -> p7 [label=compound dir=back]
+p7 -> p8 [label=cc]
+p7 -> p9 [label="conj:and"]
+}
+@enduml
+--
