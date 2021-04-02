@@ -1,6 +1,6 @@
 package domox.dom.rqm;
 
-import domox.svc.HtmlDocumentReader;
+import domox.HtmlDocumentReader;
 import domox.SimpleModule;
 import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;

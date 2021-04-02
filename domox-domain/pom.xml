@@ -53,6 +53,12 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>domox-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- ISIS API -->
         <dependency>
             <groupId>org.apache.isis.core</groupId>

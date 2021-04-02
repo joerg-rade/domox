@@ -1,17 +1,9 @@
-package domox.svc;
-
-import domox.dom.rqm.Document;
-import edu.stanford.nlp.pipeline.CoreDocument;
-import edu.stanford.nlp.pipeline.CoreSentence;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+package domox;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 import java.util.Scanner;
 
 public class HtmlDocumentReader {
@@ -32,31 +24,6 @@ public class HtmlDocumentReader {
             scanner.useDelimiter("\\A");
             return scanner.hasNext() ? scanner.next() : "";
         }
-    }
-
-    public List<String> split(Document doc) {
-        final List<String> lines = new ArrayList<>();
-        final Properties props = new Properties();
-        props.setProperty("annotators", "tokenize,cleanxml,ssplit");
-        props.setProperty("coref.algorithm", "neural");
-        final StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-
-        final String text = doc.getContent().getChars().toString();
-        final CoreDocument cd = new CoreDocument(text);
-        pipeline.annotate(cd);
-
-        final List<CoreSentence> coreSentences = cd.sentences();
-        for (CoreSentence cs : coreSentences) {
-            String t = cs.text().trim();
-            if (!t.endsWith(":")) { //|| (!t.matches("\\d.$")))
-                if (t.contains(":")) {
-                    final int pos = t.lastIndexOf(":");
-                    t = t.substring(pos + 1).trim();
-                }
-                lines.add(t);
-            }
-        }
-        return lines;
     }
 
     private String html2text(String html) {
