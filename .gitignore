@@ -23,7 +23,7 @@
 hs_err_pid*
 
 # IDE files
-/.idea/
+**/.idea/
 
 # build artefacts
 /domox-domain/target/
