@@ -1,6 +1,6 @@
 package domox.dom.rqm;
 
-import domox.HtmlDocumentReader;
+import domox.HtmlReader;
 import domox.SimpleModule;
 import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
@@ -71,7 +71,7 @@ public class Documents {
         final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";
         final String title = "Requirements Document Example";
 
-        final HtmlDocumentReader reader = new HtmlDocumentReader();
+        final HtmlReader reader = new HtmlReader();
         final String txtContent = reader.extractContentFromUrl(url);
         final Clob content = new Clob("", "text/xml", txtContent);
         final Document document = create(title, url, content, null);

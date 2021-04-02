@@ -58,6 +58,12 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
     private Clob content;
 
     @Property()
+    @MemberOrder(sequence = "5")
+    @javax.persistence.OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)
+    private Set<Sentence> sentences;
+
+    @Property()
+    @MemberOrder(sequence = "6")
     @javax.persistence.ManyToMany(mappedBy = "documents", cascade = CascadeType.PERSIST)
     public Set<Author> authors;
 
@@ -80,9 +86,6 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
         return org.apache.isis.applib.util.ObjectContracts.toString(this, "id");
     }
     //endregion
-
-    @javax.persistence.OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)
-    private Set<Sentence> sentences;
 
     @javax.persistence.ManyToOne()
     @javax.persistence.JoinColumn(name = "corpus_id")
