@@ -24,7 +24,10 @@ hs_err_pid*
 
 # IDE files
 /.idea/*
+.idea/*
+*.iml
 
 # build artefacts
 /domox-domain/target
 /domox-webapp/target/
+/domox-service/target/

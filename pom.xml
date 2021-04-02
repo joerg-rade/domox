@@ -47,17 +47,10 @@
         </dependencies>
     </dependencyManagement>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.18</version>
-        </dependency>
-    </dependencies>
-
     <modules>
         <module>domox-domain</module>
         <module>domox-webapp</module>
+        <module>domox-service</module>
     </modules>
 
 </project>
