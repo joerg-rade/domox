@@ -27,6 +27,6 @@ hs_err_pid*
 /**/*.iml
 
 # build artefacts
-/domox-domain/target
+/domox-domain/target/
 /domox-webapp/target/
 /domox-service/target/
