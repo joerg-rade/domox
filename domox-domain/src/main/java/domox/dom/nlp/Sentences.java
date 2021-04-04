@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import domox.diagram.UmlUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.services.repository.RepositoryService;
@@ -28,5 +29,13 @@ public class Sentences {
         repositoryService.persist(obj);
         return obj;
     }
+
+    @MemberOrder(sequence = "2")
+    @Action(semantics = SemanticsOf.SAFE)
+    @ActionLayout
+    public void diagram() {
+        System.out.println(UmlUtils.INSTANCE.generateDiagram());
+    }
+
 
 }

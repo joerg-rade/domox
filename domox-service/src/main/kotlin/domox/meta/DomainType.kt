@@ -29,3 +29,38 @@ data class DiagramDM(val classes: Set<DomainType>)
 class ResourceSpecification(
         val url: String,
         val subType: String)
+
+data class Argument(var key: String = "",
+                    var value: String? = null,
+                    val potFileName: String = "",
+                    val href: String? = null) {
+    init {
+        if (value == null) {
+            value = ""
+        }
+    }
+
+}
+
+object Constants {
+
+    const val stdMimeType = "text/plain"
+    const val svgMimeType = "image/svg+xml"
+    const val calcHeight = "calc(100vh - 88px)"
+    const val actionSeparator = "\n"
+    const val subTypeJson = "json"
+    const val subTypeXml = "xml"
+
+    const val plantUmlUrl = "https://kroki.io/" //see: https://github.com/yuzutech/kroki
+    //const val plantUmlUrl = "http://localhost:8080/"
+    //host:port depend on how docker is started
+    // docker run -d --name kroki -p 8080:8000 yuzutech/kroki
+
+}
+
+enum class Method(val operation: String) {
+    GET("GET"),
+    PUT("PUT"),
+    POST("POST"),
+//    DELETE("DELETE")  not used - Apache Isis defines delete operations on DomainObjects
+}

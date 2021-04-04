@@ -18,17 +18,25 @@
  */
 package domox.diagram
 
+import domox.HttpRequest
+import domox.meta.Constants
+
 object UmlUtils {
 
-    fun generateDiagram(plantUmlCode: String, callBack: Any) {
-/*        val args = mutableMapOf<String, Argument>()
-        args["diagram_source"] = Argument(key = "\"diagram_source\"", value = plantUmlCode)
-        args["diagram_type"] = Argument(key = "\"diagram_type\"", value = "\"plantuml\"")
-        args["output_format"] = Argument(key = "\"output_format\"", value = "\"svg\"")
+    const val sampleCode = "\"" +
+            "participant BOB [[https://en.wiktionary.org/wiki/best_of_breed]]\\n" +
+            "participant PITA [[https://en.wiktionary.org/wiki/PITA]]\\n" +
+            "BOB -> PITA: sometimes is a" +
+            "\""
 
-        val link = Link(href = Constants.plantUmlUrl, method = Method.POST.operation, args = args)
-        val agr = SvgDispatcher(callBack)
-        RoXmlHttpRequest().invokeAnonymous(link, agr)*/
+    fun generateDiagram(): String {
+        var arg = "{"
+        arg += "\"diagram_source\":" + sampleCode + ","
+        arg += "\"diagram_type\":" + "\"plantuml\","
+        arg += "\"output_format\":" + "\"svg\""
+        arg += "}"
+
+        return HttpRequest().invokeAnonymous(Constants.plantUmlUrl, arg)
     }
 
 }
