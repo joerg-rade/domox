@@ -34,7 +34,7 @@ public class Sentences {
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout
     public void diagram() {
-        System.out.println(UmlUtils.INSTANCE.generateDiagram());
+        System.out.println(UmlUtils.INSTANCE.sampleDiagram());
     }
 
 

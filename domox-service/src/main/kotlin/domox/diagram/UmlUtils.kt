@@ -29,9 +29,13 @@ object UmlUtils {
             "BOB -> PITA: sometimes is a" +
             "\""
 
-    fun generateDiagram(): String {
+    fun sampleDiagram(): String {
+        return generateDiagram(sampleCode)
+    }
+
+    fun generateDiagram(pumlCode: String): String {
         var arg = "{"
-        arg += "\"diagram_source\":" + sampleCode + ","
+        arg += "\"diagram_source\":" + pumlCode + ","
         arg += "\"diagram_type\":" + "\"plantuml\","
         arg += "\"output_format\":" + "\"svg\""
         arg += "}"
