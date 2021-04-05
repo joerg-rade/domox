@@ -1,6 +1,6 @@
 package domox.dom.nlp;
 
-public enum ModelType {
+public enum TdType {
     ACL,
     ADVCL_IF,
     ADVMOD,

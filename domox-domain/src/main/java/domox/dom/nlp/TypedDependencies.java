@@ -13,25 +13,25 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         objectType = "domox.ModelDependencies")
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class ModelDependencies {
+public class TypedDependencies {
     private final RepositoryService repositoryService;
-    private final ModelDependencyRepository repository;
+    private final TypedDependencyRepository repository;
 
     @MemberOrder(sequence = "1")
-    public List<ModelDependency> listAll() {
-        return repositoryService.allInstances(ModelDependency.class);
+    public List<TypedDependency> listAll() {
+        return repositoryService.allInstances(TypedDependency.class);
     }
 
     @MemberOrder(sequence = "2")
-    public ModelDependency create() {
-        final ModelDependency obj = repositoryService.detachedEntity(ModelDependency.class);
+    public TypedDependency create() {
+        final TypedDependency obj = repositoryService.detachedEntity(TypedDependency.class);
 //        obj.setTitle(title);
         repositoryService.persist(obj);
         return obj;
     }
 
     @MemberOrder(sequence = "3")
-    public List<ModelDependency> findByType(final ModelType type) {
+    public List<TypedDependency> findByType(final TdType type) {
         return repository.findByType(type);
     }
 

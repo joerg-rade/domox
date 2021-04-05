@@ -38,7 +38,7 @@ public class Relation implements Comparable<domox.dom.nlp.Relation> {
     //TODO cardinality 1:2
     @Property()
     @javax.persistence.OneToMany(mappedBy = "relation")
-    private List<ModelDependency> modelDependencies;
+    private List<TypedDependency> modelDependencies;
 
     //region > compareTo, toString
     @Override

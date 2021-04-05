@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
-public class ModelDependency implements  Comparable<domox.dom.nlp.ModelDependency> {
+public class TypedDependency implements  Comparable<domox.dom.nlp.TypedDependency> {
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
@@ -31,17 +31,17 @@ public class ModelDependency implements  Comparable<domox.dom.nlp.ModelDependenc
 
     @javax.persistence.Column(nullable = false)
     @Property()
-    private ModelType type;
+    private TdType type;
 
     @javax.persistence.OneToOne()
     @javax.persistence.JoinColumn(name = "partAId")
     @Property()
-    private PartOfSpeech partA;
+    private Word partA;
 
     @javax.persistence.OneToOne()
     @javax.persistence.JoinColumn(name = "partBId")
     @Property()
-    private PartOfSpeech partB;
+    private Word partB;
 
     @javax.persistence.ManyToOne()
     @javax.persistence.JoinColumn(name = "relation_id")
@@ -49,7 +49,7 @@ public class ModelDependency implements  Comparable<domox.dom.nlp.ModelDependenc
 
     //region > compareTo, toString
     @Override
-    public int compareTo(final ModelDependency other) {
+    public int compareTo(final TypedDependency other) {
         return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "id");
     }
     //endregion

@@ -34,7 +34,7 @@ public class Sentence implements Comparable<Sentence> {
 
     @javax.persistence.Column(nullable = false)
     @Property()
-    private String raw;
+    private String text;
 
     @javax.persistence.Column(nullable = true)
     @Property()

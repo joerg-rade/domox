@@ -13,25 +13,25 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         objectType = "domox.PartOfSpeeches")
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class PartOfSpeeches {
+public class Words {
     private final RepositoryService repositoryService;
-    private final PartOfSpeechRepository repository;
+    private final WordRepository repository;
 
     @MemberOrder(sequence = "1")
-    public List<PartOfSpeech> listAll() {
-        return repositoryService.allInstances(PartOfSpeech.class);
+    public List<Word> listAll() {
+        return repositoryService.allInstances(Word.class);
     }
 
     @MemberOrder(sequence = "2")
-    public PartOfSpeech create() {
-        final PartOfSpeech obj = repositoryService.detachedEntity(PartOfSpeech.class);
+    public Word create() {
+        final Word obj = repositoryService.detachedEntity(Word.class);
 //        obj.setTitle(title);
         repositoryService.persist(obj);
         return obj;
     }
 
     @MemberOrder(sequence = "3")
-    public List<PartOfSpeech> findByType(final PosType type) {
+    public List<Word> findByType(final PosType type) {
         return repository.findByType(type);
     }
 

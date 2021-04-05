@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
-public class PartOfSpeech implements Comparable<PartOfSpeech> {
+public class Word implements Comparable<Word> {
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
@@ -38,7 +38,7 @@ public class PartOfSpeech implements Comparable<PartOfSpeech> {
 
     @javax.persistence.Column(nullable = false)
     @Property()
-    private String content;
+    private String text;
 
     @javax.persistence.Column(nullable = false)
     @Property()
@@ -50,7 +50,7 @@ public class PartOfSpeech implements Comparable<PartOfSpeech> {
 
     //region > compareTo, toString
     @Override
-    public int compareTo(final PartOfSpeech other) {
+    public int compareTo(final Word other) {
         return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "id");
     }
     //endregion
