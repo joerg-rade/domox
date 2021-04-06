@@ -32,7 +32,7 @@ public class NlpAdapter {
             final String sentenceText = cs.text();
             System.out.println(sentenceText);
             final Sentence dmxSentence = new Sentence();
-            dmxSentence.setRaw(sentenceText);
+            dmxSentence.setText(sentenceText);
             dmxSentence.setTypedDependencies(typedDependenciesAsList(cs).toString());
             dmxDoc.getSentences().add(dmxSentence);
         }

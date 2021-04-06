@@ -86,7 +86,7 @@ public class Documents {
 
     public void addSentenceTo(String raw, Document document) {
         final Sentence obj = repositoryService.detachedEntity(Sentence.class);
-        obj.setRaw(raw);
+        obj.setText(raw);
         repositoryService.persistAndFlush(obj);
         document.getSentences().add(obj);
         repositoryService.persistAndFlush(document);
