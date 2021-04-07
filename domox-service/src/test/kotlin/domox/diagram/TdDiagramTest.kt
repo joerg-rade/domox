@@ -17,7 +17,7 @@ internal class TdDiagramTest {
         //then
         assertTrue(pumlCode.contains("p1 -> w1"))
         assertTrue(pumlCode.contains("p10 -> w10"))
-        assertTrue(pumlCode.contains("rank=same {p1,p2,p3,p4,p5,p6,p7,p8,p9,p10}"))
+        assertTrue(pumlCode.contains("w1 -> w2 -> w3 -> w4 -> w5 -> w6 -> w7 -> w8 -> w9 -> w10"))
         assertEquals(1, countOccurrencesOfIn("CHARTREUSE", pumlCode))
         assertEquals(1, countOccurrencesOfIn("WHITE", pumlCode))
         assertEquals(2, countOccurrencesOfIn("MAGENTA", pumlCode))
