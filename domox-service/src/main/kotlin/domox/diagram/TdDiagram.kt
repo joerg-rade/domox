@@ -18,6 +18,7 @@
  */
 package domox.diagram
 
+import edu.stanford.nlp.ling.IndexedWord
 import edu.stanford.nlp.pipeline.CoreSentence
 import edu.stanford.nlp.trees.TypedDependency
 
@@ -65,6 +66,16 @@ object TdDiagram {
         p7 -> p9 [label="conj:and"]*/
     private fun buildEdges(dependencyList: Collection<TypedDependency>): String {
         var answer = ""
+        dependencyList.forEach() { td ->
+            val rel = td.reln().shortName
+            val gov = td.gov().index()
+            val dep = td.dep().index()
+            when (rel) {
+                "root" -> {}
+                "punct" -> {}
+                else -> answer += "p$gov -> p$dep [label=\"$rel\"]\n"
+            }
+        }
         return answer
     }
 
@@ -83,7 +94,7 @@ object TdDiagram {
         }
         answer += "w$lastWord}\n"
 
-        (1..wc - 1).forEach { i ->
+        (1..wc).forEach { i ->
             answer += "p$i -> "
         }
         answer += "p$lastWord\n"

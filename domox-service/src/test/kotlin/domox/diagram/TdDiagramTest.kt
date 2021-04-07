@@ -23,6 +23,7 @@ internal class TdDiagramTest {
         assertEquals(2, countOccurrencesOfIn("MAGENTA", pumlCode))
         assertEquals(5, countOccurrencesOfIn("CYAN", pumlCode))
         assertEquals(1, countOccurrencesOfIn("LIGHTGREY", pumlCode))
+        System.out.println(pumlCode)
     }
 
     private fun countOccurrencesOfIn(needle: String, haystack: String): Int {
