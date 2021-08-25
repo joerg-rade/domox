@@ -25,8 +25,7 @@
     {
       "name": "app.simple-module.types.name.validation.message",
       "type": "java.lang.String",
-      "sourceType": "domox.SimpleModule$Configuration$Types$Name$Validation",
-      "defaultValue": "Character '{character}' is not allowed"
+      "sourceType": "domox.SimpleModule$Configuration$Types$Name$Validation"
     },
     {
       "name": "app.simple-module.types.name.validation.prohibited-characters",

@@ -4,8 +4,7 @@ import domox.SimpleModule;
 import org.apache.isis.core.config.presets.IsisPresets;
 import org.apache.isis.core.runtimeservices.IsisModuleCoreRuntimeServices;
 import org.apache.isis.extensions.flyway.impl.IsisModuleExtFlywayImpl;
-import org.apache.isis.persistence.jpa.eclipselink.IsisModuleJpaEclipselink;
-import org.apache.isis.security.shiro.IsisModuleSecurityShiro;
+import org.apache.isis.persistence.jpa.eclipselink.IsisModulePersistenceJpaEclipselink;
 import org.apache.isis.testing.fixtures.applib.IsisModuleTestingFixturesApplib;
 import org.apache.isis.testing.h2console.ui.IsisModuleTestingH2ConsoleUi;
 import org.apache.isis.viewer.restfulobjects.jaxrsresteasy4.IsisModuleViewerRestfulObjectsJaxrsResteasy4;
@@ -18,8 +17,8 @@ import org.springframework.context.annotation.PropertySources;
 @Configuration
 @Import({
         IsisModuleCoreRuntimeServices.class,
-        IsisModuleSecurityShiro.class,
-        IsisModuleJpaEclipselink.class,
+//        IsisModuleSecurityShiro.class,
+        IsisModulePersistenceJpaEclipselink.class,
         IsisModuleViewerRestfulObjectsJaxrsResteasy4.class,
         IsisModuleViewerWicketViewer.class,
 

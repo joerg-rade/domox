@@ -9,17 +9,6 @@
         <stanford-corenlp.version>4.0.0</stanford-corenlp.version>
         <lombok.version>1.18.20</lombok.version>
         <file.encoding>UTF-8</file.encoding>
-        <!--
-        https://wiki.int.kn/rest/api/space/SeaAirLog ->
-        {"id":118915073,"key":"SeaAirLog","name":"GSC > Sea/AirLog","type":"global","_links":{"webui":"/display/SeaAirLog","collection":"/rest/api/space","base":"https://wiki.int.kn","context":"","self":"https://wiki.int.kn/rest/api/space/SeaAirLog"},"_expandable":{"metadata":"","icon":"","description":"","homepage":"/rest/api/content/118587520"}}
-        How to get Confluence page ID -> https://confluence.atlassian.com/confkb/how-to-get-confluence-page-id-648380445.html
-        https://wiki.int.kn/rest/api/content/591236456
-        -->
-        <rootConfluenceUrl>https://wiki.int.kn</rootConfluenceUrl>
-        <spaceKey>SeaAirLog</spaceKey>
-        <ancestorId>591236456</ancestorId>
-        <username>joerg.rade</username>
-        <password>mar1760.</password>
     </properties>
 
     <parent>
@@ -44,11 +33,11 @@
                 <artifactId>asciidoc-confluence-publisher-maven-plugin</artifactId>
                 <configuration>
                     <asciidocRootFolder>docs</asciidocRootFolder>
-                    <rootConfluenceUrl>https://wiki.int.kn</rootConfluenceUrl>
-                    <spaceKey>SeaAirLog</spaceKey>
-                    <ancestorId>591236456</ancestorId>
-                    <username>joerg.rade</username>
-                    <password>mar1760.</password>
+                    <rootConfluenceUrl>${rootConfluenceUrl}</rootConfluenceUrl>
+                    <spaceKey>${spaceKey}</spaceKey>
+                    <ancestorId>${ancestorId}</ancestorId>
+                    <username>${username}</username>
+                    <password>${password}</password>
                     <attributes>
                         <confluencePublisherVersion>${project.version}</confluencePublisherVersion>
                     </attributes>
