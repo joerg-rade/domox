@@ -19,7 +19,7 @@
         <spaceKey>SeaAirLog</spaceKey>
         <ancestorId>591236456</ancestorId>
         <username>joerg.rade</username>
-        <password>mar1760.</password>
+        <password>pw</password>
     </properties>
 
     <parent>
@@ -48,7 +48,7 @@
                     <spaceKey>SeaAirLog</spaceKey>
                     <ancestorId>591236456</ancestorId>
                     <username>joerg.rade</username>
-                    <password>mar1760.</password>
+                    <password>pw</password>
                     <attributes>
                         <confluencePublisherVersion>${project.version}</confluencePublisherVersion>
                     </attributes>
