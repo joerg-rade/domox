@@ -17,9 +17,34 @@
       <option name="url" value="http://repository.int.kn:8081/nexus/content/groups/public" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="Maven Central" />
+      <option name="name" value="Maven Central" />
+      <option name="url" value="http://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Maven Central repository" />
+      <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nexus-incode-work" />
+      <option name="name" value="Incode Work (maven)" />
+      <option name="url" value="https://nexus.incode.work/repository/nightly-builds" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="repository.nexus.thirdparty" />
       <option name="name" value="repository.nexus.thirdparty" />
       <option name="url" value="http://repository.int.kn:8081/nexus/content/repositories/thirdparty/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repository.nexus" />
+      <option name="name" value="repository.nexus" />
+      <option name="url" value="http://repository.int.kn/nexus/content/groups/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repository.nexus.thirdparty" />
+      <option name="name" value="repository.nexus.thirdparty" />
+      <option name="url" value="http://repository.int.kn/nexus/content/repositories/thirdparty/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="MavenRepo" />
@@ -37,9 +62,9 @@
       <option name="url" value="https://repo.incode.work" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="central" />
-      <option name="name" value="Maven Central repository" />
-      <option name="url" value="https://repo1.maven.org/maven2" />
+      <option name="id" value="Apache Repository" />
+      <option name="name" value="Apache Repository" />
+      <option name="url" value="http://repository.apache.org" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="jboss.community" />
@@ -55,6 +80,11 @@
       <option name="id" value="repository.central" />
       <option name="name" value="repository.central" />
       <option name="url" value="http://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repository.nexus.old" />
+      <option name="name" value="repository.nexus.old" />
+      <option name="url" value="http://repository.int.kn:8081/nexus/content/groups/public" />
     </remote-repository>
   </component>
 </project>

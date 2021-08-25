@@ -1,0 +1,33 @@
+.Docker
+[plantuml,file="Docker.png"]
+--
+@startuml
+
+node HOST as "<<host>>\nDocker Host" {
+    node "<<service>>" {
+        node "<<image>>\nCoreNLP" as NLP
+        node "<<image>>\nKroki" as UML
+        node "<<image>>\nMaryTTS" as TTS
+        node "<<image>>\nPostgres" as DB {
+            database "..**<<RDBMS>>**..\nRequirements\nModel"
+        }
+    }
+    interface NLP_SVC as "9000"
+    interface UML_SVC as "8000"
+    interface DB_SVC as "5432"
+    interface TTS_SVC as "59125"
+}
+
+NLP -- NLP_SVC
+UML -- UML_SVC
+DB -- DB_SVC
+TTS -- TTS_SVC
+
+component "<<JVM>>\nDoMoX" as DMX
+DMX -up-> NLP_SVC
+DMX -up-> UML_SVC
+DMX -up-> DB_SVC
+DMX -up-> TTS_SVC
+
+@enduml
+--

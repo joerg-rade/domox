@@ -80,20 +80,23 @@ A Domain Model has:
 * 1..n Associations 
 
 ### Various
+#### Tutorials
+* Tutorialspoint: https://www.tutorialspoint.
+* Lucene NLP: https://fabian-kostadinov.github.io/2018/09/08/introduction-to-lucene-opennlp-part1/
+* Baeldung: https://www.baeldung.com/apache-open-nlp
+* https://pub.towardsai.net/natural-language-processing-nlp-with-python-tutorial-for-beginners-1f54e610a1a0
+
 #### Ideas
 * Colorize ClassCandidates by means of their properties/actions [3]
 * temporal relations -> activity diagrams (HeidelTime?)
+* use MaryTTS (http://mary.dfki.de:59125/) to create audio of sentences, store them as Blob and have it play (cf. https://www.w3schools.com/html/html5_audio.asp)
   
 * Have StanfordNLP run in a docker image, using GPU:
   * https://stackoverflow.com/questions/60718574/containerization-of-a-python-code-with-stanfordnlp-that-uses-gpu
   * https://github.com/NLPbox/stanford-corenlp-docker
   
 #### Tools
-* Apache OpenNLP 
-    * Home https://opennlp.apache.org/
-    * Tutorialspoint: https://www.tutorialspoint.com/opennlp/opennlp_command_line_interface.htm
-    * Baeldung: https://www.baeldung.com/apache-open-nlp
-* Lucene NLP: https://fabian-kostadinov.github.io/2018/09/08/introduction-to-lucene-opennlp-part1/
+* Apache OpenNLP https://opennlp.apache.org/com/opennlp/opennlp_command_line_interface.htm
 * Apache UIMA
 * Apache cTAKES
 * BRAT https://brat.nlplab.org/index.html
@@ -101,4 +104,15 @@ A Domain Model has:
 * FreeLing http://nlp.lsi.upc.edu/freeling/node/1
 
 #### Search Terms
-* Rdd
+* Onlotogy learning/extraction https://en.wikipedia.org/wiki/Ontology_learning
+
+### Running with Docker
+#### Kroki/PlantUML
+Kroki is used for generating diagrams (UML, TypedDependency) - this can either be the instance the kroki team provides or one you host yourself as Docker image.
+
+#### StanfordCoreNLP
+StanfordCoreNLP can be used either from a jar library or via a service hosted by a Docker image.
+https://hub.docker.com/r/alborzi/stanford-corenlp
+
+ docker pull alborzi/stanford-corenlp
+

@@ -58,12 +58,12 @@ public class Document implements Comparable<domox.dom.rqm.Document> {
     private Clob content;
 
     @Property()
-    @MemberOrder(sequence = "5")
+    @PropertyLayout(sequence = "5")
     @javax.persistence.OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)
     private Set<Sentence> sentences;
 
     @Property()
-    @MemberOrder(sequence = "6")
+    @PropertyLayout(sequence = "6")
     @javax.persistence.ManyToMany(mappedBy = "documents", cascade = CascadeType.PERSIST)
     public Set<Author> authors;
 

@@ -1,0 +1,357 @@
+{
+  "sentences": [
+    {
+      "index": 0,
+      "parse": "(ROOT\n  (S\n    (NP (DT The) (JJ quick) (JJ brown) (NN fox))\n    (VP (VBD jumped)\n      (PP (IN over)\n        (NP (DT the) (JJ lazy) (NN duck))))\n    (. .)))",
+      "basicDependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "jumped"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 1,
+          "dependentGloss": "The"
+        },
+        {
+          "dep": "amod",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 2,
+          "dependentGloss": "quick"
+        },
+        {
+          "dep": "amod",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 3,
+          "dependentGloss": "brown"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 4,
+          "dependentGloss": "fox"
+        },
+        {
+          "dep": "case",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 6,
+          "dependentGloss": "over"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 7,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "amod",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 8,
+          "dependentGloss": "lazy"
+        },
+        {
+          "dep": "nmod",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 9,
+          "dependentGloss": "duck"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 10,
+          "dependentGloss": "."
+        }
+      ],
+      "enhancedDependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "jumped"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 1,
+          "dependentGloss": "The"
+        },
+        {
+          "dep": "amod",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 2,
+          "dependentGloss": "quick"
+        },
+        {
+          "dep": "amod",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 3,
+          "dependentGloss": "brown"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 4,
+          "dependentGloss": "fox"
+        },
+        {
+          "dep": "case",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 6,
+          "dependentGloss": "over"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 7,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "amod",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 8,
+          "dependentGloss": "lazy"
+        },
+        {
+          "dep": "nmod:over",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 9,
+          "dependentGloss": "duck"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 10,
+          "dependentGloss": "."
+        }
+      ],
+      "enhancedPlusPlusDependencies": [
+        {
+          "dep": "ROOT",
+          "governor": 0,
+          "governorGloss": "ROOT",
+          "dependent": 5,
+          "dependentGloss": "jumped"
+        },
+        {
+          "dep": "det",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 1,
+          "dependentGloss": "The"
+        },
+        {
+          "dep": "amod",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 2,
+          "dependentGloss": "quick"
+        },
+        {
+          "dep": "amod",
+          "governor": 4,
+          "governorGloss": "fox",
+          "dependent": 3,
+          "dependentGloss": "brown"
+        },
+        {
+          "dep": "nsubj",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 4,
+          "dependentGloss": "fox"
+        },
+        {
+          "dep": "case",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 6,
+          "dependentGloss": "over"
+        },
+        {
+          "dep": "det",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 7,
+          "dependentGloss": "the"
+        },
+        {
+          "dep": "amod",
+          "governor": 9,
+          "governorGloss": "duck",
+          "dependent": 8,
+          "dependentGloss": "lazy"
+        },
+        {
+          "dep": "nmod:over",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 9,
+          "dependentGloss": "duck"
+        },
+        {
+          "dep": "punct",
+          "governor": 5,
+          "governorGloss": "jumped",
+          "dependent": 10,
+          "dependentGloss": "."
+        }
+      ],
+      "sentimentValue": "1",
+      "sentiment": "Negative",
+      "sentimentDistribution": [
+        0.07050076874899,
+        0.57316569521138,
+        0.32136792332755,
+        0.02830065327787,
+        0.00666495943421
+      ],
+      "sentimentTree": "(ROOT|sentiment=1|prob=0.573\n  (NP|sentiment=2|prob=0.946 (DT|sentiment=2|prob=0.993 The)\n    (@NP|sentiment=2|prob=0.871 (JJ|sentiment=2|prob=0.993 quick)\n      (@NP|sentiment=2|prob=0.697 (JJ|sentiment=2|prob=0.929 brown) (NN|sentiment=2|prob=0.631 fox))))\n  (@S|sentiment=1|prob=0.532\n    (VP|sentiment=1|prob=0.471 (VBD|sentiment=2|prob=0.631 jumped)\n      (PP|sentiment=2|prob=0.552 (IN|sentiment=2|prob=0.991 over)\n        (NP|sentiment=1|prob=0.593 (DT|sentiment=2|prob=0.994 the)\n          (@NP|sentiment=1|prob=0.612 (JJ|sentiment=1|prob=0.716 lazy) (NN|sentiment=2|prob=0.941 duck)))))\n    (.|sentiment=2|prob=0.997 .)))",
+      "entitymentions": [],
+      "tokens": [
+        {
+          "index": 1,
+          "word": "The",
+          "originalText": "The",
+          "lemma": "the",
+          "characterOffsetBegin": 0,
+          "characterOffsetEnd": 3,
+          "pos": "DT",
+          "ner": "O",
+          "before": "",
+          "after": " "
+        },
+        {
+          "index": 2,
+          "word": "quick",
+          "originalText": "quick",
+          "lemma": "quick",
+          "characterOffsetBegin": 4,
+          "characterOffsetEnd": 9,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 3,
+          "word": "brown",
+          "originalText": "brown",
+          "lemma": "brown",
+          "characterOffsetBegin": 10,
+          "characterOffsetEnd": 15,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 4,
+          "word": "fox",
+          "originalText": "fox",
+          "lemma": "fox",
+          "characterOffsetBegin": 16,
+          "characterOffsetEnd": 19,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 5,
+          "word": "jumped",
+          "originalText": "jumped",
+          "lemma": "jump",
+          "characterOffsetBegin": 20,
+          "characterOffsetEnd": 26,
+          "pos": "VBD",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 6,
+          "word": "over",
+          "originalText": "over",
+          "lemma": "over",
+          "characterOffsetBegin": 27,
+          "characterOffsetEnd": 31,
+          "pos": "IN",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 7,
+          "word": "the",
+          "originalText": "the",
+          "lemma": "the",
+          "characterOffsetBegin": 32,
+          "characterOffsetEnd": 35,
+          "pos": "DT",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 8,
+          "word": "lazy",
+          "originalText": "lazy",
+          "lemma": "lazy",
+          "characterOffsetBegin": 36,
+          "characterOffsetEnd": 40,
+          "pos": "JJ",
+          "ner": "O",
+          "before": " ",
+          "after": " "
+        },
+        {
+          "index": 9,
+          "word": "duck",
+          "originalText": "duck",
+          "lemma": "duck",
+          "characterOffsetBegin": 41,
+          "characterOffsetEnd": 45,
+          "pos": "NN",
+          "ner": "O",
+          "before": " ",
+          "after": ""
+        },
+        {
+          "index": 10,
+          "word": ".",
+          "originalText": ".",
+          "lemma": ".",
+          "characterOffsetBegin": 45,
+          "characterOffsetEnd": 46,
+          "pos": ".",
+          "ner": "O",
+          "before": "",
+          "after": ""
+        }
+      ]
+    }
+  ]
+}

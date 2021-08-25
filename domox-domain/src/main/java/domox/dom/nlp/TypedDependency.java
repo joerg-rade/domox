@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
-public class TypedDependency implements  Comparable<domox.dom.nlp.TypedDependency> {
+public class TypedDependency implements Comparable<domox.dom.nlp.TypedDependency> {
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)

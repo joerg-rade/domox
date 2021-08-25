@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
+import org.apache.isis.applib.value.Blob;
 import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -40,11 +41,15 @@ public class Sentence implements Comparable<Sentence> {
     @Property()
     private String typedDependencies;
 
+    @javax.persistence.Column(nullable = true)
+    @Property()
+    private Blob diagram;
+
     @javax.persistence.ManyToOne()
     @javax.persistence.JoinColumn(name = "documentId")
     @Property()
     private Document document;
-    
+
     //region > compareTo, toString
     @Override
     public int compareTo(final Sentence other) {

@@ -1,22 +1,20 @@
 package domox.dom.nlp;
 
-import domox.diagram.UmlUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
-import javax.inject.Inject;
 import java.util.List;
 
 @DomainService(
         nature = NatureOfService.VIEW,
         objectType = "domox.Sentences")
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class Sentences {
     private final RepositoryService repositoryService;
     private final SentenceRepository repository;
 
-    @MemberOrder(sequence = "1")
+    @PropertyLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout
     public List<Sentence> listAll() {
@@ -29,13 +27,5 @@ public class Sentences {
         repositoryService.persist(obj);
         return obj;
     }
-
-    @MemberOrder(sequence = "2")
-    @Action(semantics = SemanticsOf.SAFE)
-    @ActionLayout
-    public void diagram() {
-        System.out.println(UmlUtils.INSTANCE.sampleDiagram());
-    }
-
 
 }

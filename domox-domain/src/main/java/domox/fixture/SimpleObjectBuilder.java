@@ -5,7 +5,7 @@ import domox.dom.rqm.Authors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.apache.isis.testing.fixtures.applib.fixturescripts.BuilderScriptWithResult;
+import org.apache.isis.testing.fixtures.applib.personas.BuilderScriptWithResult;
 
 import javax.inject.Inject;
 

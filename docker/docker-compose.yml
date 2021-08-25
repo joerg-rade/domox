@@ -1,0 +1,23 @@
+version: "3"
+services:
+  corenlp:
+    image: corenlp:4.2.0
+    ports:
+      - "9000:9000"
+    environment:
+      - JVM_OPTS=-Xmx4g
+
+  kroki:
+    image: yuzutech/kroki
+    ports:
+      - "8000:8000"
+
+#  postgres:
+#    image: postgres
+#    ports:
+#      - "5432:5432"
+
+#  marytts:
+#    image: synesthesiam/marytts:5.2
+#    ports:
+#      - "59125:59125"
