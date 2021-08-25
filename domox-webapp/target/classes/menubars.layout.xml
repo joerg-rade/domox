@@ -28,9 +28,6 @@
                 <mb3:serviceAction objectType="domox.Sentences" id="listAll">
                     <cpt:named>List All Sentences</cpt:named>
                 </mb3:serviceAction>
-                <mb3:serviceAction objectType="domox.Sentences" id="diagram">
-                    <cpt:named>Sample Diagram</cpt:named>
-                </mb3:serviceAction>
             </mb3:section>
         </mb3:menu>
         <mb3:menu unreferencedActions="true">

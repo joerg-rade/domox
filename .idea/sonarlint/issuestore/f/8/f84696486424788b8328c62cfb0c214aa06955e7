@@ -1,0 +1,10 @@
+
+t
+java:S1210l"YOverride "equals(Object obj)" to comply with the contract of the "compareTo(T o)" method.(­Ϊπόÿÿÿÿ
+R
+java:S1874r"0Remove this use of "toString"; it is deprecated.(¬­΅ύÿÿÿÿ8ΖξτΆΥ.
+L
+java:S1710&"7Remove the 'Queries' wrapper from this annotation group(Α°ω
+
+Q
+java:S1874m"/Remove this use of "compare"; it is deprecated.(²ύ—ύÿÿÿÿ8ΖξτΆΥ.

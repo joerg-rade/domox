@@ -5,14 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
 @DomainService(
         nature = NatureOfService.VIEW,
         objectType = "domox.Corpora")
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class Corpora {
     private final RepositoryService repositoryService;
 
@@ -22,14 +21,14 @@ public class Corpora {
     public static class CreateActionDomainEvent extends Corpora.ActionDomainEvent {
     }
 
-    @MemberOrder(sequence = "1")
+    @PropertyLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout
     public List<Corpus> listAll() {
         return repositoryService.allInstances(Corpus.class);
     }
 
-    @MemberOrder(sequence = "2")
+    @PropertyLayout(sequence = "2")
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT, domainEvent = Corpora.CreateActionDomainEvent.class)
     @ActionLayout
     public Corpus create(String title) {
@@ -39,7 +38,7 @@ public class Corpora {
         return obj;
     }
 
-    @MemberOrder(sequence = "3")
+    @PropertyLayout(sequence = "3")
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout
     public List<Corpus> findByTitle(final String title) {

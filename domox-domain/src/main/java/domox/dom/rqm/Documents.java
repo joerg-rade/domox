@@ -9,7 +9,6 @@ import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.value.Clob;
 
-import javax.inject.Inject;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +17,7 @@ import java.util.Set;
 @DomainService(
         nature = NatureOfService.VIEW,
         objectType = "domox.Documents")
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 public class Documents {
     private final RepositoryService repositoryService;
 
@@ -28,14 +27,14 @@ public class Documents {
     public static class CreateActionDomainEvent extends Documents.ActionDomainEvent {
     }
 
-    @MemberOrder(sequence = "1")
+    @PropertyLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout
     public List<Document> listAll() {
         return repositoryService.allInstances(Document.class);
     }
 
-    @MemberOrder(sequence = "2")
+    @PropertyLayout(sequence = "2")
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT, domainEvent = Documents.CreateActionDomainEvent.class)
     @ActionLayout
     public Document create(String title, String url, Clob content, Set<Author> authors) {
@@ -50,7 +49,7 @@ public class Documents {
         return obj;
     }
 
-    @MemberOrder(sequence = "3")
+    @PropertyLayout(sequence = "3")
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout
     public List<Document> findByTitle(final String title) {
@@ -63,7 +62,7 @@ public class Documents {
         return answer;
     }
 
-    @MemberOrder(sequence = "4")
+    @PropertyLayout(sequence = "4")
     @Action()
     @ActionLayout(cssClassFa = "play")
     public Document loadSample() {

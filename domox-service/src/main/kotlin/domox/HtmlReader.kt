@@ -29,6 +29,9 @@ class HtmlReader {
 
     private fun html2text(html: String): String? {
         var out = html
+        out = out.replace("<!DOCTYPE[\\s\\S]*?>".toRegex(), "")
+        out = out.replace("<head>[\\s\\S]*?</head>".toRegex(), "")
+        out = out.replace("<BODY[\\s\\S]*?>".toRegex(), "")
         out = out.replace("<h2>Table of Contents[\\s\\S]*?Introduction</h1></a>".toRegex(), "")
         out = out.replace("<a [\\s\\S]*?</a>".toRegex(), "")
         // out = out.replaceAll("<li>Section[\\s\\S]*?<br>", "");
@@ -38,6 +41,31 @@ class HtmlReader {
         out = out.replace("<dt>[\\s\\S]*?</dt>".toRegex(), "")
         out = out.replace("<title>[\\s\\S]*?</title>".toRegex(), "")
         //       out = out.replaceAll("<[^>]+>", "");
+        out = out.replace("<li>".toRegex(), ".")
+        out = out.replace("<br>".toRegex(), ".")
+        out = out.replace("<p>".toRegex(), "")
+
+        out = out.replace("<ul>".toRegex(), ".")
+        out = out.replace("</ul>".toRegex(), ".")
+        out = out.replace("<dl>".toRegex(), "")
+        out = out.replace("</dl>".toRegex(), "")
+        out = out.replace("<dd>".toRegex(), ".")
+        out = out.replace("</dd>".toRegex(), ".")
+
+        out = out.replace("<table>".toRegex(), "")
+        out = out.replace("</table>".toRegex(), "")
+        out = out.replace("<th [\\s\\S]*?>".toRegex(), "")
+        out = out.replace("</th>".toRegex(), ".")
+        out = out.replace("<tr>".toRegex(), "")
+        out = out.replace("</tr>".toRegex(), "")
+        out = out.replace("<td>".toRegex(), "")
+        out = out.replace("</td>".toRegex(), ".")
+
+        out = out.replace("<html>".toRegex(), "")
+        out = out.replace("</html>".toRegex(), "")
+        out = out.replace("</body>".toRegex(), "")
+        out = out.replace("..", ".")
+
         return out.replace("&nbsp;".toRegex(), " ")
     }
 

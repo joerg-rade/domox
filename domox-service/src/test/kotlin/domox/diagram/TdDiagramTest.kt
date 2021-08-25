@@ -1,6 +1,7 @@
 package domox.diagram
 
-import domox.StanfordNLP
+import domox.StanfordCoreNlpAPI
+import domox.TdDiagram
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -10,7 +11,7 @@ internal class TdDiagramTest {
     fun testBuild() {
         //given
         val text = "A language tape has a title language and level."
-        val coreDocument = StanfordNLP().annotate(text)
+        val coreDocument = StanfordCoreNlpAPI().annotate(text)
         val coreSentence = coreDocument.sentences().first()
         //when
         val pumlCode = TdDiagram.build(coreSentence)
@@ -29,4 +30,5 @@ internal class TdDiagramTest {
     private fun countOccurrencesOfIn(needle: String, haystack: String): Int {
         return haystack.windowed(needle.length).filter { it == needle }.count()
     }
+
 }

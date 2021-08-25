@@ -11,7 +11,7 @@ import javax.inject.Inject;
 @DomainService(nature = NatureOfService.VIEW,
         objectType = "domox.Analysis")
 @DomainServiceLayout(named = "Start", menuBar = DomainServiceLayout.MenuBar.PRIMARY)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor
 @Slf4j
 public class Analysis {
 
