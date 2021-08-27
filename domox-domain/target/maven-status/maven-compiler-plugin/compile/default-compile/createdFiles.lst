@@ -3,7 +3,6 @@ domox\dom\uml\AssociationCdc.class
 domox\dom\nlp\Word.class
 domox\dom\nlp\RelationRepository.class
 domox\dom\rqm\Authors$ListAllActionDomainEvent.class
-META-INF\spring-configuration-metadata.json
 domox\SimpleModule$1.class
 domox\dom\nlp\Relation.class
 domox\dom\rqm\Documents.class

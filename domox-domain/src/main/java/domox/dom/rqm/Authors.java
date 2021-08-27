@@ -12,9 +12,10 @@ import java.util.List;
 
 @DomainService(
         nature = NatureOfService.VIEW,
-        objectType = "domox.Authors"
+        logicalTypeName = "domox.Authors"
 )
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject})
+@javax.annotation.Priority(PriorityPrecedence.EARLY)
+@lombok.RequiredArgsConstructor
 public class Authors {
 
     private final RepositoryService repositoryService;

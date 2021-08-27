@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -16,8 +15,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
                 @javax.persistence.UniqueConstraint(name = "PartOfSpeech_id_UNQ", columnNames = {"id"})
         }
 )
-@javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.PartOfSpeech", nature = Nature.ENTITY)
+@DomainObject(logicalTypeName = "domox.PartOfSpeech", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "speech")
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

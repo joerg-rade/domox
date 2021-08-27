@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import(SimpleModule.class)
+//@Import(SimpleModule.class)
 @ComponentScan
 public class ApplicationModule {
 

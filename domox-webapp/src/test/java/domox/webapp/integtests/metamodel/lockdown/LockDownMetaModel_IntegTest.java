@@ -46,7 +46,7 @@ class LockDownMetaModel_IntegTest extends ApplicationIntegTestAbstract {
                                 .withIgnoreAbstractClasses()
                                 .withIgnoreBuiltInValueTypes()
                                 .withIgnoreInterfaces()
-                                .withPackagePrefix("domainapp")
+                                .withNamespacePrefix("domainapp")
                 );
 
         // then

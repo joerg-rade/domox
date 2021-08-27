@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
@@ -15,8 +14,7 @@ import java.util.Set;
 @javax.persistence.Table(
         schema = "domox"
 )
-@javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Corpus", nature = Nature.ENTITY)
+@DomainObject(logicalTypeName = "domox.Corpus", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "files-o")
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

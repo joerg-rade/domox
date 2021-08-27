@@ -7,9 +7,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@Import({
-    AppManifest.class,
-})
+@Import({AppManifest.class})
 public class SimpleApp extends SpringBootServletInitializer {
 
     /**

@@ -1,8 +1,10 @@
 package domox.dom.nlp;
 
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
+import org.apache.isis.applib.annotation.PriorityPrecedence;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
@@ -10,9 +12,11 @@ import java.util.List;
 
 @DomainService(
         nature = NatureOfService.VIEW,
-        objectType = "domox.PartOfSpeeches")
+        logicalTypeName = "domox.PartOfSpeeches")
+@javax.annotation.Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor
 public class Words {
+
     private final RepositoryService repositoryService;
     private final WordRepository repository;
 

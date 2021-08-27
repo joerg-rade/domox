@@ -1,10 +1,13 @@
 package domox.webapp;
 
-import domox.SimpleModule;
+import domox.webapp.application.ApplicationModule;
+import domox.webapp.custom.CustomModule;
 import org.apache.isis.core.config.presets.IsisPresets;
 import org.apache.isis.core.runtimeservices.IsisModuleCoreRuntimeServices;
+import org.apache.isis.extensions.cors.impl.IsisModuleExtCors;
 import org.apache.isis.extensions.flyway.impl.IsisModuleExtFlywayImpl;
 import org.apache.isis.persistence.jpa.eclipselink.IsisModulePersistenceJpaEclipselink;
+import org.apache.isis.security.shiro.IsisModuleSecurityShiro;
 import org.apache.isis.testing.fixtures.applib.IsisModuleTestingFixturesApplib;
 import org.apache.isis.testing.h2console.ui.IsisModuleTestingH2ConsoleUi;
 import org.apache.isis.viewer.restfulobjects.jaxrsresteasy4.IsisModuleViewerRestfulObjectsJaxrsResteasy4;
@@ -17,7 +20,7 @@ import org.springframework.context.annotation.PropertySources;
 @Configuration
 @Import({
         IsisModuleCoreRuntimeServices.class,
-//        IsisModuleSecurityShiro.class,
+        IsisModuleSecurityShiro.class,
         IsisModulePersistenceJpaEclipselink.class,
         IsisModuleViewerRestfulObjectsJaxrsResteasy4.class,
         IsisModuleViewerWicketViewer.class,
@@ -27,11 +30,15 @@ import org.springframework.context.annotation.PropertySources;
 
         IsisModuleExtFlywayImpl.class,
 
-        SimpleModule.class,
-//        CustomModule.class,
+        // CORS
+        IsisModuleExtCors.class,
+
+        ApplicationModule.class,
+        CustomModule.class,
+//        QuartzModule.class,
 
         // discoverable fixtures
-//        DomainAppDemo.class
+//        SimpleApp.class
 })
 @PropertySources({
         @PropertySource(IsisPresets.DebugDiscovery),

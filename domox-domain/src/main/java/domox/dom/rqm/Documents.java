@@ -16,7 +16,8 @@ import java.util.Set;
 
 @DomainService(
         nature = NatureOfService.VIEW,
-        objectType = "domox.Documents")
+        logicalTypeName = "domox.Documents")
+@javax.annotation.Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor
 public class Documents {
     private final RepositoryService repositoryService;

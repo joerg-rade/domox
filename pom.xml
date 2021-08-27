@@ -27,10 +27,12 @@
     <packaging>pom</packaging>
 
     <build>
+
         <plugins>
             <plugin>
                 <groupId>org.sahli.asciidoc.confluence.publisher</groupId>
                 <artifactId>asciidoc-confluence-publisher-maven-plugin</artifactId>
+                <version>0.14.0</version>
                 <configuration>
                     <asciidocRootFolder>docs</asciidocRootFolder>
                     <rootConfluenceUrl>${rootConfluenceUrl}</rootConfluenceUrl>

@@ -10,7 +10,8 @@ import java.util.List;
 
 @DomainService(
         nature = NatureOfService.VIEW,
-        objectType = "domox.Corpora")
+        logicalTypeName = "domox.Corpora")
+@javax.annotation.Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor
 public class Corpora {
     private final RepositoryService repositoryService;

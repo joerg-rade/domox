@@ -7,7 +7,6 @@ import lombok.ToString;
 import lombok.val;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
 import javax.persistence.CascadeType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -20,8 +19,7 @@ import java.util.Set;
                 @javax.persistence.UniqueConstraint(name = "Author_eMail_UNQ", columnNames = {"eMail"})
         }
 )
-@javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Author", nature = Nature.ENTITY)
+@DomainObject(logicalTypeName = "domox.Author", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "user")
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

@@ -1,42 +1,41 @@
 package domox.dom.nlp;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
+import org.apache.isis.persistence.jpa.applib.integration.IsisEntityListener;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.List;
 
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
-@javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Relation", nature = Nature.ENTITY)
+@javax.persistence.EntityListeners(IsisEntityListener.class)
+@DomainObject(logicalTypeName = "domox.Relation", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "arrows-h")
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
-public class Relation implements Comparable<domox.dom.nlp.Relation> {
+public class Relation implements Comparable<Relation> {
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
-    @javax.persistence.Column(nullable = false)
-    @Programmatic
+    @javax.persistence.Column(name = "id", nullable = false)
     private Long id;
 
     @javax.persistence.Version
-    @Programmatic
-    @javax.persistence.Column(nullable = false)
-    private int version;
+    @javax.persistence.Column(name= "version", nullable = false)
+    @PropertyLayout(fieldSetId = "metadata", sequence = "999")
+    private long version;
 
     @javax.persistence.Column(nullable = false)
-    @Property()
     private RelationType type;
 
-    @javax.persistence.JoinColumn(name = "id")
     //TODO cardinality 1:2
-    @Property()
     @javax.persistence.OneToMany(mappedBy = "relation")
     private List<TypedDependency> modelDependencies;
 

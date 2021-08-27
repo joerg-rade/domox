@@ -7,7 +7,6 @@ import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.value.Clob;
-import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
 import javax.persistence.CascadeType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -21,8 +20,7 @@ import java.util.Set;
                 @javax.persistence.UniqueConstraint(name = "Document_title_UNQ", columnNames = {"title"})
         }
 )
-@javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Document", nature = Nature.ENTITY)
+@DomainObject(logicalTypeName = "domox.Document", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "file")
 @NoArgsConstructor
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

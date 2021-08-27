@@ -3,17 +3,22 @@ package domox.dom.nlp;
 import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
+import org.apache.isis.applib.annotation.PriorityPrecedence;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.services.repository.RepositoryService;
+import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
 
 import java.util.List;
 
 @DomainService(
         nature = NatureOfService.VIEW,
-        objectType = "domox.ModelDependencies")
+        logicalTypeName = "domox.ModelDependencies")
+@javax.annotation.Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor
 public class TypedDependencies {
+
     private final RepositoryService repositoryService;
+    final JpaSupportService jpaSupportService;
     private final TypedDependencyRepository repository;
 
     @PropertyLayout(sequence = "1")

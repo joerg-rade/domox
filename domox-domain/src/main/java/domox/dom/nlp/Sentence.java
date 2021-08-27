@@ -6,16 +6,12 @@ import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.value.Blob;
-import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @javax.persistence.Entity
-@javax.persistence.Table(
-        schema = "domox"
-)
-@javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.Sentence", nature = Nature.ENTITY)
+@javax.persistence.Table(schema = "domox")
+@DomainObject(logicalTypeName = "domox.Sentence", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "paragraph")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)

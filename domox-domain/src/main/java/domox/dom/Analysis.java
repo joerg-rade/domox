@@ -9,7 +9,7 @@ import org.apache.isis.applib.annotation.NatureOfService;
 import javax.inject.Inject;
 
 @DomainService(nature = NatureOfService.VIEW,
-        objectType = "domox.Analysis")
+        logicalTypeName = "domox.Analysis")
 @DomainServiceLayout(named = "Start", menuBar = DomainServiceLayout.MenuBar.PRIMARY)
 @RequiredArgsConstructor
 @Slf4j

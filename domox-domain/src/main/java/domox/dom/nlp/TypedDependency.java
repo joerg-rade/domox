@@ -4,14 +4,12 @@ import lombok.Data;
 import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.persistence.jpa.applib.integration.JpaEntityInjectionPointResolver;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
-@javax.persistence.EntityListeners(JpaEntityInjectionPointResolver.class) // injection support
-@DomainObject(objectType = "domox.ModelDependency", nature = Nature.ENTITY)
+@DomainObject(logicalTypeName = "domox.ModelDependency", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "scan")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)

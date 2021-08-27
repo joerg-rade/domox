@@ -1,5 +1,4 @@
 domox\webapp\AppManifest.class
 domox\webapp\SimpleApp.class
 domox\webapp\custom\CustomModule.class
-domox\webapp\custom\restapi\CustomController.class
 domox\webapp\application\ApplicationModule.class
