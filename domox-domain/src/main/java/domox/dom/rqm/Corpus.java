@@ -1,5 +1,6 @@
 package domox.dom.rqm;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -16,7 +17,7 @@ import java.util.Set;
 )
 @DomainObject(logicalTypeName = "domox.Corpus", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "files-o")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
@@ -59,7 +60,7 @@ public class Corpus implements Comparable<Corpus> {
 
     //TODO reference repositoryService here or delegate to Factory ?
     public void addDocument(Document document) {
-        this.getDocuments().add(document);
+        this.documents.add(document);
 //        repositoryService.persistAndFlush(obj);
 //        repositoryService.persistAndFlush(document);
     }

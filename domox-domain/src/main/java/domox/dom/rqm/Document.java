@@ -1,6 +1,7 @@
 package domox.dom.rqm;
 
 import domox.dom.nlp.Sentence;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -22,11 +23,11 @@ import java.util.Set;
 )
 @DomainObject(logicalTypeName = "domox.Document", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "file")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
-public class Document implements Comparable<domox.dom.rqm.Document> {
+public class Document implements Comparable<Document> {
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)

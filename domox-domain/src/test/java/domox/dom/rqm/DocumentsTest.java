@@ -1,5 +1,6 @@
 package domox.dom.rqm;
 
+import org.apache.isis.applib.services.factory.FactoryService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.value.Clob;
 import org.apache.isis.testing.unittestsupport.applib.jmocking.JUnitRuleMockery2;
@@ -19,6 +20,8 @@ class DocumentsTest {
 
     @Mock
     RepositoryService mockRepositoryService;
+    @Mock
+    FactoryService mockFactoryService;
     @Rule
     public JUnitRuleMockery2 context = JUnitRuleMockery2.createFor(JUnitRuleMockery2.Mode.INTERFACES_AND_CLASSES);
 
@@ -26,7 +29,7 @@ class DocumentsTest {
     Documents documents;
     @BeforeEach
     public void setUp() {
-        documents = new Documents(mockRepositoryService);
+        documents = new Documents(mockRepositoryService, mockFactoryService);
     }
 
  //   @Test

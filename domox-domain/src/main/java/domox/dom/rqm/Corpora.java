@@ -1,10 +1,11 @@
 package domox.dom.rqm;
 
-import domox.SimpleModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.*;
+import org.apache.isis.applib.services.factory.FactoryService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,15 +13,11 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Corpora")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@RequiredArgsConstructor
+@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Corpora {
+
     private final RepositoryService repositoryService;
-
-    public static class ActionDomainEvent extends SimpleModule.ActionDomainEvent<Corpora> {
-    }
-
-    public static class CreateActionDomainEvent extends Corpora.ActionDomainEvent {
-    }
+    private final FactoryService factoryService;
 
     @PropertyLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
@@ -30,10 +27,10 @@ public class Corpora {
     }
 
     @PropertyLayout(sequence = "2")
-    @Action(semantics = SemanticsOf.NON_IDEMPOTENT, domainEvent = Corpora.CreateActionDomainEvent.class)
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     @ActionLayout
     public Corpus create(String title) {
-        final Corpus obj = repositoryService.detachedEntity(Corpus.class);
+        final Corpus obj = factoryService.detachedEntity(Corpus.class);
         obj.setTitle(title);
         repositoryService.persistAndFlush(obj);
         return obj;

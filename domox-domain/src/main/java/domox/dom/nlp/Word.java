@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -17,7 +18,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 )
 @DomainObject(logicalTypeName = "domox.PartOfSpeech", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "speech")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data

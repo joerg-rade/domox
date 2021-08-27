@@ -1,14 +1,16 @@
 package domox.dom.rqm;
 
 import domox.HtmlReader;
-import domox.SimpleModule;
 import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
 import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.*;
+import org.apache.isis.applib.services.factory.FactoryService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.value.Clob;
+import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
 
+import javax.inject.Inject;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,15 +20,13 @@ import java.util.Set;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Documents")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@RequiredArgsConstructor
+@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Documents {
+
     private final RepositoryService repositoryService;
-
-    public static class ActionDomainEvent extends SimpleModule.ActionDomainEvent<Documents> {
-    }
-
-    public static class CreateActionDomainEvent extends Documents.ActionDomainEvent {
-    }
+//    private final JpaSupportService jpaSupportService;
+//    private final DocumentRepository repository;
+    private final FactoryService factoryService;
 
     @PropertyLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
@@ -36,10 +36,10 @@ public class Documents {
     }
 
     @PropertyLayout(sequence = "2")
-    @Action(semantics = SemanticsOf.NON_IDEMPOTENT, domainEvent = Documents.CreateActionDomainEvent.class)
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     @ActionLayout
     public Document create(String title, String url, Clob content, Set<Author> authors) {
-        final Document obj = repositoryService.detachedEntity(Document.class);
+        final Document obj = factoryService.detachedEntity(Document.class);
         obj.setTitle(title);
         obj.setUrl(url);
         obj.setContent(content);
@@ -85,7 +85,7 @@ public class Documents {
     }
 
     public void addSentenceTo(String raw, Document document) {
-        final Sentence obj = repositoryService.detachedEntity(Sentence.class);
+        final Sentence obj = factoryService.detachedEntity(Sentence.class);
         obj.setText(raw);
         repositoryService.persistAndFlush(obj);
         document.getSentences().add(obj);

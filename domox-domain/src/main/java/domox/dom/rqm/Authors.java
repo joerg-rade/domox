@@ -1,8 +1,7 @@
 package domox.dom.rqm;
 
-import domox.SimpleModule;
-import domox.types.Name;
 import org.apache.isis.applib.annotation.*;
+import org.apache.isis.applib.services.factory.FactoryService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
 
@@ -15,33 +14,24 @@ import java.util.List;
         logicalTypeName = "domox.Authors"
 )
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor
+@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Authors {
 
     private final RepositoryService repositoryService;
     private final JpaSupportService jpaSupportService;
     private final AuthorRepository authorRepository;
 
-    public static class ActionDomainEvent extends SimpleModule.ActionDomainEvent<Authors> {
-    }
-
-    public static class CreateActionDomainEvent extends ActionDomainEvent {
-    }
-
-    @Action(semantics = SemanticsOf.NON_IDEMPOTENT, domainEvent = CreateActionDomainEvent.class)
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     @ActionLayout(promptStyle = PromptStyle.DIALOG_SIDEBAR)
     public Author create(
-            @Name final String name) {
+            final String name) {
         return repositoryService.persistAndFlush(Author.withLastName(name));
     }
 
-    public static class FindByNameActionDomainEvent extends ActionDomainEvent {
-    }
-
-    @Action(semantics = SemanticsOf.SAFE, domainEvent = FindByNameActionDomainEvent.class)
+    @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(bookmarking = BookmarkPolicy.AS_ROOT, promptStyle = PromptStyle.DIALOG_SIDEBAR)
     public List<Author> findByName(
-            @Name final String name
+            final String name
     ) {
         return authorRepository.findByLastNameContaining(name);
     }
@@ -49,9 +39,6 @@ public class Authors {
     @Programmatic
     public Author findByNameExact(final String name) {
         return authorRepository.findByLastName(name);
-    }
-
-    public static class ListAllActionDomainEvent extends ActionDomainEvent {
     }
 
     @Action(semantics = SemanticsOf.SAFE)

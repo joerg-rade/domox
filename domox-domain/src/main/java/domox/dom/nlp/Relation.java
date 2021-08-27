@@ -6,8 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
+import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.persistence.jpa.applib.integration.IsisEntityListener;
 
+import javax.inject.Inject;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.List;
 
@@ -21,6 +23,10 @@ import java.util.List;
 @ToString(onlyExplicitlyIncluded = true)
 @Data
 public class Relation implements Comparable<Relation> {
+
+    @Inject
+    @javax.persistence.Transient
+    RepositoryService repositoryService;
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)

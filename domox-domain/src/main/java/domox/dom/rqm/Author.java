@@ -1,10 +1,6 @@
 package domox.dom.rqm;
 
-import domox.SimpleModule;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.val;
+import lombok.*;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 
@@ -21,11 +17,11 @@ import java.util.Set;
 )
 @DomainObject(logicalTypeName = "domox.Author", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "user")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data
-public class Author implements Comparable<domox.dom.rqm.Author> {
+public class Author implements Comparable<Author> {
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
@@ -47,9 +43,6 @@ public class Author implements Comparable<domox.dom.rqm.Author> {
     @Override
     public int compareTo(Author o) {
         return 0;
-    }
-
-    public static class ActionDomainEvent extends SimpleModule.ActionDomainEvent<Author> {
     }
 
     public String title() {
