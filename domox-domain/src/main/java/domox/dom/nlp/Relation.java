@@ -8,6 +8,7 @@ import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.persistence.jpa.applib.integration.IsisEntityListener;
+import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -16,7 +17,7 @@ import java.util.List;
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
 @javax.persistence.EntityListeners(IsisEntityListener.class)
-@DomainObject(logicalTypeName = "domox.Relation", entityChangePublishing = Publishing.ENABLED)
+@DomainObject(nature=Nature.ENTITY, logicalTypeName = "domox.Relation", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "arrows-h")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

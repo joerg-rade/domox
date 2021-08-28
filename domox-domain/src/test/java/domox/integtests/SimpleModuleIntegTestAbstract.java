@@ -11,7 +11,7 @@ import org.apache.isis.security.bypass.IsisModuleSecurityBypass;
 import org.apache.isis.testing.fixtures.applib.IsisIntegrationTestAbstractWithFixtures;
 import org.apache.isis.testing.fixtures.applib.IsisModuleTestingFixturesApplib;
 
-import domox.SimpleModule;
+import domox.DomainModule;
 
 
 @SpringBootTest(
@@ -31,7 +31,7 @@ public abstract class SimpleModuleIntegTestAbstract extends IsisIntegrationTestA
 //        IsisModuleJdoDataNucleus5.class,
         IsisModuleTestingFixturesApplib.class,
 
-        SimpleModule.class
+        DomainModule.class
     })
     public static class AppManifest {
     }
