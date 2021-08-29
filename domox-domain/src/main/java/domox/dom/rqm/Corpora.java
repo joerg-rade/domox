@@ -13,11 +13,10 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Corpora")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Corpora {
 
-    private final RepositoryService repositoryService;
-    private final FactoryService factoryService;
+    @Inject private RepositoryService repositoryService;
+    @Inject private FactoryService factoryService;
 
     @PropertyLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)

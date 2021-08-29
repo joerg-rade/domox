@@ -1,6 +1,8 @@
 package domox.dom.nlp;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
@@ -9,8 +11,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
-@DomainObject(logicalTypeName = "domox.ModelDependency", entityChangePublishing = Publishing.ENABLED)
+@DomainObject(nature=Nature.ENTITY, logicalTypeName = "domox.ModelDependency", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "scan")
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Data

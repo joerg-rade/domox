@@ -1,7 +1,5 @@
 package domox.dom.nlp;
 
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
 import org.apache.isis.applib.annotation.PriorityPrecedence;
@@ -16,12 +14,14 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.PartOfSpeeches")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Words {
 
-    private final RepositoryService repositoryService;
-    private final WordRepository repository;
-    private final FactoryService factoryService;
+    @Inject
+    private RepositoryService repositoryService;
+    @Inject
+    private WordRepository repository;
+    @Inject
+    private FactoryService factoryService;
 
     @PropertyLayout(sequence = "1")
     public List<Word> listAll() {

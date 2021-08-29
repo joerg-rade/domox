@@ -4,7 +4,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import domox.webapp.SimpleApp;
+import domox.webapp.Application;
 import domox.webapp.application.ApplicationModule;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
@@ -16,7 +16,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 @AnalyzeClasses(
-        packagesOf = {ApplicationModule.class, SimpleApp.class},
+        packagesOf = {ApplicationModule.class, Application.class},
         importOptions = {
                 ImportOption.DoNotIncludeTests.class
         })

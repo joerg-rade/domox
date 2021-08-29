@@ -13,12 +13,11 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Sentences")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Sentences {
 
-    private final RepositoryService repositoryService;
-    final JpaSupportService jpaSupportService;
-    private final FactoryService factoryService;
+    @Inject private RepositoryService repositoryService;
+//    @Inject private JpaSupportService jpaSupportService;
+    @Inject private FactoryService factoryService;
 
     @PropertyLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)

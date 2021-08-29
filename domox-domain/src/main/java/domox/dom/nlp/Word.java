@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
                 @javax.persistence.UniqueConstraint(name = "PartOfSpeech_id_UNQ", columnNames = {"id"})
         }
 )
-@DomainObject(logicalTypeName = "domox.PartOfSpeech", entityChangePublishing = Publishing.ENABLED)
+@DomainObject(nature=Nature.ENTITY, logicalTypeName = "domox.PartOfSpeech", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "speech")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

@@ -1,7 +1,6 @@
 package domox.dom.rqm;
 
 import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.services.factory.FactoryService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
 
@@ -13,13 +12,14 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Authors"
 )
-@javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Authors {
 
-    private final RepositoryService repositoryService;
-    private final JpaSupportService jpaSupportService;
-    private final AuthorRepository authorRepository;
+    @Inject
+    private RepositoryService repositoryService;
+    @Inject
+    private JpaSupportService jpaSupportService;
+    @Inject
+    private AuthorRepository authorRepository;
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     @ActionLayout(promptStyle = PromptStyle.DIALOG_SIDEBAR)

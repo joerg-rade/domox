@@ -3,12 +3,10 @@ package domox.dom.rqm;
 import domox.HtmlReader;
 import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
-import lombok.RequiredArgsConstructor;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.services.factory.FactoryService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.value.Clob;
-import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
 
 import javax.inject.Inject;
 import java.sql.Timestamp;
@@ -20,13 +18,15 @@ import java.util.Set;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Documents")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Documents {
 
-    private final RepositoryService repositoryService;
-//    private final JpaSupportService jpaSupportService;
-//    private final DocumentRepository repository;
-    private final FactoryService factoryService;
+    @Inject
+    private RepositoryService repositoryService;
+    @Inject
+    private FactoryService factoryService;
+
+    public Documents(RepositoryService repositoryService, FactoryService factoryService) {}
+    public Documents() {}
 
     @PropertyLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)

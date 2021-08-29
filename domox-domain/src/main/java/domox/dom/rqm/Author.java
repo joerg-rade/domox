@@ -15,7 +15,7 @@ import java.util.Set;
                 @javax.persistence.UniqueConstraint(name = "Author_eMail_UNQ", columnNames = {"eMail"})
         }
 )
-@DomainObject(logicalTypeName = "domox.Author", entityChangePublishing = Publishing.ENABLED)
+@DomainObject(nature=Nature.ENTITY, logicalTypeName = "domox.Author", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "user")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

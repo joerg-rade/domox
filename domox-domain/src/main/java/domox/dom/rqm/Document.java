@@ -21,7 +21,7 @@ import java.util.Set;
                 @javax.persistence.UniqueConstraint(name = "Document_title_UNQ", columnNames = {"title"})
         }
 )
-@DomainObject(logicalTypeName = "domox.Document", entityChangePublishing = Publishing.ENABLED)
+@DomainObject(nature=Nature.ENTITY, logicalTypeName = "domox.Document", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "file")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

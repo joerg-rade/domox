@@ -16,13 +16,12 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Relations")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Relations {
 
-    private final RepositoryService repositoryService;
-    private final JpaSupportService jpaSupportService;
-    private final RelationRepository repository;
-    private final FactoryService factoryService;
+    @Inject private RepositoryService repositoryService;
+    @Inject private JpaSupportService jpaSupportService;
+    @Inject private RelationRepository repository;
+    @Inject private FactoryService factoryService;
 
     @PropertyLayout(sequence = "1")
     public List<Relation> listAll() {

@@ -15,7 +15,7 @@ import java.util.Set;
 @javax.persistence.Table(
         schema = "domox"
 )
-@DomainObject(logicalTypeName = "domox.Corpus", entityChangePublishing = Publishing.ENABLED)
+@DomainObject(nature=Nature.ENTITY, logicalTypeName = "domox.Corpus", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "files-o")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
