@@ -32,6 +32,11 @@
       <option name="url" value="https://nexus.incode.work/repository/nightly-builds" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="repository.nexus" />
+      <option name="name" value="repository.nexus" />
+      <option name="url" value="https://repository.int.kn/nexus/content/groups/public" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="repository.nexus.thirdparty" />
       <option name="name" value="repository.nexus.thirdparty" />
       <option name="url" value="http://repository.int.kn:8081/nexus/content/repositories/thirdparty/" />
@@ -65,6 +70,11 @@
       <option name="id" value="Apache Repository" />
       <option name="name" value="Apache Repository" />
       <option name="url" value="http://repository.apache.org" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repository.nexus.thirdparty" />
+      <option name="name" value="repository.nexus.thirdparty" />
+      <option name="url" value="https://repository.int.kn/nexus/content/repositories/thirdparty/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="jboss.community" />

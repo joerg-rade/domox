@@ -42,7 +42,7 @@ isis:
     wicket:
       application:
         about: Simple App
-        brand-logo-header: images/apache-isis/logo-48x48.png
+        brand-logo-header: images/domox_logo.svg
         css: css/application.css
         favicon-url: images/favicon.png
         js: scripts/application.js

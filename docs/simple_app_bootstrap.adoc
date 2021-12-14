@@ -1,0 +1,54 @@
+# SimpleAppBootstrap
+.SimpleAppBootstrap
+[plantuml,file="SimpleAppBootstrap.png"]
+
+--
+@startuml
+
+package "webapp/src/main/java" {
+    package "domainapp.webapp" {
+        class SimpleApp {
+            @SpringBootApplication
+            @Import(AppManifest.class)
+        }
+        class AppManifest {
+            @Configuration
+            @Import(ApplicationModule.class)
+        }
+        SimpleApp --> AppManifest
+        package "application" {
+            class ApplicationModule {
+                 @Configuration
+                 @Import(SimpleModule.class)
+                 @ComponentScan
+            }
+        }
+        AppManifest -> ApplicationModule
+    }
+}
+
+package "module-simple/src/main/java" {
+    package "domainapp.modules.simple" {
+        class SimpleModule {
+            @Configuration
+            @ComponentScan
+            @EnableJpaRepositories
+            @EntityScan(basePackageClasses = {SimpleModule.class})
+        }
+        package "dom.so" {
+            class SimpleObject{
+                @Entity
+                @Table
+                @NamedQueries
+                @EntityListener
+                @DomainObject
+                ...
+            }
+        }
+        SimpleModule ..> SimpleObject
+    }
+}
+ApplicationModule -> SimpleModule
+
+@enduml
+--

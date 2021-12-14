@@ -4,12 +4,13 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.isis.applib.annotation.*;
+import org.apache.isis.applib.annotation.DomainObject;
+import org.apache.isis.applib.annotation.DomainObjectLayout;
+import org.apache.isis.applib.annotation.PropertyLayout;
+import org.apache.isis.applib.annotation.Publishing;
 import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.persistence.jpa.applib.integration.IsisEntityListener;
-import org.hibernate.type.ObjectType;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;

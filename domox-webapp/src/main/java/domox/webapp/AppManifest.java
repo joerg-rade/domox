@@ -38,7 +38,6 @@ import org.springframework.context.annotation.PropertySources;
 //        QuartzModule.class,
 
         // discoverable fixtures
-        Application.class
 })
 @PropertySources({
         @PropertySource(IsisPresets.DebugDiscovery),

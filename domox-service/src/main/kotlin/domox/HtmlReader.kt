@@ -1,5 +1,10 @@
 package domox
 
+import org.apache.tika.exception.TikaException
+import org.apache.tika.metadata.Metadata
+import org.apache.tika.parser.AutoDetectParser
+import org.apache.tika.sax.BodyContentHandler
+import org.xml.sax.SAXException
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
@@ -11,6 +16,17 @@ class HtmlReader {
     fun extractContentFromUrl(url: String): String? {
         val rawContent = readStringFromURL(url)
         return html2text(rawContent)
+    }
+
+    @Throws(IOException::class, SAXException::class, TikaException::class)
+    fun parseToPlainText(url: String): String? {
+        val handler = BodyContentHandler()
+        val parser = AutoDetectParser()
+        val metadata = Metadata()
+        URL(url).openStream().use { stream ->
+            parser.parse(stream, handler, metadata)
+            return handler.toString()
+        }
     }
 
     private fun readStringFromURL(requestURL: String): String {

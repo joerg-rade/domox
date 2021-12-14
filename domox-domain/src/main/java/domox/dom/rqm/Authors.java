@@ -12,13 +12,12 @@ import java.util.List;
         nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Authors"
 )
+@javax.annotation.Priority(PriorityPrecedence.EARLY)
+@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Authors {
 
-    @Inject
     private RepositoryService repositoryService;
-    @Inject
     private JpaSupportService jpaSupportService;
-    @Inject
     private AuthorRepository authorRepository;
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
