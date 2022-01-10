@@ -1,5 +1,5 @@
 # build artefacts
-/target/*
+target/*
 
 # Compiled class file
 *.class
