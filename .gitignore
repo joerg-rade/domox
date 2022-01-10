@@ -1,6 +1,3 @@
-# build artefacts
-target/*
-
 # Compiled class file
 *.class
 
@@ -31,5 +28,6 @@ hs_err_pid*
 # build artefacts
 /domox-domain/target/
 /domox-webapp/target/
+/domox-webapp/target/classes/*.yml
 /domox-service/target/
 /domox-service/domox-service.iml
