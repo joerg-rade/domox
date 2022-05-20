@@ -19,25 +19,25 @@ database "..**<<RDBMS>>**..\nH2\nPostgres\netc." as DB
 component "..<$envira>Spring Boot.." as SB {
     component "<$apache_line>\nApache Isis" as AI {
         rectangle <$cubes> {
-            component "..<$eye>..\n<<ViewModel>>\n(Grand;-)UnifiedObject" as VM
-            component "..<$cube>..\n<<Entity>>\nCrud" as CRUD
-            component "..<$cube>..\n<<Entity>>\nReadOnly" as RO
+            rectangle "..<$eye>..\n<<ViewModel>>\n<<Class>>\n(Grand;-)UnifiedObject" as VM
+            rectangle "..<$cube>..\n<<Entity>>\n<<Class>>\nCrud" as CRUD
+            rectangle "..<$cube>..\n<<Entity>>\n<<Class>>\nReadOnly" as RO
             VM --> CRUD
             VM --> RO
         }
         rectangle <$industry> {
-            component "<<Factory>>\nCrudFctr" as CRUDF
-            component "<<Factory>>\nReadOnlyFctr" as ROF
+            rectangle "<<Factory>>\n<<Class>>\nCrudFctr" as CRUDF
+            rectangle "<<Factory>>\n<<Class>>\nReadOnlyFctr" as ROF
         }
-        rectangle <$archive> {
-            component "<<Repository>>\nCrudJpaRpstr" as CRUDR
-            component "<<Repository>>\nReadOnlyJpaRpstr" as ROR
-        }
-        CRUDF --> CRUD
-        CRUDF --> CRUDR
-        ROF --> RO
-        ROF --> ROR
     }
+rectangle <$archive> {
+rectangle "<<Repository>>\n<<Interface>>\nCrudJpaRpstr" as CRUDR
+rectangle "<<Repository>>\n<<Interface>>\nReadOnlyJpaRpstr" as ROR
+}
+CRUDF --> CRUD
+CRUDF --> CRUDR
+ROF --> RO
+ROF --> ROR
 }
 AP --> NOSQL : MongoDB\nConnector
 ROR --> NOSQL : findByValue
