@@ -20,6 +20,9 @@
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="11.0.4" project-jdk-type="JavaSDK">
-    <output url="file://build" />
+    <output url="file://$APPLICATION_HOME_DIR$/jbr/bin/build" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="jpab" />
   </component>
 </project>

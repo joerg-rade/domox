@@ -1,0 +1,63 @@
+# async
+.async
+[plantuml,file="async.png"]
+--
+@startuml
+!include <tupadr3/font-awesome/archive>
+!include <tupadr3/font-awesome/cube>
+!include <tupadr3/font-awesome/cubes>
+!include <tupadr3/font-awesome/envira>
+!include <tupadr3/font-awesome/eye>
+!include <tupadr3/font-awesome/industry>
+!include <tupadr3/font-awesome/sitemap>
+!include <tupadr3/devicons2/apache_line>
+top to bottom direction
+
+component "<$apache_line>\nApache\nPulsar"  as AP
+database "..**<<NOSQL>>**..\nMongoDB" as NOSQL
+database "..**<<RDBMS>>**..\nH2\nPostgres\netc." as DB
+component "..<$envira>Spring Boot.." as SB {
+    component "<$apache_line>\nApache Isis" as AI {
+        rectangle <$cubes> {
+            component "..<$eye>..\n<<ViewModel>>\n(Grand;-)UnifiedObject" as VM
+            component "..<$cube>..\n<<Entity>>\nCrud" as CRUD
+            component "..<$cube>..\n<<Entity>>\nReadOnly" as RO
+            VM --> CRUD
+            VM --> RO
+        }
+        rectangle <$industry> {
+            component "<<Factory>>\nCrudFctr" as CRUDF
+            component "<<Factory>>\nReadOnlyFctr" as ROF
+        }
+        rectangle <$archive> {
+            component "<<Repository>>\nCrudJpaRpstr" as CRUDR
+            component "<<Repository>>\nReadOnlyJpaRpstr" as ROR
+        }
+        CRUDF --> CRUD
+        CRUDF --> CRUDR
+        ROF --> RO
+        ROF --> ROR
+    }
+}
+AP --> NOSQL : MongoDB\nConnector
+ROR --> NOSQL : findByValue
+CRUDR --> DB : findById
+
+note right of NOSQL
+additional <<dependency>>
+spring-boot-starter-data-mongodb
+end note
+
+@enduml
+--
+note bottom of AI
+Domain Model Objects translate into:
+* //Sample//Entity
+* //Sample//Factory (//Sample//s)
+* //Sample//Repository (<<extends JpaRepository>>)
+end note
+
+note top of DB
+Domain Model
+is mapped by ORM
+end note
