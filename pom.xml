@@ -6,7 +6,7 @@
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
         <isis-version>2.0.0-M6</isis-version>
-        <stanford-corenlp.version>4.0.0</stanford-corenlp.version>
+        <stanford-corenlp.version>4.4.0</stanford-corenlp.version>
         <lombok.version>1.18.20</lombok.version>
         <file.encoding>UTF-8</file.encoding>
     </properties>
