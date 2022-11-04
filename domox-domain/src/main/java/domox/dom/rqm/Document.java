@@ -5,9 +5,9 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.applib.value.Clob;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.value.Clob;
 
 import javax.persistence.CascadeType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -77,12 +77,12 @@ public class Document implements Comparable<Document> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Document other) {
-        return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "id");
+        return org.apache.causeway.applib.util.ObjectContracts.compare(this, other, "id");
     }
 
     @Override
     public String toString() {
-        return org.apache.isis.applib.util.ObjectContracts.toString(this, "id");
+        return org.apache.causeway.applib.util.ObjectContracts.toString(this, "id");
     }
     //endregion
 

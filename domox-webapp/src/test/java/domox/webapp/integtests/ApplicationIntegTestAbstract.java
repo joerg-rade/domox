@@ -1,7 +1,7 @@
 package domox.webapp.integtests;
 
 import domox.webapp.application.ApplicationModule;
-import org.apache.isis.testing.integtestsupport.applib.IsisIntegrationTestAbstract;
+import org.apache.causeway.testing.integtestsupport.applib.CausewayIntegrationTestAbstract;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(
@@ -13,9 +13,9 @@ import org.springframework.boot.test.context.SpringBootTest;
     },
     properties = {
             // "logging.level.io.cucumber.core.runner.Runner=DEBUG",
-            "isis.persistence.jpa.auto-create-schemas=simple"
+            "causeway.persistence.jpa.auto-create-schemas=simple"
     }
 )
-public abstract class ApplicationIntegTestAbstract extends IsisIntegrationTestAbstract {
+public abstract class ApplicationIntegTestAbstract extends CausewayIntegrationTestAbstract {
 
 }

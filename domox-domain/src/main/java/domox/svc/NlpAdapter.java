@@ -9,7 +9,7 @@ import edu.stanford.nlp.pipeline.CoreDocument;
 import edu.stanford.nlp.pipeline.CoreSentence;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.trees.TypedDependency;
-import org.apache.isis.applib.value.Blob;
+import org.apache.causeway.applib.value.Blob;
 
 import java.util.ArrayList;
 import java.util.Iterator;

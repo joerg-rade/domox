@@ -2,16 +2,16 @@ package domox.webapp;
 
 import domox.webapp.application.ApplicationModule;
 import domox.webapp.custom.CustomModule;
-import org.apache.isis.core.config.presets.IsisPresets;
-import org.apache.isis.core.runtimeservices.IsisModuleCoreRuntimeServices;
-import org.apache.isis.extensions.cors.impl.IsisModuleExtCors;
-import org.apache.isis.extensions.flyway.impl.IsisModuleExtFlywayImpl;
-import org.apache.isis.persistence.jpa.eclipselink.IsisModulePersistenceJpaEclipselink;
-import org.apache.isis.security.shiro.IsisModuleSecurityShiro;
-import org.apache.isis.testing.fixtures.applib.IsisModuleTestingFixturesApplib;
-import org.apache.isis.testing.h2console.ui.IsisModuleTestingH2ConsoleUi;
-import org.apache.isis.viewer.restfulobjects.jaxrsresteasy4.IsisModuleViewerRestfulObjectsJaxrsResteasy4;
-import org.apache.isis.viewer.wicket.viewer.IsisModuleViewerWicketViewer;
+import org.apache.causeway.core.config.presets.CausewayPresets;
+import org.apache.causeway.core.runtimeservices.CausewayModuleCoreRuntimeServices;
+import org.apache.causeway.extensions.cors.impl.CausewayModuleExtCors;
+import org.apache.causeway.extensions.flyway.impl.CausewayModuleExtFlywayImpl;
+import org.apache.causeway.persistence.jpa.eclipselink.CausewayModulePersistenceJpaEclipselink;
+import org.apache.causeway.security.shiro.CausewayModuleSecurityShiro;
+import org.apache.causeway.testing.fixtures.applib.CausewayModuleTestingFixturesApplib;
+import org.apache.causeway.testing.h2console.ui.CausewayModuleTestingH2ConsoleUi;
+import org.apache.causeway.viewer.restfulobjects.jaxrsresteasy4.CausewayModuleViewerRestfulObjectsJaxrsResteasy4;
+import org.apache.causeway.viewer.wicket.viewer.CausewayModuleViewerWicketViewer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
@@ -19,19 +19,19 @@ import org.springframework.context.annotation.PropertySources;
 
 @Configuration
 @Import({
-        IsisModuleCoreRuntimeServices.class,
-        IsisModuleSecurityShiro.class,
-        IsisModulePersistenceJpaEclipselink.class,
-        IsisModuleViewerRestfulObjectsJaxrsResteasy4.class,
-        IsisModuleViewerWicketViewer.class,
+        CausewayModuleCoreRuntimeServices.class,
+        CausewayModuleSecurityShiro.class,
+        CausewayModulePersistenceJpaEclipselink.class,
+        CausewayModuleViewerRestfulObjectsJaxrsResteasy4.class,
+        CausewayModuleViewerWicketViewer.class,
 
-        IsisModuleTestingFixturesApplib.class,
-        IsisModuleTestingH2ConsoleUi.class,
+        CausewayModuleTestingFixturesApplib.class,
+        CausewayModuleTestingH2ConsoleUi.class,
 
-        IsisModuleExtFlywayImpl.class,
+        CausewayModuleExtFlywayImpl.class,
 
         // CORS
-        IsisModuleExtCors.class,
+        CausewayModuleExtCors.class,
 
         ApplicationModule.class,
         CustomModule.class,
@@ -40,7 +40,7 @@ import org.springframework.context.annotation.PropertySources;
         // discoverable fixtures
 })
 @PropertySources({
-        @PropertySource(IsisPresets.DebugDiscovery),
+        @PropertySource(CausewayPresets.DebugDiscovery),
 })
 public class AppManifest {
 }

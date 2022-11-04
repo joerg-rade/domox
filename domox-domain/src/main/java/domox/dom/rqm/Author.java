@@ -1,12 +1,12 @@
 package domox.dom.rqm;
 
 import lombok.*;
-import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.applib.services.message.MessageService;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.applib.services.title.TitleService;
-import org.apache.isis.persistence.jpa.applib.integration.IsisEntityListener;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.services.message.MessageService;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.apache.causeway.applib.services.title.TitleService;
+import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -30,7 +30,7 @@ import java.util.Set;
                         "WHERE o.lastName LIKE :lastName"
         )
 })
-@javax.persistence.EntityListeners(IsisEntityListener.class)
+@javax.persistence.EntityListeners(CausewayEntityListener.class)
 @DomainObject(nature = Nature.ENTITY, logicalTypeName = "domox.Author", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout()
 @NoArgsConstructor(access = AccessLevel.PUBLIC)

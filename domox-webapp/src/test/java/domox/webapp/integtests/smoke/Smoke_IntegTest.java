@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.apache.isis.applib.services.wrapper.InvalidException;
-import org.apache.isis.applib.services.xactn.TransactionService;
+import org.apache.causeway.applib.services.wrapper.InvalidException;
+import org.apache.causeway.applib.services.xactn.TransactionService;
 
 import domox.dom.rqm.Author;
 import domox.dom.rqm.Authors;

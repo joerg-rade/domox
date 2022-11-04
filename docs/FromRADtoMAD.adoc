@@ -25,10 +25,10 @@ together {
 }
 
 (User\nInterface) as UI
-DOM -right-> UI : Apache\nIsis\ngenerates
+DOM -right-> UI : Apache\nCauseway\ngenerates
 
 note top of UI #WHITE
---Apache Isis Application--
+--Apache Causeway Application--
 {{
 salt
 {+

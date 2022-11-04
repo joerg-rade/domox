@@ -1,13 +1,12 @@
 package domox.dom.nlp;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.isis.applib.annotation.DomainService;
-import org.apache.isis.applib.annotation.NatureOfService;
-import org.apache.isis.applib.annotation.PriorityPrecedence;
-import org.apache.isis.applib.annotation.PropertyLayout;
-import org.apache.isis.applib.services.factory.FactoryService;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.NatureOfService;
+import org.apache.causeway.applib.annotation.PriorityPrecedence;
+import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.services.factory.FactoryService;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.apache.causeway.persistence.jpa.applib.services.JpaSupportService;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -18,10 +17,14 @@ import java.util.List;
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
 public class Relations {
 
-    @Inject private RepositoryService repositoryService;
-    @Inject private JpaSupportService jpaSupportService;
-    @Inject private RelationRepository repository;
-    @Inject private FactoryService factoryService;
+    @Inject
+    private RepositoryService repositoryService;
+    @Inject
+    private JpaSupportService jpaSupportService;
+    @Inject
+    private RelationRepository repository;
+    @Inject
+    private FactoryService factoryService;
 
     @PropertyLayout(sequence = "1")
     public List<Relation> listAll() {

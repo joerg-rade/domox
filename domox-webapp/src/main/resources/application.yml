@@ -55,7 +55,7 @@ isis:
       credit:
         - url:  http://isis.apache.org
           image: images/apache-isis/logo-48x48.png
-          name: Apache Isis
+          name: Apache Causeway
 
       themes:
         show-chooser: false

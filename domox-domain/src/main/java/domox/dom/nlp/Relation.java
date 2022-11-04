@@ -4,13 +4,13 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.isis.applib.annotation.DomainObject;
-import org.apache.isis.applib.annotation.DomainObjectLayout;
-import org.apache.isis.applib.annotation.PropertyLayout;
-import org.apache.isis.applib.annotation.Publishing;
-import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.persistence.jpa.applib.integration.IsisEntityListener;
+import org.apache.causeway.applib.annotation.DomainObject;
+import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.annotation.Publishing;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import javax.inject.Inject;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
-@javax.persistence.EntityListeners(IsisEntityListener.class)
+@javax.persistence.EntityListeners(CausewayEntityListener.class)
 @DomainObject(logicalTypeName = "domox.Relation", entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "arrows-h")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
@@ -51,12 +51,12 @@ public class Relation implements Comparable<Relation> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Relation other) {
-        return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "id");
+        return org.apache.causeway.applib.util.ObjectContracts.compare(this, other, "id");
     }
 
     @Override
     public String toString() {
-        return org.apache.isis.applib.util.ObjectContracts.toString(this, "id");
+        return org.apache.causeway.applib.util.ObjectContracts.toString(this, "id");
     }
     //endregion
 

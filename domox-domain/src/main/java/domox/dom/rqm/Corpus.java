@@ -4,8 +4,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
@@ -49,12 +49,12 @@ public class Corpus implements Comparable<Corpus> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Corpus other) {
-        return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "id");
+        return org.apache.causeway.applib.util.ObjectContracts.compare(this, other, "id");
     }
 
     @Override
     public String toString() {
-        return org.apache.isis.applib.util.ObjectContracts.toString(this, "id");
+        return org.apache.causeway.applib.util.ObjectContracts.toString(this, "id");
     }
     //endregion
 

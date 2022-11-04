@@ -6,5 +6,3 @@ domox\webapp\integtests\ApplicationIntegTestAbstract.class
 domox\webapp\util\CurrentVsApprovedApprovalTextWriter.class
 domox\webapp\unittests\mavendeps\lockdown\LockDownMavenDeps_Test.class
 domox\webapp\integtests\metamodel\SwaggerExport_IntegTest.class
-domox\webapp\integtests\metamodel\lockdown\LockDownMetaModel_IntegTest$1.class
-domox\webapp\integtests\metamodel\lockdown\LockDownMetaModel_IntegTest.class

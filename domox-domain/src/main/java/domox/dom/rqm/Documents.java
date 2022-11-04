@@ -3,10 +3,10 @@ package domox.dom.rqm;
 import domox.HtmlReader;
 import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
-import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.services.factory.FactoryService;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.applib.value.Clob;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.services.factory.FactoryService;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.apache.causeway.applib.value.Clob;
 
 import javax.inject.Inject;
 import java.sql.Timestamp;

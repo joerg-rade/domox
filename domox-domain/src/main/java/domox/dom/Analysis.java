@@ -2,11 +2,9 @@ package domox.dom;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.isis.applib.annotation.DomainService;
-import org.apache.isis.applib.annotation.DomainServiceLayout;
-import org.apache.isis.applib.annotation.NatureOfService;
-
-import javax.inject.Inject;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.DomainServiceLayout;
+import org.apache.causeway.applib.annotation.NatureOfService;
 
 @DomainService(nature = NatureOfService.VIEW,
         logicalTypeName = "domox.Analysis")

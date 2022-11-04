@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.apache.isis.domox</groupId>
+        <groupId>org.apache.causeway.domox</groupId>
         <artifactId>domox</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
@@ -119,28 +119,28 @@
             </exclusions>
         </dependency>
 
-        <!-- isis -->
+        <!-- Causeway -->
         <dependency>
-            <groupId>org.apache.isis.mavendeps</groupId>
-            <artifactId>isis-mavendeps-webapp</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.mavendeps</groupId>
+            <artifactId>causeway-mavendeps-webapp</artifactId>
+            <version>${causeway.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.testing</groupId>
-            <artifactId>isis-testing-h2console-ui</artifactId>
+            <groupId>org.apache.causeway.testing</groupId>
+            <artifactId>causeway-testing-h2console-ui</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-flyway-impl</artifactId>
+            <groupId>org.apache.causeway.extensions</groupId>
+            <artifactId>causeway-extensions-flyway-impl</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-cors-impl</artifactId>
+            <groupId>org.apache.causeway.extensions</groupId>
+            <artifactId>causeway-extensions-cors-impl</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.security</groupId>
-            <artifactId>isis-security-shiro</artifactId>
+            <groupId>org.apache.causeway.security</groupId>
+            <artifactId>causeway-security-shiro</artifactId>
         </dependency>
 
         <!-- Spring -->
@@ -151,11 +151,22 @@
 
         <!-- TESTING -->
         <dependency>
-            <groupId>org.apache.isis.mavendeps</groupId>
-            <artifactId>isis-mavendeps-integtests</artifactId>
-            <type>pom</type>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-internaltestsupport</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-internaltestvintage</artifactId>
+            <version>${causeway.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!--dependency>
+            <groupId>org.apache.causeway.mavendeps</groupId>
+            <artifactId>causeway-mavendeps-integtests</artifactId>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency-->
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5-api</artifactId>
@@ -168,55 +179,35 @@
             <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-command-replay-primary</artifactId>
-            <version>${isis-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-command-replay-secondary</artifactId>
-            <version>${isis-version}</version>
-        </dependency>
         <!--dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-exceldownload-ui</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.extensions</groupId>
+            <artifactId>causeway-extensions-exceldownload-ui</artifactId>
+            <version>${causeway.version}</version>
         </dependency-->
         <dependency>
-            <groupId>org.apache.isis.core</groupId>
-            <artifactId>isis-core-interaction</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-interaction</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.core</groupId>
-            <artifactId>isis-core-security</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-security</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.valuetypes</groupId>
-            <artifactId>isis-valuetypes-asciidoc-metamodel</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.valuetypes</groupId>
+            <artifactId>causeway-valuetypes-asciidoc-metamodel</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.valuetypes</groupId>
-            <artifactId>isis-valuetypes-sse-ui-wkt</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.valuetypes</groupId>
+            <artifactId>causeway-valuetypes-asciidoc-ui-wkt</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.valuetypes</groupId>
-            <artifactId>isis-valuetypes-asciidoc-ui-wkt</artifactId>
-            <version>${isis-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-pdfjs-ui</artifactId>
-            <version>${isis-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.isis.valuetypes</groupId>
-            <artifactId>isis-valuetypes-markdown-ui-wkt</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.valuetypes</groupId>
+            <artifactId>causeway-valuetypes-markdown-ui-wkt</artifactId>
+            <version>${causeway.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>commons-logging</artifactId>
@@ -225,14 +216,26 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.valuetypes</groupId>
-            <artifactId>isis-valuetypes-asciidoc-persistence-jpa</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.valuetypes</groupId>
+            <artifactId>causeway-valuetypes-asciidoc-persistence-jpa</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.valuetypes</groupId>
-            <artifactId>isis-valuetypes-markdown-persistence-jpa</artifactId>
-            <version>${isis-version}</version>
+            <groupId>org.apache.causeway.valuetypes</groupId>
+            <artifactId>causeway-valuetypes-markdown-persistence-jpa</artifactId>
+            <version>${causeway.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.isis.testing</groupId>
+            <artifactId>isis-testing-integtestsupport-applib</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.testing</groupId>
+            <artifactId>causeway-testing-integtestsupport-applib</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -293,7 +296,7 @@
                 <dependency>
                     <groupId>org.postgresql</groupId>
                     <artifactId>postgresql</artifactId>
-                    <!-- <version>42.2.12</version> ... version already managed -->
+                    <version>42.3.7</version>
                 </dependency>
             </dependencies>
         </profile>
