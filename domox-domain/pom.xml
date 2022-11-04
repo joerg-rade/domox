@@ -9,7 +9,7 @@
     </properties>
 
     <parent>
-        <groupId>org.apache.isis.domox</groupId>
+        <groupId>org.apache.causeway.domox</groupId>
         <artifactId>domox</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
@@ -68,10 +68,10 @@
             </exclusions>
         </dependency>
 
-        <!-- ISIS API -->
+        <!-- Causeway API -->
         <dependency>
-            <groupId>org.apache.isis.core</groupId>
-            <artifactId>isis-applib</artifactId>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-applib</artifactId>
             <exclusions>
                 <exclusion>
                     <artifactId>jaxb-impl</artifactId>
@@ -80,30 +80,47 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.persistence</groupId>
-            <artifactId>isis-persistence-jpa-eclipselink</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.isis.testing</groupId>
-            <artifactId>isis-testing-fixtures-applib</artifactId>
+            <groupId>org.apache.causeway.persistence</groupId>
+            <artifactId>causeway-persistence-jpa-eclipselink</artifactId>
         </dependency>
         <!--dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-secman-integration</artifactId>
+            <groupId>org.apache.causeway.extensions</groupId>
+            <artifactId>causeway-extensions-secman-integration</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-secman-applib</artifactId>
+            <groupId>org.apache.causeway.extensions</groupId>
+            <artifactId>causeway-extensions-secman-applib</artifactId>
         </dependency-->
         <dependency>
-            <groupId>org.apache.isis.extensions</groupId>
-            <artifactId>isis-extensions-secman-persistence-jpa</artifactId>
+            <groupId>org.apache.causeway.extensions</groupId>
+            <artifactId>causeway-extensions-secman-persistence-jpa</artifactId>
         </dependency>
 
         <!-- TESTS -->
         <dependency>
-            <groupId>org.apache.isis.mavendeps</groupId>
-            <artifactId>isis-mavendeps-unittests</artifactId>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-internaltestsupport</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-internaltestvintage</artifactId>
+            <version>${causeway.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.testing</groupId>
+            <artifactId>causeway-testing-fixtures-applib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jmock</groupId>
+            <artifactId>jmock</artifactId>
+            <version>${jmock.version}</version>
+        </dependency>
+
+        <!--dependency>
+            <groupId>org.apache.causeway.mavendeps</groupId>
+            <artifactId>causeway-mavendeps-unittests</artifactId>
             <type>pom</type>
             <scope>test</scope>
             <exclusions>
@@ -112,13 +129,13 @@
                     <groupId>org.assertj</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.isis.mavendeps</groupId>
-            <artifactId>isis-mavendeps-integtests</artifactId>
+        </dependency-->
+        <!--dependency>
+            <groupId>org.apache.causeway.mavendeps</groupId>
+            <artifactId>causeway-mavendeps-integtests</artifactId>
             <type>pom</type>
             <scope>test</scope>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -211,8 +228,18 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.isis.core</groupId>
-            <artifactId>isis-core-runtimeservices</artifactId>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-runtimeservices</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.security</groupId>
+            <artifactId>causeway-security-bypass</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

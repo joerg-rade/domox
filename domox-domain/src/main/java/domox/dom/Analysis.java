@@ -2,14 +2,14 @@ package domox.dom;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.isis.applib.annotation.DomainService;
-import org.apache.isis.applib.annotation.DomainServiceLayout;
-import org.apache.isis.applib.annotation.NatureOfService;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.DomainServiceLayout;
+import org.apache.causeway.applib.annotation.NatureOfService;
 
-import javax.inject.Inject;
+import javax.inject.Named;
 
-@DomainService(nature = NatureOfService.VIEW,
-        logicalTypeName = "domox.Analysis")
+@DomainService(nature = NatureOfService.VIEW)
+@Named("domox.Analysis")
 @DomainServiceLayout(named = "Start", menuBar = DomainServiceLayout.MenuBar.PRIMARY)
 @RequiredArgsConstructor
 @Slf4j

@@ -3,41 +3,37 @@ package domox.dom.rqm;
 import domox.HtmlReader;
 import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
-import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.services.factory.FactoryService;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.applib.value.Clob;
+import lombok.RequiredArgsConstructor;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.services.factory.FactoryService;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.apache.causeway.applib.value.Clob;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@DomainService(
-        nature = NatureOfService.VIEW,
-        logicalTypeName = "domox.Documents")
+@DomainService(nature = NatureOfService.VIEW)
+@Named("domox.Documents")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Documents {
 
-    @Inject
-    private RepositoryService repositoryService;
-    @Inject
-    private FactoryService factoryService;
+    private final RepositoryService repositoryService;
+    private final FactoryService factoryService;
 
-    public Documents(RepositoryService repositoryService, FactoryService factoryService) {}
-    public Documents() {}
 
-    @PropertyLayout(sequence = "1")
+    @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
-    @ActionLayout
     public List<Document> listAll() {
         return repositoryService.allInstances(Document.class);
     }
 
-    @PropertyLayout(sequence = "2")
+    @ActionLayout(sequence = "2")
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    @ActionLayout
     public Document create(String title, String url, Clob content, Set<Author> authors) {
         final Document obj = factoryService.detachedEntity(Document.class);
         obj.setTitle(title);
@@ -50,9 +46,8 @@ public class Documents {
         return obj;
     }
 
-    @PropertyLayout(sequence = "3")
+    @ActionLayout(sequence = "3")
     @Action(semantics = SemanticsOf.SAFE)
-    @ActionLayout
     public List<Document> findByTitle(final String title) {
         List<Document> answer = new ArrayList<>();
         for (Document d : listAll()) {
@@ -63,9 +58,8 @@ public class Documents {
         return answer;
     }
 
-    @PropertyLayout(sequence = "4")
     @Action()
-    @ActionLayout(cssClassFa = "play")
+    @ActionLayout(sequence = "4", cssClassFa = "play")
     public Document loadSample() {
         //https://www.reqview.com/papers/ReqView-Example_Software_Requirements_Specification_SRS_Document.pdf
         final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";

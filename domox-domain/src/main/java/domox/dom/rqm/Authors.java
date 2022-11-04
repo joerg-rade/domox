@@ -1,24 +1,22 @@
 package domox.dom.rqm;
 
-import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.apache.causeway.persistence.jpa.applib.services.JpaSupportService;
 
 import javax.inject.Inject;
-import javax.persistence.TypedQuery;
+import javax.inject.Named;
 import java.util.List;
 
-@DomainService(
-        nature = NatureOfService.VIEW,
-        logicalTypeName = "domox.Authors"
-)
+@DomainService(nature = NatureOfService.VIEW)
+@Named("domox.Authors")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject} )
+@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Authors {
 
-    private RepositoryService repositoryService;
-    private JpaSupportService jpaSupportService;
-    private AuthorRepository authorRepository;
+    private final RepositoryService repositoryService;
+    private final JpaSupportService jpaSupportService;
+    private final AuthorRepository authorRepository;
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     @ActionLayout(promptStyle = PromptStyle.DIALOG_SIDEBAR)
@@ -47,13 +45,13 @@ public class Authors {
     }
 
 
-    @Programmatic
+/*    @Programmatic
     public void ping() {
         jpaSupportService.getEntityManager(Author.class).ifSuccess(x -> {
             final TypedQuery<Author> q = x.createQuery("SELECT p FROM Author p ORDER BY p.lastName",
                     Author.class).setMaxResults(1);
             q.getResultList();
         });
-    }
+    }*/
 
 }

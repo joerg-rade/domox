@@ -17,7 +17,7 @@ component "<$apache_line>\nApache\nPulsar"  as AP
 database "..**<<NOSQL>>**..\nMongoDB" as NOSQL
 database "..**<<RDBMS>>**..\nH2\nPostgres\netc." as DB
 component "..<$envira>Spring Boot.." as SB {
-    component "<$apache_line>\nApache Isis" as AI {
+    component "<$apache_line>\nApache Causeway" as AI {
         rectangle <$cubes> {
             rectangle "..<$eye>..\n<<ViewModel>>\n<<Class>>\n(Grand;-)UnifiedObject" as VM
             rectangle "..<$cube>..\n<<Entity>>\n<<Class>>\nCrud" as CRUD

@@ -10,13 +10,13 @@ By means of Natural Language Processing (NLP), it will try to identify candidate
 ![Preview](./docs/BigPicture.png)
 
 Domox allows the user to:
-* Import Documents
-* Analyze Requirements therein
-* Extract Relations
+* Import documents
+* Analyze requirements therein
+* Extract relations
 * Generate a Domain Model (UML)
-* Flag relations as irrelevant (ie. exclude them from the Domain Model)
+* Flag relations as irrelevant (i.e. exclude them from the Domain Model)
 * View the (plant)UML model and
-* Export it (for subsequent processing by other tools, eg. Apache Isis)
+* Export it (for subsequent processing by other tools, e.g. Apache Causeway)
 * Allow to trace back from the Domain Model elements to requirements.  
 
 Design follows the outline in [1]:

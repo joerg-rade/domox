@@ -1,15 +1,11 @@
 package domox.dom.rqm;
 
 import lombok.*;
-import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.jaxb.PersistentEntityAdapter;
-import org.apache.isis.applib.services.message.MessageService;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.applib.services.title.TitleService;
-import org.apache.isis.persistence.jpa.applib.integration.IsisEntityListener;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import javax.persistence.CascadeType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Set;
@@ -30,25 +26,16 @@ import java.util.Set;
                         "WHERE o.lastName LIKE :lastName"
         )
 })
-@javax.persistence.EntityListeners(IsisEntityListener.class)
-@DomainObject(nature = Nature.ENTITY, logicalTypeName = "domox.Author", entityChangePublishing = Publishing.ENABLED)
+@javax.persistence.EntityListeners(CausewayEntityListener.class)
+@DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout()
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 public class Author implements Comparable<Author> {
 
-    @Inject
-    @javax.persistence.Transient
-    RepositoryService repositoryService;
-    @Inject
-    @javax.persistence.Transient
-    TitleService titleService;
-    @Inject
-    @javax.persistence.Transient
-    MessageService messageService;
-
     static final String NAMED_QUERY__FIND_BY_LASTNAME_LIKE = "Author.findByLastNameLike";
+
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
     @javax.persistence.Column(name = "id", nullable = false)

@@ -1,6 +1,6 @@
 package domox.webapp;
 
-import org.apache.isis.core.config.presets.IsisPresets;
+import org.apache.causeway.core.config.presets.CausewayPresets;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
@@ -17,7 +17,7 @@ public class Application {
      * entry point by searching for classes having a {@code main(...)}
      */
     public static void main(String[] args) {
-        IsisPresets.prototyping();
+        CausewayPresets.prototyping();
         SpringApplication.run(new Class[]{Application.class}, args);
     }
 

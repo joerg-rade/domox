@@ -1,19 +1,18 @@
 package domox.dom.rqm;
 
-import org.apache.isis.applib.services.factory.FactoryService;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.applib.value.Clob;
-import org.apache.isis.testing.unittestsupport.applib.jmocking.JUnitRuleMockery2;
+import org.apache.causeway.applib.services.factory.FactoryService;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.apache.causeway.applib.value.Clob;
+import org.apache.causeway.core.internaltestsupport.jmocking.JUnitRuleMockery2;
 import org.jmock.Expectations;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.*;
 
-import static org.apache.isis.commons.internal.assertions._Assert.assertEquals;
+import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
 
 @Ignore
 class DocumentsTest {

@@ -6,8 +6,8 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import domox.webapp.Application;
 import domox.webapp.application.ApplicationModule;
-import org.apache.isis.applib.annotation.DomainObject;
-import org.apache.isis.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.DomainObject;
+import org.apache.causeway.applib.annotation.DomainObjectLayout;
 
 import javax.persistence.Entity;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;

@@ -1,28 +1,26 @@
 package domox.dom.nlp;
 
-import org.apache.isis.applib.annotation.DomainService;
-import org.apache.isis.applib.annotation.NatureOfService;
-import org.apache.isis.applib.annotation.PriorityPrecedence;
-import org.apache.isis.applib.annotation.PropertyLayout;
-import org.apache.isis.applib.services.factory.FactoryService;
-import org.apache.isis.applib.services.repository.RepositoryService;
+import lombok.RequiredArgsConstructor;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.NatureOfService;
+import org.apache.causeway.applib.annotation.PriorityPrecedence;
+import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.services.factory.FactoryService;
+import org.apache.causeway.applib.services.repository.RepositoryService;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.List;
 
-@DomainService(
-        nature = NatureOfService.VIEW,
-        logicalTypeName = "domox.ModelDependencies")
+@DomainService(nature = NatureOfService.VIEW)
+@Named("domox.ModelDependencies")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class TypedDependencies {
 
-    @Inject
-    private RepositoryService repositoryService;
-    //    @Inject private JpaSupportService jpaSupportService;
-    @Inject
-    private TypedDependencyRepository repository;
-    @Inject
-    private FactoryService factoryService;
+    private final RepositoryService repositoryService;
+    private final TypedDependencyRepository repository;
+    private final FactoryService factoryService;
 
     @PropertyLayout(sequence = "1")
     public List<TypedDependency> listAll() {

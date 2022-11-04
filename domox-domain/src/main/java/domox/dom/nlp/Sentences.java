@@ -1,27 +1,25 @@
 package domox.dom.nlp;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.services.factory.FactoryService;
-import org.apache.isis.applib.services.repository.RepositoryService;
-import org.apache.isis.persistence.jpa.applib.services.JpaSupportService;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.services.factory.FactoryService;
+import org.apache.causeway.applib.services.repository.RepositoryService;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.List;
 
-@DomainService(
-        nature = NatureOfService.VIEW,
-        logicalTypeName = "domox.Sentences")
+@DomainService(nature = NatureOfService.VIEW)
+@Named("domox.Sentences")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Sentences {
 
-    @Inject private RepositoryService repositoryService;
-//    @Inject private JpaSupportService jpaSupportService;
-    @Inject private FactoryService factoryService;
+    private final RepositoryService repositoryService;
+    private final FactoryService factoryService;
 
-    @PropertyLayout(sequence = "1")
+    @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
-    @ActionLayout
     public List<Sentence> listAll() {
         return repositoryService.allInstances(Sentence.class);
     }

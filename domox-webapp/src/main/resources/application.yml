@@ -53,9 +53,9 @@ isis:
         # https://stackoverflow.com/a/38983935/56880
 
       credit:
-        - url:  http://isis.apache.org
+        - url:  http://causeway.apache.org
           image: images/apache-isis/logo-48x48.png
-          name: Apache Isis
+          name: Apache Causeway
 
       themes:
         show-chooser: false
