@@ -1,7 +1,7 @@
 package domox.dom.nlp;
 
 public enum PosType {
-    MOUN_PHRASE,
+    NOUN_PHRASE,
     VERB_PHARSE,
     VERB,
     ADVP

@@ -14,6 +14,7 @@ public enum TdType {
     NMOD_ON,
     NMOD_TO,
     NSUBJ,
+    NSUBJPASS,
     ROOT,
     XCOMP
     //TODO

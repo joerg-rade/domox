@@ -13,13 +13,13 @@ import java.util.*
 
 class HtmlReader {
 
-    fun extractContentFromUrl(url: String): String? {
+    fun extractContentFromUrl(url: String): String {
         val rawContent = readStringFromURL(url)
         return html2text(rawContent)
     }
 
     @Throws(IOException::class, SAXException::class, TikaException::class)
-    fun parseToPlainText(url: String): String? {
+    fun parseToPlainText(url: String): String {
         val handler = BodyContentHandler()
         val parser = AutoDetectParser()
         val metadata = Metadata()
@@ -29,7 +29,7 @@ class HtmlReader {
         }
     }
 
-    private fun readStringFromURL(requestURL: String): String {
+    private fun readStringFromURL(requestURL: String) : String {
         var stream: InputStream? = null
         try {
             stream = URL(requestURL).openStream()
@@ -37,13 +37,16 @@ class HtmlReader {
             exception.printStackTrace()
         }
         val csName = StandardCharsets.UTF_8.toString()
-        Scanner(stream, csName).use { scanner ->
-            scanner.useDelimiter("\\A")
-            return if (scanner.hasNext()) scanner.next() else ""
+        if (stream != null) {
+            Scanner(stream, csName).use { scanner ->
+                scanner.useDelimiter("\\A")
+                return if (scanner.hasNext()) scanner.next() else ""
+            }
         }
+        return ""
     }
 
-    private fun html2text(html: String): String? {
+    private fun html2text(html: String): String {
         var out = html
         out = out.replace("<!DOCTYPE[\\s\\S]*?>".toRegex(), "")
         out = out.replace("<head>[\\s\\S]*?</head>".toRegex(), "")

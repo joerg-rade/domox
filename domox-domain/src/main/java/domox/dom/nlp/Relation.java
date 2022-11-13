@@ -10,12 +10,14 @@ import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
+import javax.inject.Named;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.List;
 
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
 @javax.persistence.EntityListeners(CausewayEntityListener.class)
+@Named("domox.Relation")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "arrows-h")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)

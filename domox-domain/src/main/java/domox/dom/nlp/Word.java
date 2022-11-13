@@ -1,12 +1,10 @@
 package domox.dom.nlp;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 
+import javax.inject.Named;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @javax.persistence.Entity
@@ -16,12 +14,12 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
                 @javax.persistence.UniqueConstraint(name = "PartOfSpeech_id_UNQ", columnNames = {"id"})
         }
 )
-@DomainObject(nature=Nature.ENTITY, logicalTypeName = "domox.PartOfSpeech", entityChangePublishing = Publishing.ENABLED)
+@Named("domox.Word")
+@DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "speech")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
-@Data
 public class Word implements Comparable<Word> {
 
     @javax.persistence.Id
@@ -41,6 +39,8 @@ public class Word implements Comparable<Word> {
 
     @javax.persistence.Column(nullable = false)
     @Property()
+    @Getter
+    @Setter
     private PosType type;
 
     @javax.persistence.ManyToOne()

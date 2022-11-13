@@ -28,7 +28,7 @@ public class NlpAdapter {
     }
 
     private static void stanfordServer(Document dmxDoc) {
-        final String rawText = (String) dmxDoc.getContent().getChars();
+        final String rawText = (String) dmxDoc.getContent();
 //        final StanfordCoreNlpServer nlp = new StanfordCoreNlpServer();
 //        final Annotation annotation = nlp.annotate(rawText);
      /*   annotation.get(CoreSentence.class);
@@ -42,8 +42,9 @@ public class NlpAdapter {
             dmxDoc.getSentences().add(dmxSentence);
         }*/
     }
+
     private static void stanfordLib(Document dmxDoc) {
-        final String rawText = (String) dmxDoc.getContent().getChars();
+        final String rawText = (String) dmxDoc.getContent();
         final StanfordCoreNlpAPI nlp = new StanfordCoreNlpAPI();
         final CoreDocument coreDocument = nlp.annotate(rawText);
         final List<CoreSentence> csList = coreDocument.sentences();

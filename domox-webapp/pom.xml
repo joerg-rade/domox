@@ -20,11 +20,14 @@
     <packaging>jar</packaging>
 
     <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <project.version>0.1.0-SNAPSHOT</project.version>
         <maven-cucumber-reporting.version>4.11.2</maven-cucumber-reporting.version>
         <archunit.version>0.20.1</archunit.version>
         <!--skipBDD>${skipTests}</skipBDD-->
         <skipBDD>true</skipBDD>
+        <postgresql.version>42.5.0</postgresql.version>
     </properties>
 
     <build>
@@ -237,6 +240,17 @@
             <version>2.0.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.checkerframework</groupId>
+                    <artifactId>checker-qual</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
     </dependencies>
 
@@ -296,7 +310,7 @@
                 <dependency>
                     <groupId>org.postgresql</groupId>
                     <artifactId>postgresql</artifactId>
-                    <version>42.3.7</version>
+                    <version>${postgresql.version}</version>
                 </dependency>
             </dependencies>
         </profile>

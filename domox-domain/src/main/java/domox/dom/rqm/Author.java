@@ -6,11 +6,12 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Named;
 import javax.persistence.CascadeType;
+import javax.persistence.Entity;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Set;
 
-@Component
 @javax.persistence.Entity
 @javax.persistence.Table(
         schema = "domox",
@@ -27,6 +28,7 @@ import java.util.Set;
         )
 })
 @javax.persistence.EntityListeners(CausewayEntityListener.class)
+@Named("domox.Author")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout()
 @NoArgsConstructor(access = AccessLevel.PUBLIC)

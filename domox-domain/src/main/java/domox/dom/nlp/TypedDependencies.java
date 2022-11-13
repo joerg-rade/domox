@@ -1,10 +1,10 @@
 package domox.dom.nlp;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.NatureOfService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
-import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
@@ -22,12 +22,12 @@ public class TypedDependencies {
     private final TypedDependencyRepository repository;
     private final FactoryService factoryService;
 
-    @PropertyLayout(sequence = "1")
+    @ActionLayout(sequence = "1")
     public List<TypedDependency> listAll() {
         return repositoryService.allInstances(TypedDependency.class);
     }
 
-    @PropertyLayout(sequence = "2")
+    @ActionLayout(sequence = "2")
     public TypedDependency create() {
         final TypedDependency obj = factoryService.detachedEntity(TypedDependency.class);
 //        obj.setTitle(title);
@@ -35,7 +35,7 @@ public class TypedDependencies {
         return obj;
     }
 
-    @PropertyLayout(sequence = "3")
+    @ActionLayout(sequence = "3")
     public List<TypedDependency> findByType(final TdType type) {
         return repository.findByType(type);
     }

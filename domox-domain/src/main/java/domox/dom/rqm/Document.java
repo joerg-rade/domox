@@ -1,30 +1,38 @@
 package domox.dom.rqm;
 
 import domox.dom.nlp.Sentence;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Clob;
+import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
+import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
 
+import javax.activation.MimeType;
+import javax.activation.MimeTypeParseException;
+import javax.inject.Named;
 import javax.persistence.CascadeType;
+import javax.persistence.Embedded;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
 import java.util.Set;
 
+@Slf4j
 @javax.persistence.Entity
-@javax.persistence.Table(
-        schema = "domox",
-        uniqueConstraints = {
-                @javax.persistence.UniqueConstraint(name = "Document_title_UNQ", columnNames = {"title"})
-        }
-)
-@DomainObject(nature = Nature.ENTITY, logicalTypeName = "domox.Document", entityChangePublishing = Publishing.ENABLED)
+@javax.persistence.Table(schema = "domox")
+@javax.persistence.EntityListeners(CausewayEntityListener.class)
+@Named("domox.Document")
+@DomainObject(bounding = Bounding.BOUNDED)
 @DomainObjectLayout(cssClassFa = "file")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-@ToString(onlyExplicitlyIncluded = true)
-//@Data
 public class Document implements Comparable<Document> {
+
+    private static MimeType MIME_TYPE = null;
 
     @javax.persistence.Id
     @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
@@ -53,11 +61,27 @@ public class Document implements Comparable<Document> {
     @Setter
     private String url;
 
-    @PropertyLayout(sequence = "4")
     @javax.persistence.Column(nullable = false)
-    @Getter
-    @Setter
-    private Clob content;
+    @Embedded
+    @Domain.Exclude
+    private ClobJpaEmbeddable content;
+
+    public String getContent() {
+        return content.getChars();
+    }
+
+    public void setContent(String string) {
+        content = ClobJpaEmbeddable.fromClob(new Clob("", MIME_TYPE, string.toCharArray()));
+    }
+
+    static {
+        try {
+            MIME_TYPE = new MimeType("text/plain");
+        } catch (MimeTypeParseException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
 
     @PropertyLayout(sequence = "5")
     @javax.persistence.OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)

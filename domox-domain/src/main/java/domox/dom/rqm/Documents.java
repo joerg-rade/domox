@@ -38,7 +38,7 @@ public class Documents {
         final Document obj = factoryService.detachedEntity(Document.class);
         obj.setTitle(title);
         obj.setUrl(url);
-        obj.setContent(content);
+        obj.setContent(content.getChars().toString());
         obj.setAuthors(authors);
         obj.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         obj.setDocVersion("1.0.0");

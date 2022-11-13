@@ -3,13 +3,17 @@ package domox.dom.rqm;
 import lombok.*;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
+import javax.inject.Named;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
 import java.util.Set;
 
 @javax.persistence.Entity
 @javax.persistence.Table(schema = "domox")
+@javax.persistence.EntityListeners(CausewayEntityListener.class)
+@Named("domox.Corpus")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "files-o")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)

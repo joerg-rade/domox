@@ -51,7 +51,7 @@ class DocumentsTest {
         final Clob content = new Clob("", mimeTypeBase, "");
 
         final Document o = new Document();
-        o.setContent(content);
+        o.setContent(content.asString());
         o.setUrl(url);
         o.setTitle(title);
         o.setAuthors(authors);
