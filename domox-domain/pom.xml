@@ -83,14 +83,6 @@
             <groupId>org.apache.causeway.persistence</groupId>
             <artifactId>causeway-persistence-jpa-eclipselink</artifactId>
         </dependency>
-        <!--dependency>
-            <groupId>org.apache.causeway.extensions</groupId>
-            <artifactId>causeway-extensions-secman-integration</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.extensions</groupId>
-            <artifactId>causeway-extensions-secman-applib</artifactId>
-        </dependency-->
         <dependency>
             <groupId>org.apache.causeway.extensions</groupId>
             <artifactId>causeway-extensions-secman-persistence-jpa</artifactId>
@@ -100,12 +92,6 @@
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
             <artifactId>causeway-core-internaltestsupport</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.core</groupId>
-            <artifactId>causeway-core-internaltestvintage</artifactId>
-            <version>${causeway.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -12,10 +12,10 @@ services:
     ports:
       - "8000:8000"
 
-#  sparknlp:
-#    image: johnsnowlabs/nlp-server
-#    ports:
-#      - "5000:5000"
+  sparknlp:
+    image: johnsnowlabs/sparknlp:sparkocr_jupyter_manual
+    ports:
+      - "8888:8888"
 
 #  postgres:
 #    image: postgres

@@ -58,6 +58,11 @@ Java Modeling in Color with UML.
 Enterprise Components and Processes.
 ISBN 0-13-011510-X
 
+[4] Generating code via XTEXT 
+https://github.com/echebbi/standalone-xtext-example
+https://blogs.itemis.com/en/building-domain-specific-languages-with-xtext-and-xtend
+
+
 #### Excerpt from [1]:
 Syntactic parsing (SP) is the key enabling NLP technology.
 It consists of:

@@ -3,14 +3,15 @@ package domox.dom.rqm;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
-import org.apache.causeway.core.internaltestsupport.jmocking.JUnitRuleMockery2;
-import org.jmock.Expectations;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
 
@@ -21,8 +22,6 @@ class DocumentsTest {
     RepositoryService mockRepositoryService;
     @Mock
     FactoryService mockFactoryService;
-    @Rule
-    public JUnitRuleMockery2 context = JUnitRuleMockery2.createFor(JUnitRuleMockery2.Mode.INTERFACES_AND_CLASSES);
 
     // ClassUnderTest
     Documents documents;
@@ -57,7 +56,7 @@ class DocumentsTest {
         o.setAuthors(authors);
         final List<Document> list = new ArrayList<>();
         list.add(o);
-        context.checking(new Expectations() {
+/*        context.checking(new Expectations() {
             {
                 allowing(mockRepositoryService).detachedEntity(Document.class);
                 will(returnValue(o));
@@ -67,7 +66,7 @@ class DocumentsTest {
                 allowing(mockRepositoryService).allInstances(Document.class);
                 will(returnValue(list));
             }
-        });
+        });*/
 
         // when
         final Document document = documents.create(title, url, content, authors);

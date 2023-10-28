@@ -5,7 +5,7 @@
 
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
-        <causeway.version>2.0.0-SNAPSHOT</causeway.version>
+        <causeway.version>2.0.0-RC3</causeway.version>
         <stanford-corenlp.version>4.5.1</stanford-corenlp.version>
         <lombok.version>1.18.20</lombok.version>
         <jmock.version>2.12.0</jmock.version>
@@ -15,7 +15,7 @@
     <parent>
         <groupId>org.apache.causeway.app</groupId>
         <artifactId>causeway-app-starter-parent</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>2.0.0-RC3</version>
         <relativePath/>
     </parent>
 

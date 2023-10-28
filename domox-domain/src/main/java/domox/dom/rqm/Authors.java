@@ -26,7 +26,7 @@ public class Authors {
     }
 
     @Action(semantics = SemanticsOf.SAFE)
-    @ActionLayout(bookmarking = BookmarkPolicy.AS_ROOT, promptStyle = PromptStyle.DIALOG_SIDEBAR)
+    @ActionLayout(promptStyle = PromptStyle.DIALOG_SIDEBAR)
     public List<Author> findByName(
             final String name
     ) {
@@ -39,7 +39,7 @@ public class Authors {
     }
 
     @Action(semantics = SemanticsOf.SAFE)
-    @ActionLayout(bookmarking = BookmarkPolicy.AS_ROOT)
+    //@ActionLayout()
     public List<Author> listAll() {
         return authorRepository.findAll();
     }

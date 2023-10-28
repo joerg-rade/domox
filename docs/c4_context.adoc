@@ -1,0 +1,26 @@
+.c4_context
+[plantuml,file="c4_context.png"]
+----
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include <logos/openshift>
+!include <tupadr3/font-awesome/home>
+!include <tupadr3/font-awesome/cloud>
+AddRelTag("dashed", $textColor=black, $lineColor=black, $lineStyle=DashedLine(), $legendText="indirect")
+AddRelTag("black", $textColor=black, $lineColor=black, $legendText="user action / event")
+
+title Deployment via OpenShift / Context Diagram
+
+Person(DEV, "Developer")
+System_Ext(REQ, "Requirement\nDocuments", $sprite="cloud")
+System(DMX, "DoMoX", $sprite="home")
+
+Rel(DEV, DMX, "specify requirements\n", $tags="black")
+Rel_L(DMX, REQ, "import", $tags="black")
+
+
+SHOW_LEGEND()
+@enduml
+----
+
+https://github.com/tupadr3/plantuml-icon-font-sprites/tree/master/font-awesome
