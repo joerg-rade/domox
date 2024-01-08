@@ -15,10 +15,10 @@ class DocumentContent {
     content:String
 }
 Document -> DocumentContent
-Document -> AnnotationSet
+Document -d-> AnnotationSet
 Document -> FeatureMap : features
 
-Corpus "1" --> "*" Document
+Corpus *-r- "*" Document
 
 class Annotation {
     id: Long
@@ -28,7 +28,7 @@ class Annotation {
 
 }
 
-AnnotationSet *-- Annotation
+AnnotationSet *-r- Annotation
 
 class FeatureMap {
 }
@@ -44,8 +44,8 @@ class Relation {
     id:Long
     type: String
 }
-Relation -> FeatureMap : features
-Relation --> "*" Annotation : members
+Relation -u-> FeatureMap : features
+Relation -l-> "*" Annotation : members
 Annotation -> FeatureMap : features
 
 @enduml

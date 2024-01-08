@@ -1,0 +1,188 @@
+# From RAD to MAD
+
+.From RAD to MAD
+[plantuml,file="LayeredArchitecture.png"]
+--
+@startuml
+
+rectangle "Presentation Layer" as PRES {
+    rectangle " " as P1
+    rectangle " " as P2
+    rectangle " " as P3
+    rectangle " " as P4
+    'P1 -[hidden]r- P2
+    'P2 -[hidden]r- P3
+    'P3 -[hidden]r- P4
+
+    note top of P1 #lightblue
+        {{
+            salt
+            {
+                {* \t }
+                {^
+                    { \t\t\t } |
+                    { \t
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t
+                    } |
+                    { \t }
+                }
+            }
+        }}
+    end note
+    note top of P2 #lightblue
+        {{
+            salt
+            {
+                {* \t }
+                {^
+                    { \t\t\t } |
+                    { \t
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t
+                    } |
+                    { \t }
+                }
+            }
+        }}
+    end note
+    note top of P3 #lightblue
+        {{
+            salt
+            {
+                {* \t }
+                {^
+                    { \t\t\t } |
+                    { \t
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t
+                    } |
+                    { \t }
+                }
+            }
+        }}
+    end note
+    note top of P4 #lightblue
+        {{
+            salt
+            {
+                {* \t }
+                {^
+                    { \t\t\t } |
+                    { \t
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t | {* \t\t\t}
+                        \t
+                    } |
+                    { \t }
+                }
+            }
+        }}
+    end note
+}
+
+rectangle "Control Layer" as CTR {
+    hexagon "&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;" as C1 #orange
+    hexagon "&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;" as C2 #orange
+    hexagon "&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;" as C3 #orange
+    hexagon "&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;" as C4 #orange
+    'C1 -[hidden]r- C2
+    'C2 -[hidden]r- C3
+    'C3 -[hidden]r- C4
+}
+C1 .u.> P1
+C1 .u.> P2
+C2 .u.> P2
+C2 .u.> P3
+C3 .u.> P2
+C3 .u.> P3
+C4 .u.> P3
+C4 .u.> P4
+
+rectangle "Domain Layer" as DOM {
+        (D1) #lightyellow
+        (D2) #lightyellow
+        (D3) #lightyellow
+        (D4) #lightyellow
+        (D5) #lightyellow
+        (D6) #lightyellow
+
+        'D1 -[hidden]r- D2
+        'D2 -[hidden]r- D3
+        'D3 -[hidden]r- D4
+        'D4 -[hidden]r- D5
+        'D5 -[hidden]r- D6
+}
+C1 .> D1
+C1 .> D2
+C2 .> D2
+C2 .> D3
+C2 .> D4
+C3 .> D3
+C3 .> D4
+C3 .> D5
+C3 .> D6
+C4 .> D6
+
+
+rectangle "Persistence Layer" as PERS {
+    map T1 #green {
+         1 => \t
+         2 => \t
+         3 => \t
+         4 => \t
+    }
+    map T2 #green {
+         1 => &#160;
+         2 => &#160;
+         3 => &#160;
+         4 => &#160;
+         5 => &#160;
+         6 => &#160;
+    }
+    map T3 #green {
+         1 => \t\t
+         2 => \t
+         3 => \t
+         4 => \t
+         5 => \t
+    }
+    map T4 #green {
+         1\t => \t\t\t
+         2\t => \t
+         3\t => \t
+         4\t => \t
+         5\t => \t
+    }
+    T1 -[hidden]r- T2
+    T2 -[hidden]r- T3
+    T3 -[hidden]r- T4
+}
+D1 .> T1
+D2 .> T3
+D3 .> T2
+D4 .> T3
+D5 .> T4
+D6 .> T4
+
+PRES -[hidden]d- CTR
+CTR -[hidden]d- DOM
+DOM -[hidden]d- PERS
+
+file "Smart UI\nAnti-Pattern" as AP #lightyellow
+AP .l..> CTR
+AP .u..> PRES
+
+@enduml
+--
