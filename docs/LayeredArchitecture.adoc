@@ -1,18 +1,15 @@
-# From RAD to MAD
-
-.From RAD to MAD
 [plantuml,file="LayeredArchitecture.png"]
 --
 @startuml
 
 rectangle "Presentation Layer" as PRES {
-    rectangle " " as P1
-    rectangle " " as P2
-    rectangle " " as P3
-    rectangle " " as P4
-    'P1 -[hidden]r- P2
-    'P2 -[hidden]r- P3
-    'P3 -[hidden]r- P4
+    interface " " as P1
+    interface " " as P2
+    interface " " as P3
+    interface " " as P4
+    P1 -[hidden] P2
+    P2 -[hidden] P3
+    P3 -[hidden] P4
 
     note top of P1 #lightblue
         {{
@@ -39,7 +36,13 @@ rectangle "Presentation Layer" as PRES {
             {
                 {* \t }
                 {^
-                    { \t\t\t } |
+                    { \t
+                        \t | {* \t}
+                        \t | {* \t}
+                        \t | { \t}
+                        \t | { \t}
+                        \t
+                    } |
                     { \t
                         \t | {* \t\t\t}
                         \t | {* \t\t\t}
@@ -58,12 +61,18 @@ rectangle "Presentation Layer" as PRES {
             {
                 {* \t }
                 {^
-                    { \t\t\t } |
                     { \t
-                        \t | {* \t\t\t}
-                        \t | {* \t\t\t}
-                        \t | {* \t\t\t}
-                        \t | {* \t\t\t}
+                        \t | {* \t\t}
+                        \t | {* \t\t}
+                        \t | { \t}
+                        \t | { \t}
+                        \t
+                    } |
+                    { \t
+                        \t | { \t\t}
+                        \t | { \t\t}
+                        \t | {* \t\t}
+                        \t | {* \t\t}
                         \t
                     } |
                     { \t }
@@ -77,12 +86,17 @@ rectangle "Presentation Layer" as PRES {
             {
                 {* \t }
                 {^
-                    { \t\t\t } |
                     { \t
                         \t | {* \t\t\t}
                         \t | {* \t\t\t}
                         \t | {* \t\t\t}
                         \t | {* \t\t\t}
+                    } |
+                    { \t
+                         { \t\t\t}
+                         {* \t\t\t}
+                         {* \t\t\t}
+                         { \t\t\t}
                         \t
                     } |
                     { \t }
@@ -97,9 +111,9 @@ rectangle "Control Layer" as CTR {
     hexagon "&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;" as C2 #orange
     hexagon "&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;" as C3 #orange
     hexagon "&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;" as C4 #orange
-    'C1 -[hidden]r- C2
-    'C2 -[hidden]r- C3
-    'C3 -[hidden]r- C4
+    C1 -[hidden] C2
+    C2 -[hidden] C3
+    C3 -[hidden] C4
 }
 C1 .u.> P1
 C1 .u.> P2
@@ -111,18 +125,18 @@ C4 .u.> P3
 C4 .u.> P4
 
 rectangle "Domain Layer" as DOM {
-        (D1) #lightyellow
-        (D2) #lightyellow
-        (D3) #lightyellow
-        (D4) #lightyellow
-        (D5) #lightyellow
-        (D6) #lightyellow
+        circle " " as D1 #lightyellow
+        circle " " as D2 #lightyellow
+        circle " " as D3 #lightyellow
+        circle " " as D4 #lightyellow
+        circle " " as D5 #lightyellow
+        circle " " as D6 #lightyellow
 
-        'D1 -[hidden]r- D2
-        'D2 -[hidden]r- D3
-        'D3 -[hidden]r- D4
-        'D4 -[hidden]r- D5
-        'D5 -[hidden]r- D6
+        D1 -[hidden] D2
+        D2 -[hidden] D3
+        D3 -[hidden] D4
+        D4 -[hidden] D5
+        D5 -[hidden] D6
 }
 C1 .> D1
 C1 .> D2
@@ -165,9 +179,9 @@ rectangle "Persistence Layer" as PERS {
          4\t => \t
          5\t => \t
     }
-    T1 -[hidden]r- T2
-    T2 -[hidden]r- T3
-    T3 -[hidden]r- T4
+    T1 -[hidden] T2
+    T2 -[hidden] T3
+    T3 -[hidden] T4
 }
 D1 .> T1
 D2 .> T3

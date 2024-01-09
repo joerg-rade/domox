@@ -1,0 +1,56 @@
+[plantuml,file="LayeredArchitecture_NO.png"]
+--
+@startuml
+'skinparam nodesep 10
+rectangle "Presentation Layer" as PRESL #white
+rectangle "Application/Control Layer" as APPL #white
+rectangle "Domain Layer" as DOML #white
+rectangle "Persistence Layer" as PERSL #white
+PRESL -[hidden]- APPL
+APPL -[hidden]- DOML
+DOML -[hidden]- PERSL
+
+rectangle " " as PRES_NO #lightblue {
+    ( ) as V1 #lightgrey
+    ( ) as V2 #lightgrey
+    ( ) as V3 #lightgrey
+    ( ) as V4 #lightgrey
+    ( ) as V5 #lightgrey
+    ( ) as V6 #lightgrey
+}
+
+rectangle " " as DOM_NO {
+        (<color:orange>&#9632;) as DO1 #lightyellow
+        (<color:orange>&#9632;) as DO2 #lightyellow
+        (<color:orange>&#9632;) as DO3 #lightyellow
+        (<color:orange>&#9632;) as DO4 #lightyellow
+        (<color:orange>&#9632;) as DO5 #lightyellow
+        (<color:orange>&#9632;) as DO6 #lightyellow
+}
+DO1 .u..> V1
+DO2 .u.> V2
+DO3 .u.> V3
+DO4 .u.> V4
+DO5 .u.> V5
+DO6 .u.> V6
+
+rectangle " " as PERS_NO #lightgreen {
+    (E) as E1 #green
+    (E) as E2 #green
+    (E) as E3 #green
+    (E) as E4 #green
+    (E) as E5 #green
+    (E) as E6 #green
+}
+DO1 .> E1
+DO2 .> E2
+DO3 .> E3
+DO4 .> E4
+DO5 .> E5
+DO6 .> E6
+
+PRES_NO -[hidden]d- DOM_NO
+DOM_NO -[hidden]d- PERS_NO
+
+@enduml
+--
