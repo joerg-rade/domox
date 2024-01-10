@@ -125,7 +125,7 @@ package type_system {
     DomainModel *-> "1..n" ClassCdd
 }
 
-Sentence -> Document : content
+Sentence --> Document : content
 
 
 class Analysis {
@@ -136,8 +136,8 @@ class Analysis {
     constructDomainModel()
 }
 
-Analysis -up-> "1..n" Document : input
-Analysis -> "0..n" Relation
+Analysis -> "1..n" Document : input
+Analysis -up-> "0..n" Relation
 Analysis -> DomainModel : output
 
 note as N1

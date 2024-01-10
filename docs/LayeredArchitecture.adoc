@@ -2,11 +2,14 @@
 --
 @startuml
 skinparam nodesep 4
-rectangle " " as PRES {
-    interface " " as P1
-    interface " " as P2
-    interface " " as P3
-    interface " " as P4
+'skinparam ranksep 10
+'skinparam noteBorderThickness 0
+
+rectangle " " as PRES #lightblue {
+    circle " " as P1 #lightgray
+    interface " " as P2 #lightgray
+    interface " " as P3 #lightgray
+    interface " " as P4 #lightgray
     P1 -[hidden] P2
     P2 -[hidden] P3
     P3 -[hidden] P4
@@ -14,6 +17,7 @@ rectangle " " as PRES {
     note top of P1 #lightblue
         {{
             salt
+            scale 0.25
             {
                 {* \t }
                 {^
@@ -33,6 +37,7 @@ rectangle " " as PRES {
     note top of P2 #lightblue
         {{
             salt
+            scale 0.25
             {
                 {* \t }
                 {^
@@ -58,6 +63,7 @@ rectangle " " as PRES {
     note top of P3 #lightblue
         {{
             salt
+            scale 0.25
             {
                 {* \t }
                 {^
@@ -83,6 +89,7 @@ rectangle " " as PRES {
     note top of P4 #lightblue
         {{
             salt
+            scale 0.25
             {
                 {* \t }
                 {^
@@ -125,12 +132,12 @@ C4 .u.> P3
 C4 .u.> P4
 
 rectangle " " as DOM {
-        circle " " as D1 #lightyellow
-        circle " " as D2 #lightyellow
-        circle " " as D3 #lightyellow
-        circle " " as D4 #lightyellow
-        circle " " as D5 #lightyellow
-        circle " " as D6 #lightyellow
+        ( ) as D1 #lightyellow
+        ( ) as D2 #lightyellow
+        ( ) as D3 #lightyellow
+        ( ) as D4 #lightyellow
+        ( ) as D5 #lightyellow
+        ( ) as D6 #lightyellow
 
         D1 -[hidden] D2
         D2 -[hidden] D3
@@ -149,7 +156,7 @@ C3 .> D5
 C3 .> D6
 C4 .> D6
 
-
+skinparam mapFontSize 8
 rectangle " " as PERS {
     map T1 #green {
          1 => \t
@@ -194,10 +201,7 @@ PRES -[hidden]d- CTR
 CTR -[hidden]d- DOM
 DOM -[hidden]d- PERS
 
-'file "Smart UI\nAnti-Pattern" as AP #lightyellow
-'AP .l..> CTR
-'AP .u..> PRES
-
+' Layer Labels
 rectangle "Presentation Layer" as PRESL #white
 rectangle "Application/Control Layer" as APPL #white
 rectangle "Domain Layer" as DOML #white
@@ -206,6 +210,7 @@ PRESL -[hidden]- APPL
 APPL -[hidden]- DOML
 DOML -[hidden]- PERSL
 
+' NO - NakedObjects
 rectangle " " as PRES_NO #lightblue {
     ( ) as V1 #lightgrey
     ( ) as V2 #lightgrey
@@ -231,12 +236,12 @@ DO5 .u.> V5
 DO6 .u.> V6
 
 rectangle " " as PERS_NO #lightgreen {
-    (E) as E1 #green
-    (E) as E2 #green
-    (E) as E3 #green
-    (E) as E4 #green
-    (E) as E5 #green
-    (E) as E6 #green
+    ( ) as E1 #green
+    ( ) as E2 #green
+    ( ) as E3 #green
+    ( ) as E4 #green
+    ( ) as E5 #green
+    ( ) as E6 #green
 }
 DO1 .> E1
 DO2 .> E2
