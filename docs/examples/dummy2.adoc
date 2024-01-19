@@ -1,4 +1,3 @@
-# Dummy2
 .SentenceAnalysis
 [plantuml,file="SentenceAnalysis"]
 --

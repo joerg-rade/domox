@@ -1,7 +1,5 @@
-# SimpleAppBootstrap
 .SimpleAppBootstrap
 [plantuml,file="SimpleAppBootstrap.png"]
-
 --
 @startuml
 

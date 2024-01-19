@@ -1,0 +1,23 @@
+.BigPicture
+[plantuml,file="BigPicture.png"]
+--
+@startuml
+
+top to bottom direction
+
+file "<Raw Input Data>\nRequirements" as REQ
+file "<Annotated Document>\nDomainModel.puml" as DM
+
+component DoMoX  as DMX {
+    component "..<NL Processor>..\n{Stanford Parser | Apache OpenNLP}" as NLP
+    database "..**<RDBMS>**..\nRequirements\nModel" as DB
+    NLP -left-> REQ : "analyze\ \nimport"
+    NLP -down-> DB
+}
+
+DMX --> DM : export
+component "<Naked Objects Framework>\n..Apache Causeway.." as AI
+AI --> DM : import
+
+@enduml
+--

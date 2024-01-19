@@ -1,4 +1,3 @@
-# async
 .async
 [plantuml,file="async.png"]
 --
@@ -14,25 +13,25 @@
 top to bottom direction
 
 component "<$apache_line>\nApache\nPulsar"  as AP
-database "..**<<NOSQL>>**..\nMongoDB" as NOSQL
-database "..**<<RDBMS>>**..\nH2\nPostgres\netc." as DB
+database "..**<NOSQL>**..\nMongoDB" as NOSQL
+database "..**<RDBMS>**..\nH2\nPostgres\netc." as DB
 component "..<$envira>Spring Boot.." as SB {
     component "<$apache_line>\nApache Causeway" as AI {
         rectangle <$cubes> {
-            rectangle "..<$eye>..\n<<ViewModel>>\n<<Class>>\n(Grand;-)UnifiedObject" as VM
-            rectangle "..<$cube>..\n<<Entity>>\n<<Class>>\nCrud" as CRUD
-            rectangle "..<$cube>..\n<<Entity>>\n<<Class>>\nReadOnly" as RO
+            rectangle "..<$eye>..\n<ViewModel>\n<Class>\n(Grand;-)UnifiedObject" as VM
+            rectangle "..<$cube>..\n<Entity>\n<Class>\nCrud" as CRUD
+            rectangle "..<$cube>..\n<Entity>\n<Class>\nReadOnly" as RO
             VM --> CRUD
             VM --> RO
         }
         rectangle <$industry> {
-            rectangle "<<Factory>>\n<<Class>>\nCrudFctr" as CRUDF
-            rectangle "<<Factory>>\n<<Class>>\nReadOnlyFctr" as ROF
+            rectangle "<Factory>\n<Class>\nCrudFctr" as CRUDF
+            rectangle "<Factory>\n<Class>\nReadOnlyFctr" as ROF
         }
     }
 rectangle <$archive> {
-rectangle "<<Repository>>\n<<Interface>>\nCrudJpaRpstr" as CRUDR
-rectangle "<<Repository>>\n<<Interface>>\nReadOnlyJpaRpstr" as ROR
+rectangle "<Repository>\n<Interface>\nCrudJpaRpstr" as CRUDR
+rectangle "<Repository>\n<Interface>\nReadOnlyJpaRpstr" as ROR
 }
 CRUDF --> CRUD
 CRUDF --> CRUDR
@@ -44,7 +43,7 @@ ROR --> NOSQL : findByValue
 CRUDR --> DB : findById
 
 note right of NOSQL
-additional <<dependency>>
+additional <dependency>
 spring-boot-starter-data-mongodb
 end note
 
@@ -54,7 +53,7 @@ note bottom of AI
 Domain Model Objects translate into:
 * //Sample//Entity
 * //Sample//Factory (//Sample//s)
-* //Sample//Repository (<<extends JpaRepository>>)
+* //Sample//Repository (<extends JpaRepository>)
 end note
 
 note top of DB

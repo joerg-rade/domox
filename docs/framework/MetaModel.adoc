@@ -1,0 +1,34 @@
+.Metamodel
+[plantuml, MetaModel, png]
+--
+@startuml
+
+class "DomainObject" as DOM {
+    + title : String
+    + icon : img
+}
+DOM --* DOM : attribute
+
+abstract "Association" as ASC
+class "OneToOne" as To1 extends ASC
+class "OneToMany" as ToN extends ASC
+
+class "Action" as ACT {
+    + title : String
+    + icon : img
+    + execute() : void
+}
+
+class "Parameter" as PAR {
+    + title : String
+}
+
+To1 --> DOM
+ToN --> DOM : List\n0..n
+ASC -u-* DOM : 0..n
+ACT --* DOM : 0..n
+PAR -r-* ACT : 0..n
+PAR --> DOM : type
+
+@enduml
+--

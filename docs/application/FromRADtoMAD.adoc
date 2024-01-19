@@ -1,5 +1,3 @@
-# From RAD to MAD
-
 .From RAD to MAD
 [plantuml,file="FromRADtoMAD.png"]
 --
@@ -43,7 +41,6 @@ Superclass: { "java.lang.Object " | [Browse...]
 end note
 
 UI --> User : interact\nwith UI
-
 
 @enduml
 --

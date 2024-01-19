@@ -1,29 +1,18 @@
-= Message Simulator
+= Domain Model eXtractor
 
-== System Context
+The **Do**main **Mo**del e**X**tractor aims to automate some of the tasks that usually take place at the beginning of
+a software development project, namely:
 
-== Datastore
+* analysing requirement documents,
+* build up an initial model of the domain and
+* creating an
 
-
-|===
-| | Command |Query
-
-| Crud Verbs |create, update, delete | read
-| identification |by reference | by value |
-
-|===
+== Context
 
 
-|===
-| DB Type | RDBMS | NoSQL
+== Container
 
-| datastore, dataprovider | transactional | n/a
-| mutations | Transactions | Events
-| mode | read/write | write once, read mostly
-| DDD | Core Domain | Supporting Domain
-| Consistency | ensured (ACID) | eventual
-|===
+== Component
 
-image::async.png[]
-
+== Code
 

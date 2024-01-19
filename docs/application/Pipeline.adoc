@@ -1,4 +1,3 @@
-# Pipeline
 .Pipeline
 [plantuml,file="Pipeline.png"]
 --

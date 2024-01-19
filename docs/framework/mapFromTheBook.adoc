@@ -1,0 +1,99 @@
+.References
+* Evans, Eric: Domain Driven Design. Tackling Complexity in the Heart of Software 
+
+.Domain Driven Design - Tactical Level
+[plantuml, tacticalLevel, svg]
+--
+@startuml
+!include <tupadr3/font-awesome/archive>
+!include <tupadr3/font-awesome/cube>
+!include <tupadr3/font-awesome/industry>
+
+    (Model\nDriven\nDesign) as mdd
+    (Services) as svc #lightblue
+    (Domain\nEvents) as de #lightblue
+    (<$archive{scale=0.5}>\nRepositories) as rep #lightblue
+    (Aggregates) as ag
+    (<$cube{scale=0.5}>\nEntities) as e  #lightblue
+    (Value\nObjects) as vo #lightblue
+    (<$industry{scale=0.5}>\nFactories) as fct #lightblue
+    (Smart\nUI) as sui
+    (Layered\nArchitecture) as la
+    
+    mdd -l-> svc : express\nmodel\nwith
+    mdd -> de : express\nchange\nwith
+    mdd -> e : express\nidentity\nwith
+    mdd --> vo : express\nstate &\ncomputation\nwith
+    mdd -u-> sui : X\nmutually\nexclusive\nchoices
+    mdd -u-> la : isolate\ndomain\nexpressions\nwith
+
+    e -> de : push\nstate\nchange\nwith
+    e -l-> rep : access\nwith
+    e --> ag : encap-\nsulate\nwith
+    e --> ag : act as\nroot of:
+    e -r-> fct : encap-\nsulate\nwith
+    
+    ag --> rep : access\nwith
+    ag -> fct : encap-\nsulate\nwith
+    
+    vo --> ag : encap-\nsulate\nwith
+    vo -l-> fct : encap-\nsulate\nwith
+
+
+@enduml
+--
+
+.Domain Driven Design - Conceptual Level
+[plantuml, conceptualLevel, svg]
+--
+@startuml
+
+    (Model\nDriven\nDesign) as mdd
+    (Ubiquitious Language) as ul
+    mdd -u-> ul : model\ngives\nstructure\nto
+    
+    (Bounded Context) as bc
+    mdd -> bc : define\nmodel\nwith
+    bc -> ul : names\nenter
+    
+    (Core Domain) as cd
+    cd --> ul : cultivate\nrich\nmodel\nwith
+    cd --> bc : work in\nautnonomous, clean
+    
+    (Generic\nSubdomains) as gs
+    cd --> gs : avoid\noverinvesting\nin
+    
+    (Continous\nIntegration) as ci
+    bc -l-> ci : keep\nmodel\nunified\nby
+    
+    (Context Map) as cm
+    bc --> cm : assess\n/overview\nrelationships\nwith
+    
+    (Shared\nKernel) as sk
+    cm -> sk : interdependent\ncontext\nfrom
+    cm -u-> sk : overlap\nallied\ncontexts\nthrough
+    
+    (Customer\n/Supplier) as cs
+    cm -l-> cs : relate\nallied\ncontexts\nas
+    
+    (Conformist) as c
+    cm --> c : minimize\ntranslation:
+    
+    (Open\nHost\nService) as ohs
+    cm --> ohs : support\nmultipe\nclients\nthrough
+    
+    (Published\nLanguage) as pl
+    cm --> pl : loosely\ncouple\ncontexts\nthrough
+    ohs --> pl : formalize:
+    
+    (Separate\nWays) as sw
+    cm --> sw : frees\nteams\nto go
+    
+    (Anti-\ncorruption\nLayer) as acl
+    cm --> acl : translate\nand\ninsulate\nunilateraly\nwith
+    
+    (Big\nBall of\nMud) as bbm
+    cm --> bbm : segregate\nthe\nconceptual\nmesses
+
+@enduml
+--

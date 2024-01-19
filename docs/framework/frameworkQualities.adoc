@@ -1,0 +1,106 @@
+.Apache Causeway - Qualities of the Framework
+[plantuml, frameworkQualities, svg]
+--
+@startuml
+
+'// developer perspective
+[Apache\nCauseway] as fw #white
+file "Comprehensibility" as c #white
+file "Developer\nHappiness" as dh #white
+
+'// description
+(Design\nPatterns) as p #lightblue
+(Domain\nDriven\nDesign) as ddd #lightblue
+(Test\nAutomation) as ta #lightblue
+(Documentation) as doc #lightblue
+fw --> ddd : enforces\nuse of
+ddd --> p : is a\ncollection of
+fw --> doc : has\nextensive
+doc --> p : refers to
+doc --> c : contributes\nto
+p --> c : use of DP.\nis\nBestPractice
+
+'// artefacts
+(Generated\nUI) as uig #lightgreen
+(Generated\nDB) as dbg #lightgreen
+(Generated\nRESTful\nAPI) as ro #lightgreen
+(Standard\nComponents) as std #lightgreen
+(Sustainable\nCode) as sc #lightgreen
+fw --> uig : offers
+fw --> dbg : offers
+fw --> ro : offers
+uig --> ta : promotes
+fw --> std : is based on
+ta --> sc
+c --> sc
+
+'// role
+("Lean Code\nDevelopment\nPlatform") as lc #yellow
+'URL="https://en.wikipedia.org/wiki/Low-code_development_platforms" style=filled fillcolor=yellow]
+lc --> c
+fw --> lc : is a
+
+'// economic factors
+(Time\nTo\nMarket) as ttm #pink
+(Productivity) as pdc #pink
+(Human\nResources) as hr #pink
+(Economic\nSuccess) as es #pink
+pdc --> dh : increases
+sc -> pdc
+dbg --> ttm : shortens
+uig --> ttm : shortens
+dh --> hr : increases\nsupply of
+hr --> sc
+ttm -> es
+pdc -> es
+std --> hr :use of SC.\nincreases\nsupply of
+
+'// notes
+file "Allows for tight <B>feedback loop </B>,\n ideal for <B>agile</B> projects" as uig_note #lightyellow
+uig_note .. uig
+uig_note .. dbg
+
+note top of ro
+Allows for
+* custom UI development
+* automation (testing, scheduling)
+end note
+
+note right of ttm
+Key factor for
+<B>innovative, agile </B>
+projects
+end note
+
+file "Avoids \n <B>Smart UI </B>,\n Anti Pattern" as sui_note #lightyellow
+'URL="https://de.wikipedia.org/wiki/Smart_UI
+sui_note .. uig
+sui_note .. ddd
+
+note top of std
+* Spring Boot
+* JPA
+* etc.
+end note
+
+@enduml
+--
+.Legend
+*pink* economic aspects +
+*blue* description +
+*yellow* role +
+*green* artifacts +
+[quote, Modeling in Color, Wikipedia]
+    *pink* moment-interval +
+        Does it represent a moment or interval of time that we need to remember and work with for legal or business reasons? Examples in business systems generally model activities involving people, places and things such as a sale, an order, a rental, an employment, making a journey, etc. +
+    *yellow* roles +
+        Is it a way of participating in an activity (by either a person, place, or thing)? A person playing the role of<an employee in an employment, a thing playing the role of a product in a sale, a location playing the role of a classroom for a training course, are examples of roles. +
+    *blue* description +
+         Is it simply a catalog-entry-like description which classifies or 'labels' an object? For example, the make and model of a car categorises or describes a number of physical vehicles. The relationship between the blue description and green party, place or thing is a type-instance relationship based on differences in the values of data items held in the 'type' object. +
+    *green* party, place, or thing +
+        Something tangible, uniquely identifiable. Typically the role-players in a system. People are green. Organizations are green. The physical objects involved in a rental such as the physical DVDs are green . Normally, if you get through the above three questions and end up here, your class is a "green." +
+
+
+.References
+* Modeling in Color [https://en.wikipedia.org/wiki/Object_Modeling_in_Color] 
+* Unique SellingProposition [https://en.wikipedia.org/wiki/Unique_selling_proposition]
