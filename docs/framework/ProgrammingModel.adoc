@@ -1,0 +1,32 @@
+.ProgrammingModel
+[plantuml, ProgrammingModel, png]
+--
+@startuml
+
+class Entity << (E,green) @DomainObject >> #lightyellow
+class Factory << (F,#FF7700) @DomainService >> #lightyellow
+
+interface JpaRepository << (I,plum) SpringData >>
+interface Repository #lightyellow extends JpaRepository
+
+class View << (V,lightgreen) @DomainObject>>
+
+note left of View
+@DomainObject
+(nature = Nature.VIEW_MODEL)
+end note
+
+note left of Entity
+attributes
+relations (cardinalities)
+presentation
+domain events
+end note
+
+Factory --> Entity : create \n read \n update \n delete
+Factory --> Repository : write/read \n from \npersistent \nstore
+View ..> Entity : optionally \n wrapp/decorate \n1..n \nentities
+
+@enduml
+
+--

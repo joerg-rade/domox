@@ -2,49 +2,56 @@
 [plantuml, frameworkQualities, svg]
 --
 @startuml
+!include <tupadr3/font-awesome/envira>
+!include <tupadr3/font-awesome/cog>
+!include <tupadr3/font-awesome/dollar>
+!include <tupadr3/font-awesome/user>
 
 '// developer perspective
-[Apache\nCauseway] as fw #white
-file "Comprehensibility" as c #white
-file "Developer\nHappiness" as dh #white
+[<img:https://cwiki.apache.org/confluence/download/thumbnails/240882061/causeway-logo-65x48.png{scale=0.5}>\nApache\nCauseway] as fw #white
+file "<$user{scale=0.5}>Comprehensibility" as c #white
+file "<$user{scale=0.5}>\nDeveloper\nHappiness" as dh #white
 
 '// description
 (Design\nPatterns) as p #lightblue
-(Domain\nDriven\nDesign) as ddd #lightblue
+(<b>Domain\n<b>Driven\n<b>Design) as ddd #lightblue
 (Test\nAutomation) as ta #lightblue
 (Documentation) as doc #lightblue
-fw --> ddd : enforces\nuse of
-ddd --> p : is a\ncollection of
-fw --> doc : has\nextensive
+fw ---> ddd : enforces\nuse of
+ddd ---> p : is a\ncollection of
+fw ---> doc : has\nextensive
 doc --> p : refers to
 doc --> c : contributes\nto
 p --> c : use of DP.\nis\nBestPractice
 
 '// artefacts
-(Generated\nUI) as uig #lightgreen
-(Generated\nDB) as dbg #lightgreen
-(Generated\nRESTful\nAPI) as ro #lightgreen
-(Standard\nComponents) as std #lightgreen
+together {
+    (<$cog{scale=0.5}>\nGenerated\nUI) as uig #lightgreen
+    (<$cog{scale=0.5}>\nGenerated\nDB) as dbg #lightgreen
+    (<$cog{scale=0.5}>\nGenerated\nRESTful\nAPI) as ro #lightgreen
+    (Standard\nComponents) as std #lightgreen
+}
 (Sustainable\nCode) as sc #lightgreen
-fw --> uig : offers
-fw --> dbg : offers
-fw --> ro : offers
+fw -> uig : offers
+fw -> dbg : offers
+fw -> ro : offers
+fw -> std : is based on
 uig --> ta : promotes
-fw --> std : is based on
 ta --> sc
 c --> sc
 
 '// role
-("Lean Code\nDevelopment\nPlatform") as lc #yellow
+(<B>Lean Code</B>\nDevelopment\nPlatform) as lc #yellow
 'URL="https://en.wikipedia.org/wiki/Low-code_development_platforms" style=filled fillcolor=yellow]
-lc --> c
+
+lc ---> c
 fw --> lc : is a
 
 '// economic factors
 (Time\nTo\nMarket) as ttm #pink
 (Productivity) as pdc #pink
 (Human\nResources) as hr #pink
-(Economic\nSuccess) as es #pink
+(<$dollar{scale=0.5}>\nEconomic\nSuccess) as es #pink
 pdc --> dh : increases
 sc -> pdc
 dbg --> ttm : shortens
@@ -56,29 +63,30 @@ pdc -> es
 std --> hr :use of SC.\nincreases\nsupply of
 
 '// notes
-file "Allows for tight <B>feedback loop </B>,\n ideal for <B>agile</B> projects" as uig_note #lightyellow
+file "Allows for tight \n<B>feedback loop </B>,\n ideal for \n<B>agile</B> projects" as uig_note #lightyellow
 uig_note .. uig
 uig_note .. dbg
 
 note top of ro
 Allows for
-* custom UI development
-* automation (testing, scheduling)
+* custom UI
+* automation
+** testing
+** scheduling
 end note
 
 note right of ttm
-Key factor for
-<B>innovative, agile </B>
+Key
+factor for
+<B>innovative,
+<b>agile
 projects
 end note
 
-file "Avoids \n <B>Smart UI </B>,\n Anti Pattern" as sui_note #lightyellow
-'URL="https://de.wikipedia.org/wiki/Smart_UI
-sui_note .. uig
-sui_note .. ddd
+ddd ..> uig : suggests \nto avoid \n <B>Smart UI </B>,\n Anti Pattern
 
-note top of std
-* Spring Boot
+note bottom of std
+* Spring Boot <$envira{scale=0.4}>
 * JPA
 * etc.
 end note
