@@ -51,11 +51,11 @@ fw --> lc : is a
 (Human\nResources) as hr #pink
 (<$dollar{scale=0.5}>\nEconomic\nSuccess) as es #pink
 pdc --> dh : increases
-sc -> pdc
+sc --> pdc
 dbg --> ttm : shortens
 uig --> ttm : shortens
-dh --> hr : increases\nsupply of
-hr --> sc
+dh -> hr : increases\nsupply of
+hr -> es
 ttm -> es
 pdc -> es
 
