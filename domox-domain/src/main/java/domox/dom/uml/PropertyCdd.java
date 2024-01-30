@@ -1,10 +1,8 @@
 package domox.dom.uml;
 
-import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -15,7 +13,6 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,23 +20,24 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import java.util.List;
 
 @Entity
 @Table(schema = "domox")
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.DomainModel")
+@Named("domox.PropertyCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A DOmainModel ...")
+@DomainObjectLayout(cssClassFa = "road", describedAs = "A Task is a template for an Execution")
 //@EqualsAndHashCode(exclude = {"cronExpression", "active", "executionList", "queryClassName"})
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
+@Slf4j
 @Data
-public class DomainModel implements Comparable<ClassCdd> {
+public class PropertyCdd
+        extends Candidate
+        implements Comparable<PropertyCdd> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -51,13 +49,13 @@ public class DomainModel implements Comparable<ClassCdd> {
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
+    @Column(nullable = false)
     @Property
-    @Column
-    @OneToMany(mappedBy = "classList")
-    private List<ClassCdd> classList;
+    private Object type;
 
     @Override
-    public int compareTo(@NotNull ClassCdd o) {
-        return 0; //FIXME
+    public int compareTo(@NotNull PropertyCdd o) {
+        //FIXME
+        return 0;
     }
 }

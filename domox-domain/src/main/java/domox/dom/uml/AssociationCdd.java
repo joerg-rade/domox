@@ -1,10 +1,7 @@
 package domox.dom.uml;
 
-import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -15,7 +12,6 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,24 +19,29 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import java.util.List;
+
+enum AssociationType {
+    AGGREGATION,
+    GENERALIZATION,
+    ATTRIBUTE;
+}
 
 @Entity
 @Table(schema = "domox")
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.DomainModel")
+@Named("domox.AssociationCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A DOmainModel ...")
+@DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
 //@EqualsAndHashCode(exclude = {"cronExpression", "active", "executionList", "queryClassName"})
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Data
-public class DomainModel implements Comparable<ClassCdd> {
-
+public class AssociationCdd
+        extends Candidate
+        implements Comparable<AssociationCdd> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -52,12 +53,19 @@ public class DomainModel implements Comparable<ClassCdd> {
     private long version;
 
     @Property
-    @Column
-    @OneToMany(mappedBy = "classList")
-    private List<ClassCdd> classList;
+    @Column(nullable = false)
+    private AssociationType type;
+
+    @Property
+    @Column(nullable = false)
+    private Integer sourceCardinality;
+
+    @Property
+    @Column(nullable = false)
+    private Integer targetCardinality;
 
     @Override
-    public int compareTo(@NotNull ClassCdd o) {
+    public int compareTo(@NotNull AssociationCdd o) {
         return 0; //FIXME
     }
 }

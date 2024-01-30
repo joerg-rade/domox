@@ -1,11 +1,10 @@
-package domox.dom.nlp;
+package domox.dom.uml;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.NatureOfService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
-import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
 import javax.inject.Inject;
@@ -13,30 +12,27 @@ import javax.inject.Named;
 import java.util.List;
 
 @DomainService(nature = NatureOfService.VIEW)
-@Named("domox.Relations")
+@Named("domox.DomainModels")
 @javax.annotation.Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class Relations {
+public class DomainModels {
 
     private final RepositoryService repositoryService;
-    private final RelationRepository repository;
-    private final FactoryService factoryService;
 
     @ActionLayout(sequence = "1")
-    public List<Relation> listAll() {
-        return repositoryService.allInstances(Relation.class);
+    public List<DomainModel> listAll() {
+        return repositoryService.allInstances(DomainModel.class);
     }
 
     @ActionLayout(sequence = "2")
-    public Relation create() {
-        final Relation obj = factoryService.detachedEntity(Relation.class);
+    public DomainModel create() {
+        final DomainModel obj = new DomainModel();
         repositoryService.persist(obj);
         return obj;
     }
 
-    @ActionLayout(sequence = "3")
-    public List<Relation> findByType(final RelationType type) {
-        return repository.findByType(type);
+    public String generateUmlDiagram(DomainModel domainModel) {
+        return "@startuml \n @endUml";
     }
 
 }

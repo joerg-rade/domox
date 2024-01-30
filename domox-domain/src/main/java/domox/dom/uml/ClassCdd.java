@@ -1,10 +1,7 @@
 package domox.dom.uml;
 
-import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -15,7 +12,6 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,14 +28,16 @@ import java.util.List;
 @Entity
 @Table(schema = "domox")
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.DomainModel")
+@Named("domox.ClassCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A DOmainModel ...")
+@DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
 //@EqualsAndHashCode(exclude = {"cronExpression", "active", "executionList", "queryClassName"})
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Data
-public class DomainModel implements Comparable<ClassCdd> {
+public class ClassCdd
+        extends Candidate
+        implements Comparable<ClassCdd> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -53,8 +51,18 @@ public class DomainModel implements Comparable<ClassCdd> {
 
     @Property
     @Column
-    @OneToMany(mappedBy = "classList")
-    private List<ClassCdd> classList;
+    @OneToMany(mappedBy = "propertyList")
+    private List<PropertyCdd> propertyList;
+
+    @Property
+    @Column
+    @OneToMany(mappedBy = "actionList")
+    private List<ActionCdd> actionList;
+
+    @Property
+    @Column
+    @OneToMany(mappedBy = "associationList")
+    private List<AssociationCdd> associationList;
 
     @Override
     public int compareTo(@NotNull ClassCdd o) {

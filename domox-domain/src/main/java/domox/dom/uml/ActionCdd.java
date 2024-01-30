@@ -1,21 +1,17 @@
 package domox.dom.uml;
 
-import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.apache.causeway.applib.annotation.Bounding;
+import lombok.ToString;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
-import org.apache.causeway.applib.annotation.Editing;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,14 +28,16 @@ import java.util.List;
 @Entity
 @Table(schema = "domox")
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.DomainModel")
-@DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A DOmainModel ...")
-//@EqualsAndHashCode(exclude = {"cronExpression", "active", "executionList", "queryClassName"})
+@Named("domox.ActionCdd")
+@DomainObject(entityChangePublishing = Publishing.ENABLED)
+@DomainObjectLayout(cssClassFa = "bolt")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @Data
-public class DomainModel implements Comparable<ClassCdd> {
+public class ActionCdd
+        extends Candidate
+        implements Comparable<ActionCdd> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -53,11 +51,15 @@ public class DomainModel implements Comparable<ClassCdd> {
 
     @Property
     @Column
-    @OneToMany(mappedBy = "classList")
-    private List<ClassCdd> classList;
+    @OneToMany(mappedBy = "inputTypeList")
+    private List<Object> inputTypeList;
+
+    @Property
+    @Column(nullable = false)
+    private Object outputType;
 
     @Override
-    public int compareTo(@NotNull ClassCdd o) {
+    public int compareTo(@NotNull ActionCdd o) {
         return 0; //FIXME
     }
 }
