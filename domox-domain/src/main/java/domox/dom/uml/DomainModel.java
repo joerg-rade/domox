@@ -27,6 +27,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -54,7 +55,7 @@ public class DomainModel implements Comparable<ClassCdd> {
     @Property
     @Column
     @OneToMany(mappedBy = "classList")
-    private List<ClassCdd> classList;
+    private List<ClassCdd> classList = new ArrayList<>();
 
     @Override
     public int compareTo(@NotNull ClassCdd o) {

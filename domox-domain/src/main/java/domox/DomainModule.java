@@ -7,6 +7,7 @@ import domox.dom.nlp.Word;
 import domox.dom.rqm.Author;
 import domox.dom.rqm.Corpus;
 import domox.dom.rqm.Document;
+import domox.dom.uml.DomainModel;
 import org.apache.causeway.testing.fixtures.applib.fixturescripts.FixtureScript;
 import org.apache.causeway.testing.fixtures.applib.modules.ModuleWithFixtures;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -25,6 +26,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         Author.class,
         Corpus.class,
         Document.class,
+        DomainModel.class
 })
 public class DomainModule implements ModuleWithFixtures {
 

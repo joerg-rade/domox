@@ -1,18 +1,34 @@
 package domox.dom.rqm;
 
-import lombok.*;
-import org.apache.causeway.applib.annotation.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.apache.causeway.applib.annotation.DomainObject;
+import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.Nature;
+import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import javax.inject.Named;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
 import java.util.Set;
 
-@javax.persistence.Entity
-@javax.persistence.Table(schema = "domox")
-@javax.persistence.EntityListeners(CausewayEntityListener.class)
+@Entity
+@Table(schema = "domox")
+@EntityListeners(CausewayEntityListener.class)
 @Named("domox.Corpus")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "files-o")
@@ -21,26 +37,26 @@ import java.util.Set;
 @ToString(onlyExplicitlyIncluded = true)
 public class Corpus implements Comparable<Corpus> {
 
-    @javax.persistence.Id
-    @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
-    @javax.persistence.Column(nullable = false)
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @Column(nullable = false)
     private Long id;
 
-    @javax.persistence.Version
-    @javax.persistence.Column(nullable = false)
+    @Version
+    @Column(nullable = false)
     private int version;
 
-    @javax.persistence.Column(nullable = true)
+    @Column(nullable = true)
     @Getter
     @Setter
     private String title;
 
     @PropertyLayout(sequence = "1")
-    @javax.persistence.OneToMany(mappedBy = "corpus")
+    @OneToMany(mappedBy = "corpus")
     private Set<Document> documents;
 
     @PropertyLayout(sequence = "2")
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     private Timestamp analyzedAt;
 
     //region > compareTo, toString

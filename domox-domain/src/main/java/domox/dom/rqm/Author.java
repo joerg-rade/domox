@@ -1,33 +1,53 @@
 package domox.dom.rqm;
 
-import lombok.*;
-import org.apache.causeway.applib.annotation.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.val;
+import org.apache.causeway.applib.annotation.DomainObject;
+import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.Nature;
+import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Named;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Set;
 
-@javax.persistence.Entity
-@javax.persistence.Table(
+@Entity
+@Table(
         schema = "domox",
         uniqueConstraints = {
-                @javax.persistence.UniqueConstraint(name = "Author_eMail_UNQ", columnNames = {"eMail"})
+                @UniqueConstraint(name = "Author_eMail_UNQ", columnNames = {"eMail"})
         }
 )
-@javax.persistence.NamedQueries({
-        @javax.persistence.NamedQuery(
+@NamedQueries({
+        @NamedQuery(
                 name = Author.NAMED_QUERY__FIND_BY_LASTNAME_LIKE,
                 query = "SELECT o " +
                         "FROM Author o " +
                         "WHERE o.lastName LIKE :lastName"
         )
 })
-@javax.persistence.EntityListeners(CausewayEntityListener.class)
+@EntityListeners(CausewayEntityListener.class)
 @Named("domox.Author")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout()
@@ -38,13 +58,13 @@ public class Author implements Comparable<Author> {
 
     static final String NAMED_QUERY__FIND_BY_LASTNAME_LIKE = "Author.findByLastNameLike";
 
-    @javax.persistence.Id
-    @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
-    @javax.persistence.Column(name = "id", nullable = false)
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @javax.persistence.Version
-    @javax.persistence.Column(nullable = false)
+    @Version
+    @Column(nullable = false)
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     @Getter
     @Setter
@@ -82,11 +102,11 @@ public class Author implements Comparable<Author> {
     @ToString.Include
     private String eMail;
 
-    @javax.persistence.ManyToMany(cascade = CascadeType.PERSIST)
-    @javax.persistence.JoinTable(
+    @ManyToMany(cascade = CascadeType.PERSIST)
+    @JoinTable(
             name = "author_document",
-            joinColumns = @javax.persistence.JoinColumn(name = "author_id", nullable = true),
-            inverseJoinColumns = @javax.persistence.JoinColumn(name = "document_id"))
+            joinColumns = @JoinColumn(name = "author_id", nullable = true),
+            inverseJoinColumns = @JoinColumn(name = "document_id"))
     public Set<Document> documents;
 
 }

@@ -6,11 +6,21 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import javax.inject.Named;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@javax.persistence.Entity
-@javax.persistence.Table(schema = "domox")
-@javax.persistence.EntityListeners(CausewayEntityListener.class)
+@Entity
+@Table(schema = "domox")
+@EntityListeners(CausewayEntityListener.class)
 @Named("domox.TypedDependency")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "scan")
@@ -19,39 +29,39 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @ToString(onlyExplicitlyIncluded = true)
 public class TypedDependency implements Comparable<TypedDependency> {
 
-    @javax.persistence.Id
-    @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
-    @javax.persistence.Column(nullable = false)
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @Column(nullable = false)
     @Programmatic
     private Long id;
 
-    @javax.persistence.Version
+    @Version
     @Programmatic
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     private int version;
 
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     @Property()
     @Getter
     @Setter
     private TdType type;
 
-    @javax.persistence.OneToOne()
-    @javax.persistence.JoinColumn(name = "partAId")
+    @OneToOne()
+    @JoinColumn(name = "partAId")
     @Property()
     @Getter
     @Setter
     private Word partA;
 
-    @javax.persistence.OneToOne()
-    @javax.persistence.JoinColumn(name = "partBId")
+    @OneToOne()
+    @JoinColumn(name = "partBId")
     @Property()
     @Getter
     @Setter
     private Word partB;
 
-    @javax.persistence.ManyToOne()
-    @javax.persistence.JoinColumn(name = "relation_id")
+    @ManyToOne()
+    @JoinColumn(name = "relation_id")
     private Relation relation;
 
     //region > compareTo, toString

@@ -5,13 +5,22 @@ import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 
 import javax.inject.Named;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@javax.persistence.Entity
-@javax.persistence.Table(
+@Entity
+@Table(
         schema = "domox",
         uniqueConstraints = {
-                @javax.persistence.UniqueConstraint(name = "PartOfSpeech_id_UNQ", columnNames = {"id"})
+                @UniqueConstraint(name = "PartOfSpeech_id_UNQ", columnNames = {"id"})
         }
 )
 @Named("domox.Word")
@@ -22,29 +31,29 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @ToString(onlyExplicitlyIncluded = true)
 public class Word implements Comparable<Word> {
 
-    @javax.persistence.Id
-    @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
-    @javax.persistence.Column(nullable = false)
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @Column(nullable = false)
     @Programmatic
     private Long id;
 
-    @javax.persistence.Version
+    @Version
     @Programmatic
-    @javax.persistence.Column()
+    @Column()
     private int version;
 
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     @Property()
     private String text;
 
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     @Property()
     @Getter
     @Setter
     private PosType type;
 
-    @javax.persistence.ManyToOne()
-    @javax.persistence.JoinColumn(name = "sentence_id")
+    @ManyToOne()
+    @JoinColumn(name = "sentence_id")
     private Sentence sentence;
 
     //region > compareTo, toString

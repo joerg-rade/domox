@@ -16,15 +16,26 @@ import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 import javax.inject.Named;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
 import java.util.Set;
 
 @Slf4j
-@javax.persistence.Entity
-@javax.persistence.Table(schema = "domox")
-@javax.persistence.EntityListeners(CausewayEntityListener.class)
+@Entity
+@Table(schema = "domox")
+@EntityListeners(CausewayEntityListener.class)
 @Named("domox.Document")
 @DomainObject(bounding = Bounding.BOUNDED)
 @DomainObjectLayout(cssClassFa = "file")
@@ -34,34 +45,34 @@ public class Document implements Comparable<Document> {
 
     private static MimeType MIME_TYPE = null;
 
-    @javax.persistence.Id
-    @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
-    @javax.persistence.Column(nullable = false)
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @Column(nullable = false)
     private Long id;
 
-    @javax.persistence.Version
-    @javax.persistence.Column(nullable = false)
+    @Version
+    @Column(nullable = false)
     private int version;
 
     @PropertyLayout(sequence = "1")
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     @Getter
     @Setter
     private String title;
 
     @PropertyLayout(sequence = "2")
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     @Getter
     @Setter
     private String docVersion; //SemVer
 
     @PropertyLayout(sequence = "3")
-    @javax.persistence.Column(nullable = true)
+    @Column(nullable = true)
     @Getter
     @Setter
     private String url;
 
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     @Embedded
     @Domain.Exclude
     private ClobJpaEmbeddable content;
@@ -84,23 +95,23 @@ public class Document implements Comparable<Document> {
 
 
     @PropertyLayout(sequence = "5")
-    @javax.persistence.OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)
     @Getter
     @Setter
     private Set<Sentence> sentences;
 
     @PropertyLayout(sequence = "6")
-    @javax.persistence.ManyToMany(mappedBy = "documents", cascade = CascadeType.PERSIST)
+    @ManyToMany(mappedBy = "documents", cascade = CascadeType.PERSIST)
     @Getter
     @Setter
     public Set<Author> authors;
 
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     @Getter
     @Setter
     private Timestamp createdAt;
 
-    @javax.persistence.Column(nullable = true)
+    @Column(nullable = true)
     private Timestamp updatedAt;
 
     //region > compareTo, toString
@@ -115,8 +126,8 @@ public class Document implements Comparable<Document> {
     }
     //endregion
 
-    @javax.persistence.ManyToOne()
-    @javax.persistence.JoinColumn(name = "corpus_id")
+    @ManyToOne()
+    @JoinColumn(name = "corpus_id")
     private Corpus corpus;
 
 }

@@ -1,18 +1,36 @@
 package domox.dom.nlp;
 
 import domox.dom.rqm.Document;
-import lombok.*;
-import org.apache.causeway.applib.annotation.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.apache.causeway.applib.annotation.DomainObject;
+import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.Nature;
+import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.annotation.Property;
+import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import javax.inject.Named;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@javax.persistence.Entity
-@javax.persistence.Table(schema = "domox")
-@javax.persistence.EntityListeners(CausewayEntityListener.class)
+@Entity
+@Table(schema = "domox")
+@EntityListeners(CausewayEntityListener.class)
 @Named("domox.Sentence")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "paragraph")
@@ -21,37 +39,37 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @ToString(onlyExplicitlyIncluded = true)
 public class Sentence implements Comparable<Sentence> {
 
-    @javax.persistence.Id
-    @javax.persistence.GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
-    @javax.persistence.Column(nullable = false)
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @Column(nullable = false)
     @Programmatic
     private Long id;
 
-    @javax.persistence.Version
+    @Version
     @Programmatic
-    @javax.persistence.Column(nullable = false)
+    @Column(nullable = false)
     private int version;
 
-    @javax.persistence.Column(nullable = false, length = 2048)
+    @Column(nullable = false, length = 2048)
     @Property()
     @Getter
     @Setter
     private String text;
 
-    @javax.persistence.Column(nullable = true, length = 2048)
+    @Column(nullable = true, length = 2048)
     @Property()
     @Getter
     @Setter
     private String typedDependencies;
 
-    @javax.persistence.Column(nullable = true)
+    @Column(nullable = true)
     @Property()
     @Getter
     @Setter
     private Blob diagram;
 
-    @javax.persistence.ManyToOne()
-    @javax.persistence.JoinColumn(name = "documentId")
+    @ManyToOne()
+    @JoinColumn(name = "documentId")
     @Property()
     @Getter
     @Setter
