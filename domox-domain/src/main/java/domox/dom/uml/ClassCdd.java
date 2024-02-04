@@ -23,6 +23,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -31,7 +32,6 @@ import java.util.List;
 @Named("domox.ClassCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
-//@EqualsAndHashCode(exclude = {"cronExpression", "active", "executionList", "queryClassName"})
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Data
@@ -52,17 +52,17 @@ public class ClassCdd
     @Property
     @Column
     @OneToMany(mappedBy = "propertyList")
-    private List<PropertyCdd> propertyList;
+    public List<PropertyCdd> propertyList = new ArrayList<>();
 
     @Property
     @Column
     @OneToMany(mappedBy = "actionList")
-    private List<ActionCdd> actionList;
+    public List<ActionCdd> actionList = new ArrayList<>();
 
     @Property
     @Column
     @OneToMany(mappedBy = "associationList")
-    private List<AssociationCdd> associationList;
+    public List<AssociationCdd> associationList = new ArrayList<>();
 
     @Override
     public int compareTo(@NotNull ClassCdd o) {

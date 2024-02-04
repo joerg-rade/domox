@@ -35,7 +35,6 @@ enum AssociationType {
 @Named("domox.AssociationCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
-//@EqualsAndHashCode(exclude = {"cronExpression", "active", "executionList", "queryClassName"})
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Data

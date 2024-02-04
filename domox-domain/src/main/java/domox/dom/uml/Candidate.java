@@ -9,5 +9,5 @@ public abstract class Candidate {
 
     @Getter
     @Setter
-    private String name;
+    public String name;
 }

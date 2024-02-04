@@ -1,9 +1,7 @@
 package domox.dom.uml;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
@@ -29,16 +27,16 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @Entity
 @Table(schema = "domox")
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.PropertyCdd")
+@Named("domox.PackageCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A Property is a Member of a Class")
+@DomainObjectLayout(cssClassFa = "road", describedAs = "A Package contains Classes")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Slf4j
 @Data
-public class PropertyCdd
+public class PackageCdd
         extends Candidate
-        implements Comparable<PropertyCdd> {
+        implements Comparable<PackageCdd> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -50,14 +48,12 @@ public class PropertyCdd
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
-    @Getter
-    @Setter
-    @Property
     @Column(nullable = false)
+    @Property
     private Object type;
 
     @Override
-    public int compareTo(@NotNull PropertyCdd o) {
+    public int compareTo(@NotNull PackageCdd o) {
         //FIXME
         return 0;
     }

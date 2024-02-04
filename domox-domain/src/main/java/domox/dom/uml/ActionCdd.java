@@ -23,6 +23,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -52,7 +53,7 @@ public class ActionCdd
     @Property
     @Column
     @OneToMany(mappedBy = "inputTypeList")
-    private List<Object> inputTypeList;
+    private List<Object> inputTypeList = new ArrayList<>();
 
     @Property
     @Column(nullable = false)

@@ -1,5 +1,6 @@
 package domox.dom.uml;
 
+import diagram.ClassDiagram;
 import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
@@ -35,7 +36,7 @@ public class DomainModels {
 
 
     public String generateUmlDiagram(DomainModel domainModel) {
-        return "@startuml\n@enduml";
+        return ClassDiagram.INSTANCE.build(domainModel);
     }
 
 }

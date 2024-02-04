@@ -56,6 +56,6 @@ class DomainModelsTest {
         assertEquals(1, domainModel.getClassList().size());
         assertTrue(plantUml.startsWith("@startuml"), "@startuml tag missing");
         assertTrue(plantUml.endsWith("@enduml"), "@enduml tag missing");
-      //FIXME  assertTrue(plantUml.contains("class SampleClass"));
+        assertTrue(plantUml.contains("class \"(C) SampleClass"));
     }
 }
