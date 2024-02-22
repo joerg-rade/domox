@@ -3,6 +3,7 @@
 --
 @startuml
 !include <tupadr3/font-awesome/envira>
+!include <tupadr3/font-awesome/envira>
 !include <tupadr3/font-awesome/cog>
 !include <tupadr3/font-awesome/dollar>
 !include <tupadr3/font-awesome/user>
@@ -16,12 +17,8 @@ file "<$user{scale=0.5}>\nDeveloper\nHappiness" as dh #white
 (Design\nPatterns) as p #lightblue
 (<b>Domain\n<b>Driven\n<b>Design) as ddd #lightblue
 (Test\nAutomation) as ta #lightblue
-(Documentation) as doc #lightblue
 fw --> ddd : enforces\nuse of
 ddd --> p : is a\ncollection of
-fw --> doc : has\nextensive
-doc --> p : refers to
-doc --> c : contributes\nto
 p --> c : use of DP.\nis\nBestPractice
 
 '// artefacts
