@@ -1,22 +1,21 @@
 version: "3"
 services:
-#  corenlp:
-#    image: nlpbox/corenlp
-#    ports:
-#      - "9000:9000"
-#    environment:
-#      - JVM_OPTS=-Xmx4g
+  nlp:
+    image: nlpbox/corenlp
+    ports:
+      - "9000:9000"
+    environment:
+      - JVM_OPTS=-Xmx4g
 
   kroki:
     image: yuzutech/kroki
     ports:
       - "8000:8000"
 
-  sparknlp:
-    image: johnsnowlabs/sparknlp:sparkocr_jupyter_manual
-    ports:
-      - "8888:8888"
-      - "8080:8080"
+#  nlp:
+#    image: johnsnowlabs/nlp-server:latest
+#    ports:
+#      - "5000:5000"
 
 #  postgres:
 #    image: postgres

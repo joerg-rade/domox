@@ -1,6 +1,7 @@
 package domox.svc;
 
 import domox.HttpRequest;
+import domox.SparkNlpAPI;
 import domox.StanfordCoreNlpAPI;
 import domox.TdDiagram;
 import domox.dom.nlp.Sentence;
@@ -43,8 +44,25 @@ public class NlpAdapter {
         }*/
     }
 
+    private static void sparkNlpServer(Document dmxDoc) {
+        final String rawText = dmxDoc.getContent();
+        final SparkNlpAPI nlp = new SparkNlpAPI();
+        nlp.annotate(rawText);
+/*        final CoreDocument coreDocument = nlp.annotate(rawText);
+        final List<CoreSentence> csList = coreDocument.sentences();
+        for (CoreSentence cs : csList) {
+            final String sentenceText = cs.text();
+            System.out.println(sentenceText);
+            final Sentence dmxSentence = new Sentence();
+            dmxSentence.setText(sentenceText);
+            dmxSentence.setTypedDependencies(typedDependenciesAsList(cs).toString());
+            dmxSentence.setDiagram(buildTypedDependencyDiagram(cs));
+            dmxDoc.getSentences().add(dmxSentence);
+        } */
+    }
+
     private static void stanfordLib(Document dmxDoc) {
-        final String rawText = (String) dmxDoc.getContent();
+        final String rawText = dmxDoc.getContent();
         final StanfordCoreNlpAPI nlp = new StanfordCoreNlpAPI();
         final CoreDocument coreDocument = nlp.annotate(rawText);
         final List<CoreSentence> csList = coreDocument.sentences();

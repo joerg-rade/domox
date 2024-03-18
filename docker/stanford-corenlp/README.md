@@ -72,3 +72,32 @@ wget -q --post-data "Although they didn't like it, they accepted the offer." \
     "outputFormat":"xml"}' \
   -O results.xml
 ```
+
+----
+# https://hub.docker.com/r/nlpbox/corenlp/ ==>
+#docker build -t corenlp https://github.com/NLPbox/stanford-corenlp-docker.git
+# ==>
+# => ERROR [builder  8/10] RUN wget https://nlp.stanford.edu/software/stanford-corenlp-latest.zip &&     unzip stanford-corenlp-latest.zip &&     mv $(ls -d stanford-corenlp-*/) corenlp && rm *.zip                                                                                                             1.1s
+#------
+# > [builder  8/10] RUN wget https://nlp.stanford.edu/software/stanford-corenlp-latest.zip &&     unzip stanford-corenlp-latest.zip &&     mv $(ls -d stanford-corenlp-*/) corenlp && rm *.zip:
+#0.401 --2024-03-18 17:39:45--  https://nlp.stanford.edu/software/stanford-corenlp-latest.zip
+#0.407 Resolving nlp.stanford.edu... 171.64.67.140
+#0.453 Connecting to nlp.stanford.edu|171.64.67.140|:443... connected.
+#1.014 ERROR: cannot verify nlp.stanford.edu's certificate, issued by 'CN=Zscaler Intermediate Root CA (zscaler.net) (t)\\ ,OU=Zscaler Inc.,O=Zscaler Inc.,ST=California,C=US':
+#1.014   Unable to locally verify the issuer's authority.
+#1.014 To connect to nlp.stanford.edu insecurely, use `--no-check-certificate'.
+#------
+#Dockerfile:16
+#--------------------
+#  15 |     WORKDIR /opt
+#  16 | >>> RUN wget https://nlp.stanford.edu/software/stanford-corenlp-latest.zip && \
+#  17 | >>>     unzip stanford-corenlp-latest.zip && \
+#  18 | >>>     mv $(ls -d stanford-corenlp-*/) corenlp && rm *.zip
+#  19 |
+#--------------------
+#ERROR: failed to solve: process "/bin/sh -c wget https://nlp.stanford.edu/software/stanford-corenlp-latest.zip &&     unzip stanford-corenlp-latest.zip &&     mv $(ls -d stanford-corenlp-*/) corenlp && rm *.zip" did not complete successfully: exit code: 5
+
+#docker run -p 9000:9000 corenlp
+
+docker build --build-arg WGET_OPTIONS='--no-check-certificate' -t corenlp https://github.com/NLPbox/stanford-corenlp-docker.git
+

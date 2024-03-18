@@ -3,9 +3,6 @@ package domox
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.fuel.json.responseJson
 import com.github.kittinunf.result.Result
-import com.mashape.unirest.http.HttpResponse
-import com.mashape.unirest.http.JsonNode
-import com.mashape.unirest.http.Unirest
 
 class HttpRequest {
 

@@ -31,7 +31,7 @@ import java.util.List;
 @EntityListeners(CausewayEntityListener.class)
 @Named("domox.DomainModel")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A DOmainModel ...")
+@DomainObjectLayout(cssClassFa = "road", describedAs = "A DM. ...")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Data

@@ -1,0 +1,253 @@
+// https://vega.github.io/editor
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "width": 400,
+  "height": 100,
+  "padding": 5,
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {
+          "category": "A",
+          "amount": 28,
+          "index": 0
+        },
+        {
+          "category": "language",
+          "amount": 55,
+          "index": 1
+        },
+        {
+          "category": "tape",
+          "amount": 43,
+          "index": 2
+        },
+        {
+          "category": "has",
+          "amount": 91,
+          "index": 3
+        },
+        {
+          "category": "a",
+          "amount": 81,
+          "index": 4
+        },
+        {
+          "category": "title",
+          "amount": 53,
+          "index": 5
+        },
+        {
+          "category": "language",
+          "amount": 19,
+          "index": 6
+        },
+        {
+          "category": "and",
+          "amount": 87,
+          "index": 7
+        },
+        {
+          "category": "level",
+          "amount": 87,
+          "index": 8
+        },
+        {
+          "category": ".",
+          "amount": 87,
+          "index": 9
+        }
+      ]
+    },
+    {
+      "name": "edges",
+      "values": [
+        {
+          "source": 0,
+          "target": 4,
+          "value": 5
+        },
+        {
+          "source": 1,
+          "target": 6,
+          "value": 5
+        }
+      ]
+    }
+  ],
+  "signals": [
+    {
+      "name": "tooltip",
+      "value": {},
+      "on": [
+        {
+          "events": "rect:mouseover",
+          "update": "datum"
+        },
+        {
+          "events": "rect:mouseout",
+          "update": "{}"
+        }
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "xscale",
+      "type": "band",
+      "domain": {
+        "data": "table",
+        "field": "category"
+      },
+      "range": "width",
+      "padding": 1.0,
+      "round": true
+    },
+    {
+      "name": "yscale",
+      "domain": {
+        "data": "table",
+        "field": "amount"
+      },
+      "nice": true,
+      "range": "height"
+    }
+  ],
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "xscale"
+    }
+  ],
+  "marks": [
+    {
+      "type": "symbol",
+      "interactive": true,
+      "name": "dots",
+      "from": {
+        "data": "table"
+      },
+      "encode": {
+        "enter": {
+        },
+        "update": {
+          "x": {
+            "scale": "xscale",
+            "field": "category"
+          },
+          "width": {
+            "scale": "xscale",
+            "band": 0.0
+          },
+          "y": {
+            "scale": "yscale",
+            "value": 0
+          },
+          "size": {
+            "value": 100
+          },
+          "fill": {
+            "value": "steelblue"
+          }
+        },
+        "hover": {
+          "fill": {
+            "value": "red"
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "bottom"
+          },
+          "fill": {
+            "value": "#333"
+          }
+        },
+        "update": {
+          "x": {
+            "scale": "xscale",
+            "signal": "tooltip.category",
+            "band": 1
+          },
+          "y": {
+            "scale": "yscale",
+            "signal": "tooltip.amount",
+            "offset": -2
+          },
+          "text": {
+            "signal": "tooltip.amount"
+          },
+          "fillOpacity": [
+            {
+              "test": "isNaN(tooltip.amount)",
+              "value": 0
+            },
+            {
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "path",
+      "name": "arcs",
+      "from": {
+        "data": "edges"
+      },
+      "encode": {
+        "update": {
+          "stroke": {
+            "value": "#000"
+          },
+          "strokeOpacity": {
+            "value": 0.2
+          },
+          "strokeWidth": {
+            "field": "value"
+          }
+        }
+      },
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "dots",
+          "key": "datum.index",
+          "fields": [
+            "datum.source",
+            "datum.target"
+          ],
+          "as": [
+            "sourceNode",
+            "targetNode"
+          ]
+        },
+        {
+          "type": "linkpath",
+          "sourceX": {
+            "expr": "min(datum.sourceNode.x, datum.targetNode.x)"
+          },
+          "targetX": {
+            "expr": "max(datum.sourceNode.x, datum.targetNode.x)"
+          },
+          "sourceY": {
+            "expr": "min(datum.sourceNode.y, datum.targetNode.y)"
+          },
+          "targetY": {
+            "expr": "max(datum.sourceNode.y, datum.targetNode.y)"
+          },
+          "shape": "arc"
+        }
+      ]
+    }
+  ]
+}
