@@ -18,211 +18,85 @@
     <name>DoMoX Domain Module</name>
     <version>0.1.0-SNAPSHOT</version>
 
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-            <resource>
-                <filtering>false</filtering>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**</include>
-                </includes>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-            <testResource>
-                <filtering>false</filtering>
-                <directory>src/test/java</directory>
-                <includes>
-                    <include>**</include>
-                </includes>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </testResource>
-        </testResources>
-    </build>
-
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>domox-service</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>json</artifactId>
-                    <groupId>org.json</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <scope>compile</scope>
+            <version>13.0</version>
         </dependency>
 
-        <!-- Causeway API -->
         <dependency>
-            <groupId>org.apache.causeway.core</groupId>
-            <artifactId>causeway-applib</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.persistence</groupId>
-            <artifactId>causeway-persistence-jpa-eclipselink</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.extensions</groupId>
-            <artifactId>causeway-extensions-secman-persistence-jpa</artifactId>
-        </dependency>
-
-        <!-- TESTS -->
-        <dependency>
-            <groupId>org.apache.causeway.core</groupId>
-            <artifactId>causeway-core-internaltestsupport</artifactId>
-            <scope>test</scope>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+            <scope>compile</scope>
+            <version>2.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.testing</groupId>
             <artifactId>causeway-testing-fixtures-applib</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jmock</groupId>
-            <artifactId>jmock</artifactId>
-            <version>${jmock.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>2.5.4</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>javassist</artifactId>
-                    <groupId>org.javassist</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.platform</groupId>
-            <artifactId>jakarta.jakartaee-api</artifactId>
-        </dependency>
-
-        <!-- IDE support (optional) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>3.16.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>xml-apis</artifactId>
-                    <groupId>xml-apis</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- jdk 11 does not include the following anymore: -->
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
-            <version>2.3.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>2.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-            <version>3.25.0-GA</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.20</version>
-        </dependency>
-        <dependency>
-            <groupId>com.twelvemonkeys.imageio</groupId>
-            <artifactId>imageio-batik</artifactId> <!-- svg -->
-            <version>3.6.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.twelvemonkeys.imageio</groupId>
-            <artifactId>imageio-batik</artifactId> <!-- svg -->
-            <version>3.6.4</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-transcoder</artifactId>
-            <version>1.14</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>xml-apis</artifactId>
-                    <groupId>xml-apis</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>xalan</artifactId>
-                    <groupId>xalan</groupId>
-                </exclusion>
-            </exclusions>
+            <scope>compile</scope>
+            <version>${causeway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
-            <artifactId>causeway-core-runtimeservices</artifactId>
+            <artifactId>causeway-applib</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.causeway.security</groupId>
-            <artifactId>causeway-security-bypass</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.causeway.persistence</groupId>
+            <artifactId>causeway-persistence-jpa-applib</artifactId>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.causeway.domox</groupId>
+            <artifactId>domox-service</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
         </dependency>
 
     </dependencies>
+
+    <build>
+        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
+
+        <plugins>
+            <plugin>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <version>${kotlin.version}</version>
+
+                <configuration/>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+    </build>
+
 
 </project>

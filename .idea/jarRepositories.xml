@@ -32,6 +32,11 @@
       <option name="url" value="https://nexus.incode.work/repository/nightly-builds" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="kn.sso" />
+      <option name="name" value="kn.sso" />
+      <option name="url" value="https://repository.int.kn/nexus/content/repositories/sso/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="repository.nexus" />
       <option name="name" value="repository.nexus" />
       <option name="url" value="https://repository.int.kn/nexus/content/groups/public" />

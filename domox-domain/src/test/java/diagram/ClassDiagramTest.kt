@@ -1,0 +1,3 @@
+package diagram
+
+class ClassDiagramTest

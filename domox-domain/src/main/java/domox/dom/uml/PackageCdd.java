@@ -1,5 +1,14 @@
 package domox.dom.uml;
 
+import jakarta.inject.Named;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,20 +18,8 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Editing;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.PropertyLayout;
-import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
-
-import javax.inject.Named;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Version;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @Entity
 @Table(schema = "domox")
@@ -30,7 +27,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @Named("domox.PackageCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Package contains Classes")
-@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+//@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Slf4j
 @Data

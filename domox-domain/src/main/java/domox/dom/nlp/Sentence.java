@@ -1,6 +1,16 @@
 package domox.dom.nlp;
 
 import domox.dom.rqm.Document;
+import jakarta.inject.Named;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,21 +22,8 @@ import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.Publishing;
-import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
-
-import javax.inject.Named;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Version;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @Entity
 @Table(schema = "domox")
@@ -35,12 +32,12 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "paragraph")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+//@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 public class Sentence implements Comparable<Sentence> {
 
     @Id
-    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     @Column(nullable = false)
     @Programmatic
     private Long id;

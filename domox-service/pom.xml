@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-        xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
-        <kotlin.version>1.6.0</kotlin.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <fuel.version>2.3.1</fuel.version>
-        <tika.version>2.9.1</tika.version>
-        <okhttp.version>4.12.0</okhttp.version>
     </properties>
 
     <parent>
@@ -27,11 +20,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.causeway.testing</groupId>
-            <artifactId>causeway-testing-fixtures-applib</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
@@ -42,18 +30,6 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test-junit</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>kotlin-stdlib</artifactId>
-                    <groupId>org.jetbrains.kotlin</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- to be removed, once SparkNLP works -->
@@ -67,11 +43,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-            <classifier>models</classifier>
-        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -83,24 +54,13 @@
             <groupId>com.github.kittinunf.fuel</groupId>
             <artifactId>fuel</artifactId>
             <version>${fuel.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>kotlin-stdlib</artifactId>
-                    <groupId>org.jetbrains.kotlin</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.kittinunf.fuel</groupId>
             <artifactId>fuel-json</artifactId>
             <version>${fuel.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>kotlin-stdlib</artifactId>
-                    <groupId>org.jetbrains.kotlin</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.http4k/http4k-core -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
@@ -108,54 +68,61 @@
         </dependency>
 
         <dependency>
-            <groupId>com.mashape.unirest</groupId>
-            <artifactId>unirest-java</artifactId>
-            <version>1.4.9</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>json</artifactId>
-                    <groupId>org.json</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
             <version>${tika.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-parsers</artifactId>
-            <version>${tika.version}</version>
-            <type>pom</type>
-        </dependency>
+        <!-- Consider using drools, it's more current and recommended by you.com / baeldung -->
         <dependency>
             <groupId>com.deliveredtechnologies</groupId>
             <artifactId>rulebook-core</artifactId>
             <version>0.12</version>
         </dependency>
-        <!-- Consider using drools, it's more current and recommended by you.com / baeldung -->
         <dependency>
             <groupId>com.deliveredtechnologies</groupId>
             <artifactId>rulebook-spring</artifactId>
             <version>0.12</version>
         </dependency>
         <dependency>
-            <groupId>org.sonatype.sisu</groupId>
-            <artifactId>sisu-inject-bean</artifactId>
-            <version>2.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <!-- Used undeclared dependencies found -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
+            <artifactId>spring-context</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kittinunf.result</groupId>
+            <artifactId>result</artifactId>
+            <scope>compile</scope>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <scope>compile</scope>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <scope>compile</scope>
+            <version>13.0</version>
         </dependency>
     </dependencies>
-
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
         <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>

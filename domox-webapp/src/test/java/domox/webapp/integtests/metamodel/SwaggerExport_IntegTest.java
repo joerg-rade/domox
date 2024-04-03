@@ -6,15 +6,14 @@ import org.apache.causeway.applib.services.registry.ServiceRegistry;
 import org.apache.causeway.applib.services.swagger.Format;
 import org.apache.causeway.applib.services.swagger.Visibility;
 import org.apache.causeway.testing.integtestsupport.applib.swagger.SwaggerExporter;
-import org.apache.causeway.viewer.restfulobjects.jaxrsresteasy4.CausewayModuleViewerRestfulObjectsJaxrsResteasy4;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.IOException;
 
 @Import({
-        CausewayModuleViewerRestfulObjectsJaxrsResteasy4.class
+        org.apache.causeway.viewer.restfulobjects.jaxrsresteasy.CausewayModuleViewerRestfulObjectsJaxrsResteasy.class
 })
 class SwaggerExport_IntegTest extends ApplicationIntegTestAbstract {
 

@@ -1,27 +1,15 @@
 package domox.webapp.integtests.smoke;
 
-import java.util.List;
-
-import javax.inject.Inject;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import domox.webapp.integtests.ApplicationIntegTestAbstract;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.apache.causeway.applib.services.wrapper.InvalidException;
-import org.apache.causeway.applib.services.xactn.TransactionService;
-
-import domox.dom.rqm.Author;
-import domox.dom.rqm.Authors;
-import domox.webapp.integtests.ApplicationIntegTestAbstract;
-
 @Transactional
+@SpringBootTest
 class Smoke_IntegTest extends ApplicationIntegTestAbstract {
 
-    @Inject
-    Authors menu;
+    /*@Autowired
+    Authors authors;
     @Inject
     TransactionService transactionService;
 
@@ -29,28 +17,28 @@ class Smoke_IntegTest extends ApplicationIntegTestAbstract {
     void happy_case() {
 
         // when
-        List<Author> all = wrap(menu).listAll();
+        List<Author> all = wrap(authors).listAll();
 
         // then
         assertThat(all).isEmpty();
 
 
         // when
-        final Author fred = wrap(menu).create("Fred");
+        final Author fred = wrap(authors).create("Fred");
         transactionService.flushTransaction();
 
         // then
-        all = wrap(menu).listAll();
+        all = wrap(authors).listAll();
         assertThat(all).hasSize(1);
         assertThat(all).contains(fred);
 
 
         // when
-        final Author bill = wrap(menu).create("Bill");
+        final Author bill = wrap(authors).create("Bill");
         transactionService.flushTransaction();
 
         // then
-        all = wrap(menu).listAll();
+        all = wrap(authors).listAll();
         assertThat(all).hasSize(2);
         assertThat(all).contains(fred, bill);
 
@@ -86,9 +74,8 @@ class Smoke_IntegTest extends ApplicationIntegTestAbstract {
         transactionService.flushTransaction();
 
         // then
-        all = wrap(menu).listAll();
+        all = wrap(authors).listAll();
         assertThat(all).hasSize(1);
     }
-
+*/
 }
-

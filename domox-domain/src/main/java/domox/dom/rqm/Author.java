@@ -1,5 +1,20 @@
 package domox.dom.rqm;
 
+import jakarta.inject.Named;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,25 +26,8 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.Publishing;
-import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
-import javax.inject.Named;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import javax.persistence.Version;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.Set;
 
 @Entity
@@ -52,14 +50,14 @@ import java.util.Set;
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout()
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+//@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 public class Author implements Comparable<Author> {
 
     static final String NAMED_QUERY__FIND_BY_LASTNAME_LIKE = "Author.findByLastNameLike";
 
     @Id
-    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private Long id;
 

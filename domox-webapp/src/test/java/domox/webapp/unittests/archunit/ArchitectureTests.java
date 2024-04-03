@@ -6,11 +6,9 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import domox.webapp.Application;
 import domox.webapp.application.ApplicationModule;
+import jakarta.persistence.Entity;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
-
-import javax.persistence.Entity;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
@@ -39,7 +37,7 @@ public class ArchitectureTests {
     static ArchRule classes_annotated_with_Entity_are_also_annotated_with_XmlJavaTypeAdapter =
             classes()
                     .that().areAnnotatedWith(Entity.class)
-                    .should().beAnnotatedWith(XmlJavaTypeAdapter.class);
+                    .should().beAnnotatedWith(jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter.class);
 
     @ArchTest
     static ArchRule classes_annotated_with_DomainObject_are_also_annotated_with_DomainObjectLayout =

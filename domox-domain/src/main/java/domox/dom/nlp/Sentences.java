@@ -1,17 +1,23 @@
 package domox.dom.nlp;
 
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
-import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.annotation.Action;
+import org.apache.causeway.applib.annotation.ActionLayout;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.PriorityPrecedence;
+import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.List;
 
-@DomainService(nature = NatureOfService.VIEW)
+@DomainService
 @Named("domox.Sentences")
-@javax.annotation.Priority(PriorityPrecedence.EARLY)
+@Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Sentences {
 

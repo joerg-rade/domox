@@ -10,7 +10,7 @@ import org.apache.causeway.persistence.jpa.eclipselink.CausewayModulePersistence
 import org.apache.causeway.security.shiro.CausewayModuleSecurityShiro;
 import org.apache.causeway.testing.fixtures.applib.CausewayModuleTestingFixturesApplib;
 import org.apache.causeway.testing.h2console.ui.CausewayModuleTestingH2ConsoleUi;
-import org.apache.causeway.viewer.restfulobjects.jaxrsresteasy4.CausewayModuleViewerRestfulObjectsJaxrsResteasy4;
+import org.apache.causeway.viewer.restfulobjects.jaxrsresteasy.CausewayModuleViewerRestfulObjectsJaxrsResteasy;
 import org.apache.causeway.viewer.wicket.viewer.CausewayModuleViewerWicketViewer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -22,7 +22,7 @@ import org.springframework.context.annotation.PropertySources;
         CausewayModuleCoreRuntimeServices.class,
         CausewayModuleSecurityShiro.class,
         CausewayModulePersistenceJpaEclipselink.class,
-        CausewayModuleViewerRestfulObjectsJaxrsResteasy4.class,
+        CausewayModuleViewerRestfulObjectsJaxrsResteasy.class,
         CausewayModuleViewerWicketViewer.class,
 
         CausewayModuleTestingFixturesApplib.class,

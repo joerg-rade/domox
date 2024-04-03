@@ -18,17 +18,20 @@
  */
 package diagram
 
-import domox.dom.uml.ClassCdd
 import domox.dom.uml.DomainModel
+import domox.dom.uml.ActionCdd
+import domox.dom.uml.AssociationCdd
+import domox.dom.uml.ClassCdd
+import domox.dom.uml.PropertyCdd
 
-object ClassDiagram {
+class ClassDiagram {
 
     fun build(dm: DomainModel): String {
         val code = PumlCode()
-        dm.classList.forEach { cls ->
+        dm.classList.forEach { cls: ClassCdd ->
             amendWithClass(code, cls)
         }
-        dm.classList.forEach { cls ->
+        dm.classList.forEach { cls: ClassCdd ->
             amendWithAssociation(code, cls)
         }
         code.asUml()
@@ -37,7 +40,7 @@ object ClassDiagram {
 
     private fun amendWithAssociation(code: PumlCode, cls: ClassCdd): PumlCode {
         val className = cls.name
-        cls.associationList.forEach { asc ->
+        cls.associationList.forEach { asc: AssociationCdd ->
             code.addAssociation(className, asc.name)
         }
         return code
@@ -47,11 +50,11 @@ object ClassDiagram {
         val className = cls.name
         code.addClass(className)
         code.addBegin()
-        cls.propertyList.forEach { p ->
+        cls.propertyList.forEach { p: PropertyCdd ->
             val s = p.name
             code.addProperty(s)
         }
-        cls.actionList.forEach { a ->
+        cls.actionList.forEach { a: ActionCdd ->
             val s = a.name
             code.addAction(s)
         }

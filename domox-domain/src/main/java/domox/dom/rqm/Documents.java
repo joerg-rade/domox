@@ -9,8 +9,8 @@ import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.Set;
 
 @DomainService(nature = NatureOfService.VIEW)
 @Named("domox.Documents")
-@javax.annotation.Priority(PriorityPrecedence.EARLY)
+@jakarta.annotation.Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Documents {
 

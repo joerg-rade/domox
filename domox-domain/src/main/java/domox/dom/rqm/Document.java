@@ -1,34 +1,36 @@
 package domox.dom.rqm;
 
 import domox.dom.nlp.Sentence;
+import jakarta.activation.MimeType;
+import jakarta.activation.MimeTypeParseException;
+import jakarta.inject.Named;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.causeway.applib.annotation.*;
-import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.annotation.Bounding;
+import org.apache.causeway.applib.annotation.Domain;
+import org.apache.causeway.applib.annotation.DomainObject;
+import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.value.Clob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
 
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
-import javax.inject.Named;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Version;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.sql.Timestamp;
 import java.util.Set;
 
@@ -40,13 +42,13 @@ import java.util.Set;
 @DomainObject(bounding = Bounding.BOUNDED)
 @DomainObjectLayout(cssClassFa = "file")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+//@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 public class Document implements Comparable<Document> {
 
     private static MimeType MIME_TYPE = null;
 
     @Id
-    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     @Column(nullable = false)
     private Long id;
 

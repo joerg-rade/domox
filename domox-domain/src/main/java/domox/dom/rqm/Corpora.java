@@ -5,14 +5,15 @@ import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
 
 @DomainService(nature = NatureOfService.VIEW)
 @Named("domox.Corpora")
-@javax.annotation.Priority(PriorityPrecedence.EARLY)
+@Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Corpora {
 

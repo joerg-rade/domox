@@ -4,10 +4,8 @@ import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +13,6 @@ import java.util.List;
 import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
 import static org.apache.causeway.commons.internal.assertions._Assert.assertTrue;
 
-@RunWith(SpringRunner.class)
 @ExtendWith(MockitoExtension.class)
 class DomainModelsTest {
     private DomainModels classUnderTest;

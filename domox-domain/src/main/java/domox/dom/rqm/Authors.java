@@ -1,21 +1,21 @@
 package domox.dom.rqm;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.repository.RepositoryService;
-import org.apache.causeway.persistence.jpa.applib.services.JpaSupportService;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.List;
 
 @DomainService(nature = NatureOfService.VIEW)
 @Named("domox.Authors")
-@javax.annotation.Priority(PriorityPrecedence.EARLY)
-@lombok.RequiredArgsConstructor(onConstructor_ = {@Inject})
+@Priority(PriorityPrecedence.EARLY)
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Authors {
 
     private final RepositoryService repositoryService;
-    private final JpaSupportService jpaSupportService;
     private final AuthorRepository authorRepository;
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
@@ -43,15 +43,5 @@ public class Authors {
     public List<Author> listAll() {
         return authorRepository.findAll();
     }
-
-
-/*    @Programmatic
-    public void ping() {
-        jpaSupportService.getEntityManager(Author.class).ifSuccess(x -> {
-            final TypedQuery<Author> q = x.createQuery("SELECT p FROM Author p ORDER BY p.lastName",
-                    Author.class).setMaxResults(1);
-            q.getResultList();
-        });
-    }*/
 
 }

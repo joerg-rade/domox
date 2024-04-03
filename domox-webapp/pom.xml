@@ -101,34 +101,28 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
     <dependencies>
-        <dependency>
+        <!--dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>domox-domain</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-logging</artifactId>
-                    <groupId>commons-logging</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        </dependency-->
 
         <!-- Causeway -->
-        <dependency>
+        <!--dependency>
             <groupId>org.apache.causeway.mavendeps</groupId>
             <artifactId>causeway-mavendeps-webapp</artifactId>
-            <version>${causeway.version}</version>
             <type>pom</type>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.apache.causeway.testing</groupId>
             <artifactId>causeway-testing-h2console-ui</artifactId>
@@ -145,110 +139,134 @@
             <groupId>org.apache.causeway.security</groupId>
             <artifactId>causeway-security-shiro</artifactId>
         </dependency>
-
-        <!-- Spring -->
-        <!--dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-actuator-autoconfigure</artifactId>
-        </dependency-->
+        <dependency>
+            <groupId>org.apache.causeway.viewer</groupId>
+            <artifactId>causeway-viewer-restfulobjects-jaxrsresteasy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.viewer</groupId>
+            <artifactId>causeway-viewer-wicket-viewer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.persistence</groupId>
+            <artifactId>causeway-persistence-jpa-eclipselink</artifactId>
+        </dependency>
 
         <!-- TESTING -->
         <dependency>
-            <groupId>org.apache.causeway.core</groupId>
-            <artifactId>causeway-core-internaltestsupport</artifactId>
+            <groupId>org.apache.causeway.testing</groupId>
+            <artifactId>causeway-testing-integtestsupport-applib</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5-api</artifactId>
-            <version>${archunit.version}</version>
             <scope>test</scope>
+            <version>${archunit.version}</version>
+        </dependency>
+        <!-- Non-test scoped test only dependencies found -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>test</scope>
+            <version>33.1.0-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring-framework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <scope>test</scope>
+            <version>${jakarta-persistence.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-applib</artifactId>
+            <version>${causeway.version}</version>
+        </dependency>
+        <!-- Used undeclared dependencies found -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <scope>compile</scope>
+            <version>3.2.4</version>
         </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
-            <artifactId>archunit-junit5-engine</artifactId>
+            <artifactId>archunit</artifactId>
+            <scope>test</scope>
             <version>${archunit.version}</version>
-            <scope>test</scope>
         </dependency>
-        <!--dependency>
-            <groupId>org.apache.causeway.extensions</groupId>
-            <artifactId>causeway-extensions-exceldownload-ui</artifactId>
-            <version>${causeway.version}</version>
-        </dependency-->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+            <version>5.10.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <scope>compile</scope>
+            <version>${spring-boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+            <version>3.24.2</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
-            <artifactId>causeway-core-interaction</artifactId>
+            <artifactId>causeway-core-runtimeservices</artifactId>
+            <scope>compile</scope>
             <version>${causeway.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.approvaltests</groupId>
+            <artifactId>approvaltests</artifactId>
+            <scope>test</scope>
+            <version>23.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <scope>test</scope>
+            <version>${spring-boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
-            <artifactId>causeway-core-security</artifactId>
+            <artifactId>causeway-core-config</artifactId>
+            <scope>compile</scope>
             <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.causeway.valuetypes</groupId>
-            <artifactId>causeway-valuetypes-asciidoc-metamodel</artifactId>
-            <version>${causeway.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.valuetypes</groupId>
-            <artifactId>causeway-valuetypes-asciidoc-ui-wkt</artifactId>
-            <version>${causeway.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.valuetypes</groupId>
-            <artifactId>causeway-valuetypes-markdown-ui-wkt</artifactId>
-            <version>${causeway.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-logging</artifactId>
-                    <groupId>commons-logging</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.valuetypes</groupId>
-            <artifactId>causeway-valuetypes-asciidoc-persistence-jpa</artifactId>
-            <version>${causeway.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.valuetypes</groupId>
-            <artifactId>causeway-valuetypes-markdown-persistence-jpa</artifactId>
-            <version>${causeway.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.isis.testing</groupId>
-            <artifactId>isis-testing-integtestsupport-applib</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <scope>test</scope>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>compile</scope>
+            <version>${spring-framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.testing</groupId>
-            <artifactId>causeway-testing-integtestsupport-applib</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <scope>test</scope>
+            <artifactId>causeway-testing-fixtures-applib</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.causeway.viewer</groupId>
-            <artifactId>causeway-viewer-restfulobjects-jaxrsresteasy4</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.causeway.viewer</groupId>
-            <artifactId>causeway-viewer-wicket-viewer</artifactId>
-            <version>2.0.0-RC3</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>${spring-boot.version}</version>
         </dependency>
-        <!--dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.checkerframework</groupId>
-                    <artifactId>checker-qual</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency-->
 
     </dependencies>
 

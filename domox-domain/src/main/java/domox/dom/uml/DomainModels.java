@@ -8,9 +8,9 @@ import org.apache.causeway.applib.annotation.NatureOfService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
-import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.List;
 
 @DomainService(nature = NatureOfService.VIEW)
@@ -34,9 +34,8 @@ public class DomainModels {
         return obj;
     }
 
-
     public String generateUmlDiagram(DomainModel domainModel) {
-        return ClassDiagram.INSTANCE.build(domainModel);
+        return new ClassDiagram().build(domainModel);
     }
 
 }

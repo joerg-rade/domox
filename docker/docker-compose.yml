@@ -7,20 +7,24 @@ services:
     environment:
       - JVM_OPTS=-Xmx4g
 
-  kroki:
-    image: yuzutech/kroki
-    ports:
-      - "8000:8000"
+#  kroki:
+#    image: yuzutech/kroki
+#    ports:
+#      - "8000:8000"
 
 #  nlp:
 #    image: johnsnowlabs/nlp-server:latest
 #    ports:
 #      - "5000:5000"
 
-#  postgres:
-#    image: postgres
-#    ports:
-#      - "5432:5432"
+  db:
+    image: postgres:10.23-alpine
+#    container_name: db
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - "5432:5432"
 
 #  marytts:
 #    image: synesthesiam/marytts:5.2
