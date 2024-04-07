@@ -3,7 +3,7 @@
 #
 # See also config/application.properties
 #
-isis:
+causeway:
 
   applib:
     annotation:
@@ -54,7 +54,7 @@ isis:
 
       credit:
         - url:  http://causeway.apache.org
-          image: images/apache-isis/logo-48x48.png
+          image: images/apache-causeway/logo-48x48.png
           name: Apache Causeway
 
       themes:
@@ -84,6 +84,10 @@ server:
 spring:
   banner:
     location: banner.txt
+  main:
+    web-application-typ: SERVLET
+  datasource:
+    driverClassName: org.postgresql.Driver
 
   quartz:
     job-store-type: memory

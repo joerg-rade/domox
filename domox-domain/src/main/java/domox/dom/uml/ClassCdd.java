@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.causeway.applib.annotation.Bounding;
@@ -18,6 +19,7 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Editing;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +32,7 @@ import java.util.List;
 @Named("domox.ClassCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
-//@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Data
 public class ClassCdd

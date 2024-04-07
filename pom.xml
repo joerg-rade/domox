@@ -16,6 +16,9 @@
         <fuel.version>2.3.1</fuel.version>
         <tika.version>2.9.1</tika.version>
         <okhttp.version>4.12.0</okhttp.version>
+        <postgresql.version>42.7.2</postgresql.version>
+        <jakarta.xml.bind-api.version>4.0.1</jakarta.xml.bind-api.version>
+        <mockito-inline.version>3.11.2</mockito-inline.version>
 
         <!-- PLUGIN -->
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
@@ -59,27 +62,11 @@
     </build>
     <dependencyManagement>
         <dependencies>
-
-            <dependency>
-                <groupId>org.apache.causeway.viewer</groupId>
-                <artifactId>causeway-viewer-restfulobjects-jaxrsresteasy</artifactId>
-                <version>${causeway.version}</version>
-            </dependency>
             <!-- this project's own modules -->
             <dependency>
                 <groupId>org.apache.causeway.domox</groupId>
                 <artifactId>domox-service</artifactId>
                 <version>${project.version}</version>
-                <!--exclusions>
-                    <exclusion>
-                        <artifactId>json</artifactId>
-                        <groupId>org.json</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>jaxb-impl</artifactId>
-                        <groupId>com.sun.xml.bind</groupId>
-                    </exclusion>
-                </exclusions--> <!-- manage exclusion via forcing to use the higher/highest version -->
             </dependency>
             <dependency>
                 <groupId>org.apache.causeway.domox</groupId>
@@ -90,6 +77,12 @@
                 <groupId>org.apache.causeway.domox</groupId>
                 <artifactId>domox-webapp</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <!-- Causeway-->
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-restfulobjects-jaxrsresteasy</artifactId>
+                <version>${causeway.version}</version>
             </dependency>
 
             <!-- used components -->
@@ -109,6 +102,16 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
             </dependency>
+            <dependency>
+                <groupId>jakarta.persistence</groupId>
+                <artifactId>jakarta.persistence-api</artifactId>
+                <version>${jakarta-persistence.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>${jakarta.xml.bind-api.version}</version>
+            </dependency>
 
             <!-- test support -->
             <dependency>
@@ -121,6 +124,24 @@
                 <groupId>com.tngtech.archunit</groupId>
                 <artifactId>archunit-junit5-engine</artifactId>
                 <version>${archunit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <scope>test</scope>
+                <version>${junit-jupiter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito-inline.version}</version>
                 <scope>test</scope>
             </dependency>
 

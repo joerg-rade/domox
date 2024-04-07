@@ -1,9 +1,6 @@
 package domox.integtests;
 
 import domox.DomainModule;
-import org.apache.causeway.core.config.presets.CausewayPresets;
-import org.apache.causeway.core.runtimeservices.CausewayModuleCoreRuntimeServices;
-import org.apache.causeway.security.bypass.CausewayModuleSecurityBypass;
 import org.apache.causeway.testing.fixtures.applib.CausewayModuleTestingFixturesApplib;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
@@ -15,16 +12,16 @@ import org.springframework.test.context.TestPropertySource;
         classes = SimpleModuleIntegTestAbstract.AppManifest.class
 )
 @TestPropertySource({
-        CausewayPresets.H2InMemory_withUniqueSchema,
+//        CausewayPresets.H2InMemory_withUniqueSchema,
 //        CausewayPresets.DataNucleusAutoCreate,
-        CausewayPresets.UseLog4j2Test,
+//        CausewayPresets.UseLog4j2Test,
 })
 public abstract class SimpleModuleIntegTestAbstract {
 
     @Configuration
     @Import({
-            CausewayModuleCoreRuntimeServices.class,
-            CausewayModuleSecurityBypass.class,
+//            CausewayModuleCoreRuntimeServices.class,
+//            CausewayModuleSecurityBypass.class,
 //        CausewayModuleJdoDataNucleus5.class,
             CausewayModuleTestingFixturesApplib.class,
 

@@ -27,7 +27,6 @@
         <archunit.version>0.20.1</archunit.version>
         <!--skipBDD>${skipTests}</skipBDD-->
         <skipBDD>true</skipBDD>
-        <postgresql.version>42.7.2</postgresql.version>
     </properties>
 
     <build>
@@ -111,25 +110,22 @@
     </build>
 
     <dependencies>
-        <!--dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>domox-domain</artifactId>
-            <version>${project.version}</version>
-        </dependency-->
-
-        <!-- Causeway -->
-        <!--dependency>
-            <groupId>org.apache.causeway.mavendeps</groupId>
-            <artifactId>causeway-mavendeps-webapp</artifactId>
-            <type>pom</type>
-        </dependency-->
+        <!-- causeway -->
         <dependency>
-            <groupId>org.apache.causeway.testing</groupId>
-            <artifactId>causeway-testing-h2console-ui</artifactId>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-applib</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.causeway.extensions</groupId>
-            <artifactId>causeway-extensions-flyway-impl</artifactId>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.persistence</groupId>
+            <artifactId>causeway-persistence-jpa-eclipselink</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.commons</groupId>
+            <artifactId>causeway-commons</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.extensions</groupId>
@@ -148,8 +144,21 @@
             <artifactId>causeway-viewer-wicket-viewer</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.causeway.persistence</groupId>
-            <artifactId>causeway-persistence-jpa-eclipselink</artifactId>
+            <groupId>org.apache.causeway.testing</groupId>
+            <artifactId>causeway-testing-fixtures-applib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.security</groupId>
+            <artifactId>causeway-security-bypass</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.core</groupId>
+            <artifactId>causeway-core-runtimeservices</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.swagger.core.v3</groupId>
+                    <artifactId>swagger-annotations</artifactId>
+                </exclusion></exclusions>
         </dependency>
 
         <!-- TESTING -->
@@ -184,8 +193,6 @@
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
-            <scope>test</scope>
-            <version>${jakarta-persistence.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
@@ -209,7 +216,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
-            <version>5.10.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -266,8 +272,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring-boot.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-to-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -326,7 +345,6 @@
                 <dependency>
                     <groupId>org.postgresql</groupId>
                     <artifactId>postgresql</artifactId>
-                    <version>${postgresql.version}</version>
                 </dependency>
             </dependencies>
         </profile>

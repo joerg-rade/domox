@@ -17,6 +17,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ import org.apache.causeway.applib.annotation.Domain;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Clob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
@@ -42,7 +44,7 @@ import java.util.Set;
 @DomainObject(bounding = Bounding.BOUNDED)
 @DomainObjectLayout(cssClassFa = "file")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-//@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 public class Document implements Comparable<Document> {
 
     private static MimeType MIME_TYPE = null;

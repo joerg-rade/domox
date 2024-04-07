@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Editing;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 @Named("domox.PropertyCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Property is a Member of a Class")
-//@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
 @Slf4j
 @Data
