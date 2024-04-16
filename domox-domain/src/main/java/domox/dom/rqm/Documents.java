@@ -1,8 +1,10 @@
 package domox.dom.rqm;
 
+import domox.DomainModule;
 import domox.HtmlReader;
 import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
+import jakarta.annotation.Priority;
 import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
@@ -16,15 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@DomainService(nature = NatureOfService.VIEW)
-@Named("domox.Documents")
-@jakarta.annotation.Priority(PriorityPrecedence.EARLY)
+@Named(DomainModule.NAMESPACE + ".Documents")
+@DomainService
+@Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Documents {
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
-
 
     @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
@@ -32,9 +33,9 @@ public class Documents {
         return repositoryService.allInstances(Document.class);
     }
 
-    @ActionLayout(sequence = "2")
-    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    public Document create(String title, String url, Clob content, Set<Author> authors) {
+//FIXME    @ActionLayout(sequence = "2")
+ //   @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
+    Document create(String title, String url, Clob content, Set<Author> authors) {
         final Document obj = factoryService.detachedEntity(Document.class);
         obj.setTitle(title);
         obj.setUrl(url);

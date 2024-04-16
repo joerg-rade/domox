@@ -1,5 +1,6 @@
 package domox.dom.uml;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,12 +8,16 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -23,13 +28,12 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.ActionCdd")
+@Named(DomainModule.NAMESPACE + ".ActionCdd")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "bolt")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
@@ -50,14 +54,21 @@ public class ActionCdd
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
+    @Getter
+    @Setter
     @Property
-    @Column
-    @OneToMany(mappedBy = "inputTypeList")
-    private List<Object> inputTypeList = new ArrayList<>();
+    @JoinColumn(nullable = false)
+    @ManyToOne
+    private ClassCdd classCdd;
+
+    //@Property
+//    @JoinColumn
+    @OneToMany(mappedBy = "actionCdd")
+    public Set<ParameterCdd> inputTypeList;
 
     @Property
     @Column(nullable = false)
-    private Object outputType;
+    private String outputType;
 
     @Override
     public int compareTo(@NotNull ActionCdd o) {

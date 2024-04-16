@@ -1,5 +1,6 @@
 package domox.dom.uml;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,14 +8,16 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.Data;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.ToString;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -26,15 +29,15 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 import org.jetbrains.annotations.NotNull;
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.PropertyCdd")
+@Named(DomainModule.NAMESPACE + ".PropertyCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Property is a Member of a Class")
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-@NoArgsConstructor
-@Slf4j
-@Data
+@ToString(onlyExplicitlyIncluded = true)
+@Getter @Setter
 public class PropertyCdd
         extends Candidate
         implements Comparable<PropertyCdd> {
@@ -52,8 +55,15 @@ public class PropertyCdd
     @Getter
     @Setter
     @Property
+    @JoinColumn(nullable = false)
+    @ManyToOne
+    private ClassCdd classCdd;
+
+    @Getter
+    @Setter
+    @Property
     @Column(nullable = false)
-    private Object type;
+    private String type;
 
     @Override
     public int compareTo(@NotNull PropertyCdd o) {

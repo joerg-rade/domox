@@ -9,12 +9,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -25,19 +27,19 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named(DomainModule.NAMESPACE + ".DomainModel")
+@Named(DomainModule.NAMESPACE + ".ParameterCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A DM. ...")
+@DomainObjectLayout(cssClassFa = "road", describedAs = "A Parameter is the Type of an argument of an Action")
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-@NoArgsConstructor
-@Data
-public class DomainModel implements Comparable<ClassCdd> {
+@ToString(onlyExplicitlyIncluded = true)
+@Getter @Setter
+public class ParameterCdd
+        extends Candidate
+        implements Comparable<ParameterCdd> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -49,13 +51,21 @@ public class DomainModel implements Comparable<ClassCdd> {
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
+    @Getter
+    @Setter
     @Property
-    @JoinColumn
-    @OneToMany(mappedBy = "domainModel")
-    public List<ClassCdd> classList = new ArrayList<>();
+    @JoinColumn(nullable = false)
+    public ActionCdd actionCdd;
+
+    @Getter
+    @Setter
+    @Property
+    @Column(nullable = false)
+    private String type;
 
     @Override
-    public int compareTo(@NotNull ClassCdd o) {
-        return 0; //FIXME
+    public int compareTo(@NotNull ParameterCdd o) {
+        //FIXME
+        return 0;
     }
 }

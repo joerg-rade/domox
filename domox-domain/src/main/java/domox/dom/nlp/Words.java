@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import domox.DomainModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
@@ -9,8 +10,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.List;
 
-@DomainService(nature = NatureOfService.VIEW)
-@Named("domox.PartOfSpeeches")
+@DomainService
+@Named(DomainModule.NAMESPACE + ".PartOfSpeeches")
 @jakarta.annotation.Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Words {

@@ -1,5 +1,6 @@
 package domox.dom.uml;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,6 +8,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -27,9 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.ClassCdd")
+@Named(DomainModule.NAMESPACE + ".ClassCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
@@ -50,18 +53,20 @@ public class ClassCdd
     private long version;
 
     @Property
-    @Column
-    @OneToMany(mappedBy = "propertyList")
+    @JoinColumn
+    @ManyToOne()
+    public DomainModel domainModel;
+
+    @Property
+    @OneToMany(mappedBy = "classCdd")
     public List<PropertyCdd> propertyList = new ArrayList<>();
 
     @Property
-    @Column
-    @OneToMany(mappedBy = "actionList")
+    @OneToMany(mappedBy = "classCdd")
     public List<ActionCdd> actionList = new ArrayList<>();
 
     @Property
-    @Column
-    @OneToMany(mappedBy = "associationList")
+    @OneToMany(mappedBy = "classCdd")
     public List<AssociationCdd> associationList = new ArrayList<>();
 
     @Override

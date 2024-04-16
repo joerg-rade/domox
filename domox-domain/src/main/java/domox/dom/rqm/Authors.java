@@ -1,18 +1,25 @@
 package domox.dom.rqm;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.causeway.applib.annotation.*;
-import org.apache.causeway.applib.services.repository.RepositoryService;
-
+import domox.DomainModule;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import lombok.RequiredArgsConstructor;
+import org.apache.causeway.applib.annotation.Action;
+import org.apache.causeway.applib.annotation.ActionLayout;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.PriorityPrecedence;
+import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.annotation.PromptStyle;
+import org.apache.causeway.applib.annotation.SemanticsOf;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+
 import java.util.List;
 
-@DomainService(nature = NatureOfService.VIEW)
-@Named("domox.Authors")
+@Named(DomainModule.NAMESPACE + ".Authors")
+@DomainService
 @Priority(PriorityPrecedence.EARLY)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@RequiredArgsConstructor(onConstructor_ = {@Inject} )
 public class Authors {
 
     private final RepositoryService repositoryService;

@@ -195,7 +195,7 @@ msgstr ""
 
 
 #: org.apache.causeway.applib.domain.DomainObjectList#elementObjectType
-msgid "Element Object Type"
+msgid "Element String type"
 msgstr ""
 
 

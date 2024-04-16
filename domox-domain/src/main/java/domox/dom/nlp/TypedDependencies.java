@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import domox.DomainModule;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -13,7 +14,7 @@ import org.apache.causeway.applib.services.repository.RepositoryService;
 import java.util.List;
 
 @DomainService
-@Named("domox.ModelDependencies")
+@Named(DomainModule.NAMESPACE + ".ModelDependencies")
 @Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class TypedDependencies {

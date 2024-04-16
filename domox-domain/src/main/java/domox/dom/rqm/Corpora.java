@@ -1,5 +1,6 @@
 package domox.dom.rqm;
 
+import domox.DomainModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
@@ -11,8 +12,8 @@ import jakarta.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
 
-@DomainService(nature = NatureOfService.VIEW)
-@Named("domox.Corpora")
+@Named(DomainModule.NAMESPACE + ".Corpora")
+@DomainService
 @Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Corpora {

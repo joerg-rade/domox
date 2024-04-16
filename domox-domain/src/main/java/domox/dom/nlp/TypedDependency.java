@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,7 +28,7 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
 @Named("domox.TypedDependency")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)

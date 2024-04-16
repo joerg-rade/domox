@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
 @Named("domox.Relation")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)

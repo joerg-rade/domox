@@ -1,5 +1,6 @@
 package domox.dom.rqm;
 
+import domox.DomainModule;
 import domox.dom.nlp.Sentence;
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
@@ -23,11 +24,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.Domain;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Clob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
@@ -38,11 +41,15 @@ import java.util.Set;
 
 @Slf4j
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.Document")
-@DomainObject(bounding = Bounding.BOUNDED)
-@DomainObjectLayout(cssClassFa = "file")
+@Named(DomainModule.NAMESPACE + ".Document")
+@DomainObject(
+        bounding = Bounding.BOUNDED)
+@DomainObjectLayout(
+        cssClassFa = "file",
+        tableDecorator = TableDecorator.DatatablesNet.class,
+        bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 public class Document implements Comparable<Document> {

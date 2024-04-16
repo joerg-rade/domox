@@ -1,8 +1,10 @@
 package domox.dom.nlp;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -16,27 +18,36 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
-import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.Publishing;
+import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
+
+import java.util.Comparator;
 
 @Entity
 @Table(
-        schema = "domox",
+        schema = DomainModule.SCHEMA,
         uniqueConstraints = {
                 @UniqueConstraint(name = "PartOfSpeech_id_UNQ", columnNames = {"id"})
         }
 )
-@Named("domox.Word")
-@DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
-@DomainObjectLayout(cssClassFa = "speech")
+@EntityListeners(CausewayEntityListener.class)
+@Named(DomainModule.NAMESPACE + ".Word")
+@DomainObject(entityChangePublishing = Publishing.ENABLED)
+@DomainObjectLayout(
+        cssClassFa = "speech",
+        tableDecorator = TableDecorator.DatatablesNet.class,
+        bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
+@Getter @Setter
 public class Word implements Comparable<Word> {
 
     @Id
@@ -64,11 +75,12 @@ public class Word implements Comparable<Word> {
     @JoinColumn(name = "sentence_id")
     private Sentence sentence;
 
-    //region > compareTo, toString
+    private final static Comparator<Word> comparator =
+            Comparator.comparing(Word::getId);
+
     @Override
     public int compareTo(final Word other) {
-        return org.apache.causeway.applib.util.ObjectContracts.compare(this, other, "id");
+        return comparator.compare(this, other);
     }
-    //endregion
 
 }

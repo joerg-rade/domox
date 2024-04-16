@@ -1,6 +1,7 @@
 package domox.dom.uml;
 
 import diagram.ClassDiagram;
+import domox.DomainModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
@@ -14,7 +15,7 @@ import jakarta.inject.Named;
 import java.util.List;
 
 @DomainService(nature = NatureOfService.VIEW)
-@Named("domox.DomainModels")
+@Named(DomainModule.NAMESPACE + ".DomainModels")
 @Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DomainModels {

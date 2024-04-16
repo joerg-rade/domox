@@ -1,5 +1,6 @@
 package domox.dom.rqm;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,11 +16,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.Publishing;
+import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
@@ -27,11 +30,14 @@ import java.sql.Timestamp;
 import java.util.Set;
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.Corpus")
+@Named(DomainModule.NAMESPACE + ".Corpus")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
-@DomainObjectLayout(cssClassFa = "files-o")
+@DomainObjectLayout(
+        cssClassFa = "files-o",
+        tableDecorator = TableDecorator.DatatablesNet.class,
+        bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)

@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import domox.DomainModule;
 import domox.dom.rqm.Document;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
@@ -28,7 +29,7 @@ import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
 @Named("domox.Sentence")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)

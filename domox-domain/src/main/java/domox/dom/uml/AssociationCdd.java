@@ -1,5 +1,6 @@
 package domox.dom.uml;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,11 +8,15 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -29,9 +34,9 @@ enum AssociationType {
 }
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.AssociationCdd")
+@Named(DomainModule.NAMESPACE + ".AssociationCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
@@ -49,6 +54,13 @@ public class AssociationCdd
     @Column(name = "version", nullable = false)
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
+
+    @Getter
+    @Setter
+    @Property
+    @JoinColumn(nullable = false)
+    @ManyToOne
+    private ClassCdd classCdd;
 
     @Property
     @Column(nullable = false)

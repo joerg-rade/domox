@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
 @Import({
-        AppManifest.class
+        AppManifest.class,
 //    , XrayEnable.class
 })
 public class Application {

@@ -36,11 +36,11 @@ class DomainModelsTest {
         clazz.setName("SampleClass");
         final ActionCdd action = new ActionCdd();
         action.setName("sampleAction");
-        final List<Object> inputTypeList = new ArrayList<>();
-        inputTypeList.add(String.class);
-        inputTypeList.add(Boolean.class);
+        final List<String> inputTypeList = new ArrayList<>();
+        inputTypeList.add(String.class.getSimpleName());
+        inputTypeList.add(Boolean.class.getSimpleName());
         action.setInputTypeList(inputTypeList);
-        action.setOutputType(Integer.class);
+        action.setOutputType(Integer.class.getSimpleName());
         final List<ActionCdd> actionList = new ArrayList<>();
         actionList.add(action);
         clazz.setActionList(actionList);

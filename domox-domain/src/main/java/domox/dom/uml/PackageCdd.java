@@ -1,5 +1,6 @@
 package domox.dom.uml;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,9 +11,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Setter;
+import lombok.ToString;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -24,15 +27,16 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 import org.jetbrains.annotations.NotNull;
 
 @Entity
-@Table(schema = "domox")
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.PackageCdd")
+@Named(DomainModule.NAMESPACE + ".PackageCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Package contains Classes")
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-@NoArgsConstructor
-@Slf4j
-@Data
+@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
 public class PackageCdd
         extends Candidate
         implements Comparable<PackageCdd> {
@@ -49,7 +53,7 @@ public class PackageCdd
 
     @Column(nullable = false)
     @Property
-    private Object type;
+    private String type;
 
     @Override
     public int compareTo(@NotNull PackageCdd o) {

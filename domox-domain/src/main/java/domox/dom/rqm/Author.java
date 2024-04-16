@@ -1,5 +1,6 @@
 package domox.dom.rqm;
 
+import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -22,11 +23,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.val;
+import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.Publishing;
+import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
@@ -34,7 +37,7 @@ import java.util.Set;
 
 @Entity
 @Table(
-        schema = "domox",
+        schema = DomainModule.SCHEMA,
         uniqueConstraints = {
                 @UniqueConstraint(name = "Author_eMail_UNQ", columnNames = {"eMail"})
         }
@@ -48,9 +51,11 @@ import java.util.Set;
         )
 })
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.Author")
+@Named(DomainModule.NAMESPACE + ".Author")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
-@DomainObjectLayout()
+@DomainObjectLayout(
+        tableDecorator = TableDecorator.DatatablesNet.class,
+        bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
