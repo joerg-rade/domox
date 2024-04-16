@@ -33,9 +33,9 @@ public class Documents {
         return repositoryService.allInstances(Document.class);
     }
 
-//FIXME    @ActionLayout(sequence = "2")
- //   @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    Document create(String title, String url, Clob content, Set<Author> authors) {
+    @ActionLayout(sequence = "2")
+    @Action//(semantics = SemanticsOf.NON_IDEMPOTENT)
+    public Document create(String title, String url, Clob content, Set<Author> authors) {
         final Document obj = factoryService.detachedEntity(Document.class);
         obj.setTitle(title);
         obj.setUrl(url);

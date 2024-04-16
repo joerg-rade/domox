@@ -61,8 +61,6 @@ public class ActionCdd
     @ManyToOne
     private ClassCdd classCdd;
 
-    //@Property
-//    @JoinColumn
     @OneToMany(mappedBy = "actionCdd")
     public Set<ParameterCdd> inputTypeList;
 

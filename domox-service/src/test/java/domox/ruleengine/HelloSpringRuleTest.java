@@ -3,17 +3,20 @@ package domox.ruleengine;
 import com.deliveredtechnologies.rulebook.FactMap;
 import com.deliveredtechnologies.rulebook.NameValueReferableMap;
 import com.deliveredtechnologies.rulebook.model.RuleBook;
+import jakarta.inject.Inject;
 import org.junit.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(classes = {SpringConfig.class})
+@SpringBootTest
+@ExtendWith(value = SpringExtension.class)
 public class HelloSpringRuleTest {
 
-    @Autowired
+    @Inject
     private RuleBook ruleBook;
 
     @Test

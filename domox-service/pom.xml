@@ -22,15 +22,14 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
-            <version>${kotlin.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
 
         <!-- to be removed, once SparkNLP works -->
         <dependency>
@@ -53,39 +52,42 @@
         <dependency>
             <groupId>com.github.kittinunf.fuel</groupId>
             <artifactId>fuel</artifactId>
-            <version>${fuel.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.kittinunf.fuel</groupId>
             <artifactId>fuel-json</artifactId>
-            <version>${fuel.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.http4k/http4k-core -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>${okhttp.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
-            <version>${tika.version}</version>
         </dependency>
         <!-- Consider using drools, it's more current and recommended by you.com / baeldung -->
         <dependency>
             <groupId>com.deliveredtechnologies</groupId>
             <artifactId>rulebook-core</artifactId>
-            <version>0.12</version>
         </dependency>
         <dependency>
             <groupId>com.deliveredtechnologies</groupId>
             <artifactId>rulebook-spring</artifactId>
-            <version>0.12</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- Used undeclared dependencies found -->
@@ -101,27 +103,26 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
+            <artifactId>kotlin-test-junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.kittinunf.result</groupId>
             <artifactId>result</artifactId>
-            <scope>compile</scope>
-            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
-            <scope>compile</scope>
-            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <scope>compile</scope>
-            <version>13.0</version>
         </dependency>
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+        </dependency>
+
     </dependencies>
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>

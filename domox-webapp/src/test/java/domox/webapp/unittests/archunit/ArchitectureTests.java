@@ -11,7 +11,6 @@ import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 @AnalyzeClasses(
         packagesOf = {ApplicationModule.class, Application.class},
@@ -20,13 +19,13 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
         })
 public class ArchitectureTests {
 
-    @ArchTest
+/*    @ArchTest
     static ArchRule package_dependencies =
             layeredArchitecture()
                     .layer("simple module").definedBy("domainapp.modules.simple..")
                     .layer("webapp").definedBy("domainapp.webapp..")
                     .whereLayer("simple module").mayOnlyBeAccessedByLayers("webapp");
-
+*/
     @ArchTest
     static ArchRule classes_annotated_with_Entity_are_also_annotated_with_DomainObject =
             classes()

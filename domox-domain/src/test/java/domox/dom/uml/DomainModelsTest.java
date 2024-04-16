@@ -1,5 +1,6 @@
 package domox.dom.uml;
 
+import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
 import static org.apache.causeway.commons.internal.assertions._Assert.assertTrue;
@@ -36,9 +38,14 @@ class DomainModelsTest {
         clazz.setName("SampleClass");
         final ActionCdd action = new ActionCdd();
         action.setName("sampleAction");
-        final List<String> inputTypeList = new ArrayList<>();
-        inputTypeList.add(String.class.getSimpleName());
-        inputTypeList.add(Boolean.class.getSimpleName());
+        final Set<ParameterCdd> inputTypeList = new OrderedHashSet<>();
+        final ParameterCdd p1 = new ParameterCdd();
+        p1.setType("String");
+        inputTypeList.add(p1);
+        final ParameterCdd p2 = new ParameterCdd();
+        p2.setType("Boolean");
+        inputTypeList.add(p2);
+        inputTypeList.add(p2);
         action.setInputTypeList(inputTypeList);
         action.setOutputType(Integer.class.getSimpleName());
         final List<ActionCdd> actionList = new ArrayList<>();

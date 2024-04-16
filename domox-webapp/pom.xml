@@ -20,13 +20,6 @@
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.version>0.1.0-SNAPSHOT</project.version>
-        <maven-cucumber-reporting.version>4.11.2</maven-cucumber-reporting.version>
-        <archunit.version>0.20.1</archunit.version>
-        <!--skipBDD>${skipTests}</skipBDD-->
-        <skipBDD>true</skipBDD>
     </properties>
 
     <build>
@@ -212,7 +205,6 @@
             <groupId>org.apache.causeway.viewer</groupId>
             <artifactId>causeway-viewer-graphql-viewer</artifactId>
         </dependency>
-<!-- -->
         <dependency>
             <groupId>org.apache.causeway.commons</groupId>
             <artifactId>causeway-commons</artifactId>
@@ -240,24 +232,20 @@
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5-api</artifactId>
             <scope>test</scope>
-            <version>${archunit.version}</version>
         </dependency>
         <!-- Non-test scoped test only dependencies found -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>test</scope>
-            <version>33.1.0-jre</version>
         </dependency>
         <dependency>
             <groupId>jakarta.inject</groupId>
             <artifactId>jakarta.inject-api</artifactId>
-            <version>2.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
-            <version>${spring-framework.version}</version>
         </dependency>
         <dependency>
             <groupId>jakarta.persistence</groupId>
@@ -266,72 +254,57 @@
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
             <artifactId>causeway-applib</artifactId>
-            <version>${causeway.version}</version>
         </dependency>
         <!-- Used undeclared dependencies found -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
-            <scope>compile</scope>
-            <version>3.2.4</version>
         </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit</artifactId>
             <scope>test</scope>
-            <version>${archunit.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot</artifactId>
-            <scope>compile</scope>
-            <version>${spring-boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
-            <version>3.24.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
             <artifactId>causeway-core-runtimeservices</artifactId>
-            <scope>compile</scope>
-            <version>${causeway.version}</version>
         </dependency>
         <dependency>
             <groupId>com.approvaltests</groupId>
             <artifactId>approvaltests</artifactId>
             <scope>test</scope>
-            <version>23.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
             <scope>test</scope>
-            <version>${spring-boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
             <artifactId>causeway-core-config</artifactId>
-            <scope>compile</scope>
-            <version>${causeway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <scope>compile</scope>
-            <version>${spring-framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.testing</groupId>
             <artifactId>causeway-testing-fixtures-applib</artifactId>
-            <version>${causeway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -340,7 +313,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring-boot.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
