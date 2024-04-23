@@ -33,14 +33,13 @@ class PumlCode() {
     }
 
     fun addAction(s: String): PumlCode {
-        val result = ("$s()")
+        val result = ("$s")
         code += result + NL
         return this
     }
 
-    fun addAssociation(className: String, ascName: String): PumlCode {
-        val result = className + " -> " + ascName
-        code += result + NL
+    fun addAssociation(s: String): PumlCode {
+        code += s + NL
         return this
     }
 

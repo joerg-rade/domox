@@ -8,13 +8,9 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.causeway.applib.annotation.Bounding;
@@ -28,9 +24,12 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 import org.jetbrains.annotations.NotNull;
 
 enum AssociationType {
+    ASSOCIATION, //attribute
+    GENERALIZATION, // inheritance
+    IMPLEMENTATION, //REALIZATION
+    DEPENDENCY,
     AGGREGATION,
-    GENERALIZATION,
-    ATTRIBUTE;
+    COMPOSITION // existence
 }
 
 @Entity
@@ -41,10 +40,14 @@ enum AssociationType {
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor
-@Data
 public class AssociationCdd
         extends Candidate
         implements Comparable<AssociationCdd> {
+
+    public AssociationCdd(ClassCdd source, ClassCdd target) {
+        this.source = source;
+        this.target = target;
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -55,27 +58,36 @@ public class AssociationCdd
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
-    @Getter
     @Setter
     @Property
-    @JoinColumn(nullable = false)
-    @ManyToOne
-    private ClassCdd classCdd;
+    @Column(nullable = false)
+    private ClassCdd source;
+    @Setter
+    @Property
+    @Column(nullable = false)
+    private ClassCdd target;
 
+    @Setter
     @Property
     @Column(nullable = false)
     private AssociationType type;
 
+    @Setter
     @Property
     @Column(nullable = false)
-    private Integer sourceCardinality;
+    private Integer sourceCardinality = 1;
 
+    @Setter
     @Property
     @Column(nullable = false)
-    private Integer targetCardinality;
+    private Integer targetCardinality = 1;
 
     @Override
     public int compareTo(@NotNull AssociationCdd o) {
         return 0; //FIXME
+    }
+
+    public String toPlantUmlString() {
+        return source.getName() + " -> " + target.getName();
     }
 }

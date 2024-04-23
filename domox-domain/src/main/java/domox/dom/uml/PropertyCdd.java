@@ -14,7 +14,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
@@ -37,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
-@Getter @Setter
 public class PropertyCdd
         extends Candidate
         implements Comparable<PropertyCdd> {
@@ -52,22 +50,23 @@ public class PropertyCdd
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
-    @Getter
-    @Setter
     @Property
     @JoinColumn(nullable = false)
     @ManyToOne
-    private ClassCdd classCdd;
+    public ClassCdd classCdd;
 
-    @Getter
     @Setter
     @Property
     @Column(nullable = false)
-    private String type;
+    public String type;
 
     @Override
     public int compareTo(@NotNull PropertyCdd o) {
         //FIXME
         return 0;
+    }
+
+    public String toPlantUmlString() {
+        return name + ": " + type;
     }
 }

@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
-@Getter @Setter
 public class ParameterCdd
         extends Candidate
         implements Comparable<ParameterCdd> {
@@ -55,7 +54,7 @@ public class ParameterCdd
     @Setter
     @Property
     @JoinColumn(nullable = false)
-    public ActionCdd actionCdd;
+    public Class<ActionCdd> actionCdd;
 
     @Getter
     @Setter
@@ -67,5 +66,9 @@ public class ParameterCdd
     public int compareTo(@NotNull ParameterCdd o) {
         //FIXME
         return 0;
+    }
+
+    public String toPlantUmlString() {
+        return name + ": " + type;
     }
 }

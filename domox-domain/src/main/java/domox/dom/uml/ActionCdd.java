@@ -72,4 +72,14 @@ public class ActionCdd
     public int compareTo(@NotNull ActionCdd o) {
         return 0; //FIXME
     }
+
+    public String toPlantUmlString() {
+        final String sep = ", ";
+        String s = name + "(";
+        for (ParameterCdd i : inputTypeList) {
+            s += i.toPlantUmlString() + sep;
+        }
+        s = s.replaceAll(sep + "$", ")");
+        return s + ": " + outputType;
+    }
 }

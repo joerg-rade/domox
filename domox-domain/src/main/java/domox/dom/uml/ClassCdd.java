@@ -73,4 +73,12 @@ public class ClassCdd
     public int compareTo(@NotNull ClassCdd o) {
         return 0; //FIXME
     }
+
+    public void addAction(ActionCdd action) {
+        actionList.add(action);
+    }
+
+    public void addAssociation(AssociationCdd association) {
+        associationList.add(association);
+    }
 }
