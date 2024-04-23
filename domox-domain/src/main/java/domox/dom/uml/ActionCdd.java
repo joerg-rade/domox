@@ -14,10 +14,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -39,10 +36,15 @@ import java.util.Set;
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
-@Data
 public class ActionCdd
         extends Candidate
         implements Comparable<ActionCdd> {
+
+    public ActionCdd(String name, Set<ParameterCdd> inputTypeList, String outputType) {
+        this.name = name;
+        this.inputTypeList = inputTypeList;
+        this.outputType = outputType;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -54,8 +56,6 @@ public class ActionCdd
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
-    @Getter
-    @Setter
     @Property
     @JoinColumn(nullable = false)
     @ManyToOne

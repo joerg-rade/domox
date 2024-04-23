@@ -44,7 +44,8 @@ public class AssociationCdd
         extends Candidate
         implements Comparable<AssociationCdd> {
 
-    public AssociationCdd(ClassCdd source, ClassCdd target) {
+    public AssociationCdd(String name, ClassCdd source, ClassCdd target) {
+        this.name = name;
         this.source = source;
         this.target = target;
     }
@@ -88,6 +89,7 @@ public class AssociationCdd
     }
 
     public String toPlantUmlString() {
-        return source.getName() + " -> " + target.getName();
+        String arrow = " \"" + sourceCardinality + "\" -> \"" + targetCardinality + "\" ";
+        return source.getName() + arrow + target.getName() + ": " + name;
     }
 }

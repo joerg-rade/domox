@@ -40,6 +40,10 @@ public class ParameterCdd
         extends Candidate
         implements Comparable<ParameterCdd> {
 
+    public ParameterCdd(String name, String type) {
+        this.name = name;
+        this.type = type;
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)

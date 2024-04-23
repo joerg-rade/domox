@@ -42,6 +42,10 @@ public class ClassCdd
         extends Candidate
         implements Comparable<ClassCdd> {
 
+    public ClassCdd(String name) {
+        this.name = name;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)

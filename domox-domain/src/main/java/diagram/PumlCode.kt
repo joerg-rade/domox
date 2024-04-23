@@ -3,6 +3,7 @@ package diagram
 class PumlCode() {
 
     private val NL = "\n"
+    private val TAB = "\t"
 
     var code = ""
 
@@ -12,7 +13,7 @@ class PumlCode() {
     }
 
     fun addBegin(): PumlCode {
-        code += "{" + NL
+        code += " {" + NL
         return this
     }
 
@@ -22,19 +23,19 @@ class PumlCode() {
     }
 
     fun addClass(s: String): PumlCode {
-        val result = ("class \"(C) $s\" as $s")
-        code += result + NL
+        val result = ("class \"$s\" as $s")
+        code += result
         return this
     }
 
     fun addProperty(s: String): PumlCode {
-        code += s + NL
+        code += TAB + s + NL
         return this
     }
 
     fun addAction(s: String): PumlCode {
         val result = ("$s")
-        code += result + NL
+        code += TAB + result + NL
         return this
     }
 

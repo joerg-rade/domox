@@ -54,10 +54,6 @@ class ClassDiagram {
             val s = a.toPlantUmlString()
             code.addAction(s)
         }
-        cls.associationList.forEach { s: AssociationCdd ->
-            val s = s.toPlantUmlString()
-            code.addAssociation(s)
-        }
         code.addEnd()
         return code
     }

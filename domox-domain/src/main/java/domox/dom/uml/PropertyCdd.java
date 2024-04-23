@@ -40,6 +40,11 @@ public class PropertyCdd
         extends Candidate
         implements Comparable<PropertyCdd> {
 
+    public PropertyCdd(String name, String type) {
+        this.name = name;
+        this.type = type;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
