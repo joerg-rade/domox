@@ -34,14 +34,11 @@ class DomainModelsTest {
     @Test
     void testGenerateUml() {
         // given
-        final ClassCdd clazz1 = new ClassCdd("Alice");
-
         final List<PropertyCdd> propertyList = new ArrayList<>();
         final PropertyCdd property1 = new PropertyCdd("property1", "int");
         propertyList.add(property1);
         final PropertyCdd property2 = new PropertyCdd("property2", "Integer");
         propertyList.add(property2);
-        clazz1.setPropertyList(propertyList);
 
         final Set<ParameterCdd> inputTypeList = new OrderedHashSet<>();
         final ParameterCdd p1 = new ParameterCdd("venirIci", "String");
@@ -51,11 +48,26 @@ class DomainModelsTest {
 
         final String outputType = Integer.class.getSimpleName();
         final ActionCdd action = new ActionCdd("ordre", inputTypeList, outputType);
-        clazz1.addAction(action);
+        final List<ActionCdd> actionList = new ArrayList<>();
+        actionList.add(action);
 
-        final ClassCdd clazz2 = new ClassCdd("Bob");
+        final List<AssociationCdd> associationList = new ArrayList<>();
+
+        final ClassCdd clazz1 = new ClassCdd(
+                "Alice",
+                propertyList,
+                actionList,
+                associationList);
+
+        final ClassCdd clazz2 = new ClassCdd(
+                "Bob",
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>());
+        clazz2.setClassType(ClassType.ROLE);
 
         final AssociationCdd association = new AssociationCdd("command", clazz1, clazz2);
+        association.setTargetCardinality("2");
         clazz1.addAssociation(association);
 
         final DomainModel domainModel = classUnderTest.create();

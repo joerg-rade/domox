@@ -24,12 +24,18 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 import org.jetbrains.annotations.NotNull;
 
 enum AssociationType {
-    ASSOCIATION, //attribute
-    GENERALIZATION, // inheritance
-    IMPLEMENTATION, //REALIZATION
-    DEPENDENCY,
-    AGGREGATION,
-    COMPOSITION // existence
+    ASSOCIATION("->"), //attribute
+    GENERALIZATION("|>-"), // inheritance
+    IMPLEMENTATION(""), //REALIZATION
+    DEPENDENCY(".>"),
+    AGGREGATION("*->"),
+    COMPOSITION("+->"); // existence
+
+    final String symbol;
+
+    AssociationType(String symbol) {
+        this.symbol = symbol;
+    }
 }
 
 @Entity
@@ -76,12 +82,12 @@ public class AssociationCdd
     @Setter
     @Property
     @Column(nullable = false)
-    private Integer sourceCardinality = 1;
+    private String sourceCardinality = "";
 
     @Setter
     @Property
     @Column(nullable = false)
-    private Integer targetCardinality = 1;
+    private String targetCardinality = "";
 
     @Override
     public int compareTo(@NotNull AssociationCdd o) {
@@ -89,7 +95,13 @@ public class AssociationCdd
     }
 
     public String toPlantUmlString() {
-        String arrow = " \"" + sourceCardinality + "\" -> \"" + targetCardinality + "\" ";
-        return source.getName() + arrow + target.getName() + ": " + name;
+        final String arrow = AssociationType.ASSOCIATION.symbol;
+        final String relation = quote(sourceCardinality) + arrow + quote(targetCardinality);
+        return source.getName() + relation + target.getName() + ": " + name;
+    }
+
+    private String quote(String s) {
+        if (s.isBlank()) return s;
+        return "\"" + s + "\"";
     }
 }
