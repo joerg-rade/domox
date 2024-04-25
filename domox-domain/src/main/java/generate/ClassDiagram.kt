@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package diagram
+package generate
 
 import domox.dom.uml.AssociationCdd
 import domox.dom.uml.ClassCdd

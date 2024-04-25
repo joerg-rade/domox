@@ -1,11 +1,6 @@
-package diagram
+package generate
 
-class PumlCode() {
-
-    private val NL = "\n"
-    private val TAB = "\t"
-
-    var code = ""
+class PumlCode() : BaseCode() {
 
     fun add(s: String): PumlCode {
         code += s

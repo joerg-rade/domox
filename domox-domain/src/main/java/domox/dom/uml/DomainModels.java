@@ -1,7 +1,8 @@
 package domox.dom.uml;
 
-import diagram.ClassDiagram;
 import domox.DomainModule;
+import generate.ClassDiagram;
+import generate.JavaCode;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -36,6 +37,9 @@ public class DomainModels {
 
     public String generateUmlDiagram(DomainModel domainModel) {
         return new ClassDiagram().build(domainModel);
+    }
+    public String generateJavaCode(ClassCdd clazz) {
+        return new JavaCode(clazz).getCode();
     }
 
 }

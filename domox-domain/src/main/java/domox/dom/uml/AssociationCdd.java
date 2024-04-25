@@ -23,21 +23,6 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-enum AssociationType {
-    ASSOCIATION("->"), //attribute
-    GENERALIZATION("|>-"), // inheritance
-    IMPLEMENTATION(""), //REALIZATION
-    DEPENDENCY(".>"),
-    AGGREGATION("*->"),
-    COMPOSITION("+->"); // existence
-
-    final String symbol;
-
-    AssociationType(String symbol) {
-        this.symbol = symbol;
-    }
-}
-
 @Entity
 @Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
