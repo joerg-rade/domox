@@ -4,8 +4,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.simple.JSONArray
-import org.json.simple.JSONObject
+import org.json.JSONArray
+import org.json.JSONObject
 
 class SparkNlpAPI {
 
@@ -32,13 +32,25 @@ class SparkNlpAPI {
         val responseBody = response.body as Map<*, *>
         val annotatedData = JSONObject(responseBody) as JSONArray
 
-        // Access the annotated results
-//        val sentences = annotatedData.get("sentences")
-        //       val tokens = sentences.getJSONObject(0).getJSONArray("tokens")
-        //     val lemmas = (0 until tokens.length()).map { tokens.getJSONObject(it).getString("lemma") }
+        if (response.isSuccessful) {
+            val responseBody = response.body as Map<*, *>
+            val results = JSONObject(responseBody)
 
-        // Print the lemmas
-        //   println(lemmas)
+            // Process the results as needed
+            val sentences = results.getJSONArray("sentences")
+            for (i in 0 until sentences.length()) {
+                val sentence = sentences.getJSONObject(i)
+                val tokens = sentence.getJSONArray("tokens")
+                for (j in 0 until tokens.length()) {
+                    val token = tokens.getJSONObject(j)
+                    val originalText = token.getString("originalText")
+                    val pos = token.getString("pos")
+                    println("Token: $originalText, POS: $pos")
+                }
+            }
+        } else {
+            println("Request failed with status code: ${response.code}")
+        }
     }
 
 }

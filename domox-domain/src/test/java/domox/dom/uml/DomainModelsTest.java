@@ -8,8 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
@@ -34,7 +33,7 @@ class DomainModelsTest {
     @Test
     void testGenerateUml() {
         // given
-        final List<PropertyCdd> propertyList = new ArrayList<>();
+        final Set<PropertyCdd> propertyList = new HashSet<>();
         final PropertyCdd property1 = new PropertyCdd("property1", "int");
         propertyList.add(property1);
         final PropertyCdd property2 = new PropertyCdd("property2", "Integer");
@@ -48,10 +47,10 @@ class DomainModelsTest {
 
         final String outputType = Integer.class.getSimpleName();
         final ActionCdd action = new ActionCdd("ordre", inputTypeList, outputType);
-        final List<ActionCdd> actionList = new ArrayList<>();
+        final Set<ActionCdd> actionList = new HashSet<>();
         actionList.add(action);
 
-        final List<AssociationCdd> associationList = new ArrayList<>();
+        final Set<AssociationCdd> associationList = new HashSet<>();
 
         final ClassCdd clazz1 = new ClassCdd(
                 "Alice",
@@ -61,9 +60,9 @@ class DomainModelsTest {
 
         final ClassCdd clazz2 = new ClassCdd(
                 "Bob",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>());
+                new HashSet<>(),
+                new HashSet<>(),
+                new HashSet<>());
         clazz2.setClassType(ClassType.ROLE);
 
         final AssociationCdd association = new AssociationCdd("command", clazz1, clazz2);

@@ -28,7 +28,7 @@ import java.util.List;
 @Entity
 @Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.Relation")
+@Named(DomainModule.NAMESPACE + ".Relation")
 @DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "paragraph")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)

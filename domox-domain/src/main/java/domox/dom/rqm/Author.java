@@ -11,10 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
@@ -23,42 +20,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.val;
-import org.apache.causeway.applib.annotation.BookmarkPolicy;
+import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
-import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.PropertyLayout;
-import org.apache.causeway.applib.annotation.Publishing;
-import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.util.Set;
 
 @Entity
-@Table(
-        schema = DomainModule.SCHEMA,
-        uniqueConstraints = {
-                @UniqueConstraint(name = "Author_eMail_UNQ", columnNames = {"eMail"})
-        }
-)
-@NamedQueries({
-        @NamedQuery(
-                name = Author.NAMED_QUERY__FIND_BY_LASTNAME_LIKE,
-                query = "SELECT o " +
-                        "FROM Author o " +
-                        "WHERE o.lastName LIKE :lastName"
-        )
-})
+@Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".Author")
-@DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
-@DomainObjectLayout(
-        tableDecorator = TableDecorator.DatatablesNet.class,
-        bookmarking = BookmarkPolicy.AS_ROOT)
-@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@DomainObject(bounding = Bounding.BOUNDED)
+@DomainObjectLayout(cssClassFa = "edit", describedAs = "An A. is the creator of a Document")
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-@ToString(onlyExplicitlyIncluded = true)
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class Author implements Comparable<Author> {
 
     static final String NAMED_QUERY__FIND_BY_LASTNAME_LIKE = "Author.findByLastNameLike";
@@ -71,9 +49,7 @@ public class Author implements Comparable<Author> {
     @Version
     @Column(nullable = false)
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
-    @Getter
-    @Setter
-    private long version;
+    private Long version;
 
     public static Author withLastName(String lastName) {
         val o = new Author();

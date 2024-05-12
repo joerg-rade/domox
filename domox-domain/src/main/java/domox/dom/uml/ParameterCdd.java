@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -56,9 +57,10 @@ public class ParameterCdd
 
     @Getter
     @Setter
-    @Property
-    @JoinColumn(nullable = false)
-    public Class<ActionCdd> actionCdd;
+    @ManyToOne()
+    @JoinColumn(name = "actionId")
+    @Property()
+    public ActionCdd actionCdd;
 
     @Getter
     @Setter

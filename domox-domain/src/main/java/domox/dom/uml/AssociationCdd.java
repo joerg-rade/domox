@@ -8,6 +8,9 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -52,11 +55,18 @@ public class AssociationCdd
 
     @Setter
     @Property
-    @Column(nullable = false)
-    private ClassCdd source;
+    @JoinColumn(nullable = false)
+    @ManyToOne
+    private ClassCdd classCdd;
+
     @Setter
     @Property
-    @Column(nullable = false)
+    @OneToOne
+    private ClassCdd source;
+
+    @Setter
+    @Property
+    @OneToOne
     private ClassCdd target;
 
     @Setter

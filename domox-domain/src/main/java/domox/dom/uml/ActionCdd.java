@@ -2,6 +2,7 @@ package domox.dom.uml;
 
 import domox.DomainModule;
 import jakarta.inject.Named;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -61,7 +62,8 @@ public class ActionCdd
     @ManyToOne
     private ClassCdd classCdd;
 
-    @OneToMany(mappedBy = "actionCdd")
+    @OneToMany(mappedBy = "actionCdd", cascade = CascadeType.PERSIST)
+    @Property
     public Set<ParameterCdd> inputTypeList;
 
     @Property

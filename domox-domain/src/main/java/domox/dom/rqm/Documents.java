@@ -63,7 +63,8 @@ public class Documents {
     @ActionLayout(sequence = "4", cssClassFa = "play")
     public Document loadSample() {
         //https://www.reqview.com/papers/ReqView-Example_Software_Requirements_Specification_SRS_Document.pdf
-        final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";
+        //final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";
+        final String url = "https://en.wikipedia.org/wiki/Logistics";
         final String title = "Requirements Document Example";
 
         final HtmlReader reader = new HtmlReader();

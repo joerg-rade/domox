@@ -1,7 +1,5 @@
 package domox;
 
-import domox.dom.rqm.Author;
-import org.apache.causeway.testing.fixtures.applib.fixturescripts.FixtureScript;
 import org.apache.causeway.testing.fixtures.applib.modules.ModuleWithFixtures;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
@@ -16,15 +14,5 @@ public class DomainModule implements ModuleWithFixtures {
 
     public static final String NAMESPACE = DomainModule.SCHEMA;
     public static final String SCHEMA = "domox";
-
-    @Override
-    public FixtureScript getTeardownFixture() {
-        return new FixtureScript() {
-            @Override
-            protected void execute(ExecutionContext executionContext) {
-                repositoryService.removeAll(Author.class);
-            }
-        };
-    }
 
 }

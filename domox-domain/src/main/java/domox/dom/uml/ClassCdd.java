@@ -1,7 +1,7 @@
 package domox.dom.uml;
 
-import generate.PumlCode;
 import domox.DomainModule;
+import generate.PumlCode;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,14 +21,14 @@ import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Editing;
+import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -45,9 +45,9 @@ public class ClassCdd
 
     public ClassCdd(
             String name,
-            List<PropertyCdd> propertyList,
-            List<ActionCdd> actionList,
-            List<AssociationCdd> associationList) {
+            Set<PropertyCdd> propertyList,
+            Set<ActionCdd> actionList,
+            Set<AssociationCdd> associationList) {
         this.name = name;
         this.propertyList = propertyList;
         this.actionList = actionList;
@@ -79,29 +79,32 @@ public class ClassCdd
 
     @Property
     @OneToMany(mappedBy = "classCdd")
-    public List<PropertyCdd> propertyList = new ArrayList<>();
+    public Set<PropertyCdd> propertyList;
 
     @Property
     @OneToMany(mappedBy = "classCdd")
-    public List<ActionCdd> actionList = new ArrayList<>();
+    public Set<ActionCdd> actionList;
 
     @Property
     @OneToMany(mappedBy = "classCdd")
-    public List<AssociationCdd> associationList = new ArrayList<>();
+    public Set<AssociationCdd> associationList;
 
     @Override
     public int compareTo(@NotNull ClassCdd o) {
         return 0; //FIXME
     }
 
+    @Programmatic
     public void addAction(ActionCdd action) {
         actionList.add(action);
     }
 
+    @Programmatic
     public void addAssociation(AssociationCdd association) {
         associationList.add(association);
     }
 
+    @Programmatic
     public String toPlantUmlString() {
         PumlCode code = new PumlCode();
         code.addClass(name);

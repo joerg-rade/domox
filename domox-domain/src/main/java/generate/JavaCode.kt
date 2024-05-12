@@ -5,17 +5,16 @@ import domox.dom.uml.ClassCdd
 import domox.dom.uml.PropertyCdd
 
 class JavaCode(val clazz: ClassCdd) : BaseCode() {
-    lateinit var clazzName:String
-    lateinit var packageName: String
+    private var clazzName:String = clazz.name
+    private var packageName: String = clazz.packageName
+
     init {
-        clazzName = clazz.name
-        packageName = clazz.packageName
         code = buildHeader()
         code += buildClass()
     }
 
     private fun buildHeader():String {
-        return """package sample;
+        return """package $packageName;
             
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
