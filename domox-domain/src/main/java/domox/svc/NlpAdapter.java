@@ -1,14 +1,12 @@
 package domox.svc;
 
 import domox.HttpRequest;
-import domox.SparkNlpAPI;
 import domox.StanfordCoreNlpAPI;
 import domox.TdDiagram;
 import domox.dom.rqm.Document;
 import edu.stanford.nlp.pipeline.CoreSentence;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.trees.TypedDependency;
-import kotlin.Deprecated;
 import org.apache.causeway.applib.value.Blob;
 
 import java.util.ArrayList;
@@ -17,12 +15,6 @@ import java.util.Iterator;
 public class NlpAdapter {
 
     public static void parseTextAndAmend(Document dmxDoc) {
-        //IMPROVE select different implementation, depending on config values
-        // default: StanfordNlp via lib
-        // StanfordNlpRemote (docker image)
-        // ApacheOpenNlpRemote (docker image)
-        //new StanfordNLP().process(document);
-        //stanfordLib(dmxDoc);
         stanfordServer(dmxDoc);
     }
 
@@ -41,42 +33,6 @@ public class NlpAdapter {
             dmxSentence.setDiagram(buildTypedDependencyDiagram(cs));
             dmxDoc.getSentences().add(dmxSentence);
         }*/
-    }
-
-    private static void sparkNlpServer(Document dmxDoc) {
-        final String rawText = dmxDoc.getContent();
-        final SparkNlpAPI nlp = new SparkNlpAPI();
-        nlp.annotate(rawText);
-        //final CoreDocument coreDocument =
-                nlp.annotate(rawText);
-/*        final List<CoreSentence> csList = coreDocument.sentences();
-        for (CoreSentence cs : csList) {
-            final String sentenceText = cs.text();
-            System.out.println(sentenceText);
-            final Sentence dmxSentence = new Sentence();
-            dmxSentence.setText(sentenceText);
-            dmxSentence.setTypedDependencies(typedDependenciesAsList(cs).toString());
-            dmxSentence.setDiagram(buildTypedDependencyDiagram(cs));
-            dmxDoc.getSentences().add(dmxSentence);
-        }*/
-    }
-
-    @Deprecated(message = "use sparkNlpServer")
-    private static void stanfordLib(Document dmxDoc) {
-        final String rawText = dmxDoc.getContent();
-        final StanfordCoreNlpAPI nlp = new StanfordCoreNlpAPI();
-        //final CoreDocument coreDocument =
-                nlp.annotate(rawText);
-  /*      final List<CoreSentence> csList = coreDocument.sentences();
-        for (CoreSentence cs : csList) {
-            final String sentenceText = cs.text();
-            System.out.println(sentenceText);
-            final Sentence dmxSentence = new Sentence();
-            dmxSentence.setText(sentenceText);
-            dmxSentence.setTypedDependencies(typedDependenciesAsList(cs).toString());
-            dmxSentence.setDiagram(buildTypedDependencyDiagram(cs));
-            dmxDoc.getSentences().add(dmxSentence);
-        } */
     }
 
     private static ArrayList<String> typedDependenciesAsList(CoreSentence coreSentence) {

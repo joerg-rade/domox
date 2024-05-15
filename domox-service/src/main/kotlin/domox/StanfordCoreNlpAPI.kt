@@ -3,40 +3,22 @@ package domox
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.RequestBody
 import org.json.JSONObject
 
 class StanfordCoreNlpAPI {
-//    var pipeline:StanfordCoreNLP
-    init {
- /*       try {
-            val props = Properties()
-            //            props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref,kbp,quote");
-            props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref")
-            props.setProperty("coref.algorithm", "neural")
-            pipeline = StanfordCoreNLP(props)
-        } catch (e: Exception) {
-            throw RuntimeException("Exception occurred in creating NLP pipeline")
-        }*/
-    }
 
-    fun annotate(text: String?) {
-        // Define the annotators to be used
+    fun annotate(text: String) {
         val annotators = "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref"
-
-        // Create the request payload
-        val payload = JSONObject()
-        payload.put("text", text)
-        payload.put("annotators", annotators)
-
-        // Make the REST call to the Spark NLP server
-        val client = OkHttpClient()
+        val url = "http://localhost:8090/?properties={\"annotators\":\"$annotators\"}"
         val mediaType = "application/json; charset=utf-8".toMediaType()
-        val requestBody = payload.toString().toRequestBody(mediaType)
-        val request = Request.Builder()
-            .url("http://localhost:8090/annotate")
+        val requestBody: RequestBody = RequestBody.create(mediaType, text)
+        val request: Request = Request.Builder()
+            .url(url)
             .post(requestBody)
             .build()
+
+        val client = OkHttpClient()
         val response = client.newCall(request).execute()
 
         if (response.isSuccessful) {

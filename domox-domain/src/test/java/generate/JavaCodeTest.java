@@ -57,9 +57,9 @@ public class JavaCodeTest {
 
         final ClassCdd clazz1 = new ClassCdd(
                 "Alice",
-                propertyList,
-                actionList,
-                associationList);
+                (Set<PropertyCdd>) propertyList,
+                (Set<ActionCdd>) actionList,
+                (Set<AssociationCdd>) associationList);
 
         // when
         final String javaCode = classUnderTest.generateJavaCode(clazz1);
