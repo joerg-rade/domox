@@ -18,7 +18,6 @@ System(DMX, "DoMoX", $sprite="home")
 Rel(DEV, DMX, "specify requirements\n", $tags="black")
 Rel_L(DMX, REQ, "import", $tags="black")
 
-
 SHOW_LEGEND()
 @enduml
 ----
