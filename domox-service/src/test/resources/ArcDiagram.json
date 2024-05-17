@@ -5,7 +5,7 @@
   "padding": 0,
   "data": [
     {
-      "name": "table",
+      "name": "sentence",
       "values": [
         {
           "index": 0,
@@ -35,19 +35,19 @@
           "index": 4,
           "word": "a",
           "pos": 10,
-          "color": "red"
+          "color": "magenta"
         },
         {
           "index": 5,
           "word": "title",
           "pos": 53,
-          "color": "red"
+          "color": "cyan"
         },
         {
           "index": 6,
           "word": "language",
           "pos": 19,
-          "color": "red"
+          "color": "cyan"
         },
         {
           "index": 7,
@@ -59,7 +59,7 @@
           "index": 8,
           "word": "level",
           "pos": 87,
-          "color": "red"
+          "color": "cyan"
         },
         {
           "index": 9,
@@ -80,6 +80,16 @@
         },
         {
           "source": 1,
+          "target": 2,
+          "value": 1
+        },
+        {
+          "source": 4,
+          "target": 5,
+          "value": 1
+        },
+        {
+          "source": 5,
           "target": 6,
           "value": 1
         }
@@ -107,17 +117,16 @@
       "name": "xscale",
       "type": "band",
       "domain": {
-        "data": "table",
+        "data": "sentence",
         "field": "word"
       },
       "range": "width",
-      "padding": 1.0,
-      "round": true
+      "padding": 1.0
     },
     {
       "name": "yscale",
       "domain": {
-        "data": "table",
+        "data": "sentence",
         "field": "pos"
       },
       "nice": true,
@@ -135,8 +144,9 @@
       "type": "symbol",
       "interactive": true,
       "name": "dots",
+      "description": "word",
       "from": {
-        "data": "table"
+        "data": "sentence"
       },
       "encode": {
         "enter": {
@@ -154,16 +164,8 @@
             "scale": "yscale",
             "value": 0
           },
-          "size": {
-            "value": 100
-          },
           "fill": {
             "field": "color"
-          }
-        },
-        "hover": {
-          "fill": {
-            "value": "red"
           }
         }
       }
@@ -179,7 +181,7 @@
             "value": "bottom"
           },
           "fill": {
-            "value": "blue"
+            "value": "red"
           }
         },
         "update": {
