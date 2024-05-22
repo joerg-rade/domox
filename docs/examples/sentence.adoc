@@ -1,0 +1,34 @@
+.sentence
+[plantuml,file="sentence.png"]
+--
+@startmindmap
+skinparam nodesep 0
+top to bottom direction
+
++ S
+++ NP
++++[#MAGENTA] DT
+++++_ A
++++[#CYAN] NN
+++++_ language
++++[#CYAN] NN
+++++_ tape
+++[#CHARTREUSE] VP
++++[#CHARTREUSE] VB
+++++_ has
+++ NP
++++[#MAGENTA] DT
+++++_ a
++++[#CYAN] NN
+++++_ title
++++[#CYAN] NN
+++++_ language
+
+++[#WHITE] CC
++++_ and
+++[#CYAN] NN
++++_ level
+++[#LIGHTGREY] .
++++_ .
+@endmindmap
+--

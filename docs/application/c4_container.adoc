@@ -4,21 +4,23 @@
 @startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-Person(personAlias, "Domain Designer", "uploads")
+Person(personAlias, "Domain Designer", "* uploads/creates requirement documents\n*judges analysis results\n*reviews generated model (diagram)")
 System_Boundary(systemBoundaryAlias, "DoMoX") {
     Container(webapp, "SpringBoot Web Application", "Allows users to interact with the system via a web interface")
     Container(database, "Database", "Stores and manages data for the system")
     Container(naturalLanguageProcessor, "Stanford Core NLP", "Tokenizes sentences and analyses dependencies between the parts of speech")
     Container(umlRenderer, "Kroki", "Renders PlantUML code")
 }
-System_Boundary(sourceCodeManagementSystem, "Git") {
+System_Boundary(scm, "Git") {
 
 }
 
 personAlias -d-> webapp: Uses
-webapp -> database : Reads from and writes to
-webapp -d-> umlRenderer : used to generate class diagrams
+webapp --> database : Reads from and writes to
+webapp -> umlRenderer : used to generate (class) diagrams
 webapp -l-> naturalLanguageProcessor : analyses requirement documents
+
+webapp -d-> scm : generate entity classes / interfaces and checks them in
 
 SHOW_FLOATING_LEGEND()
 @enduml

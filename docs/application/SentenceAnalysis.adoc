@@ -1,10 +1,10 @@
 .SentenceAnalysis
-[plantuml,file="SentenceAnalysis"]
---
-@startuml
-digraph g {
-    graph [nodesep=0.2 ranksep=0.1]
-    node [shape=none fontname=arial fontsize=12 style=filled fillcolor=white width=0.1 height=0]
+[plantuml,file="SentenceAnalysis.png"]
+----
+@startdot
+digraph Arc {
+    graph [nodesep=0.1 ranksep=0.1]
+    node [shape=none fontname="arial bold" fontsize=12 style=filled fillcolor=white width=0.1 height=0]
     edge [style=invis]
 
     subgraph _1 {
@@ -49,7 +49,7 @@ digraph g {
     }
     subgraph _9 {
         p9 [label=NN shape=box fontsize=10 fillcolor=CYAN]
-        w9 [label=level]
+        w9 [label="level"]
         p9 -> w9
     }
     subgraph _10 {
@@ -63,17 +63,17 @@ digraph g {
     p1 -> p2 -> p3 -> p4 -> p5 -> p6 -> p7 -> p8 -> p9 -> p10
     rank=same {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10}
 
-edge [style=normal fontsize=10 fontname=arial color=GREY]
-p1 -> p3 [label=det dir=back]
-p2 -> p3 [label=compound dir=back]
-p3 -> p4 [label=nsubj dir=back]
-p4 -> p7 [label=dobj]
-p5 -> p7 [label=det dir=back]
-p6 -> p7 [label=compound dir=back]
-p7 -> p8 [label=cc]
-p7 -> p9 [label="conj:and"]
+edge [style=normal fontsize=10 fontname=arial color=grey]
+p1 -> p3 [label=det dir=back color=MAGENTA]
+p2 -> p3 [label=compound dir=back color=CYAN]
+p3 -> p4 [label=nsubj dir=back color=CYAN]
+p4 -> p7 [label=dobj color=CYAN]
+p5 -> p7 [label=det dir=back color=MAGENTA]
+p6 -> p7 [label=compound dir=back color=CYAN]
+p7 -> p8 [label=cc color=GREY]
+p7 -> p9 [label="conj:and" color=CYAN]
 }
-@enduml
+@enddot
 --
 tag_map = {
 'NN'   : 'green',
