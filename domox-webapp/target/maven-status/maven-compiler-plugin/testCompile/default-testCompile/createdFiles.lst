@@ -1,8 +1,0 @@
-domox\webapp\integtests\smoke\Smoke_IntegTest.class
-domox\webapp\integtests\metamodel\ValidateDomainModel_IntegTest.class
-domox\webapp\unittests\archunit\ArchitectureTests.class
-domox\webapp\unittests\mavendeps\lockdown\LockDownMavenDeps_Test$1.class
-domox\webapp\integtests\ApplicationIntegTestAbstract.class
-domox\webapp\util\CurrentVsApprovedApprovalTextWriter.class
-domox\webapp\unittests\mavendeps\lockdown\LockDownMavenDeps_Test.class
-domox\webapp\integtests\metamodel\SwaggerExport_IntegTest.class

@@ -1,0 +1,38 @@
+@startuml
+' https://plantuml.com/nwdiag
+<style>
+root {
+ shadowing 1
+}
+ server {
+    'BackGroundColor pink
+    LineColor yellow
+    LineThickness 1.0
+    ' FontXXX only for description or label
+    FontSize 18
+    'FontColor #blue
+  }
+</style>
+nwdiag {
+    group services {
+        color = "#1D63ED";
+        nlp;
+        kroki;
+        db;
+    }
+    group app {
+        color = "#pink";
+        app [address="/8080", description=<img:https://cwiki.apache.org/confluence/download/thumbnails/240882061/causeway-logo-65x48.png{scale=0.5}>\nApache\nCauseway];
+    }
+
+    user [shape = actor];
+    user -- app;
+    network docker {
+        color = "#1D63ED";
+        nlp [address="/8090:9000"];
+        kroki [address="/8000", description=<img:https://kroki.io/assets/favicon-196x196.png{scale=0.15}>\nKroki];
+        db [shape = database, address="/5432"];
+        app;
+  }
+}
+@enduml

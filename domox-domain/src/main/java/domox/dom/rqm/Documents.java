@@ -1,6 +1,7 @@
 package domox.dom.rqm;
 
 import domox.DomainModule;
+import domox.FileUtil;
 import domox.HtmlReader;
 import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
@@ -61,7 +62,7 @@ public class Documents {
 
     @Action()
     @ActionLayout(sequence = "4", cssClassFa = "play")
-    public Document loadSample() {
+    public Document loadUrlSample() {
         //https://www.reqview.com/papers/ReqView-Example_Software_Requirements_Specification_SRS_Document.pdf
         //final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";
         final String url = "https://en.wikipedia.org/wiki/Logistics";
@@ -71,6 +72,22 @@ public class Documents {
         final String txtContent = reader.extractContentFromUrl(url);
         final Clob content = new Clob("", "text/xml", txtContent);
         final Document document = create(title, url, content, null);
+        NlpAdapter.parseTextAndAmend(document);
+        repositoryService.persistAndFlush(document);
+//        final List<String> rawList = reader.split(document);
+//        for (String r :rawList) {
+//            addSentenceTo(r, document);
+//        }
+        return document;
+    }
+    @Action()
+    @ActionLayout(sequence = "5", cssClassFa = "play")
+    public Document loadFileSample() {
+        final String title = "Pet Shop Use Cases";
+        final String filename = "PetShop_useCases.txt";
+        final String txtContent = new FileUtil().readFileFromResources(filename);
+        final Clob content = new Clob("", "text/xml", txtContent);
+        final Document document = create(title, filename, content, null);
         NlpAdapter.parseTextAndAmend(document);
         repositoryService.persistAndFlush(document);
 //        final List<String> rawList = reader.split(document);

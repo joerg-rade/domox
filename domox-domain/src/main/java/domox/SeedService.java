@@ -23,7 +23,7 @@ public class SeedService implements MetamodelListener {
 
     public void execute() {
         log.info("DB seeding started");
-        interactionService.runAnonymous(documents::loadSample);
+        interactionService.runAnonymous(documents::loadFileSample);
         log.info("DB seeding ended");
     }
 

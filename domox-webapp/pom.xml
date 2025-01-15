@@ -107,6 +107,7 @@
         <dependency>
             <groupId>org.apache.causeway.mavendeps</groupId>
             <artifactId>causeway-mavendeps-webapp</artifactId>
+            <version>${causeway.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
@@ -126,22 +127,24 @@
         <dependency>
             <groupId>org.apache.causeway.viewer</groupId>
             <artifactId>causeway-viewer-wicket-applib</artifactId>
+            <version>${causeway.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.viewer</groupId>
+            <artifactId>causeway-viewer-wicket-ui</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.apache.causeway.testing</groupId>
             <artifactId>causeway-testing-h2console-ui</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
 
-        <dependency>
+        <!--dependency>
             <groupId>org.apache.causeway.extensions</groupId>
             <artifactId>causeway-extensions-flyway-impl</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.causeway.extensions</groupId>
-            <artifactId>causeway-extensions-layoutloaders-github</artifactId>
-        </dependency>
+            <version>${causeway.version}</version>
+        </dependency-->
 
         <dependency>
             <groupId>org.apache.causeway.valuetypes</groupId>
@@ -212,10 +215,6 @@
         <dependency>
             <groupId>org.apache.causeway.extensions</groupId>
             <artifactId>causeway-extensions-cors-impl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.security</groupId>
-            <artifactId>causeway-security-shiro</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.security</groupId>
@@ -293,10 +292,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.core</groupId>
-            <artifactId>causeway-core-config</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

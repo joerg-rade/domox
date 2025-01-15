@@ -20,12 +20,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
-            <version>${kotlin.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
@@ -47,17 +41,14 @@
             <groupId>org.apache.causeway.testing</groupId>
             <artifactId>causeway-testing-fixtures-applib</artifactId>
             <scope>compile</scope>
-            <version>${causeway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
             <artifactId>causeway-applib</artifactId>
-            <version>${causeway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.persistence</groupId>
             <artifactId>causeway-persistence-jpa-applib</artifactId>
-            <version>${causeway.version}</version>
          </dependency>
         <dependency>
             <groupId>org.apache.causeway.domox</groupId>
@@ -78,15 +69,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.causeway.extensions</groupId>
             <artifactId>causeway-extensions-pdfjs-applib</artifactId>
+            <version>${causeway.version}</version>
         </dependency>
 
     </dependencies>

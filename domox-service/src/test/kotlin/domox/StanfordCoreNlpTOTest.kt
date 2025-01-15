@@ -3,9 +3,7 @@ package domox
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.internal.immutableListOf
 import org.junit.jupiter.api.Test
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
 import java.net.URISyntaxException
 import kotlin.test.assertNotNull
 
@@ -42,7 +40,7 @@ class StanfordCoreNlpTOTest {
 
     private fun readFromFile(fileName: String): StanfordCoreNlpTO {
         val to: StanfordCoreNlpTO = try {
-            val content = readFileFromResources(fileName)
+            val content = FileUtil().readFileFromResources(fileName)
             val objectMapper = ObjectMapper()
             objectMapper.readValue(content, StanfordCoreNlpTO::class.java)
         } catch (e: IOException) {
@@ -53,17 +51,5 @@ class StanfordCoreNlpTOTest {
         return to
     }
 
-    private fun readFileFromResources(fileName: String): String {
-        var answer = ""
-        val inputStream = javaClass.classLoader.getResourceAsStream(fileName)
-        val reader = BufferedReader(InputStreamReader(inputStream))
-
-        var line: String?
-        while (reader.readLine().also { line = it } != null) {
-            answer += line
-        }
-        reader.close()
-        return answer
-    }
 
 }

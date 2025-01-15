@@ -8,7 +8,6 @@ import org.apache.causeway.core.runtimeservices.CausewayModuleCoreRuntimeService
 import org.apache.causeway.extensions.cors.impl.CausewayModuleExtCors;
 import org.apache.causeway.persistence.jpa.eclipselink.CausewayModulePersistenceJpaEclipselink;
 import org.apache.causeway.security.bypass.CausewayModuleSecurityBypass;
-import org.apache.causeway.security.shiro.authorization.AuthorizorShiro;
 import org.apache.causeway.testing.fixtures.applib.CausewayModuleTestingFixturesApplib;
 import org.apache.causeway.viewer.restfulobjects.jaxrsresteasy.CausewayModuleViewerRestfulObjectsJaxrsResteasy;
 import org.apache.causeway.viewer.wicket.viewer.CausewayModuleViewerWicketViewer;
@@ -22,7 +21,7 @@ import org.springframework.context.annotation.PropertySources;
         CausewayModuleCoreRuntimeServices.class,
         //CausewayModuleExtSpringSecurityOAuth2.class, // Spring Security OAuth2 support
         CausewayModuleSecurityBypass.class,
-        AuthorizorShiro.class,
+//        AuthorizorShiro.class,
 //        LoginController.class,
 
         CausewayModulePersistenceJpaEclipselink.class,

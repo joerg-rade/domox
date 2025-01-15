@@ -21,10 +21,10 @@ class StanfordCoreNlpAPI {
         val client = OkHttpClient()
         val response = client.newCall(request).execute()
 
+        println("Url: " + url)
+        println("Text: " + text)
         if (response.isSuccessful) {
             val responseBody = response.body?.string() //as Map<*, *>
-            println("ResponseBody")
-            println(responseBody)
             val results = JSONObject(responseBody)
 
             // Process the results as needed
