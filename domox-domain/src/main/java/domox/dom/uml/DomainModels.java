@@ -21,11 +21,10 @@ import java.util.List;
 public class DomainModels {
 
     private final RepositoryService repositoryService;
-    private final DomainModelRepository domainModelRepository;
 
     @ActionLayout(sequence = "1")
     public List<DomainModel> listAll() {
-        return domainModelRepository.findAll();
+        return repositoryService.allInstances(DomainModel.class);
     }
 
     @ActionLayout(sequence = "2")

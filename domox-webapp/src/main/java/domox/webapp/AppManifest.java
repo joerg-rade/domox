@@ -33,7 +33,6 @@ import org.springframework.context.annotation.PropertySources;
         CausewayModuleTestingFixturesApplib.class,
 
         ApplicationModule.class,
-//        CustomModule.class,
 })
 @PropertySources({
         @PropertySource(CausewayPresets.DebugDiscovery),
