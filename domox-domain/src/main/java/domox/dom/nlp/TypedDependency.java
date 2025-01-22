@@ -30,8 +30,8 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 @Entity
 @Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
-@Named("domox.TypedDependency")
-@DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
+@Named(DomainModule.NAMESPACE + ".TypedDependency")
+@DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "scan")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)

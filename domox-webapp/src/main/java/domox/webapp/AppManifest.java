@@ -1,7 +1,8 @@
 package domox.webapp;
 
 import domox.webapp.application.ApplicationModule;
-import domox.webapp.custom.CustomModule;
+import org.apache.causeway.applib.CausewayModuleApplibChangeAndExecutionLoggers;
+import org.apache.causeway.applib.CausewayModuleApplibMixins;
 import org.apache.causeway.core.config.CausewayModuleCoreConfig;
 import org.apache.causeway.core.config.presets.CausewayPresets;
 import org.apache.causeway.core.runtimeservices.CausewayModuleCoreRuntimeServices;
@@ -18,12 +19,11 @@ import org.springframework.context.annotation.PropertySources;
 
 @Configuration
 @Import({
-        CausewayModuleCoreRuntimeServices.class,
-        //CausewayModuleExtSpringSecurityOAuth2.class, // Spring Security OAuth2 support
-        CausewayModuleSecurityBypass.class,
-//        AuthorizorShiro.class,
-//        LoginController.class,
+        CausewayModuleApplibMixins.class,
+        CausewayModuleApplibChangeAndExecutionLoggers.class,
 
+        CausewayModuleCoreRuntimeServices.class,
+        CausewayModuleSecurityBypass.class,
         CausewayModulePersistenceJpaEclipselink.class,
         CausewayModuleViewerRestfulObjectsJaxrsResteasy.class,
 
@@ -33,7 +33,7 @@ import org.springframework.context.annotation.PropertySources;
         CausewayModuleTestingFixturesApplib.class,
 
         ApplicationModule.class,
-        CustomModule.class,
+//        CustomModule.class,
 })
 @PropertySources({
         @PropertySource(CausewayPresets.DebugDiscovery),

@@ -20,7 +20,6 @@ import java.util.List;
 public class TypedDependencies {
 
     private final RepositoryService repositoryService;
-    private final TypedDependencyRepository repository;
     private final FactoryService factoryService;
 
     @ActionLayout(sequence = "1")
@@ -34,11 +33,6 @@ public class TypedDependencies {
 //        obj.setTitle(title);
         repositoryService.persist(obj);
         return obj;
-    }
-
-    @ActionLayout(sequence = "3")
-    public List<TypedDependency> findByType(final TdType type) {
-        return repository.findByType(type);
     }
 
 }

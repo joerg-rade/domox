@@ -1,13 +1,15 @@
 package domox.dom.nlp;
 
 import domox.DomainModule;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
-import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.annotation.ActionLayout;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import java.util.List;
 
 @DomainService
@@ -17,7 +19,6 @@ import java.util.List;
 public class Words {
 
     private final RepositoryService repositoryService;
-    private final WordRepository repository;
     private final FactoryService factoryService;
 
     @ActionLayout(sequence = "1")
@@ -31,11 +32,6 @@ public class Words {
 //        obj.setTitle(title);
         repositoryService.persist(obj);
         return obj;
-    }
-
-    @ActionLayout(sequence = "3")
-    public List<Word> findByType(final PosType type) {
-        return repository.findByType(type);
     }
 
 }

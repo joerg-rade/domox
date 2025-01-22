@@ -46,7 +46,7 @@ causeway:
         css: css/application.css
         favicon-url: images/favicon.png
         js: scripts/application.js
-        menubars-layout-xml: menubars.layout.xml
+        #menubars-layout-xml: menubars.layout.xml
         name: DoMoX
         #version: @project.version@
 
@@ -79,7 +79,7 @@ resteasy:
     defaultPath: "/restful"
 
 server:
-  max-http-header-size: 16KB
+  max-http-request-header-size: 16KB
 
 spring:
   banner:

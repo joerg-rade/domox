@@ -33,7 +33,7 @@ import java.util.Set;
 @Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".Corpus")
-@DomainObject(nature = Nature.ENTITY, entityChangePublishing = Publishing.ENABLED)
+@DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(
         cssClassFa = "files-o",
         tableDecorator = TableDecorator.DatatablesNet.class,

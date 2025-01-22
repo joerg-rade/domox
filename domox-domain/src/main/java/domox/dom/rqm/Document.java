@@ -44,8 +44,7 @@ import java.util.Set;
 @Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".Document")
-@DomainObject(
-        bounding = Bounding.BOUNDED)
+@DomainObject(bounding = Bounding.BOUNDED)
 @DomainObjectLayout(
         cssClassFa = "file",
         tableDecorator = TableDecorator.DatatablesNet.class,

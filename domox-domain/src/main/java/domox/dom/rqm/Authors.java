@@ -9,12 +9,12 @@ import org.apache.causeway.applib.annotation.Action;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
-import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.PromptStyle;
 import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Named(DomainModule.NAMESPACE + ".Authors")
 @DomainService
@@ -23,7 +23,6 @@ import java.util.List;
 public class Authors {
 
     private final RepositoryService repositoryService;
-    private final AuthorRepository authorRepository;
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     @ActionLayout(promptStyle = PromptStyle.DIALOG_SIDEBAR)
@@ -34,21 +33,18 @@ public class Authors {
 
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(promptStyle = PromptStyle.DIALOG_SIDEBAR)
-    public List<Author> findByName(
-            final String name
-    ) {
-        return authorRepository.findByLastNameContaining(name);
-    }
-
-    @Programmatic
-    public Author findByNameExact(final String name) {
-        return authorRepository.findByLastName(name);
+    public List<Author> findByName(final String name) {
+        final List<Author> all = this.listAll();
+        final List<Author> result = all.stream()
+                .filter(item -> item.getLastName().equals(name))
+                .collect(Collectors.toList());
+        return result;
     }
 
     @Action(semantics = SemanticsOf.SAFE)
     //@ActionLayout()
     public List<Author> listAll() {
-        return authorRepository.findAll();
+        return repositoryService.allInstances(Author.class);
     }
 
 }

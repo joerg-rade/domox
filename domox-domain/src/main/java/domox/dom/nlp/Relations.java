@@ -19,11 +19,10 @@ import java.util.List;
 public class Relations {
 
     private final RepositoryService repositoryService;
-    private final RelationRepository relationRepository;
 
     @ActionLayout(sequence = "1")
     public List<Relation> listAll() {
-        return relationRepository.findAll();
+        return repositoryService.allInstances(Relation.class);
     }
 
     @ActionLayout(sequence = "2")
@@ -31,11 +30,6 @@ public class Relations {
         final Relation obj = new Relation();
         repositoryService.persist(obj);
         return obj;
-    }
-
-    @ActionLayout(sequence = "3")
-    public List<Relation> findByType(final RelationType type) {
-        return relationRepository.findByType(type);
     }
 
 }
