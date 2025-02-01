@@ -7,8 +7,11 @@ internal class TdDiagramTest {
     @Test
     fun testBuild() {
         //given
+        val scheme = "http"
+        val host = "localhost"
+        val port = 8090
         val text = "A language tape has a title language and level."
-        val coreDocument = StanfordCoreNlpAPI().annotate(text)
+        val coreDocument = StanfordCoreNlpAPI(scheme, host, port).annotate(text)
 /*        val coreSentence = coreDocument.sentences().first()
         //when
         val pumlCode = TdDiagram.build(coreSentence)

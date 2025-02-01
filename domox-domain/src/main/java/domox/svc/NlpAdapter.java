@@ -20,7 +20,10 @@ public class NlpAdapter {
 
     private static void stanfordServer(Document dmxDoc) {
         final String rawText = (String) dmxDoc.getContent();
-        final StanfordCoreNlpAPI nlp = new StanfordCoreNlpAPI();
+        final String scheme = "http";
+        final String host = "localhost";
+        final int port = 8090;
+        final StanfordCoreNlpAPI nlp = new StanfordCoreNlpAPI(scheme, host, port);
        // final Annotation annotation =
                 nlp.annotate(rawText);
      /*   annotation.get(CoreSentence.class);

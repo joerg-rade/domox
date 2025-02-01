@@ -1,8 +1,8 @@
 package domox.diagram
 
 import domox.UmlUtils
+import junit.framework.TestCase.assertTrue
 import org.junit.Test
-import kotlin.test.assertTrue
 
 internal class UmlUtilsTest {
 

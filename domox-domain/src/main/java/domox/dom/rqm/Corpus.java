@@ -19,11 +19,11 @@ import lombok.ToString;
 import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
-import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.sql.Timestamp;
@@ -68,12 +68,12 @@ public class Corpus implements Comparable<Corpus> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Corpus other) {
-        return org.apache.causeway.applib.util.ObjectContracts.compare(this, other, "id");
+        return ObjectContracts.compare(this, other, "id");
     }
 
     @Override
     public String toString() {
-        return org.apache.causeway.applib.util.ObjectContracts.toString(this, "id");
+        return ObjectContracts.toString(this, "id");
     }
     //endregion
 

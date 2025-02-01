@@ -1,8 +1,8 @@
 package domox
 
 import junit.framework.TestCase
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
-import kotlin.test.assertNotEquals
 
 class HttpRequestTest : TestCase() {
 
@@ -18,4 +18,5 @@ class HttpRequestTest : TestCase() {
         assertNotEquals("", responseStr)
         System.out.println(responseStr)
     }
+
 }
