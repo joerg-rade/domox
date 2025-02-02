@@ -48,15 +48,17 @@ class StanfordCoreNlpAPI(
             .replace("&".toRegex(), "%26") // Encode ampersands
     }
 
-    private fun createTransferObject(content: String?): StanfordCoreNlpTO {
-        val transferObject: StanfordCoreNlpTO
-        try {
-            val objectMapper = ObjectMapper()
-            transferObject = objectMapper.readValue(content, StanfordCoreNlpTO::class.java)
-        } catch (e: IOException) {
-            throw RuntimeException(e)
+    companion object Factory {
+        fun createTransferObject(content: String?): StanfordCoreNlpTO {
+            val transferObject: StanfordCoreNlpTO
+            try {
+                val objectMapper = ObjectMapper()
+                transferObject = objectMapper.readValue(content, StanfordCoreNlpTO::class.java)
+            } catch (e: IOException) {
+                throw RuntimeException(e)
+            }
+            return transferObject
         }
-        return transferObject
     }
 
 }
