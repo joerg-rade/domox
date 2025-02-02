@@ -1,7 +1,7 @@
 package domox
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import junit.framework.TestCase.assertNotNull
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.net.URISyntaxException
@@ -10,9 +10,9 @@ class StanfordCoreNlpTOTest {
     @Test
     fun shouldBeValid() {
         val to = readFromFile("TheQuickBrownFoxJumpedOverTheLazyDuck.json")
-        assertNotNull(to)
+        Assertions.assertNotNull(to)
         val to2 = readFromFile("PetShopUseCases.json")
-        assertNotNull(to2)
+        Assertions.assertNotNull(to2)
     }
 
     private fun readFromFile(fileName: String): StanfordCoreNlpTO {
