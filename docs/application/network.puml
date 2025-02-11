@@ -29,7 +29,7 @@ nwdiag {
     user -- app;
     network docker {
         color = "#1D63ED";
-        nlp [address="/8090:9000"];
+        nlp [address="/9000:9000"];
         kroki [address="/8000", description=<img:https://kroki.io/assets/favicon-196x196.png{scale=0.15}>\nKroki];
         db [shape = database, address="/5432"];
         app;

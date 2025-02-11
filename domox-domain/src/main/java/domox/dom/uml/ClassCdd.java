@@ -28,6 +28,8 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -45,13 +47,13 @@ public class ClassCdd
 
     public ClassCdd(
             String name,
-            Set<PropertyCdd> propertyList,
-            Set<ActionCdd> actionList,
-            Set<AssociationCdd> associationList) {
+            List<PropertyCdd> propertyList,
+            List<ActionCdd> actionList,
+            List<AssociationCdd> associationList) {
         this.name = name;
-        this.propertyList = propertyList;
-        this.actionList = actionList;
-        this.associationList = associationList;
+        this.propertyList = new HashSet<>(propertyList);
+        this.actionList = new HashSet<>(actionList);
+        this.associationList = new HashSet<>(associationList);
     }
 
     @Id

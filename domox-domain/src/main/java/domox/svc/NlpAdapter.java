@@ -17,7 +17,7 @@ public class NlpAdapter {
         final String rawText = dmxDoc.getContent();
         final String scheme = "http";
         final String host = "localhost";
-        final int port = 8090;
+        final int port = 9000;
         final StanfordCoreNlpAPI nlp = new StanfordCoreNlpAPI(scheme, host, port);
         return nlp.annotate(rawText);
     }

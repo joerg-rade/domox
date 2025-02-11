@@ -3,11 +3,9 @@ package generate;
 import domox.dom.uml.ActionCdd;
 import domox.dom.uml.AssociationCdd;
 import domox.dom.uml.ClassCdd;
-import domox.dom.uml.DomainModelRepository;
 import domox.dom.uml.DomainModels;
 import domox.dom.uml.ParameterCdd;
 import domox.dom.uml.PropertyCdd;
-import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +13,6 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class JavaCodeTest {
 
@@ -23,14 +20,11 @@ public class JavaCodeTest {
 
     @Mock
     RepositoryService mockRepositoryService;
-    @Mock
-    DomainModelRepository mockDomainModelRepository;
 
     @BeforeEach
     public void setUp() {
         classUnderTest = new DomainModels(
-                mockRepositoryService,
-                mockDomainModelRepository);
+                mockRepositoryService);
     }
 
     @Test
@@ -42,7 +36,7 @@ public class JavaCodeTest {
         final PropertyCdd property2 = new PropertyCdd("property2", "Integer");
         propertyList.add(property2);
 
-        final Set<ParameterCdd> inputTypeList = new OrderedHashSet<>();
+        final List<ParameterCdd> inputTypeList = new ArrayList<>();
         final ParameterCdd p1 = new ParameterCdd("venirIci", "String");
         inputTypeList.add(p1);
         final ParameterCdd p2 = new ParameterCdd("toutSuit", "Boolean");
@@ -57,9 +51,9 @@ public class JavaCodeTest {
 
         final ClassCdd clazz1 = new ClassCdd(
                 "Alice",
-                (Set<PropertyCdd>) propertyList,
-                (Set<ActionCdd>) actionList,
-                (Set<AssociationCdd>) associationList);
+                (List<PropertyCdd>) propertyList,
+                (List<ActionCdd>) actionList,
+                (List<AssociationCdd>) associationList);
 
         // when
         final String javaCode = classUnderTest.generateJavaCode(clazz1);

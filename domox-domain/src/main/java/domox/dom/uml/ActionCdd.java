@@ -26,6 +26,8 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -41,9 +43,9 @@ public class ActionCdd
         extends Candidate
         implements Comparable<ActionCdd> {
 
-    public ActionCdd(String name, Set<ParameterCdd> inputTypeList, String outputType) {
+    public ActionCdd(String name, List<ParameterCdd> inputTypeList, String outputType) {
         this.name = name;
-        this.inputTypeList = inputTypeList;
+        this.inputTypeList = new HashSet<>(inputTypeList);
         this.outputType = outputType;
     }
 
