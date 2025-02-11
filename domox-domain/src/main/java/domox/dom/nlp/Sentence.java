@@ -56,7 +56,7 @@ public class Sentence implements Comparable<Sentence> {
     @Setter
     private String text;
 
-    @Column(nullable = true, length = 2048)
+    @Column(nullable = true, length = 8192)
     @Property()
     @Getter
     @Setter

@@ -11,6 +11,7 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
@@ -23,6 +24,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.Bounding;
@@ -31,7 +33,9 @@ import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.TableDecorator;
+import org.apache.causeway.applib.annotation.Title;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.applib.value.Clob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
@@ -51,12 +55,13 @@ import java.util.Set;
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+@ToString
 public class Document implements Comparable<Document> {
 
     private static MimeType MIME_TYPE = null;
 
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private Long id;
 
@@ -64,6 +69,7 @@ public class Document implements Comparable<Document> {
     @Column(nullable = false)
     private int version;
 
+    @Title(prepend = "Object: ")
     @PropertyLayout(sequence = "1")
     @Column(nullable = false)
     @Getter
@@ -82,7 +88,7 @@ public class Document implements Comparable<Document> {
     @Setter
     private String url;
 
-    @Column(nullable = false)
+    //Column(nullable = false)
     @Embedded
     @Domain.Exclude
     private ClobJpaEmbeddable content;
@@ -103,17 +109,18 @@ public class Document implements Comparable<Document> {
         }
     }
 
-
     @PropertyLayout(sequence = "5")
     @OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)
     @Getter
     @Setter
+    @ToString.Exclude
     private Set<Sentence> sentences;
 
     @PropertyLayout(sequence = "6")
     @ManyToMany(mappedBy = "documents", cascade = CascadeType.PERSIST)
     @Getter
     @Setter
+    @ToString.Exclude
     public Set<Author> authors;
 
     @Column(nullable = false)
@@ -127,12 +134,7 @@ public class Document implements Comparable<Document> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Document other) {
-        return org.apache.causeway.applib.util.ObjectContracts.compare(this, other, "id");
-    }
-
-    @Override
-    public String toString() {
-        return org.apache.causeway.applib.util.ObjectContracts.toString(this, "id");
+        return ObjectContracts.compare(this, other, "id");
     }
     //endregion
 

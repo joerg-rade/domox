@@ -3,19 +3,23 @@ package domox.dom.rqm;
 import domox.DomainModule;
 import domox.FileUtil;
 import domox.HtmlReader;
-import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
 import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
-import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.annotation.Action;
+import org.apache.causeway.applib.annotation.ActionLayout;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.PriorityPrecedence;
+import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -37,7 +41,7 @@ public class Documents {
     @ActionLayout(sequence = "2")
     @Action//(semantics = SemanticsOf.NON_IDEMPOTENT)
     public Document create(String title, String url, Clob content, Set<Author> authors) {
-        final Document obj = factoryService.detachedEntity(Document.class);
+        final Document obj = new Document();
         obj.setTitle(title);
         obj.setUrl(url);
         obj.setContent(content.getChars().toString());
@@ -71,15 +75,16 @@ public class Documents {
         final HtmlReader reader = new HtmlReader();
         final String txtContent = reader.extractContentFromUrl(url);
         final Clob content = new Clob("", "text/xml", txtContent);
-        final Document document = create(title, url, content, null);
-        NlpAdapter.parseTextAndAmend(document);
+        return build(title, url, content, null);
+    }
+
+    private Document build(String title, String url, Clob content, Set<Author> authors) {
+        final Document document = create(title, url, content, authors);
+        new NlpAdapter().parseTextAndAmend(document);
         repositoryService.persistAndFlush(document);
-//        final List<String> rawList = reader.split(document);
-//        for (String r :rawList) {
-//            addSentenceTo(r, document);
-//        }
         return document;
     }
+
     @Action()
     @ActionLayout(sequence = "5", cssClassFa = "play")
     public Document loadFileSample() {
@@ -87,22 +92,10 @@ public class Documents {
         final String filename = "PetShop_useCases.txt";
         final String txtContent = new FileUtil().readFileFromResources(filename);
         final Clob content = new Clob("", "text/xml", txtContent);
-        final Document document = create(title, filename, content, null);
-        NlpAdapter.parseTextAndAmend(document);
-        repositoryService.persistAndFlush(document);
-//        final List<String> rawList = reader.split(document);
-//        for (String r :rawList) {
-//            addSentenceTo(r, document);
-//        }
-        return document;
-    }
-
-    public void addSentenceTo(String raw, Document document) {
-        final Sentence obj = factoryService.detachedEntity(Sentence.class);
-        obj.setText(raw);
-        repositoryService.persistAndFlush(obj);
-        document.getSentences().add(obj);
-        repositoryService.persistAndFlush(document);
+        final Author author = new Author();
+        final Set<Author> authors = new HashSet<>();
+        authors.add(author);
+        return build(title, filename, content, authors);
     }
 
 }

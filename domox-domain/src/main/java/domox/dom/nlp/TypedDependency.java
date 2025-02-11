@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -20,11 +21,11 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
-import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 @Entity
@@ -39,7 +40,7 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 public class TypedDependency implements Comparable<TypedDependency> {
 
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     @Programmatic
     private Long id;
@@ -76,7 +77,7 @@ public class TypedDependency implements Comparable<TypedDependency> {
     //region > compareTo, toString
     @Override
     public int compareTo(final TypedDependency other) {
-        return org.apache.causeway.applib.util.ObjectContracts.compare(this, other, "id");
+        return ObjectContracts.compare(this, other, "id");
     }
     //endregion
 
