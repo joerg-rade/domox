@@ -1,9 +1,13 @@
 version: "3"
 services:
   nlp:
-    image: nlpbox/corenlp
+    build:
+      context: ./docker/stanford-corenlp/
+      dockerfile: docker/stanford-corenlp/Dockerfile.alpine.new
+    image: nlp-custom:latest
+#    image: nlpbox/corenlp
     ports:
-      - "9000:9000"
+      - "8999:9000"
     environment:
       - JVM_OPTS=-Xmx4g
 

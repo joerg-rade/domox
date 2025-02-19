@@ -7,6 +7,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class StanfordCoreNlpAPI(
     val scheme: String,
@@ -24,7 +25,12 @@ class StanfordCoreNlpAPI(
             .post(requestBody)
             .build()
 
-        val response = OkHttpClient()
+        val client = OkHttpClient.Builder()
+            .callTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
+
+        val response = client
             .newCall(request)
             .execute()
 

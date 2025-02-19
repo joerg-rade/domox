@@ -11,6 +11,8 @@ object Constants {
     const val plantUmlUrl = "http://localhost:8000"
     //host:port depend on how docker is started
     // docker run -d --name kroki -p 8080:8000 yuzutech/kroki
-    const val coreNlpUrl = "http://localhost:9000"
+    const val coreNlpPort = 8999
+    const val coreNlpHost = "localhost"
+    const val coreNlpScheme = "http"
 
 }

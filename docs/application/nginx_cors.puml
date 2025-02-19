@@ -1,0 +1,35 @@
+@startuml
+title Deployment Diagram for Addressing CORS with Nginx (Plain PlantUML)
+
+  component "Web Application (Frontend)" as webApp
+  component "Mobile Application" as mobileApp
+
+node "Web Server" {
+  node "Nginx" {
+    component "Reverse Proxy & Web Server" as nginx
+  }
+
+  frame "Backend" {
+      component "Backend Service" as BackendService
+      database "Database" as db
+  }
+}
+
+nginx -- BackendService : Routes Requests\n (HTTP/HTTPS)
+BackendService -- db : Reads/Writes\n Data\n (JDBC)
+
+webApp -- nginx : Accesses API\n (HTTPS)
+mobileApp -- nginx : Accesses API\n (HTTPS)
+
+actor "End-User" as user
+webApp <-u- user
+mobileApp <-u- user
+'"Clients" -- nginx : (HTTPS)
+
+note top of nginx
+  Handles CORS by setting appropriate headers, e.g.
+  * Access-Control-Allow-Origin
+  * other CORS Headers
+end note
+
+@enduml

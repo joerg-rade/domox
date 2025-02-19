@@ -1,31 +1,25 @@
-FROM alpine:3.19 as builder
-MAINTAINER Jörg Rade <joerg.rade60@gmail.com>
-RUN apk update && apk add py3-pip wget
-WORKDIR /opt
-# install grepurl script to retrieve the most current download URL of CoreNLP.
-# install latest CoreNLP release.
-RUN pip install grepurl --break-system-packages && \
-    wget `grepurl -r 'stanford-corenlp-.*\.zip' -a http://stanfordnlp.github.io/CoreNLP` && \
-    unzip stanford-corenlp-*.zip && \
-    mv $(ls -d stanford-corenlp-*/) corenlp && rm *.zip
-# install latest English language model
-#
-# Docker can't store the result of a RUN command in an ENV, so we'll have
-# to use this workaround.
-# This command get's the first model file (at least for English there are two)
-# and extracts its property file.
-WORKDIR /opt/corenlp
-RUN wget $(grepurl -r 'english.*jar$' -a http://stanfordnlp.github.io/CoreNLP | head -n 1)
-# only keep the things we need to run and test CoreNLP
-FROM alpine:3.19
-RUN apk update && apk add openjdk8-jre-base py3-pip && \
-    pip install pytest pexpect requests --break-system-packages
-WORKDIR /opt/corenlp
-COPY --from=builder /opt/corenlp .
-ADD test_api.py .
-ENV JAVA_XMX 4g
-ENV ANNOTATORS tokenize,ssplit,pos,lemma,ner,depparse,coref,natlog,openie,parse
-ENV TIMEOUT_MILLISECONDS 15000
-ENV PORT 9000
-EXPOSE $PORT
-CMD java -Xmx$JAVA_XMX -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -annotators "$ANNOTATORS" -port $PORT -timeout $TIMEOUT_MILLISECONDS
+# Use an appropriate base image
+FROM openjdk:11-jre-slim
+
+# Update the package index and install wget and unzip
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
+WORKDIR /app
+
+RUN apt-get install -y ca-certificates
+# Download Stanford CoreNLP
+RUN wget --no-check-certificate https://nlp.stanford.edu/software/stanford-corenlp-4.5.8.zip
+RUN unzip stanford-corenlp-4.5.8.zip
+RUN rm stanford-corenlp-4.5.8.zip
+
+# Set the environment variable for the classpath
+ENV CLASSPATH=/app/stanford-corenlp-4.5.8/*
+
+# Expose the port for the CoreNLP server
+EXPOSE 9000
+
+# Start the Stanford CoreNLP server
+CMD ["java", "-mx4g", "-cp", "$CLASSPATH", "edu.stanford.nlp.pipeline.StanfordCoreNLPServer", "-port", "9000", "-timeout", "15000"]

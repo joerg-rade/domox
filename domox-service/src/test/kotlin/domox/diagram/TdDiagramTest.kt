@@ -1,5 +1,6 @@
 package domox.diagram
 
+import domox.Constants
 import domox.StanfordCoreNlpAPI
 import org.junit.Test
 
@@ -7,9 +8,9 @@ internal class TdDiagramTest {
     @Test
     fun testBuild() {
         //given
-        val scheme = "http"
-        val host = "localhost"
-        val port = 8090
+        val scheme = Constants.coreNlpScheme
+        val host = Constants.coreNlpHost
+        val port = Constants.coreNlpPort
         val text = "A language tape has a title language and level."
         val coreDocument = StanfordCoreNlpAPI(scheme, host, port).annotate(text)
 /*        val coreSentence = coreDocument.sentences().first()

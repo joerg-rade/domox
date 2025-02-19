@@ -1,5 +1,6 @@
 package domox.svc;
 
+import domox.Constants;
 import domox.HttpRequest;
 import domox.StanfordCoreNlpAPI;
 import domox.StanfordCoreNlpTO;
@@ -15,9 +16,9 @@ public class NlpAdapter {
 
     public StanfordCoreNlpTO parseTextAndAmend(Document dmxDoc) {
         final String rawText = dmxDoc.getContent();
-        final String scheme = "http";
-        final String host = "localhost";
-        final int port = 9000;
+        final String scheme = Constants.coreNlpScheme;
+        final String host = Constants.coreNlpHost;
+        final int port = Constants.coreNlpPort;
         final StanfordCoreNlpAPI nlp = new StanfordCoreNlpAPI(scheme, host, port);
         return nlp.annotate(rawText);
     }

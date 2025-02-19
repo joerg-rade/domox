@@ -1,7 +1,7 @@
 # Sample Call
 '''
 curl -X POST \
-  http://localhost:9000/?properties='{"annotators":"tokenize,ssplit,pos,lemma,ner,sentiment","outputFormat":"json"}' \
+  http://localhost:8999/?properties='{"annotators":"tokenize,ssplit,pos,lemma,ner,sentiment","outputFormat":"json"}' \
   -H "Content-Type: text/plain" \
   -d "I love using Stanford CoreNLP for natural language processing!"
 '''

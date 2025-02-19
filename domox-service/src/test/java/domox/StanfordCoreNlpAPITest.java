@@ -6,13 +6,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(value = SpringExtension.class)
-public class CoreNlpTest {
+public class StanfordCoreNlpAPITest {
 
     @Test
     public void annotateTest() throws Exception {
-        val scheme = "http";
-        val host = "localhost";
-        val port = 8090;
+        val scheme = Constants.coreNlpScheme;
+        val host = Constants.coreNlpHost;
+        val port = Constants.coreNlpPort;
         val nlp = new StanfordCoreNlpAPI(scheme, host, port);
         final StanfordCoreNlpTO to = nlp.annotate("The quick brown fox jumped over the lazy dog");
     }

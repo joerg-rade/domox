@@ -1,8 +1,10 @@
 package domox
 
+import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.fuel.json.responseJson
 import com.github.kittinunf.result.Result
+import java.util.concurrent.TimeUnit
 
 class HttpRequest {
 
@@ -14,7 +16,12 @@ class HttpRequest {
     fun invokeCoreNLP_Fuel(arg: String, parameters: String): String {
         System.out.println("[invokeCoreNLP] " + parameters)
         val query = listOf("properties" to parameters)
-        val (request, response, result) = Constants.coreNlpUrl
+        val coreNlpUrl = Constants.coreNlpScheme + "://" + Constants.coreNlpHost + "/" + Constants.coreNlpPort
+        Thread.sleep(10000)
+        FuelManager.instance.timeoutInMillisecond = TimeUnit.SECONDS.toMillis(20).toInt()    // overall request timeout
+        FuelManager.instance.timeoutReadInMillisecond = TimeUnit.SECONDS.toMillis(60).toInt() // socket read timeout
+
+        val (request, response, result) = coreNlpUrl
             .httpPost(query)
             .header(mapOf("Accept" to "application/json, text/plain, */*"))
             .header(mapOf("DNT" to "1"))

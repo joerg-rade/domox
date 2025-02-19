@@ -3,7 +3,7 @@ package domox.ruleengine;
 import com.deliveredtechnologies.rulebook.FactMap;
 import com.deliveredtechnologies.rulebook.NameValueReferableMap;
 import com.deliveredtechnologies.rulebook.model.RuleBook;
-import jakarta.inject.Inject;
+import lombok.NoArgsConstructor;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -14,10 +14,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @ExtendWith(value = SpringExtension.class)
+@NoArgsConstructor
 public class HelloSpringRuleTest {
 
-    @Inject
-    private RuleBook ruleBook;
+    // @Inject
+    public RuleBook ruleBook;
 
     @Test
     public void test() {
