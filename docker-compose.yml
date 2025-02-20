@@ -3,8 +3,8 @@ services:
   nlp:
     build:
       context: ./docker/stanford-corenlp/
-      dockerfile: docker/stanford-corenlp/Dockerfile.alpine.new
-    image: nlp-custom:latest
+      dockerfile: Dockerfile
+    image: localhost:5000/my-nlp:latest
 #    image: nlpbox/corenlp
     ports:
       - "8999:9000"
