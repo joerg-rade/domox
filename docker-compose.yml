@@ -4,31 +4,32 @@ services:
     build:
       context: ./docker/stanford-corenlp/
       dockerfile: Dockerfile
-    image: localhost:5000/my-nlp:latest
-#    image: nlpbox/corenlp
+    image: my-nlp:latest
     ports:
       - "8999:9000"
     environment:
       - JVM_OPTS=-Xmx4g
 
-#  kroki:
-#    image: yuzutech/kroki
-#    ports:
-#      - "8000:8000"
-
-#  nlp:
-#    image: johnsnowlabs/nlp-server:latest
-#    ports:
-#      - "5000:5000"
+  nlpbox:
+    image: nlpbox/corenlp
+    ports:
+      - "8999:9000"
+    environment:
+      - JVM_OPTS=-Xmx4g
 
   db:
     image: postgres:10.23-alpine
-#    container_name: db
+    container_name: domox-db
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
     ports:
       - "5432:5432"
+
+#  kroki:
+#    image: yuzutech/kroki
+#    ports:
+#      - "8000:8000"
 
 #  marytts:
 #    image: synesthesiam/marytts:5.2
