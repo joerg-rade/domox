@@ -1,17 +1,9 @@
-version: "3"
 services:
-  nlp:
+  stanford-corenlp-server:
     build:
-      context: ./docker/stanford-corenlp/
+      context: docker/stanford-corenlp-server/
       dockerfile: Dockerfile
-    image: my-nlp:latest
-    ports:
-      - "8999:9000"
-    environment:
-      - JVM_OPTS=-Xmx4g
-
-  nlpbox:
-    image: nlpbox/corenlp
+    image: stanford-corenlp-server:latest
     ports:
       - "8999:9000"
     environment:
@@ -35,3 +27,11 @@ services:
 #    image: synesthesiam/marytts:5.2
 #    ports:
 #      - "59125:59125"
+
+#  nlpbox:
+#    image: nlpbox/corenlp
+#    ports:
+#      - "8999:9000"
+#    environment:
+#      - JVM_OPTS=-Xmx4g
+
