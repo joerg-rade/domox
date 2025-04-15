@@ -18,12 +18,15 @@ public class TypedDependencyExample {
 
     private StanfordCoreNLP pipeline;
 
+    //TODO refactor to use service from module (kotlin)
+    //this here is using the java API from the jar !!!
     @BeforeEach
     public void setup() {
         // set up pipeline properties
         Properties props = new Properties();
         // set the list of annotators to run
-        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref,kbp,quote");
+//        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref,kbp,quote");
+        props.setProperty("annotators", "depparse");
         // set a property for an annotator, in this case the coref annotator is being set to use the neural algorithm
         props.setProperty("coref.algorithm", "neural");
         // build pipeline

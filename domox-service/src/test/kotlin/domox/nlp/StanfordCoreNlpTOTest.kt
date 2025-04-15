@@ -1,5 +1,8 @@
-package domox
+package domox.nlp
 
+import domox.FileUtil
+import domox.StanfordCoreNlpAPI
+import domox.StanfordCoreNlpTO
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 

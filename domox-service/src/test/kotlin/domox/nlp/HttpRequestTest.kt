@@ -1,5 +1,6 @@
-package domox
+package domox.nlp
 
+import domox.HttpRequest
 import junit.framework.TestCase
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
@@ -8,12 +9,9 @@ class HttpRequestTest : TestCase() {
 
     @Test // IntegrationTest !
     fun testInvokeCoreNLP() {
-        // given
-        val arg = "The quick brown fox jumped over the lazy dog?"
-        val parameters =
-            "{\"annotators\":\"tokenize,ssplit,pos,lemma,ner,parse\",\"outputFormat\":\"json\"}"
+        val parameters = "{\"annotators\":\"depparse\",\"outputFormat\":\"json\"}"
         // when
-        val responseStr = HttpRequest().invokeCoreNLP_Fuel(arg, parameters)
+        val responseStr = HttpRequest().invokeCoreNLP_Fuel(SampleText.QBF, parameters)
         //then
         assertNotEquals("", responseStr)
         System.out.println(responseStr)

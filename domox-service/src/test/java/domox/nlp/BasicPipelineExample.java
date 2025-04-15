@@ -1,4 +1,4 @@
-package domox.dom.nlp;
+package domox.nlp;
 
 import edu.stanford.nlp.coref.data.CorefChain;
 import edu.stanford.nlp.ie.util.RelationTriple;
@@ -26,11 +26,14 @@ public class BasicPipelineExample {
         // set up pipeline properties
         Properties props = new Properties();
         // set the list of annotators to run
-        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref,kbp,quote");
+//        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,coref,kbp,quote");
+        props.setProperty("annotators", "tokenize, ssplit, depparse");
+//        props.setProperty("depparse.model", "english_UD.gz");
         // set a property for an annotator, in this case the coref annotator is being set to use the neural algorithm
-        props.setProperty("coref.algorithm", "neural");
+        //props.setProperty("coref.algorithm", "neural");
         // build pipeline
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+        //TODO refactor to use service (kotlin)
         // create a document object
         CoreDocument document = new CoreDocument(text);
         // annnotate the document

@@ -1,5 +1,8 @@
-package domox;
+package domox.nlp;
 
+import domox.Constants;
+import domox.StanfordCoreNlpAPI;
+import domox.StanfordCoreNlpTO;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +17,7 @@ public class StanfordCoreNlpAPITest {
         val host = Constants.coreNlpHost;
         val port = Constants.coreNlpPort;
         val nlp = new StanfordCoreNlpAPI(scheme, host, port);
-        final StanfordCoreNlpTO to = nlp.annotate("The quick brown fox jumped over the lazy dog");
+        final StanfordCoreNlpTO to = nlp.annotate(SampleText.QBF);
     }
 
 }

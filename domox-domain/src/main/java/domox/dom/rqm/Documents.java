@@ -3,6 +3,10 @@ package domox.dom.rqm;
 import domox.DomainModule;
 import domox.FileUtil;
 import domox.HtmlReader;
+import domox.SentenceTO;
+import domox.StanfordCoreNlpTO;
+import domox.TokenTO;
+import domox.dom.nlp.Sentence;
 import domox.svc.NlpAdapter;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -80,9 +84,32 @@ public class Documents {
 
     private Document build(String title, String url, Clob content, Set<Author> authors) {
         final Document document = create(title, url, content, authors);
-        new NlpAdapter().parseTextAndAmend(document);
+        final StanfordCoreNlpTO nlpTO = new NlpAdapter().parseTextAndAmend(document);
         repositoryService.persistAndFlush(document);
+        Set<Sentence> sentences = recreateSentences(nlpTO);
+        document.setSentences(sentences);
         return document;
+    }
+
+    private Set<Sentence> recreateSentences(StanfordCoreNlpTO nlpTO) {
+        final List<SentenceTO> sentences = nlpTO.getSentences();
+        final Set<Sentence> sentenceList = new HashSet<>();
+        for (SentenceTO st : sentences) {
+            final Sentence s = recreateSentence(st);
+            sentenceList.add(s);
+        }
+        return sentenceList;
+    }
+
+    private Sentence recreateSentence(SentenceTO sentenceTO) {
+        final StringBuffer sb = new StringBuffer();
+        final List<TokenTO> tokens = sentenceTO.getTokens();
+        for (TokenTO tt : tokens) {
+            sb.append(tt.getWord()).append(" ");
+        }
+        final Sentence s = new Sentence();
+        s.setText(sb.toString());
+        return s;
     }
 
     @Action()

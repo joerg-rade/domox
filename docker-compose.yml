@@ -1,9 +1,9 @@
 services:
-  stanford-corenlp-server:
+  nlp:
     build:
-      context: docker/stanford-corenlp-server/
+      context: docker/corenlp/
       dockerfile: Dockerfile
-    image: stanford-corenlp-server:latest
+    image: corenlp:latest
     ports:
       - "8999:9000"
     environment:

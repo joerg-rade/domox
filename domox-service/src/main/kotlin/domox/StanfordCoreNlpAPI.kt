@@ -16,7 +16,8 @@ class StanfordCoreNlpAPI(
 ) {
 
     fun annotate(text: String): StanfordCoreNlpTO {
-        val annotators = encodeQuery("{'annotators':'tokenize,ssplit,pos,lemma,ner,parse,depparse,coref'}")
+        //val annotators = encodeQuery("{'annotators':'tokenize,ssplit,pos,lemma,ner,parse,depparse,coref'}")
+        val annotators = encodeQuery("{'annotators':'depparse,coref'}")
         val url = "${scheme}://${host}:${port}/?properties=${annotators}"
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val requestBody: RequestBody = RequestBody.create(mediaType, text)
@@ -37,8 +38,9 @@ class StanfordCoreNlpAPI(
         if (!response.isSuccessful) {
             println("Request failed with status code: ${response.code}")
         }
-        val responseBody = response.body?.string() //as Map<*, *>
-        val results = JSONObject(responseBody)
+        val responseBody = response.body
+        val responseBodyString = responseBody?.string() //as Map<*, *>
+        val results = JSONObject(responseBodyString)
         return createTransferObject(results.toString())
     }
 
