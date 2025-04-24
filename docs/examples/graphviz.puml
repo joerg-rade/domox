@@ -1,0 +1,84 @@
+@startdot
+digraph s1 {
+  graph [nodesep=.01]
+  node [shape=plaintext]
+  {
+  rank=same
+  s1 [ordering=out label=""]
+  edge [style=invis]
+
+  s1->w10
+  s1->w9
+  s1->w8
+  s1->w7
+  s1->w6
+  s1->w5
+  s1->w4
+  s1->w3
+  s1->w2
+  s1->w1
+  edge [style=""]
+  w1 [label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="lavender">PRP</TD></TR>
+      <TR><TD BORDER="0">We</TD></TR>
+   </TABLE>>]
+  w2 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="green1">PRP</TD></TR>
+      <TR ><TD BORDER="0">are</TD></TR>
+   </TABLE>>]
+  w3 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="green1">PRP</TD></TR>
+      <TR ><TD BORDER="0">facing</TD></TR>
+   </TABLE>>]
+  w4 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="lavender">PRP</TD></TR>
+      <TR><TD BORDER="0">a</TD></TR>
+   </TABLE>>]
+
+  w5 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="lavender">PRP</TD></TR>
+      <TR><TD BORDER="0">failure</TD></TR>
+   </TABLE>>]
+  w6 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="lavender">PRP</TD></TR>
+      <TR><TD BORDER="0">when</TD></TR>
+   </TABLE>>]
+  w7 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="lavender">PRP</TD></TR>
+      <TR><TD BORDER="0">running</TD></TR>
+   </TABLE>>]
+  w8 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="lavender">VBG</TD></TR>
+      <TR><TD BORDER="0">xyz</TD></TR>
+   </TABLE>>]
+  w9 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="lavender">NN</TD></TR>
+      <TR><TD BORDER="0">job</TD></TR>
+   </TABLE>>]
+  w10 [shape=plaintext  label=<
+   <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+      <TR><TD BGCOLOR="lavender">.</TD></TR>
+      <TR><TD BORDER="0">.</TD></TR>
+   </TABLE>>]
+
+   edge[constraint=false]
+   w3->w2 [label="\naux"]
+   w3->w1 [label="\nblah 1"]
+   w3:ne->w5 [label="\nblah 2"]
+   w3:ne->w7 [label="\nblah 3"]
+   w3:n->w10 [label="\nblah 4"]
+   }
+}
+
+@enddot
+
+https://stackoverflow.com/questions/52743748/pretty-display-of-a-sentence-and-its-grammatical-dependencies

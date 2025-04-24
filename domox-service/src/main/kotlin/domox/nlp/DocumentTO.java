@@ -1,4 +1,4 @@
-package domox;
+package domox.nlp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class StanfordCoreNlpTO {
+public class DocumentTO {
     List<SentenceTO> sentences = null;
     @JsonIgnore
     Map<String, List<CorefMentionTO>> corefs;

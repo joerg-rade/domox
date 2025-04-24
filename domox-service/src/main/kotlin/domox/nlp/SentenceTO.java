@@ -1,4 +1,4 @@
-package domox;
+package domox.nlp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -18,5 +18,5 @@ public class SentenceTO {
     String sentimentTree = "";
     @JsonIgnore
     List<EntityMentionTO> entitymentions = null;
-    List<TokenTO> tokens = null;
+    public List<TokenTO> tokens = null;
 }

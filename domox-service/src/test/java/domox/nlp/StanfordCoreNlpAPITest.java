@@ -1,7 +1,6 @@
 package domox.nlp;
 
 import domox.Constants;
-import domox.StanfordCoreNlpAPI;
 import domox.StanfordCoreNlpTO;
 import lombok.val;
 import org.junit.jupiter.api.Test;

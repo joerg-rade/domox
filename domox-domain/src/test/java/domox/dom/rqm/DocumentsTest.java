@@ -1,6 +1,6 @@
 package domox.dom.rqm;
 
-import org.apache.causeway.applib.services.factory.FactoryService;
+import domox.dom.nlp.Sentences;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
 import org.junit.Ignore;
@@ -21,13 +21,13 @@ class DocumentsTest {
     @Mock
     RepositoryService mockRepositoryService;
     @Mock
-    FactoryService mockFactoryService;
+    Sentences sentences;
 
     // ClassUnderTest
     Documents documents;
     @BeforeEach
     public void setUp() {
-        documents = new Documents(mockRepositoryService, mockFactoryService);
+        documents = new Documents(mockRepositoryService, sentences);
     }
 
  //   @Test

@@ -3,11 +3,11 @@ package domox.dom.rqm;
 import domox.DomainModule;
 import domox.FileUtil;
 import domox.HtmlReader;
-import domox.SentenceTO;
-import domox.StanfordCoreNlpTO;
-import domox.TokenTO;
 import domox.dom.nlp.Sentence;
-import domox.svc.NlpAdapter;
+import domox.dom.nlp.Sentences;
+import domox.nlp.DocumentTO;
+import domox.nlp.SentenceTO;
+import domox.svc.DocumentAdapter;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -17,7 +17,6 @@ import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.SemanticsOf;
-import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
 
@@ -34,7 +33,7 @@ import java.util.Set;
 public class Documents {
 
     private final RepositoryService repositoryService;
-    private final FactoryService factoryService;
+    private final Sentences sentences;
 
     @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
@@ -84,32 +83,23 @@ public class Documents {
 
     private Document build(String title, String url, Clob content, Set<Author> authors) {
         final Document document = create(title, url, content, authors);
-        final StanfordCoreNlpTO nlpTO = new NlpAdapter().parseTextAndAmend(document);
+        final String rawText = document.getContent();
+        final DocumentTO documentTO = new DocumentAdapter().parseTextAndAmend(rawText);
         repositoryService.persistAndFlush(document);
-        Set<Sentence> sentences = recreateSentences(nlpTO);
+        Set<Sentence> sentences = createSentences(document, documentTO);
         document.setSentences(sentences);
+        //TODO extract typedDependencies from SentenceTO and set into
         return document;
     }
 
-    private Set<Sentence> recreateSentences(StanfordCoreNlpTO nlpTO) {
-        final List<SentenceTO> sentences = nlpTO.getSentences();
+    public Set<Sentence> createSentences(Document document, DocumentTO to) {
+        final List<SentenceTO> toList = to.getSentences();
         final Set<Sentence> sentenceList = new HashSet<>();
-        for (SentenceTO st : sentences) {
-            final Sentence s = recreateSentence(st);
-            sentenceList.add(s);
+        for (SentenceTO st : toList) {
+            final Sentence sentence = sentences.build(st, document);
+            sentenceList.add(sentence);
         }
         return sentenceList;
-    }
-
-    private Sentence recreateSentence(SentenceTO sentenceTO) {
-        final StringBuffer sb = new StringBuffer();
-        final List<TokenTO> tokens = sentenceTO.getTokens();
-        for (TokenTO tt : tokens) {
-            sb.append(tt.getWord()).append(" ");
-        }
-        final Sentence s = new Sentence();
-        s.setText(sb.toString());
-        return s;
     }
 
     @Action()

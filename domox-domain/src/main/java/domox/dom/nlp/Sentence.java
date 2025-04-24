@@ -3,6 +3,7 @@ package domox.dom.nlp;
 import domox.DomainModule;
 import domox.dom.rqm.Document;
 import jakarta.inject.Named;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -11,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -27,6 +29,8 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
+
+import java.util.Set;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA, name = "Sentence")
@@ -56,11 +60,11 @@ public class Sentence implements Comparable<Sentence> {
     @Setter
     private String text;
 
-    @Column(nullable = true, length = 8192)
+    @OneToMany(mappedBy = "sentence", cascade = CascadeType.PERSIST)
     @Property()
     @Getter
     @Setter
-    private String typedDependencies;
+    private Set<TypedDependency> typedDependencies;
 
     @Column(nullable = true)
     @Property()

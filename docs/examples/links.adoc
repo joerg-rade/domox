@@ -1,0 +1,15 @@
+https://zi-lin.com/constituent-to-dependency/
+
+https://ai.plainenglish.io/nlp-dependency-parsing-unraveling-linguistic-structures-for-enhanced-machine-understanding-6c56acb6e18f
+
+https://paper-reading-group.saidl.in/Syntax%20and%20Structure%20in%20NLP/Syntax%20and%20Structure%20in%20NLP.html
+
+https://nlp.stanford.edu/software/nndep.html
+
+https://paperswithcode.com/dataset/universal-dependencies
+
+https://www.rangakrish.com/index.php/2018/09/16/dependency-graph-to-rdf/
+
+https://www.upgrad.com/blog/dependency-parsing-in-nlp/
+
+https://stackoverflow.com/questions/52743748/pretty-display-of-a-sentence-and-its-grammatical-dependencies

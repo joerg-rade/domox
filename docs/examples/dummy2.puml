@@ -1,0 +1,53 @@
+@startuml
+digraph g {
+//layout=dot
+//splines=true
+    graph [nodesep=0.2 ranksep=0.1]
+    node [shape=none fontname=arial fontsize=12 style=filled fillcolor=white width=0.1 height=0]
+    edge [style=invis]
+    subgraph cluster1 {
+        p1 [label="JJ" shape=box fontsize=10 fillcolor="#fffda8"]
+        w1 [label="Technical"]
+        p1 -> w1
+    }
+    subgraph cluster2 {
+        p2 [label="NN" shape=box fontsize=10 fillcolor="#a4bced"]
+        w2 [label="paper"]
+        p2 -> w2
+    }
+    subgraph cluster3 {
+        p3 [label="VBG" shape=box fontsize=10 fillcolor="#adf6a2"]
+        w3 [label="containing"]
+        p3 -> w3
+    }
+    subgraph cluster4 {
+        p4 [label="JJ" shape=box fontsize=10 fillcolor="#fffda8"]
+        w4 [label="detailed"]
+        p4 -> w4
+    }
+    subgraph cluster5 {
+        p5 [label="NN" shape=box fontsize=10 fillcolor="#a4bced"]
+        w5 [label="product"]
+        p5 -> w5
+    }
+    subgraph cluster6 {
+        p6 [label="NNS" shape=box fontsize=10 fillcolor="#a4bced"]
+        w6 [label="specifications"]
+        p6 -> w6
+    }
+    subgraph cluster7 {
+        p7 [label="." shape=box fontsize=10 fillcolor="#e3e3e3"]
+        w7 [label="."]
+        p7 -> w7
+    }
+    w1 -> w2 -> w3 -> w4 -> w5 -> w6 -> w7
+    p1 -> p2 -> p3 -> p4 -> p5 -> p6 -> p7
+    edge [style=bold fontsize=10 fontname=arial]
+    p2 -> p1 [label="amod"]
+    p2 -> p3 [label="acl"]
+    p2 -> p7 [label="punct"]
+    p3 -> p6 [label="obj"]
+    p6 -> p4 [label="amod"]
+    p6 -> p5 [label="compound"]
+}
+@enduml

@@ -1,4 +1,4 @@
-package domox;
+package domox.nlp;
 
 import lombok.Data;
 

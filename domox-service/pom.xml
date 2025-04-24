@@ -25,7 +25,7 @@
         </dependency>
 
         <!-- to be removed, once SparkNLP works -->
-        <dependency>
+        <!--dependency>
             <groupId>edu.stanford.nlp</groupId>
             <artifactId>stanford-corenlp</artifactId>
             <exclusions>
@@ -34,7 +34,7 @@
                     <groupId>xml-apis</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency-->
 
         <dependency>
             <groupId>org.projectlombok</groupId>

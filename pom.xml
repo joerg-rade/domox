@@ -6,7 +6,7 @@
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
         <causeway.version>3.3.0-SNAPSHOT</causeway.version>
-        <stanford-corenlp.version>4.5.8</stanford-corenlp.version>
+        <!--stanford-corenlp.version>4.5.8</stanford-corenlp.version-->
         <lombok.version>1.18.32</lombok.version>
         <jmock.version>2.12.0</jmock.version>
         <file.encoding>UTF-8</file.encoding>
@@ -200,7 +200,7 @@
             </dependency>
 
             <!-- used components -->
-            <dependency>
+            <!--dependency>
                 <groupId>edu.stanford.nlp</groupId>
                 <artifactId>stanford-corenlp</artifactId>
                 <version>${stanford-corenlp.version}</version>
@@ -210,7 +210,7 @@
                 <artifactId>stanford-corenlp</artifactId>
                 <version>${stanford-corenlp.version}</version>
                 <classifier>models</classifier>
-            </dependency>
+            </dependency-->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>

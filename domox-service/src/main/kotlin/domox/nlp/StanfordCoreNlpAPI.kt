@@ -1,4 +1,4 @@
-package domox
+package domox.nlp
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.MediaType.Companion.toMediaType
@@ -15,7 +15,7 @@ class StanfordCoreNlpAPI(
     val port: Int
 ) {
 
-    fun annotate(text: String): StanfordCoreNlpTO {
+    fun annotate(text: String): DocumentTO {
         //val annotators = encodeQuery("{'annotators':'tokenize,ssplit,pos,lemma,ner,parse,depparse,coref'}")
         val annotators = encodeQuery("{'annotators':'depparse,coref'}")
         val url = "${scheme}://${host}:${port}/?properties=${annotators}"
@@ -57,11 +57,11 @@ class StanfordCoreNlpAPI(
     }
 
     companion object Factory {
-        fun createTransferObject(content: String?): StanfordCoreNlpTO {
-            val transferObject: StanfordCoreNlpTO
+        fun createTransferObject(content: String?): DocumentTO {
+            val transferObject: DocumentTO
             try {
                 val objectMapper = ObjectMapper()
-                transferObject = objectMapper.readValue(content, StanfordCoreNlpTO::class.java)
+                transferObject = objectMapper.readValue(content, DocumentTO::class.java)
             } catch (e: IOException) {
                 throw RuntimeException(e)
             }

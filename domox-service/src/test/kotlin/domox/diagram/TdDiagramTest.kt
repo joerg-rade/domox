@@ -1,7 +1,7 @@
 package domox.diagram
 
 import domox.Constants
-import domox.StanfordCoreNlpAPI
+import domox.nlp.StanfordCoreNlpAPI
 import org.junit.Test
 
 internal class TdDiagramTest {

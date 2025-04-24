@@ -1,12 +1,10 @@
 package domox.nlp
 
 import domox.FileUtil
-import domox.StanfordCoreNlpAPI
-import domox.StanfordCoreNlpTO
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class StanfordCoreNlpTOTest {
+class DocumentTOTest {
     @Test
     fun shouldBeValid() {
         val to = readFromFile("TheQuickBrownFoxJumpedOverTheLazyDuck.json")
@@ -15,7 +13,7 @@ class StanfordCoreNlpTOTest {
         Assertions.assertNotNull(to2)
     }
 
-    private fun readFromFile(fileName: String): StanfordCoreNlpTO {
+    private fun readFromFile(fileName: String): DocumentTO {
         val content = FileUtil().readFileFromResources(fileName)
         val to = StanfordCoreNlpAPI.createTransferObject(content)
         return to

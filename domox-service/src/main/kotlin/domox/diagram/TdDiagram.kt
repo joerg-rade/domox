@@ -16,14 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package domox
+package domox.diagram
 
-import edu.stanford.nlp.pipeline.CoreSentence
-import edu.stanford.nlp.trees.TypedDependency
+import domox.nlp.BasicDependencyTO
+import domox.nlp.SentenceTO
+import domox.nlp.TokenTO
 
 /**
  * Generates graphviz code for a TypedDependency diagram.
- * see: /docs/SentenceAnalysis.adoc for sample diagram
+ * see: /docs/SentenceAnalysis.puml for sample diagram
  */
 object TdDiagram {
     private const val header = "digraph g {\n" +
@@ -33,41 +34,43 @@ object TdDiagram {
             "    splines=true; esep=1;\n"
     private const val footer = "}"
 
-    fun build(sentence: CoreSentence, compact: Boolean = false): String {
+    fun build(sentence: SentenceTO, compact: Boolean = false): String {
         var answer = header
-        val wordList = sentence.tokensAsStrings()
-        val posTagList = sentence.posTags()
-        answer += buildNodes(wordList, posTagList)
+        val wordList = sentence.tokens
+//FIXME        val posTagList = sentence.posTags()
+//        answer += buildNodes(wordList, posTagList)
 
         val wordCount = wordList.size
         answer += buildGlue(wordCount, compact)
         answer += "edge [style=normal fontsize=10 fontname=arial color=GREY]\n"
 
-        val dependencyList = sentence.dependencyParse().typedDependencies()
-        answer += buildEdges(dependencyList)
+//FIXME        val dependencyList = sentence.dependencyParse().typedDependencies()
+//        answer += buildEdges(dependencyList)
         return answer + footer
     }
 
-    private fun buildNodes(wordList: List<String>, posTagList: List<String>): String {
+    private fun buildNodes(wordList: List<TokenTO>, posTagList: List<String>): String {
         var answer = ""
-        wordList.forEachIndexed() { index, word ->
+        wordList.forEachIndexed() { index, token ->
             val posTag = posTagList.get(index)
-            answer += buildWord(index + 1, posTag, word)
+            answer += buildWord(index + 1, posTag, token.word)
         }
         return answer
     }
 
-    private fun buildEdges(dependencyList: Collection<TypedDependency>): String {
+    private fun buildEdges(dependencyList: List<BasicDependencyTO>): String {
         var answer = ""
         dependencyList.forEach() { td ->
-            val rel = td.reln().shortName
+            td
+//FIXME
+            /*val rel = td.dep.//shortName
             val gov = td.gov().index()
-            val dep = td.dep().index()
+            val dep = td.dep.index()
             when (rel) {
                 "root" -> {
                 }
                 else -> answer += "p$gov -> p$dep [label=\"$rel\"]\n"
-            }
+            }*/
         }
         return answer
     }

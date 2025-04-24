@@ -1,0 +1,39 @@
+@startuml
+title Kilua RPC Client-Server Communication - Collaboration Diagram
+
+actor User
+
+component UI as "UI Layer" #lightgreen
+component ClientProxy as "Kilua RPC Client Proxy" #lightgreen
+rectangle ClientTransport as "Transport Layer\n(HTTP/WebSocket/SSE)"
+rectangle Network as "Network Transport"
+component ServerRouting as "Ktor Routing / Spring Boot Integration" #lightblue
+component ServerDispatcher as "Kilua RPC Server Dispatcher" #lightblue
+component ServiceImpl as "Service Implementation\n(IEncodingService)" #lightblue
+
+'// Define links (for layout clarity)
+User --> UI
+UI --> ClientProxy
+ClientProxy --> ClientTransport
+ClientTransport --> Network
+Network --> ServerRouting
+ServerRouting --> ServerDispatcher
+ServerDispatcher --> ServiceImpl
+
+'// Numbered messages (arrows) to indicate communication flow
+User -> UI : 1. User interaction (e.g., button click)
+UI -> ClientProxy : 2. Call suspending RPC method
+ClientProxy -> ClientTransport : 3. Serialize & send request
+ClientTransport -> Network : 4. Transmit request
+Network -> ServerRouting : 5. Receive request
+ServerRouting -> ServerDispatcher : 6. Dispatch RPC call
+ServerDispatcher -> ServiceImpl : 7. Invoke method implementation
+ServiceImpl --> ServerDispatcher : 8. Return result
+ServerDispatcher --> ServerRouting : 9. Serialize response
+ServerRouting --> Network : 10. Send response
+Network --> ClientTransport : 11. Response received
+ClientTransport --> ClientProxy : 12. Deserialize response
+ClientProxy --> UI : 13. Return result to UI
+UI --> User : 14. Display result
+
+@enduml

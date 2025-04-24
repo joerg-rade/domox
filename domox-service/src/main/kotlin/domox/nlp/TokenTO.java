@@ -1,4 +1,4 @@
-package domox;
+package domox.nlp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class TokenTO {
     Long index = 0L;
-    String word = "";
+    public String word = "";
     String originalText = "";
     String lemma = "";
     Long characterOffsetBegin = 0L;
