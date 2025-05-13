@@ -41,7 +41,7 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
 
 import java.sql.Timestamp;
-import java.util.Set;
+import java.util.List;
 
 @Slf4j
 @Entity
@@ -114,14 +114,14 @@ public class Document implements Comparable<Document> {
     @Getter
     @Setter
     @ToString.Exclude
-    private Set<Sentence> sentences;
+    private List<Sentence> sentences;
 
     @PropertyLayout(sequence = "6")
     @ManyToMany(mappedBy = "documents", cascade = CascadeType.PERSIST)
     @Getter
     @Setter
     @ToString.Exclude
-    public Set<Author> authors;
+    public List<Author> authors;
 
     @Column(nullable = false)
     @Getter

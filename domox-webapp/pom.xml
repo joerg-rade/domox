@@ -103,6 +103,10 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.causeway.domox</groupId>
+            <artifactId>domox-domain</artifactId>
+        </dependency>
         <!-- causeway -->
         <dependency>
             <groupId>org.apache.causeway.mavendeps</groupId>
@@ -139,12 +143,6 @@
             <artifactId>causeway-testing-h2console-ui</artifactId>
             <version>${causeway.version}</version>
         </dependency>
-
-        <!--dependency>
-            <groupId>org.apache.causeway.extensions</groupId>
-            <artifactId>causeway-extensions-flyway-impl</artifactId>
-            <version>${causeway.version}</version>
-        </dependency-->
 
         <dependency>
             <groupId>org.apache.causeway.valuetypes</groupId>
@@ -323,14 +321,9 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.causeway.domox</groupId>
-            <artifactId>domox-domain</artifactId>
-        </dependency>
     </dependencies>
 
     <profiles>
-
         <profile>
             <id>mavendeps-lockdown</id>
             <activation>

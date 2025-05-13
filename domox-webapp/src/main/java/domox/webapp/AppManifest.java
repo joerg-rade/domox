@@ -1,6 +1,6 @@
 package domox.webapp;
 
-import domox.webapp.application.ApplicationModule;
+import domox.DomainModule;
 import org.apache.causeway.applib.CausewayModuleApplibChangeAndExecutionLoggers;
 import org.apache.causeway.applib.CausewayModuleApplibMixins;
 import org.apache.causeway.core.config.CausewayModuleCoreConfig;
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.PropertySources;
         CausewayModuleViewerWicketViewer.class,
         CausewayModuleTestingFixturesApplib.class,
 
-        ApplicationModule.class,
+        DomainModule.class,
 })
 @PropertySources({
         @PropertySource(CausewayPresets.DebugDiscovery),

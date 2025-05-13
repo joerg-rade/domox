@@ -1,6 +1,3 @@
-.SimpleAppBootstrap
-[plantuml,file="SimpleAppBootstrap.png"]
---
 @startuml
 
 package "webapp/src/main/java" {
@@ -11,9 +8,10 @@ package "webapp/src/main/java" {
         }
         class AppManifest {
             @Configuration
-            @Import(ApplicationModule.class)
+            <color:red>@Import(ApplicationModule.class)
+            <color:green>@Import(SimpleModule.class)
         }
-        SimpleApp --> AppManifest
+        SimpleApp -> AppManifest
         package "application" {
             class ApplicationModule {
                  @Configuration
@@ -21,7 +19,7 @@ package "webapp/src/main/java" {
                  @ComponentScan
             }
         }
-        AppManifest -> ApplicationModule
+        AppManifest -> ApplicationModule #red
     }
 }
 
@@ -43,10 +41,10 @@ package "module-simple/src/main/java" {
                 ...
             }
         }
-        SimpleModule ..> SimpleObject
+        SimpleModule .> SimpleObject
     }
 }
-ApplicationModule -> SimpleModule
+ApplicationModule -> SimpleModule #red
+AppManifest --> SimpleModule #green
 
 @enduml
---

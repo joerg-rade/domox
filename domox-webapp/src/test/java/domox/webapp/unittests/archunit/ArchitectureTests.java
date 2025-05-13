@@ -5,7 +5,6 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import domox.webapp.Application;
-import domox.webapp.application.ApplicationModule;
 import jakarta.persistence.Entity;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -13,7 +12,7 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 @AnalyzeClasses(
-        packagesOf = {ApplicationModule.class, Application.class},
+        packagesOf = {Application.class},
         importOptions = {
                 ImportOption.DoNotIncludeTests.class
         })

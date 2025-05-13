@@ -28,6 +28,8 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
+import java.util.Arrays;
+
 @Entity
 @Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
@@ -61,14 +63,14 @@ public class TypedDependency implements Comparable<TypedDependency> {
     @Property()
     @Getter
     @Setter
-    private Word partA;
+    private Token partA;
 
     @OneToOne()
     @JoinColumn(name = "partBId")
     @Property()
     @Getter
     @Setter
-    private Word partB;
+    private Token partB;
 
     @ManyToOne()
     @JoinColumn(name = "relation_id")
@@ -93,20 +95,33 @@ public class TypedDependency implements Comparable<TypedDependency> {
         return getType().equals(TdType.COMPOUND);
     }
 
+    private static final PartOfSpeechType[] VERB_TYPES = {
+            PartOfSpeechType.VB,
+            PartOfSpeechType.VBG,
+            PartOfSpeechType.VBN,
+            PartOfSpeechType.VBP,
+            PartOfSpeechType.VBZ};
+
     public boolean isVerbA() {
-        final Word a = getPartA();
-        return a.getType().equals(PosType.VERB);
+        final PartOfSpeechType aType = getPartA().getType();
+        return Arrays.asList(VERB_TYPES).contains(aType);
     }
 
+    private static final PartOfSpeechType[] NOUN_TYPES = {
+            PartOfSpeechType.NN,
+            PartOfSpeechType.NNP,
+            PartOfSpeechType.NNS,
+            PartOfSpeechType.NFP};
+
     public boolean isNounB() {
-        final Word b = getPartB();
-        return b.getType().equals(PosType.NOUN_PHRASE);
+        final PartOfSpeechType bType = getPartB().getType();
+        return Arrays.asList(NOUN_TYPES).contains(bType);
     }
 
     private static final String[] BASIC_ATTRIB = {"name", "number", "type", "address", "level", "date", "time"};
 
     public boolean isBasicAttributeB() {
-        final Word b = getPartB();
+        final Token b = getPartB();
         final String name = b.toString();
         for (String s : BASIC_ATTRIB) {
             if (s.equals(name)) {

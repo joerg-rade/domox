@@ -10,23 +10,21 @@ import org.junit.jupiter.api.Test;
 class DocumentAdapterTest {
 
     @Test
-    void typedDependenciesAsList() {
+    void annotateTest() {
         //given
         val scheme = Constants.coreNlpScheme;
         val host = Constants.coreNlpHost;
         val port = Constants.coreNlpPort;
         val nlpAPI = new StanfordCoreNlpAPI(scheme, host, port);
         val qbf = "The quick brown fox jumped over the lazy dog.";
-        final DocumentTO to = nlpAPI.annotate(qbf);
-        Assert.assertNotNull(to);
-        Assert.assertNotNull(to.getSentences());
-        Assert.assertTrue(to.getSentences().size() > 0);
-        Assert.assertNotNull(to.getSentences().get(0));
+        final DocumentTO documentTO = nlpAPI.annotate(qbf);
+        Assert.assertNotNull(documentTO);
+        Assert.assertNotNull(documentTO.getSentences());
+        Assert.assertTrue(documentTO.getSentences().size() > 0);
+        Assert.assertNotNull(documentTO.getSentences().get(0));
 
-        val sentence = to.getSentences().get(0);
-        val nlp = new DocumentAdapter();
-        val td = nlp.typedDependenciesAsList(sentence);
-        Assert.assertNotNull(td);
+        val sentence = documentTO.getSentences().get(0);
+        Assert.assertNotNull(sentence);
     }
 
 }

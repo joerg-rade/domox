@@ -1,7 +1,7 @@
-.ClassDiagram
-[plantuml,file="ClassDiagram.png"]
---
 @startuml
+skinparam ClassBorderColor DarkRed
+skinparam ClassBorderThickness 2
+skinparam ClassBackgroundColor LightYellow
 
 package "req" {
     class Author {
@@ -28,7 +28,7 @@ package nlp {
         parsed: ParseTree
     }
 
-    class PartOfSpeech {
+    class Word {
         id: Long
         content: String
     }
@@ -40,7 +40,7 @@ package nlp {
         PP
         ...
     }
-    Sentence *- PartOfSpeech
+    Sentence *- Word
 
     enum TDType{
         nsubj
@@ -90,10 +90,10 @@ package nlp {
     }
     Relation -up-> RelationType : type
 
-    PartOfSpeech -up-> PosType : type
+    Word -up-> PosType : type
 
-    TypedDependency -left-> "A" PartOfSpeech
-    TypedDependency -left-> "B" PartOfSpeech
+    TypedDependency -left-> "A" Word
+    TypedDependency -left-> "B" Word
     Relation -left-> "2" TypedDependency
 }
 
@@ -124,8 +124,7 @@ package type_system {
     DomainModel *-> "1..n" ClassCdd
 }
 
-Sentence --> Document : content
-
+Sentence -l-> Document : content
 
 class Analysis {
     id: Long
@@ -151,10 +150,10 @@ note as N2
     * Rule based [1], [2]
     * Stanford Glove (mord-level RNN)
 end note
-N2 .. Relation
+N2 . Relation
 
 @enduml
---
+
         A1 .. A4
         B1 .. B5
         C1 .. C4

@@ -14,7 +14,7 @@ import org.apache.causeway.applib.services.repository.RepositoryService;
 import java.util.List;
 
 @DomainService
-@Named(DomainModule.NAMESPACE + ".ModelDependencies")
+@Named(DomainModule.NAMESPACE + ".TypedDependencies")
 @Priority(PriorityPrecedence.EARLY)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class TypedDependencies {

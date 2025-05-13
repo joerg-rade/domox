@@ -41,7 +41,7 @@ class DocumentsTest {
         skinner.setFirstName("Burroughs");
         skinner.setMiddleInitial("F.");
         skinner.setEMail("do_not_reply@apa.org");
-        final Set<Author> authors = new HashSet<>();
+        final List<Author> authors = new ArrayList<>();
         authors.add(holland);
         authors.add(skinner);
         final String title = "Analysis of Behaviour";

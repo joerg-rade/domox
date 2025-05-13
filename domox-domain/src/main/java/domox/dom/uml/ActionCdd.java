@@ -26,9 +26,7 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
@@ -45,7 +43,7 @@ public class ActionCdd
 
     public ActionCdd(String name, List<ParameterCdd> inputTypeList, String outputType) {
         this.name = name;
-        this.inputTypeList = new HashSet<>(inputTypeList);
+        this.inputTypeList = inputTypeList;
         this.outputType = outputType;
     }
 
@@ -66,7 +64,7 @@ public class ActionCdd
 
     @OneToMany(mappedBy = "actionCdd", cascade = CascadeType.PERSIST)
     @Property
-    public Set<ParameterCdd> inputTypeList;
+    public List<ParameterCdd> inputTypeList;
 
     @Property
     @Column(nullable = false)

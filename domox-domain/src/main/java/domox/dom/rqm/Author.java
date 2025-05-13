@@ -27,7 +27,7 @@ import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
@@ -88,6 +88,6 @@ public class Author implements Comparable<Author> {
             name = "author_document",
             joinColumns = @JoinColumn(name = "author_id", nullable = true),
             inverseJoinColumns = @JoinColumn(name = "document_id"))
-    public Set<Document> documents;
+    public List<Document> documents;
 
 }

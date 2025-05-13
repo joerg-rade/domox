@@ -10,7 +10,7 @@ import org.apache.causeway.applib.services.iactnlayer.InteractionService;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
+//@Service
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class SeedService implements MetamodelListener {
     private final InteractionService interactionService;

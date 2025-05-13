@@ -22,9 +22,7 @@ import org.apache.causeway.applib.value.Clob;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Named(DomainModule.NAMESPACE + ".Documents")
 @DomainService
@@ -43,7 +41,7 @@ public class Documents {
 
     @ActionLayout(sequence = "2")
     @Action//(semantics = SemanticsOf.NON_IDEMPOTENT)
-    public Document create(String title, String url, Clob content, Set<Author> authors) {
+    public Document create(String title, String url, Clob content, List<Author> authors) {
         final Document obj = new Document();
         obj.setTitle(title);
         obj.setUrl(url);
@@ -81,22 +79,22 @@ public class Documents {
         return build(title, url, content, null);
     }
 
-    private Document build(String title, String url, Clob content, Set<Author> authors) {
+    private Document build(String title, String url, Clob content, List<Author> authors) {
         final Document document = create(title, url, content, authors);
         final String rawText = document.getContent();
         final DocumentTO documentTO = new DocumentAdapter().parseTextAndAmend(rawText);
         repositoryService.persistAndFlush(document);
-        Set<Sentence> sentences = createSentences(document, documentTO);
+        List<Sentence> sentences = createSentences(document, documentTO);
         document.setSentences(sentences);
-        //TODO extract typedDependencies from SentenceTO and set into
         return document;
     }
 
-    public Set<Sentence> createSentences(Document document, DocumentTO to) {
+    public List<Sentence> createSentences(Document document, DocumentTO to) {
         final List<SentenceTO> toList = to.getSentences();
-        final Set<Sentence> sentenceList = new HashSet<>();
+        final List<Sentence> sentenceList = new ArrayList<>();
         for (SentenceTO st : toList) {
-            final Sentence sentence = sentences.build(st, document);
+            final Sentence sentence = sentences.build(st);
+            sentence.setDocument(document);
             sentenceList.add(sentence);
         }
         return sentenceList;
@@ -110,7 +108,7 @@ public class Documents {
         final String txtContent = new FileUtil().readFileFromResources(filename);
         final Clob content = new Clob("", "text/xml", txtContent);
         final Author author = new Author();
-        final Set<Author> authors = new HashSet<>();
+        final List<Author> authors = new ArrayList<>();
         authors.add(author);
         return build(title, filename, content, authors);
     }

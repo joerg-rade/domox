@@ -1,8 +1,9 @@
 package domox.dom.nlp;
 
 import domox.DomainModule;
-import domox.dom.rqm.Document;
+import domox.nlp.BasicDependencyTO;
 import domox.nlp.SentenceTO;
+import domox.nlp.TokenTO;
 import domox.svc.SentenceAdapter;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -16,7 +17,6 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
-import org.apache.causeway.applib.value.Blob;
 
 import java.util.List;
 
@@ -28,6 +28,7 @@ public class Sentences {
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
+    private final Tokens tokens;
 
     @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
@@ -43,19 +44,43 @@ public class Sentences {
     }
 
     @Programmatic
-    public Sentence build(SentenceTO to, Document document) {
+    public Sentence build(SentenceTO sentenceTO) {
         final Sentence sentence = create();
-        sentence.setDocument(document);
-        final SentenceAdapter sentenceAdapter = new SentenceAdapter(to);
+        final SentenceAdapter sentenceAdapter = new SentenceAdapter(sentenceTO);
         //
         final String text = sentenceAdapter.transferObjectAsString();
         sentence.setText(text);
-        //FIXME
-        sentence.setTypedDependencies(null);
+        final List<TokenTO> tokenToList = sentenceTO.getTokens();
+        for (final TokenTO tokenTO : tokenToList) {
+            final Token t = tokens.build(tokenTO);
+            sentence.getTokenList().add(t);
+        }
+        // set TypedDependencies
+        final List<BasicDependencyTO> rawDependencyList = sentenceTO.getEnhancedPlusPlusDependencies();
+        assignTypedDependencies(rawDependencyList, sentence);
         //
-        final Blob diagram = sentenceAdapter.buildTypedDependencyDiagram();
-        sentence.setDiagram(diagram);
+ //       final Blob diagram = sentenceAdapter.buildTypedDependencyDiagram();
+//        sentence.setDiagram(diagram);
         return sentence;
+    }
+
+    private void assignTypedDependencies(List<BasicDependencyTO> rawDependencyList, Sentence sentence) {
+        for (final BasicDependencyTO dependency : rawDependencyList) {
+            final TypedDependency td = factoryService.detachedEntity(TypedDependency.class);
+            //
+            final String depCode = dependency.getDep();
+            td.setType(TdType.fromCode(depCode));
+            //
+            final int govIndex = dependency.getGovernor().intValue();
+            final Token a = sentence.getToken(govIndex);
+            td.setPartA(a);
+            //
+            final int depIndex = dependency.getDependent().intValue();
+            final Token b = sentence.getToken(depIndex);
+            td.setPartB(b);
+
+            repositoryService.persist(td);
+        }
     }
 
 }

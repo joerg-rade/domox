@@ -28,9 +28,7 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 @Entity
@@ -51,9 +49,9 @@ public class ClassCdd
             List<ActionCdd> actionList,
             List<AssociationCdd> associationList) {
         this.name = name;
-        this.propertyList = new HashSet<>(propertyList);
-        this.actionList = new HashSet<>(actionList);
-        this.associationList = new HashSet<>(associationList);
+        this.propertyList = propertyList;
+        this.actionList = actionList;
+        this.associationList = associationList;
     }
 
     @Id
@@ -81,15 +79,15 @@ public class ClassCdd
 
     @Property
     @OneToMany(mappedBy = "classCdd")
-    public Set<PropertyCdd> propertyList;
+    public List<PropertyCdd> propertyList;
 
     @Property
     @OneToMany(mappedBy = "classCdd")
-    public Set<ActionCdd> actionList;
+    public List<ActionCdd> actionList;
 
     @Property
     @OneToMany(mappedBy = "classCdd")
-    public Set<AssociationCdd> associationList;
+    public List<AssociationCdd> associationList;
 
     @Override
     public int compareTo(@NotNull ClassCdd o) {

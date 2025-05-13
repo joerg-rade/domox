@@ -1,8 +1,10 @@
 package domox.diagram
 
 import domox.Constants
+import domox.nlp.DocumentTO
 import domox.nlp.StanfordCoreNlpAPI
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 internal class TdDiagramTest {
     @Test
@@ -12,7 +14,8 @@ internal class TdDiagramTest {
         val host = Constants.coreNlpHost
         val port = Constants.coreNlpPort
         val text = "A language tape has a title language and level."
-        val coreDocument = StanfordCoreNlpAPI(scheme, host, port).annotate(text)
+        val coreDocument: DocumentTO = StanfordCoreNlpAPI(scheme, host, port).annotate(text)
+        assertNotNull(coreDocument)
 /*        val coreSentence = coreDocument.sentences().first()
         //when
         val pumlCode = TdDiagram.build(coreSentence)

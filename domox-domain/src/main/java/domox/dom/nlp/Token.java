@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -38,20 +39,21 @@ import java.util.Comparator;
         }
 )
 @EntityListeners(CausewayEntityListener.class)
-@Named(DomainModule.NAMESPACE + ".Word")
+@Named(DomainModule.NAMESPACE + ".Token")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(
         cssClassFa = "speech",
+        describedAs = "Word or punctuation",
         tableDecorator = TableDecorator.DatatablesNet.class,
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 @Getter @Setter
-public class Word implements Comparable<Word> {
+public class Token implements Comparable<Token> {
 
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     @Programmatic
     private Long id;
@@ -69,17 +71,17 @@ public class Word implements Comparable<Word> {
     @Property()
     @Getter
     @Setter
-    private PosType type;
+    private PartOfSpeechType type;
 
     @ManyToOne()
     @JoinColumn(name = "sentence_id")
     private Sentence sentence;
 
-    private final static Comparator<Word> comparator =
-            Comparator.comparing(Word::getId);
+    private final static Comparator<Token> comparator =
+            Comparator.comparing(Token::getId);
 
     @Override
-    public int compareTo(final Word other) {
+    public int compareTo(final Token other) {
         return comparator.compare(this, other);
     }
 

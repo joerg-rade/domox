@@ -49,7 +49,6 @@ public class DomainModel implements Comparable<ClassCdd> {
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
-    @Property
     @JoinColumn
     @OneToMany(mappedBy = "domainModel")
     public List<ClassCdd> classList = new ArrayList<>();

@@ -5,8 +5,9 @@
 
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
-        <causeway.version>3.3.0-SNAPSHOT</causeway.version>
-        <!--stanford-corenlp.version>4.5.8</stanford-corenlp.version-->
+        <causeway.version>3.3.0</causeway.version>
+        <spring-boot.version>3.4.5</spring-boot.version>
+        <spring-framework.version>6.2.6</spring-framework.version>
         <lombok.version>1.18.32</lombok.version>
         <jmock.version>2.12.0</jmock.version>
         <file.encoding>UTF-8</file.encoding>
@@ -28,13 +29,13 @@
         <skipBDD>true</skipBDD>
 
         <!-- PLUGIN -->
-        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     </properties>
 
     <parent>
         <groupId>org.apache.causeway.app</groupId>
         <artifactId>causeway-app-starter-parent</artifactId>
-        <version>3.3.0-SNAPSHOT</version>
+        <version>3.3.0</version>
         <relativePath/>
     </parent>
 
@@ -47,6 +48,31 @@
     <packaging>pom</packaging>
 
     <build>
+        <resources>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>application.yml</include>
+                    <include>banner.txt</include>
+                    <include>static/*.*</include>
+                </includes>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -180,7 +206,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-test</artifactId>
-                <version>5.3.18</version>
+                <version>${spring-framework.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -200,17 +226,6 @@
             </dependency>
 
             <!-- used components -->
-            <!--dependency>
-                <groupId>edu.stanford.nlp</groupId>
-                <artifactId>stanford-corenlp</artifactId>
-                <version>${stanford-corenlp.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>edu.stanford.nlp</groupId>
-                <artifactId>stanford-corenlp</artifactId>
-                <version>${stanford-corenlp.version}</version>
-                <classifier>models</classifier>
-            </dependency-->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>

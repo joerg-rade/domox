@@ -6,10 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@Import({
-        AppManifest.class,
-//    , XrayEnable.class
-})
+@Import({AppManifest.class})
 public class Application /*extends SpringBootServletInitializer*/ {
 
     /**
@@ -18,7 +15,7 @@ public class Application /*extends SpringBootServletInitializer*/ {
      */
     public static void main(String[] args) {
         CausewayPresets.prototyping();
-        SpringApplication.run(new Class[]{Application.class}, args);
+        SpringApplication.run(Application.class, args);
     }
 
 }

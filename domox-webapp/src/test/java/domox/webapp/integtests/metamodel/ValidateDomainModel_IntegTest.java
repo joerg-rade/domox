@@ -1,13 +1,10 @@
 package domox.webapp.integtests.metamodel;
 
+import domox.webapp.integtests.ApplicationIntegTestAbstract;
 import jakarta.inject.Inject;
-
-import org.junit.jupiter.api.Test;
-
 import org.apache.causeway.applib.services.registry.ServiceRegistry;
 import org.apache.causeway.testing.integtestsupport.applib.validate.DomainModelValidator;
-
-import domox.webapp.integtests.ApplicationIntegTestAbstract;
+import org.junit.jupiter.api.Test;
 
 class ValidateDomainModel_IntegTest extends ApplicationIntegTestAbstract {
 

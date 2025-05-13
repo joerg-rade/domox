@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Programmatic;
@@ -30,8 +31,10 @@ import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
+@Slf4j
 @Entity
 @Table(schema = DomainModule.SCHEMA, name = "Sentence")
 @EntityListeners(CausewayEntityListener.class)
@@ -54,6 +57,12 @@ public class Sentence implements Comparable<Sentence> {
     @Column(nullable = false)
     private int version;
 
+    @Column(nullable = false, length = 20)
+    @Property()
+    @Getter
+    @Setter
+    private PartOfSpeechType type;
+
     @Column(nullable = false, length = 2048)
     @Property()
     @Getter
@@ -61,10 +70,10 @@ public class Sentence implements Comparable<Sentence> {
     private String text;
 
     @OneToMany(mappedBy = "sentence", cascade = CascadeType.PERSIST)
-    @Property()
+//    @Property()
     @Getter
     @Setter
-    private Set<TypedDependency> typedDependencies;
+    private List<Token> tokenList = new ArrayList<>();
 
     @Column(nullable = true)
     @Property()
@@ -85,5 +94,15 @@ public class Sentence implements Comparable<Sentence> {
         return ObjectContracts.compare(this, other, "id");
     }
     //endregion
+
+    @Programmatic
+    public Token getToken(int index) {
+        final List<Token> tokens = new ArrayList<>(this.tokenList);
+        if (index >= tokens.size()) {
+            log.debug("index >= tokenList");
+            return null;
+        }
+        return tokens.get(index);
+    }
 
 }

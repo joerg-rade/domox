@@ -15,7 +15,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -27,7 +26,7 @@ import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.sql.Timestamp;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
@@ -40,7 +39,6 @@ import java.util.Set;
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-@ToString(onlyExplicitlyIncluded = true)
 public class Corpus implements Comparable<Corpus> {
 
     @Id
@@ -59,7 +57,7 @@ public class Corpus implements Comparable<Corpus> {
 
     @PropertyLayout(sequence = "1")
     @OneToMany(mappedBy = "corpus")
-    private Set<Document> documents;
+    private List<Document> documents;
 
     @PropertyLayout(sequence = "2")
     @Column(nullable = false)
