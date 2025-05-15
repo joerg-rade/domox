@@ -18,10 +18,10 @@ services:
     ports:
       - "5432:5432"
 
-#  kroki:
-#    image: yuzutech/kroki
-#    ports:
-#      - "8000:8000"
+  kroki:
+    image: yuzutech/kroki
+    ports:
+      - "8000:8000"
 
 #  marytts:
 #    image: synesthesiam/marytts:5.2

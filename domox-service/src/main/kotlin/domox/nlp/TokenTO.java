@@ -11,7 +11,7 @@ public class TokenTO {
     String lemma = "";
     Long characterOffsetBegin = 0L;
     Long characterOffsetEnd = 0L;
-    String pos = "";
+    public String pos = "";
     String ner = "";
     String before = "";
     String after = "";

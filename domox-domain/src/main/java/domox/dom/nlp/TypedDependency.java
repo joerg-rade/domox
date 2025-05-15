@@ -121,13 +121,7 @@ public class TypedDependency implements Comparable<TypedDependency> {
     private static final String[] BASIC_ATTRIB = {"name", "number", "type", "address", "level", "date", "time"};
 
     public boolean isBasicAttributeB() {
-        final Token b = getPartB();
-        final String name = b.toString();
-        for (String s : BASIC_ATTRIB) {
-            if (s.equals(name)) {
-                return true;
-            }
-        }
-        return false;
+        final String bName = getPartB().toString();
+        return Arrays.asList(BASIC_ATTRIB).contains(bName);
     }
 }

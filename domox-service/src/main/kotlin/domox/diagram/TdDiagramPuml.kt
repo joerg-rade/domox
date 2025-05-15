@@ -18,100 +18,47 @@
  */
 package domox.diagram
 
-import domox.nlp.BasicDependencyTO
 import domox.nlp.SentenceTO
 import domox.nlp.TokenTO
 
 /**
- * Generates graphviz code for a TypedDependency diagram.
- * see: /docs/SentenceAnalysis.puml for sample diagram
+ * Generates PlantUML code for a TypedDependency diagram.
+ * see: /docs/gv2.puml for sample diagram
  */
-object TdDiagram {
-    private const val header = "digraph g {\n" +
-            "    graph [nodesep=0.2 ranksep=0.1]\n" +
-            "    node [shape=none fontname=arial fontsize=12 style=filled fillcolor=\"#fefefe\" width=0.1 height=0]\n" +
-            "    edge [style=invis]\n" +
-            "    splines=true; esep=1;\n"
-    private const val footer = "}"
+object TdDiagramPuml {
+    private const val header = "skinparam ranksep 0\n" +
+            "skinparam nodesep 1\n"
+    private const val wordTemplate = "rectangle W$1 as \"$2\" #line:transparent\n" +
+            "note bottom of W$1 $3\n" +
+            "    $4\n" +
+            "end note\n"
+    private const val footer = "\n"
 
     fun build(sentence: SentenceTO, compact: Boolean = false): String {
         var answer = header
-        val wordList = sentence.tokens
-//        val posTagList = sentence.posTags()
-//        answer += buildNodes(wordList, posTagList)
-
-        val wordCount = wordList.size
-        answer += buildGlue(wordCount, compact)
-        answer += "edge [style=normal fontsize=10 fontname=arial color=GREY]\n"
-
-//FIXME        val dependencyList = sentence.dependencyParse().typedDependencies()
-//        answer += buildEdges(dependencyList)
+        val tokenList = sentence.tokens
+        answer += buildWords(tokenList);
         return answer + footer
     }
 
-    private fun buildNodes(wordList: List<TokenTO>, posTagList: List<String>): String {
+    private fun buildWords(tokenList:List<TokenTO> ):String {
         var answer = ""
-        wordList.forEachIndexed() { index, token ->
-            val posTag = posTagList.get(index)
-            answer += buildWord(index + 1, posTag, token.word)
+        tokenList.forEachIndexed() { index, token ->
+            val pos = token.pos
+            val word = token.word
+            answer += buildWord(index + 1, pos, word)
         }
         return answer
     }
 
-    private fun buildEdges(dependencyList: List<BasicDependencyTO>): String {
-        var answer = ""
-        dependencyList.forEach() { td ->
-            td
-//FIXME
-            /*val rel = td.dep.//shortName
-            val gov = td.gov().index()
-            val dep = td.dep.index()
-            when (rel) {
-                "root" -> {
-                }
-                else -> answer += "p$gov -> p$dep [label=\"$rel\"]\n"
-            }*/
-        }
-        return answer
-    }
-
-    private fun buildGlue(wordCount: Int, compact: Boolean): String {
-        val wc = wordCount - 1
-        val lastWord = wordCount
-        var answer = ""
-        (1..wc).forEach { i ->
-            answer += "w$i -> "
-        }
-        answer += "w$lastWord\n"
-
-        (1..wc).forEach { i ->
-            answer += "p$i -> "
-        }
-        answer += "p$lastWord\n"
-
-        if (compact) {
-            answer += "rank=same {"
-            (1..wc).forEach { i ->
-                answer += "w$i,"
-            }
-            answer += "w$lastWord}\n"
-
-            answer += "rank=same {"
-            (1..wc).forEach { i ->
-                answer += "p$i,"
-            }
-            answer += "p$lastWord}\n"
-        }
-        return answer
-    }
-
-    private fun buildWord(index: Int, posTag: String, text: String): String {
-        val color = findColor(posTag)
-        return "subgraph cluster$index {\n" +
-                "p$index [label=\"$posTag\" shape=box fontsize=10 fillcolor=\"$color\"]\n" +
-                "w$index [label=\"$text\"]\n" +
-                "p$index -> w$index\n" +
-                "}\n"
+    private fun buildWord(index: Int, pos: String, word: String): String {
+        val template = wordTemplate + ""
+        var answer = template.replace("$1", index.toString())
+        answer = answer.replace("$2", word)
+        val color = findColor(pos)
+        answer = answer.replace("$3", color)
+        answer = answer.replace("$4", pos)
+        return answer;
     }
 
     // for posTags: https://en.wikipedia.org/wiki/Brown_Corpus//Part-of-speech_tags_used

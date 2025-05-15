@@ -1,0 +1,71 @@
+@startuml
+skinparam ranksep 0
+skinparam nodesep 1
+
+rectangle W1 as "We" #line:transparent
+note bottom of W1
+    PRP
+end note
+
+rectangle W2 as "are" #line:transparent
+note bottom of W2
+    VB
+end note
+
+rectangle W3 as "facing" #line:transparent
+note bottom of W3
+    VBG
+end note
+
+rectangle W4 as "a" #line:transparent
+note bottom of W4
+    PRP
+end note
+
+rectangle W5 as "failure" #line:transparent
+note bottom of W5
+    NN
+end note
+
+rectangle W6 as "when" #line:transparent
+note bottom of W6
+     PRP
+end note
+
+rectangle W7 as "running" #line:transparent
+note bottom of W7
+    VBG
+end note
+
+rectangle W8 as "XYZ" #line:transparent
+note bottom of W8
+    VBG
+end note
+
+rectangle W9 as "job" #line:transparent
+note bottom of W9
+    NN
+end note
+
+rectangle W10 as "." #line:transparent
+note bottom of W10
+    PUNCT
+end note
+
+W1 -r-> W2 #transparent
+W2 -r-> W3 #transparent
+W3 -r-> W4 #transparent
+W4 -r-> W5 #transparent
+W5 -r-> W6 #transparent
+W6 -r-> W7 #transparent
+W7 -r-> W8 #transparent
+W8 -r-> W9 #transparent
+W9 -r-> W10 #transparent
+'Handling directional edges with PlantUML syntax
+W3 -l--> W1 : "blah 1"
+W3 -r--> W7 : "blah 3"
+W3 -r--> W5 : "blah 2"
+W3 -r--> W10 : "blah 4"
+W3 -> W2 : "aux"
+
+@enduml

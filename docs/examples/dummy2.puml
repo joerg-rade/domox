@@ -40,7 +40,7 @@ digraph g {
         w7 [label="."]
         p7 -> w7
     }
-    w1 -> w2 -> w3 -> w4 -> w5 -> w6 -> w7
+w1 -> w2 -> w3 -> w4 -> w5 -> w6 -> w7
     p1 -> p2 -> p3 -> p4 -> p5 -> p6 -> p7
     edge [style=bold fontsize=10 fontname=arial]
     p2 -> p1 [label="amod"]
@@ -49,5 +49,8 @@ digraph g {
     p3 -> p6 [label="obj"]
     p6 -> p4 [label="amod"]
     p6 -> p5 [label="compound"]
+
+ //   { rank=same; w1; w2; w3; w4; w5; w6; w7; }
+ //    {rank=same; p1; p2; p3; p4; p5; p6; p7;}
 }
 @enduml

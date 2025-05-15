@@ -1,7 +1,7 @@
 package domox.svc;
 
 import domox.HttpRequest;
-import domox.diagram.TdDiagram;
+import domox.diagram.TdDiagramPuml;
 import domox.nlp.BasicDependencyTO;
 import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
@@ -24,7 +24,7 @@ public class SentenceAdapter {
     }
 
     public Blob buildTypedDependencyDiagram() {
-        final String pumlCode = TdDiagram.INSTANCE.build(sentence, true);
+        final String pumlCode = TdDiagramPuml.INSTANCE.build(sentence, true);
         final String svg = new HttpRequest().invokePlantUML(pumlCode);
         final String clean = svg.replaceAll("transparent", "white");
         return new Blob("SVG Diagram", "image/jepg", clean.getBytes());

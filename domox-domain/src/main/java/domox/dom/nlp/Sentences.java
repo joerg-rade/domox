@@ -17,6 +17,7 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.apache.causeway.applib.value.Blob;
 
 import java.util.List;
 
@@ -59,8 +60,8 @@ public class Sentences {
         final List<BasicDependencyTO> rawDependencyList = sentenceTO.getEnhancedPlusPlusDependencies();
         assignTypedDependencies(rawDependencyList, sentence);
         //
- //       final Blob diagram = sentenceAdapter.buildTypedDependencyDiagram();
-//        sentence.setDiagram(diagram);
+        final Blob diagram = sentenceAdapter.buildTypedDependencyDiagram();
+        sentence.setDiagram(diagram);
         return sentence;
     }
 
