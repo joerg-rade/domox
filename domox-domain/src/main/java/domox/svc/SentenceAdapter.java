@@ -23,8 +23,8 @@ public class SentenceAdapter {
         return sb.toString().trim();
     }
 
-    public Blob buildTypedDependencyDiagram() {
-        final String pumlCode = TdDiagramPuml.INSTANCE.build(sentence, true);
+    public Blob buildTypedDependencyDiagram(SentenceTO sentenceTO) {
+        final String pumlCode = TdDiagramPuml.INSTANCE.build(sentenceTO);
         final String svg = new HttpRequest().invokePlantUML(pumlCode);
         final String clean = svg.replaceAll("transparent", "white");
         return new Blob("SVG Diagram", "image/jepg", clean.getBytes());

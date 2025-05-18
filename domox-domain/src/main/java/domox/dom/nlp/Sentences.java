@@ -57,15 +57,16 @@ public class Sentences {
             sentence.getTokenList().add(t);
         }
         // set TypedDependencies
-        final List<BasicDependencyTO> rawDependencyList = sentenceTO.getEnhancedPlusPlusDependencies();
-        assignTypedDependencies(rawDependencyList, sentence);
+        assignTypedDependencies(sentenceTO, sentence);
         //
-        final Blob diagram = sentenceAdapter.buildTypedDependencyDiagram();
+        final Blob diagram = sentenceAdapter.buildTypedDependencyDiagram(sentenceTO);
         sentence.setDiagram(diagram);
         return sentence;
     }
 
-    private void assignTypedDependencies(List<BasicDependencyTO> rawDependencyList, Sentence sentence) {
+    private void assignTypedDependencies(SentenceTO sentenceTO, Sentence sentence) {
+        final List<BasicDependencyTO> rawDependencyList = sentenceTO.getEnhancedPlusPlusDependencies();
+
         for (final BasicDependencyTO dependency : rawDependencyList) {
             final TypedDependency td = factoryService.detachedEntity(TypedDependency.class);
             //

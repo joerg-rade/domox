@@ -28,11 +28,11 @@ package nlp {
         parsed: ParseTree
     }
 
-    class Word {
+    class Token {
         id: Long
         content: String
     }
-    enum PosType {
+    enum PartOfSpeechType {
         NOUN_PHRASE
         VERB_PHRASE
         VERB
@@ -40,7 +40,7 @@ package nlp {
         PP
         ...
     }
-    Sentence *- Word
+    Sentence *- Token
 
     enum TDType{
         nsubj
@@ -90,10 +90,10 @@ package nlp {
     }
     Relation -up-> RelationType : type
 
-    Word -up-> PosType : type
+    Token -up-> PartOfSpeechType : type
 
-    TypedDependency -left-> "A" Word
-    TypedDependency -left-> "B" Word
+    TypedDependency -left-> "A" Token
+    TypedDependency -left-> "B" Token
     Relation -left-> "2" TypedDependency
 }
 

@@ -4,9 +4,9 @@ import lombok.Data;
 
 @Data
 public class BasicDependencyTO {
-    String dep = "";
-    Long governor = 0L;
+    public String dep = "";
+    public Long governor = 0L;
     String governorGloss = "";
-    Long dependent = 0L;
+    public Long dependent = 0L;
     String dependentGloss = "";
 }

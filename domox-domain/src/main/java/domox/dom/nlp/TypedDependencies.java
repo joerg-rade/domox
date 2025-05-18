@@ -21,6 +21,7 @@ public class TypedDependencies {
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
+    private final TypedDependencyRepository typedDependencyRepository;
 
     @ActionLayout(sequence = "1")
     public List<TypedDependency> listAll() {
@@ -30,9 +31,12 @@ public class TypedDependencies {
     @ActionLayout(sequence = "2")
     public TypedDependency create() {
         final TypedDependency obj = factoryService.detachedEntity(TypedDependency.class);
-//        obj.setTitle(title);
         repositoryService.persist(obj);
         return obj;
+    }
+
+    public TypedDependency findByToken(Token token) {
+        return typedDependencyRepository.findByToken(token);
     }
 
 }

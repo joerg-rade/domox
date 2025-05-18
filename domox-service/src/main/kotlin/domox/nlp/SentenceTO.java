@@ -11,7 +11,7 @@ public class SentenceTO {
     String parse = "";
     List<BasicDependencyTO> basicDependencies = null;
     List<BasicDependencyTO> enhancedDependencies = null;
-    List<BasicDependencyTO> enhancedPlusPlusDependencies = null;
+    public List<BasicDependencyTO> enhancedPlusPlusDependencies = null;
     String sentimentValue = "";
     String sentiment = "";
     List<Long> sentimentDistribution = null;

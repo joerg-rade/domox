@@ -18,30 +18,45 @@
  */
 package domox.diagram
 
+import domox.nlp.BasicDependencyTO
 import domox.nlp.SentenceTO
 import domox.nlp.TokenTO
+import java.awt.Color
 
 /**
  * Generates PlantUML code for a TypedDependency diagram.
  * see: /docs/gv2.puml for sample diagram
  */
 object TdDiagramPuml {
-    private const val header = "skinparam ranksep 0\n" +
-            "skinparam nodesep 1\n"
-    private const val wordTemplate = "rectangle W$1 as \"$2\" #line:transparent\n" +
-            "note bottom of W$1 $3\n" +
-            "    $4\n" +
-            "end note\n"
-    private const val footer = "\n"
+    private const val header = """
+@startuml
+skinparam rectangleBackgroundColor white
+skinparam rectangleFontSize 18
+skinparam rectangleBorderColor transparent
+skinparam ArrowFontSize 12
+skinparam cardFontSize 14
 
-    fun build(sentence: SentenceTO, compact: Boolean = false): String {
+skinparam ranksep 64
+skinparam nodesep 20
+skinparam linetype ortho
+    """
+    private const val wordTemplate =
+        "rectangle \"$2\" as W$1\n" +
+                "card \"$4\" as D$1 $3\n" +
+                "D$1 -d-( W$1\n\n"
+    private const val footer = "@enduml\n"
+    private const val glue = "D$1 -r-> D$2 #transparent\n"
+
+    fun build(sentenceTO: SentenceTO): String {
         var answer = header
-        val tokenList = sentence.tokens
+        val tokenList = sentenceTO.tokens
         answer += buildWords(tokenList);
+        answer += buildGlue(tokenList);
+        answer += buildTypedDependencies(sentenceTO);
         return answer + footer
     }
 
-    private fun buildWords(tokenList:List<TokenTO> ):String {
+    private fun buildWords(tokenList: List<TokenTO>): String {
         var answer = ""
         tokenList.forEachIndexed() { index, token ->
             val pos = token.pos
@@ -49,6 +64,46 @@ object TdDiagramPuml {
             answer += buildWord(index + 1, pos, word)
         }
         return answer
+    }
+
+    private fun buildGlue(tokenList: List<TokenTO>): String {
+        var answer = ""
+        tokenList.forEachIndexed() { index, _ ->
+            if (index > 0) {
+                val current = index.toString()
+                val next = (index + 1).toString()
+                var template = glue
+                template = template.replace("$1", current)
+                template = template.replace("$2", next)
+                answer += template
+            }
+        }
+        return answer
+    }
+
+    private fun buildTypedDependencies(sentenceTO: SentenceTO): String {
+        var answer = "\n"
+        val rawDependencyList: List<BasicDependencyTO> = sentenceTO.enhancedPlusPlusDependencies
+        rawDependencyList.forEachIndexed() { index, dependency ->
+            if (index > 0) {
+                val depCode = dependency.dep
+                val govIndex = dependency.governor.toInt()
+                val depIndex = dependency.dependent.toInt()
+                val direction = when {
+                    govIndex > depIndex -> "l"
+                    else -> "r"
+                }
+                val color = determineColor(sentenceTO.tokens, depIndex)
+                answer = answer + "D$govIndex -[$color]$direction-> D$depIndex : \"$depCode\" \n"
+            }
+        }
+        return answer
+    }
+
+    private fun determineColor(rawTokenList: List<TokenTO>, index: Int): String {
+        val token = rawTokenList.get(index - 1)
+        val baseColor = findColor(token.pos)
+        return darkenColor(baseColor, 0.25f)
     }
 
     private fun buildWord(index: Int, pos: String, word: String): String {
@@ -93,4 +148,21 @@ object TdDiagramPuml {
         }
     }
 
+    fun lightenColor(hex: String, factor: Float): String {
+        val color = Color.decode(hex)
+        val r = (color.red + (255 - color.red) * factor).toInt().coerceIn(0, 255)
+        val g = (color.green + (255 - color.green) * factor).toInt().coerceIn(0, 255)
+        val b = (color.blue + (255 - color.blue) * factor).toInt().coerceIn(0, 255)
+
+        return String.format("#%02X%02X%02X", r, g, b)
+    }
+
+    fun darkenColor(hex: String, factor: Float): String {
+        val color = Color.decode(hex)
+        val r = (color.red * (1 - factor)).toInt().coerceIn(0, 255)
+        val g = (color.green * (1 - factor)).toInt().coerceIn(0, 255)
+        val b = (color.blue * (1 - factor)).toInt().coerceIn(0, 255)
+
+        return String.format("#%02X%02X%02X", r, g, b)
+    }
 }

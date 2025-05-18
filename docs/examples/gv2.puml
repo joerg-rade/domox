@@ -1,71 +1,66 @@
 @startuml
-skinparam ranksep 0
-skinparam nodesep 1
+skinparam ranksep 1
+skinparam nodesep 5
+skinparam linetype polyline
 
-rectangle W1 as "We" #line:transparent
-note bottom of W1
-    PRP
-end note
+card We as W1 #line:transparent
+card PRP as N1 #lightblue
+N1 -d-( W1
 
-rectangle W2 as "are" #line:transparent
-note bottom of W2
-    VB
-end note
+card are as W2 #line:transparent
+card VB as N2 #lightblue
+N2 -d-( W2
 
-rectangle W3 as "facing" #line:transparent
-note bottom of W3
-    VBG
-end note
+card facing as W3 #line:transparent
+card VBG as N3 #lightblue
+N3 -d-( W3
 
-rectangle W4 as "a" #line:transparent
-note bottom of W4
-    PRP
-end note
+card a as W4 #line:transparent
+card PRP as N4 #lightblue
+N4 -d-( W4
 
-rectangle W5 as "failure" #line:transparent
-note bottom of W5
-    NN
-end note
+card failure as W5 #line:transparent
+card NN as N5 #lightblue
+N5 -d-( W5
 
-rectangle W6 as "when" #line:transparent
-note bottom of W6
-     PRP
-end note
+card when as W6 #line:transparent
+card PRP as N6 #lightblue
+N6 -d-( W6
 
-rectangle W7 as "running" #line:transparent
-note bottom of W7
-    VBG
-end note
+card running as W7 #line:transparent
+card VBG as N7 #lightblue
+N7 -d-( W7
 
-rectangle W8 as "XYZ" #line:transparent
-note bottom of W8
-    VBG
-end note
+card XYZ as W8 #line:transparent
+card VBG as N8 #lightblue
+N8 -d-( W8
 
-rectangle W9 as "job" #line:transparent
-note bottom of W9
-    NN
-end note
+card job as W9 #line:transparent
+card NN as N9 #lightblue
+N9 -d-( W9
 
-rectangle W10 as "." #line:transparent
-note bottom of W10
-    PUNCT
-end note
+card . as W10 #line:transparent
+card PUNCT as N10 #lightblue
+N10 -d-( W10
 
-W1 -r-> W2 #transparent
-W2 -r-> W3 #transparent
-W3 -r-> W4 #transparent
-W4 -r-> W5 #transparent
-W5 -r-> W6 #transparent
-W6 -r-> W7 #transparent
-W7 -r-> W8 #transparent
-W8 -r-> W9 #transparent
-W9 -r-> W10 #transparent
+N1 -r-> N2 #transparent
+N2 -r-> N3 #transparent
+N3 -r-> N4 #transparent
+N4 -r-> N5 #transparent
+N5 -r-> N6 #transparent
+N6 -r-> N7 #transparent
+N7 -r-> N8 #transparent
+N8 -r-> N9 #transparent
+N9 -r-> N10 #transparent
 'Handling directional edges with PlantUML syntax
-W3 -l--> W1 : "blah 1"
-W3 -r--> W7 : "blah 3"
-W3 -r--> W5 : "blah 2"
-W3 -r--> W10 : "blah 4"
-W3 -> W2 : "aux"
+card "blah1" as N3N1 #white
+'N3 -l-> N1 : "blah 1"
+N3 -u- N3N1
+N3N1 -d-> N1
+
+N3 -r-> N7 : "blah 3"
+N3 -r-> N5 : "blah 2"
+N3 -r-> N10 : "blah 4"
+N3 -l-> N2 : "aux"
 
 @enduml
