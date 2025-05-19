@@ -39,21 +39,15 @@ skinparam cardFontSize 14
 skinparam ranksep 64
 skinparam nodesep 20
 skinparam linetype ortho
-    """
-    private const val wordTemplate =
-        "rectangle \"$2\" as W$1\n" +
-                "card \"$4\" as D$1 $3\n" +
-                "D$1 -d-( W$1\n\n"
-    private const val footer = "@enduml\n"
-    private const val glue = "D$1 -r-> D$2 #transparent\n"
 
+"""
     fun build(sentenceTO: SentenceTO): String {
         var answer = header
         val tokenList = sentenceTO.tokens
         answer += buildWords(tokenList);
         answer += buildGlue(tokenList);
         answer += buildTypedDependencies(sentenceTO);
-        return answer + footer
+        return answer + "@enduml\n"
     }
 
     private fun buildWords(tokenList: List<TokenTO>): String {
@@ -66,6 +60,7 @@ skinparam linetype ortho
         return answer
     }
 
+    private const val glue = "D$1 -r-> D$2 #transparent\n"
     private fun buildGlue(tokenList: List<TokenTO>): String {
         var answer = ""
         tokenList.forEachIndexed() { index, _ ->
@@ -94,7 +89,8 @@ skinparam linetype ortho
                     else -> "r"
                 }
                 val color = determineColor(sentenceTO.tokens, depIndex)
-                answer = answer + "D$govIndex -[$color]$direction-> D$depIndex : \"$depCode\" \n"
+                val darker = darkenColor(color, 0.25f)
+                answer = answer + "D$govIndex -[$color]$direction-> D$depIndex : <color:$darker>$depCode \n"
             }
         }
         return answer
@@ -106,6 +102,10 @@ skinparam linetype ortho
         return darkenColor(baseColor, 0.25f)
     }
 
+    private const val wordTemplate =
+        "rectangle \"$2\" as W$1\n" +
+                "card \"$4\" as D$1 $3\n" +
+                "D$1 -d-( W$1 $5\n\n"
     private fun buildWord(index: Int, pos: String, word: String): String {
         val template = wordTemplate + ""
         var answer = template.replace("$1", index.toString())
@@ -113,6 +113,8 @@ skinparam linetype ortho
         val color = findColor(pos)
         answer = answer.replace("$3", color)
         answer = answer.replace("$4", pos)
+        val lighterColor = lightenColor(color, 0.5f)
+        answer = answer.replace("$5", lighterColor)
         return answer;
     }
 
