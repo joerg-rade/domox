@@ -2,6 +2,7 @@ package domox.dom.nlp;
 
 import domox.DomainModule;
 import jakarta.inject.Named;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -73,7 +74,7 @@ public class Token implements Comparable<Token> {
     @Setter
     private PartOfSpeechType type;
 
-    @ManyToOne()
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "sentence_id")
     private Sentence sentence;
 

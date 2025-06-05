@@ -8,6 +8,4 @@ public interface TypedDependencyRepository extends JpaRepository<TypedDependency
 
     List<TypedDependency> findByType(final TdType type);
 
-    TypedDependency findByToken(final Token token);
-
 }

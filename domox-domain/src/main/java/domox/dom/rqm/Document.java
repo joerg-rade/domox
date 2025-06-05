@@ -110,14 +110,14 @@ public class Document implements Comparable<Document> {
     }
 
     @PropertyLayout(sequence = "5")
-    @OneToMany(mappedBy = "document", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL)
     @Getter
     @Setter
     @ToString.Exclude
     private List<Sentence> sentences;
 
     @PropertyLayout(sequence = "6")
-    @ManyToMany(mappedBy = "documents", cascade = CascadeType.PERSIST)
+    @ManyToMany(mappedBy = "documents", cascade = CascadeType.ALL)
     @Getter
     @Setter
     @ToString.Exclude

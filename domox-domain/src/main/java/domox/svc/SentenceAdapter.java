@@ -1,13 +1,16 @@
 package domox.svc;
 
 import domox.HttpRequest;
-import domox.diagram.TdDiagramPuml;
+import domox.diagram.TdDiagram;
 import domox.nlp.BasicDependencyTO;
 import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
 import lombok.RequiredArgsConstructor;
-import org.apache.causeway.applib.value.Blob;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -23,11 +26,26 @@ public class SentenceAdapter {
         return sb.toString().trim();
     }
 
-    public Blob buildTypedDependencyDiagram(SentenceTO sentenceTO) {
-        final String pumlCode = TdDiagramPuml.INSTANCE.build(sentenceTO);
-        final String svg = new HttpRequest().invokePlantUML(pumlCode);
-        final String clean = svg.replaceAll("transparent", "white");
-        return new Blob("SVG Diagram", "image/jepg", clean.getBytes());
+    public byte[] buildTypedDependencyDiagram(SentenceTO sentenceTO) {
+        final String pumlCode = TdDiagram.INSTANCE.build(sentenceTO);
+        final String png = new HttpRequest().invokePlantUML(pumlCode);
+        writeToFile(png);
+        return png.getBytes();
+    }
+
+    private void writeToFile(String png) {
+        try {
+            InputStream is = new FileInputStream(png);
+            FileOutputStream fos = new FileOutputStream("/sample.png");
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String getWord(int i) {

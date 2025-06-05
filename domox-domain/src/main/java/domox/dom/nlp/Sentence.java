@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import domox.Constants;
 import domox.DomainModule;
 import domox.dom.rqm.Document;
 import jakarta.inject.Named;
@@ -11,9 +12,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
@@ -24,6 +27,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.Nature;
+import org.apache.causeway.applib.annotation.Optionality;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
@@ -31,6 +36,7 @@ import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +45,7 @@ import java.util.List;
 @Table(schema = DomainModule.SCHEMA, name = "Sentence")
 @EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".Sentence")
-@DomainObject()
+@DomainObject(nature = Nature.ENTITY)
 @DomainObjectLayout(cssClassFa = "paragraph")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
@@ -69,17 +75,28 @@ public class Sentence implements Comparable<Sentence> {
     @Setter
     private String text;
 
-    @OneToMany(mappedBy = "sentence", cascade = CascadeType.PERSIST)
-//    @Property()
+    @OneToMany(mappedBy = "sentence", cascade = CascadeType.ALL)
     @Getter
     @Setter
     private List<Token> tokenList = new ArrayList<>();
 
-    @Column(nullable = true)
-    @Property()
+    @Lob
     @Getter
     @Setter
-    private Blob diagram;
+    private Blob image;
+
+    @Programmatic
+    public Sentence updateImageFromBytes(byte[] bytes, String filename) {
+        final Blob blob = new Blob(filename, Constants.pngMimeType, bytes);
+        this.image = blob;
+        return this;
+    }
+
+    @Transient
+    @Property(optionality = Optionality.OPTIONAL)
+    public BufferedImage getDiagram() {
+        return image.asImage().get();
+    }
 
     @ManyToOne()
     @JoinColumn(name = "documentId")

@@ -34,9 +34,5 @@ public class TypedDependencies {
         repositoryService.persist(obj);
         return obj;
     }
-
-    public TypedDependency findByToken(Token token) {
-        return typedDependencyRepository.findByToken(token);
-    }
-
+    
 }

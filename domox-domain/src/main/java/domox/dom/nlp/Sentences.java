@@ -17,7 +17,6 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
-import org.apache.causeway.applib.value.Blob;
 
 import java.util.List;
 
@@ -54,13 +53,14 @@ public class Sentences {
         final List<TokenTO> tokenToList = sentenceTO.getTokens();
         for (final TokenTO tokenTO : tokenToList) {
             final Token t = tokens.build(tokenTO);
+            t.setSentence(sentence);
             sentence.getTokenList().add(t);
         }
         // set TypedDependencies
         assignTypedDependencies(sentenceTO, sentence);
         //
-        final Blob diagram = sentenceAdapter.buildTypedDependencyDiagram(sentenceTO);
-        sentence.setDiagram(diagram);
+        final byte[] diagram = sentenceAdapter.buildTypedDependencyDiagram(sentenceTO);
+        sentence.updateImageFromBytes(diagram, "test.png");
         return sentence;
     }
 

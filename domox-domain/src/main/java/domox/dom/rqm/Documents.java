@@ -113,4 +113,9 @@ public class Documents {
         return build(title, filename, content, authors);
     }
 
+    @Action()
+    @ActionLayout(sequence = "6", cssClassFa = "trash")
+    public void delete(Document document) {
+        repositoryService.remove(document);
+    }
 }

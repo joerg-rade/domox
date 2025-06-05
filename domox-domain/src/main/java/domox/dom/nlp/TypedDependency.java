@@ -2,6 +2,7 @@ package domox.dom.nlp;
 
 import domox.DomainModule;
 import jakarta.inject.Named;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -58,21 +59,21 @@ public class TypedDependency implements Comparable<TypedDependency> {
     @Setter
     private TdType type;
 
-    @OneToOne()
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "partAId")
     @Property()
     @Getter
     @Setter
     private Token partA;
 
-    @OneToOne()
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "partBId")
     @Property()
     @Getter
     @Setter
     private Token partB;
 
-    @ManyToOne()
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "relation_id")
     private Relation relation;
 

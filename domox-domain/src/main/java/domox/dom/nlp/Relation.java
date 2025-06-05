@@ -2,6 +2,7 @@ package domox.dom.nlp;
 
 import domox.DomainModule;
 import jakarta.inject.Named;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -53,7 +54,7 @@ public class Relation implements Comparable<Relation> {
     private RelationType type;
 
     //TODO cardinality 1:2
-    @OneToMany(mappedBy = "relation")
+    @OneToMany(mappedBy = "relation", cascade = CascadeType.ALL)
     private List<TypedDependency> modelDependencies = new ArrayList<>();
 
     //region > compareTo, toString

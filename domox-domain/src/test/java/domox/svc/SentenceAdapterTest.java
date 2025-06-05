@@ -3,7 +3,6 @@ package domox.svc;
 import domox.FileUtil;
 import domox.nlp.DocumentTO;
 import domox.nlp.SentenceTO;
-import org.apache.causeway.applib.value.Blob;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,7 +18,7 @@ class SentenceAdapterTest {
 
         final SentenceAdapter sut = new SentenceAdapter(sentenceTO);
         // when
-        final Blob diagram = sut.buildTypedDependencyDiagram(sentenceTO);
+        final byte[] diagram = sut.buildTypedDependencyDiagram(sentenceTO);
         // then
         assertNotNull(diagram);
     }

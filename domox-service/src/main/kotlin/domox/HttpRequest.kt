@@ -55,7 +55,7 @@ class HttpRequest {
         val endpoint = Constants.plantUmlUrl + "/plantuml"
         val (request, response, result) = endpoint
             .httpPost()
-            .set("Accept", Constants.svgMimeType)
+            .set("Accept", Constants.pngMimeType)
             .set("Content-Type", Constants.stdMimeType)
             .body(arg)
             .responseString()
