@@ -1,7 +1,5 @@
-.Apache Causeway - Qualities of the Framework
-[plantuml, frameworkQualities, svg]
---
 @startuml
+title Apache Causeway - Qualities of the Framework
 !include <tupadr3/font-awesome/envira>
 !include <tupadr3/font-awesome/envira>
 !include <tupadr3/font-awesome/cog>
@@ -35,6 +33,10 @@ uig --> ta : promotes
 ta --> sc
 c --> sc
 
+note bottom of uig #gold
+[[https://en.wikipedia.org/wiki/Unique_selling_proposition Unique\nSelling\nProposition]]
+end note
+
 '// role
 (<B>Lean Code</B>\nDevelopment\nPlatform) as lc #gold
 'URL="https://en.wikipedia.org/wiki/Low-code_development_platforms" style=filled fillcolor=yellow]
@@ -61,7 +63,7 @@ file "Allows for tight \n<B>feedback loop </B>,\n ideal for \n<B>agile</B> proje
 uig_note .. uig
 uig_note .. dbg
 
-note top of ro
+note right of ro
 Allows for
 * custom UI
 * automation
@@ -79,24 +81,25 @@ end note
 
 ddd ..> uig : suggests \nto avoid \n <B>Smart UI </B>,\n Anti Pattern
 
+legend
+  [[https://en.wikipedia.org/wiki/Object_Modeling_in_Color Modeling in Color]]
+  * <back:pink>pink: moment-interval (here: economic aspects)
+    Does it represent a moment or interval of time that we need to remember and work with for legal or business reasons?
+    Examples in business systems generally model activities involving people, places and things such as a sale, an order,
+    a rental, an employment, making a journey, etc.
+  * <back:lightyellow>yellow: roles
+    Is it a way of participating in an activity (by either a person, place, or thing)?
+    A person playing the role of<an employee in an employment, a thing playing the role of a product in a sale,
+    a location playing the role of a classroom for a training course, are examples of roles.
+  *<back:lightblue>blue: description (here: documentation))
+    Is it simply a catalog-entry-like description which classifies or 'labels' an object?
+    For example, the make and model of a car categorises or describes a number of physical vehicles.
+    The relationship between the blue description and green party, place or thing is a type-instance relationship
+    based on differences in the values of data items held in the 'type' object.
+  *<back:lightgreen>green: party, place, or thing (here: artifacts)
+    Something tangible, uniquely identifiable. Typically the role-players in a system.
+    People are green. Organizations are green. The physical objects involved in a rental such as the physical DVDs are green.
+    Normally, if you get through the above three questions and end up here, your class is a "green." +
+end legend
+
 @enduml
---
-.Legend
-*pink* economic aspects +
-*blue* description +
-*yellow* role +
-*green* artifacts +
-[quote, Modeling in Color, Wikipedia]
-    *pink* moment-interval +
-        Does it represent a moment or interval of time that we need to remember and work with for legal or business reasons? Examples in business systems generally model activities involving people, places and things such as a sale, an order, a rental, an employment, making a journey, etc. +
-    *yellow* roles +
-        Is it a way of participating in an activity (by either a person, place, or thing)? A person playing the role of<an employee in an employment, a thing playing the role of a product in a sale, a location playing the role of a classroom for a training course, are examples of roles. +
-    *blue* description +
-         Is it simply a catalog-entry-like description which classifies or 'labels' an object? For example, the make and model of a car categorises or describes a number of physical vehicles. The relationship between the blue description and green party, place or thing is a type-instance relationship based on differences in the values of data items held in the 'type' object. +
-    *green* party, place, or thing +
-        Something tangible, uniquely identifiable. Typically the role-players in a system. People are green. Organizations are green. The physical objects involved in a rental such as the physical DVDs are green . Normally, if you get through the above three questions and end up here, your class is a "green." +
-
-
-.References
-* Modeling in Color [https://en.wikipedia.org/wiki/Object_Modeling_in_Color] 
-* Unique SellingProposition [https://en.wikipedia.org/wiki/Unique_selling_proposition]

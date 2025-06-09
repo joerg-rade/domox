@@ -1,0 +1,16 @@
+@startuml
+component "NLP Service" as nlp {
+  [Port: 8999 → 9000]
+}
+
+component "PostgreSQL Database" as db {
+  [Port: 5432 → 5432]
+}
+
+component "Kroki Diagram Service" as kroki {
+  [Port: 8000 → 8000]
+}
+
+nlp --> db : Connects via Environment Variables
+kroki --> db : Potential Data Interaction
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+!include <tupadr3/font-awesome/archive>
+!include <tupadr3/font-awesome/cube>
+!include <tupadr3/font-awesome/cubes>
+!include <tupadr3/font-awesome/envira>
+!include <tupadr3/font-awesome/eye>
+!include <tupadr3/font-awesome/industry>
+!include <tupadr3/font-awesome/sitemap>
+!include <tupadr3/devicons2/apache_line>
+
+top to bottom direction
+!$color = "#lightyellow"
+
+component "<$apache_line>\nApache\nPulsar"  as AP $color
+database "..**<NOSQL>**..\nMongoDB" as NOSQL $color
+database "..**<RDBMS>**..\nH2\nPostgres\netc." as DB $color
+component "..<$envira>Spring Boot.." as SB {
+    component "<$apache_line>\nApache Causeway" as AI {
+        rectangle <$cubes> {
+            rectangle "..<$eye>..\n<ViewModel>\n<Class>\n(Grand;-)UnifiedObject" as VM $color
+            rectangle "..<$cube>..\n<Entity>\n<Class>\nCrud" as CRUD $color
+            rectangle "..<$cube>..\n<Entity>\n<Class>\nReadOnly" as RO $color
+            VM --> CRUD
+            VM --> RO
+        }
+        rectangle <$industry> {
+            rectangle "<Factory>\n<Class>\nCrudFctr" as CRUDF $color
+            rectangle "<Factory>\n<Class>\nReadOnlyFctr" as ROF $color
+        }
+    }
+rectangle <$archive> {
+rectangle "<Repository>\n<Interface>\nCrudJpaRpstr" as CRUDR $color
+rectangle "<Repository>\n<Interface>\nReadOnlyJpaRpstr" as ROR $color
+}
+CRUDF --> CRUD
+CRUDF --> CRUDR
+ROF --> RO
+ROF --> ROR
+}
+AP --> NOSQL : MongoDB\nConnector
+ROR --> NOSQL : findByValue
+CRUDR --> DB : findById
+
+note right of NOSQL
+additional <dependency>
+spring-boot-starter-data-mongodb
+end note
+
+@enduml

@@ -3,8 +3,10 @@ package domox.diagram
 import domox.Constants
 import domox.nlp.DocumentTO
 import domox.nlp.StanfordCoreNlpAPI
+import junit.framework.TestCase.assertEquals
 import org.junit.Test
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 internal class TdDiagramTest {
     @Test
@@ -20,14 +22,14 @@ internal class TdDiagramTest {
         //when
         val pumlCode = TdDiagram.build(coreSentence)
         //then
-/*        assertTrue(pumlCode.contains("p1 -> w1"))
-        assertTrue(pumlCode.contains("p10 -> w10"))
-        assertTrue(pumlCode.contains("w1 -> w2 -> w3 -> w4 -> w5 -> w6 -> w7 -> w8 -> w9 -> w10"))
-        assertEquals(1, countOccurrencesOfIn("CHARTREUSE", pumlCode))
-        assertEquals(1, countOccurrencesOfIn("WHITE", pumlCode))
-        assertEquals(2, countOccurrencesOfIn("MAGENTA", pumlCode))
-        assertEquals(5, countOccurrencesOfIn("CYAN", pumlCode))
-        assertEquals(1, countOccurrencesOfIn("LIGHTGREY", pumlCode))*/
+        assertTrue(pumlCode.contains("rectangle \"A\" as W1"))
+        assertTrue(pumlCode.contains("card \"DT\" as D1"))
+        assertTrue(pumlCode.contains("D1 -d-( W1"))
+        assertTrue(pumlCode.contains("D9 -r-> D10"))
+        assertEquals(4, countOccurrencesOfIn("D1 ", pumlCode))
+        assertEquals(4, countOccurrencesOfIn("D10 ", pumlCode))
+        assertEquals(5, countOccurrencesOfIn("NN", pumlCode))
+        assertEquals(2, countOccurrencesOfIn("compound", pumlCode))
         System.out.println(pumlCode)
     }
 

@@ -1,10 +1,5 @@
-.sentence
-[plantuml,file="sentence.png"]
---
 @startmindmap
-skinparam nodesep 0
 top to bottom direction
-
 + S
 ++ NP
 +++[#MAGENTA] DT
@@ -23,12 +18,11 @@ top to bottom direction
 ++++_ title
 +++[#CYAN] NN
 ++++_ language
-
 ++[#WHITE] CC
 +++_ and
 ++[#CYAN] NN
 +++_ level
 ++[#LIGHTGREY] .
 +++_ .
+
 @endmindmap
---
