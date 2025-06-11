@@ -29,6 +29,7 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Nature;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
+import org.apache.causeway.applib.annotation.Title;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.applib.value.Blob;
@@ -48,6 +49,11 @@ import java.util.List;
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 public class Sentence implements Comparable<Sentence> {
+
+    @Title
+    String title() {
+        return this.document.getTitle() + ".S" + this.id + "." + this.version;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

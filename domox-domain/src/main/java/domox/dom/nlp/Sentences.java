@@ -1,7 +1,6 @@
 package domox.dom.nlp;
 
 import domox.DomainModule;
-import domox.dom.rqm.Document;
 import domox.nlp.BasicDependencyTO;
 import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
@@ -67,10 +66,7 @@ public class Sentences {
     public void initDiagram(SentenceTO sentenceTO, Sentence sentence) {
         final SentenceAdapter sentenceAdapter = new SentenceAdapter(sentenceTO);
         final byte[] diagram = sentenceAdapter.buildTypedDependencyDiagram(sentenceTO);
-        final Document doc = sentence.getDocument();
-        final String docName = doc.getTitle().replaceAll(" ", "_");
-        final int sentenceNo = doc.getSentences().indexOf(sentence);
-        final String fileName = docName + ".S" + sentenceNo + ".svg";
+        final String fileName = sentence.title() + ".svg";
         sentence.updateImageFromBytes(diagram, fileName);
     }
 

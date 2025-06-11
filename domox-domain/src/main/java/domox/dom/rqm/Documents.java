@@ -2,7 +2,6 @@ package domox.dom.rqm;
 
 import domox.DomainModule;
 import domox.FileUtil;
-import domox.HtmlReader;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.Sentences;
 import domox.nlp.DocumentTO;
@@ -65,20 +64,6 @@ public class Documents {
         return answer;
     }
 
-    @Action()
-    @ActionLayout(sequence = "4", cssClassFa = "play")
-    public Document loadUrlSample() {
-        //https://www.reqview.com/papers/ReqView-Example_Software_Requirements_Specification_SRS_Document.pdf
-        //final String url = "https://web.cse.ohio-state.edu/~bair.41/616/Project/Example_Document/Req_Doc_Example.html";
-        final String url = "https://en.wikipedia.org/wiki/Logistics";
-        final String title = "Requirements Document Example";
-
-        final HtmlReader reader = new HtmlReader();
-        final String txtContent = reader.extractContentFromUrl(url);
-        final Clob content = new Clob("", "text/xml", txtContent);
-        return build(title, url, content, null);
-    }
-
     private Document build(String title, String url, Clob content, List<Author> authors) {
         final Document document = create(title, url, content, authors);
         final String rawText = document.getContent();
@@ -101,6 +86,7 @@ public class Documents {
         return sentenceList;
     }
 
+    //TODO move to Prototyping
     @Action()
     @ActionLayout(sequence = "5", cssClassFa = "play")
     public Document loadFileSample() {
