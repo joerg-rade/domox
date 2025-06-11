@@ -1,6 +1,7 @@
 package domox.dom.nlp;
 
 import domox.DomainModule;
+import domox.dom.rqm.Document;
 import domox.nlp.BasicDependencyTO;
 import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
@@ -18,6 +19,7 @@ import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @DomainService
@@ -58,10 +60,18 @@ public class Sentences {
         }
         // set TypedDependencies
         assignTypedDependencies(sentenceTO, sentence);
-        //
-        final byte[] diagram = sentenceAdapter.buildTypedDependencyDiagram(sentenceTO);
-        sentence.updateImageFromBytes(diagram, "test.png");
         return sentence;
+    }
+
+    @Programmatic
+    public void initDiagram(SentenceTO sentenceTO, Sentence sentence) {
+        final SentenceAdapter sentenceAdapter = new SentenceAdapter(sentenceTO);
+        final byte[] diagram = sentenceAdapter.buildTypedDependencyDiagram(sentenceTO);
+        final Document doc = sentence.getDocument();
+        final String docName = doc.getTitle().replaceAll(" ", "_");
+        final int sentenceNo = doc.getSentences().indexOf(sentence);
+        final String fileName = docName + ".S" + sentenceNo + ".svg";
+        sentence.updateImageFromBytes(diagram, fileName);
     }
 
     private void assignTypedDependencies(SentenceTO sentenceTO, Sentence sentence) {
@@ -75,11 +85,14 @@ public class Sentences {
             //
             final int govIndex = dependency.getGovernor().intValue();
             final Token a = sentence.getToken(govIndex);
-            td.setPartA(a);
             //
             final int depIndex = dependency.getDependent().intValue();
             final Token b = sentence.getToken(depIndex);
-            td.setPartB(b);
+            //
+            final List<Token> tokens = new ArrayList<>(2);
+            tokens.add(a);
+            tokens.add(b);
+            td.setTokenList(tokens);
 
             repositoryService.persist(td);
         }

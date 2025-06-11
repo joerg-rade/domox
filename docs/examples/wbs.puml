@@ -1,0 +1,32 @@
+@startwbs
+skinparam nodesep 0
+skinparam ranksep 0
+skinparam splines ortho
++ Sentence
+++ NP
++++[#MAGENTA] DT
+++++_ A
++++[#CYAN] NN
+++++_ "language" as LAN1
++++[#CYAN] NN
+++++_ "tape" as T
+++[#CHARTREUSE] VP
++++[#CHARTREUSE] VB
+++++_ has
+++ NP
++++[#MAGENTA] DT
+++++_ a
++++[#CYAN] NN
+++++_ title
++++[#CYAN] NN
+++++_ "language\n[[http://www.heise.de]]" as LAN2
+++[#WHITE] CC
++++_ and
+++[#CYAN] NN
++++_ level
+++[#LIGHTGREY] .
++++_ .
+
+LAN1 --> LAN2 #lightgrey
+
+@endwbs

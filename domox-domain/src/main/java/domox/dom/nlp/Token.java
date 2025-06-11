@@ -70,9 +70,11 @@ public class Token implements Comparable<Token> {
 
     @Column(nullable = false)
     @Property()
-    @Getter
-    @Setter
     private PartOfSpeechType type;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "typedDependency_id")
+    private TypedDependency typedDependency;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "sentence_id")

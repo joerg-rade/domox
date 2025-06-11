@@ -7,10 +7,6 @@ import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
 import lombok.RequiredArgsConstructor;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -28,24 +24,8 @@ public class SentenceAdapter {
 
     public byte[] buildTypedDependencyDiagram(SentenceTO sentenceTO) {
         final String pumlCode = TdDiagram.INSTANCE.build(sentenceTO);
-        final String png = new HttpRequest().invokePlantUML(pumlCode);
-        writeToFile(png);
-        return png.getBytes();
-    }
-
-    private void writeToFile(String png) {
-        try {
-            InputStream is = new FileInputStream(png);
-            FileOutputStream fos = new FileOutputStream("/sample.png");
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = is.read(buffer)) != -1) {
-                fos.write(buffer, 0, bytesRead);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        final String diagram = new HttpRequest().invokePlantUML(pumlCode);
+        return diagram.getBytes();
     }
 
     public String getWord(int i) {

@@ -96,6 +96,7 @@ public class Documents {
             final Sentence sentence = sentences.build(st);
             sentence.setDocument(document);
             sentenceList.add(sentence);
+            sentences.initDiagram(st, sentence);
         }
         return sentenceList;
     }

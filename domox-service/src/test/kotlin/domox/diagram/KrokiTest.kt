@@ -1,39 +1,40 @@
 package domox.diagram;
 
-import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.utility.DockerImageName
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+class KrokiTest {
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class KrokiTest {
-
-    private static final DockerImageName KROKI_IMAGE = DockerImageName.parse("yuzutech/kroki");
+    companion object {
+        private val KROKI_IMAGE = DockerImageName.parse("yuzutech/kroki")
+    }
 
     @Test
-    void testKrokiContainer() throws Exception {
-        try (GenericContainer<?> kroki = new GenericContainer<>(KROKI_IMAGE)
-                .withExposedPorts(8000)) {
+    @Throws(Exception::class)
+    fun testKrokiContainer() {
+        GenericContainer(KROKI_IMAGE)
+            .withExposedPorts(8000).use { kroki ->
+                kroki.start()
+                val krokiUrl = "http://" + kroki.getHost() + ":" + kroki.getMappedPort(8000) + "/plantuml/svg/"
 
-            kroki.start();
-            String krokiUrl = "http://" + kroki.getHost() + ":" + kroki.getMappedPort(8000) + "/plantuml/svg/";
+                // Example PlantUML diagram
+                val plantUmlCode = "@startuml\nAlice -> Bob: Hello\n@enduml"
+                val postData = plantUmlCode.toByteArray(StandardCharsets.UTF_8)
 
-            // Example PlantUML diagram
-            String plantUmlCode = "@startuml\nAlice -> Bob: Hello\n@enduml";
-            byte[] postData = plantUmlCode.getBytes(StandardCharsets.UTF_8);
+                // Send request to Kroki
+                val connection = URL(krokiUrl).openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.doOutput = true
+                connection.outputStream.write(postData)
 
-            // Send request to Kroki
-            HttpURLConnection connection = (HttpURLConnection) new URL(krokiUrl).openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.getOutputStream().write(postData);
-
-            // Validate response
-            assertEquals(200, connection.getResponseCode());
-        }
+                // Validate response
+                Assertions.assertEquals(200, connection.responseCode)
+            }
     }
+
 }

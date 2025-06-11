@@ -11,7 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -29,7 +29,9 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
@@ -59,19 +61,18 @@ public class TypedDependency implements Comparable<TypedDependency> {
     @Setter
     private TdType type;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "partAId")
-    @Property()
+    @OneToMany(mappedBy = "typedDependency", cascade = CascadeType.ALL)
     @Getter
     @Setter
-    private Token partA;
+    private List<Token> tokenList = new ArrayList<>(2);
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "partBId")
-    @Property()
-    @Getter
-    @Setter
-    private Token partB;
+    public Token getPartA() {
+        return tokenList.isEmpty() ? null : tokenList.get(0);
+    }
+
+    public Token getPartB() {
+        return tokenList.isEmpty() ? null : tokenList.get(1);
+    }
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "relation_id")
