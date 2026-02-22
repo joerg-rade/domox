@@ -1,4 +1,20 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+#      - nlp
+#     - kroki
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - "8080:8080"
+
   nlp:
     build:
       context: docker/corenlp/
@@ -18,20 +34,7 @@ services:
     ports:
       - "5432:5432"
 
-  kroki:
-    image: yuzutech/kroki
-    ports:
-      - "8000:8000"
-
-#  marytts:
-#    image: synesthesiam/marytts:5.2
+#  kroki:
+#    image: yuzutech/kroki
 #    ports:
-#      - "59125:59125"
-
-#  nlpbox:
-#    image: nlpbox/corenlp
-#    ports:
-#      - "8999:9000"
-#    environment:
-#      - JVM_OPTS=-Xmx4g
-
+#      - "8000:8000"

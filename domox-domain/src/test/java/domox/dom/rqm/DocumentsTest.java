@@ -3,19 +3,15 @@ package domox.dom.rqm;
 import domox.dom.nlp.Sentences;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
 
-@Ignore
 class DocumentsTest {
 
     @Mock

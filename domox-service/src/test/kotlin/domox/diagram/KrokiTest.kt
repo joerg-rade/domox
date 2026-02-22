@@ -1,4 +1,4 @@
-package domox.diagram;
+package domox.diagram
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -20,7 +20,7 @@ class KrokiTest {
         GenericContainer(KROKI_IMAGE)
             .withExposedPorts(8000).use { kroki ->
                 kroki.start()
-                val krokiUrl = "http://" + kroki.getHost() + ":" + kroki.getMappedPort(8000) + "/plantuml/svg/"
+                val krokiUrl = "http://" + kroki.host + ":" + kroki.getMappedPort(8000) + "/plantuml/svg/"
 
                 // Example PlantUML diagram
                 val plantUmlCode = "@startuml\nAlice -> Bob: Hello\n@enduml"

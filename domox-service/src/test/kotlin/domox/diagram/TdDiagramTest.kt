@@ -3,8 +3,8 @@ package domox.diagram
 import domox.Constants
 import domox.nlp.DocumentTO
 import domox.nlp.StanfordCoreNlpAPI
-import junit.framework.TestCase.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 

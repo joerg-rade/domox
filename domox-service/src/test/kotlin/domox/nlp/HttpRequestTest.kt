@@ -1,11 +1,10 @@
 package domox.nlp
 
 import domox.HttpRequest
-import junit.framework.TestCase
-import org.junit.Assert.assertNotEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Test
 
-class HttpRequestTest : TestCase() {
+class HttpRequestTest {
 
     @Test // IntegrationTest !
     fun testInvokeCoreNLP() {
