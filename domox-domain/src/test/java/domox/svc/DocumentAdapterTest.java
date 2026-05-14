@@ -4,11 +4,13 @@ import domox.Constants;
 import domox.nlp.DocumentTO;
 import domox.nlp.StanfordCoreNlpAPI;
 import lombok.val;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Disabled("Requires CoreNLP service to be running")
 class DocumentAdapterTest {
 
     @Test
@@ -23,9 +25,9 @@ class DocumentAdapterTest {
         assertNotNull(documentTO);
         assertNotNull(documentTO.getSentences());
         assertTrue(documentTO.getSentences().size() > 0);
-        assertNotNull(documentTO.getSentences().get(0));
+        assertNotNull(documentTO.getSentences().getFirst());
 
-        val sentence = documentTO.getSentences().get(0);
+        val sentence = documentTO.getSentences().getFirst();
         assertNotNull(sentence);
     }
 

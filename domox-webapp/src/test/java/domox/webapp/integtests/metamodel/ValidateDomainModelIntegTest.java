@@ -4,9 +4,11 @@ import domox.webapp.integtests.ApplicationIntegTestAbstract;
 import jakarta.inject.Inject;
 import org.apache.causeway.applib.services.registry.ServiceRegistry;
 import org.apache.causeway.testing.integtestsupport.applib.validate.DomainModelValidator;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-class ValidateDomainModel_IntegTest extends ApplicationIntegTestAbstract {
+@Disabled("Requires PostgreSQL database to be running")
+class ValidateDomainModelIntegTest extends ApplicationIntegTestAbstract {
 
     @Inject
     ServiceRegistry serviceRegistry;
