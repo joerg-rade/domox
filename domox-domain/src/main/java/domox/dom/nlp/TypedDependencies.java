@@ -4,7 +4,6 @@ import domox.DomainModule;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
@@ -16,12 +15,18 @@ import java.util.List;
 @DomainService
 @Named(DomainModule.NAMESPACE + ".TypedDependencies")
 @Priority(PriorityPrecedence.EARLY)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class TypedDependencies {
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
     private final TypedDependencyRepository typedDependencyRepository;
+
+    @Inject
+    public TypedDependencies(RepositoryService repositoryService, FactoryService factoryService, TypedDependencyRepository typedDependencyRepository) {
+        this.repositoryService = repositoryService;
+        this.factoryService = factoryService;
+        this.typedDependencyRepository = typedDependencyRepository;
+    }
 
     @ActionLayout(sequence = "1")
     public List<TypedDependency> listAll() {

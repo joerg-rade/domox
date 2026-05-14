@@ -37,6 +37,12 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib-jdk8</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -145,18 +151,24 @@
             <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-commons</artifactId>
-            <version>1.10.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-engine</artifactId>
-            <version>1.10.2</version>
-            <scope>test</scope>
-        </dependency>
+         <dependency>
+             <groupId>org.junit.platform</groupId>
+             <artifactId>junit-platform-commons</artifactId>
+             <version>1.10.2</version>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.junit.platform</groupId>
+             <artifactId>junit-platform-engine</artifactId>
+             <version>1.10.2</version>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.junit.platform</groupId>
+             <artifactId>junit-platform-launcher</artifactId>
+             <version>1.10.2</version>
+             <scope>test</scope>
+         </dependency>
     </dependencies>
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
@@ -168,9 +180,9 @@
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
                 <configuration>
-                    <jvmTarget>21</jvmTarget>
-                    <languageVersion>1.9</languageVersion>
-                    <apiVersion>1.9</apiVersion>
+                    <jvmTarget>23</jvmTarget>
+                    <languageVersion>2.2</languageVersion>
+                    <apiVersion>2.2</apiVersion>
                     <args>
                         <arg>-Xjvm-default=all</arg>
                     </args>
@@ -197,9 +209,16 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.14.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
-                    <release>21</release>
+                    <source>23</source>
+                    <target>23</target>
+                    <release>23</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>

@@ -1,9 +1,11 @@
 package domox.diagram
 
 import domox.UmlUtils
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 
+@Disabled("Requires external diagram rendering service")
 internal class UmlUtilsTest {
 
     @Test //IntegrationTest

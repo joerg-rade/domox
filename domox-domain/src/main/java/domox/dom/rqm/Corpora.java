@@ -1,7 +1,6 @@
 package domox.dom.rqm;
 
 import domox.DomainModule;
-import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
@@ -15,11 +14,16 @@ import java.util.List;
 @Named(DomainModule.NAMESPACE + ".Corpora")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Corpora {
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
+
+    @Inject
+    public Corpora(RepositoryService repositoryService, FactoryService factoryService) {
+        this.repositoryService = repositoryService;
+        this.factoryService = factoryService;
+    }
 
     @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)

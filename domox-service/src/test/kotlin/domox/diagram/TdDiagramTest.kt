@@ -4,10 +4,12 @@ import domox.Constants
 import domox.nlp.DocumentTO
 import domox.nlp.StanfordCoreNlpAPI
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
+@Disabled("Requires CoreNLP service running")
 internal class TdDiagramTest {
     @Test
     fun testBuild() {

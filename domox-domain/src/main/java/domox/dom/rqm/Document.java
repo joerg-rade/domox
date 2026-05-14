@@ -25,7 +25,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.Domain;
@@ -39,11 +38,12 @@ import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.applib.value.Clob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.List;
 
-@Slf4j
 @Entity
 @Table(schema = DomainModule.SCHEMA)
 @EntityListeners(CausewayEntityListener.class)
@@ -58,6 +58,7 @@ import java.util.List;
 @ToString
 public class Document implements Comparable<Document> {
 
+    private static final Logger log = LoggerFactory.getLogger(Document.class);
     private static MimeType MIME_TYPE = null;
 
     @Id
@@ -76,17 +77,41 @@ public class Document implements Comparable<Document> {
     @Setter
     private String title;
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     @PropertyLayout(sequence = "2")
     @Column(nullable = false)
     @Getter
     @Setter
     private String docVersion; //SemVer
 
+    public String getDocVersion() {
+        return docVersion;
+    }
+
+    public void setDocVersion(String docVersion) {
+        this.docVersion = docVersion;
+    }
+
     @PropertyLayout(sequence = "3")
     @Column(nullable = true)
     @Getter
     @Setter
     private String url;
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     //Column(nullable = false)
     @Embedded
@@ -116,6 +141,14 @@ public class Document implements Comparable<Document> {
     @ToString.Exclude
     private List<Sentence> sentences;
 
+    public List<Sentence> getSentences() {
+        return sentences;
+    }
+
+    public void setSentences(List<Sentence> sentences) {
+        this.sentences = sentences;
+    }
+
     @PropertyLayout(sequence = "6")
     @ManyToMany(mappedBy = "documents", cascade = CascadeType.ALL)
     @Getter
@@ -123,10 +156,26 @@ public class Document implements Comparable<Document> {
     @ToString.Exclude
     public List<Author> authors;
 
+    public List<Author> getAuthors() {
+        return authors;
+    }
+
+    public void setAuthors(List<Author> authors) {
+        this.authors = authors;
+    }
+
     @Column(nullable = false)
     @Getter
     @Setter
     private Timestamp createdAt;
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
 
     @Column(nullable = true)
     private Timestamp updatedAt;

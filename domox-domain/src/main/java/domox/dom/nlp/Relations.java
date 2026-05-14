@@ -4,7 +4,6 @@ import domox.DomainModule;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
@@ -15,10 +14,14 @@ import java.util.List;
 @DomainService
 @Named(DomainModule.NAMESPACE + ".Relations")
 @Priority(PriorityPrecedence.EARLY)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Relations {
 
     private final RepositoryService repositoryService;
+
+    @Inject
+    public Relations(RepositoryService repositoryService) {
+        this.repositoryService = repositoryService;
+    }
 
     @ActionLayout(sequence = "1")
     public List<Relation> listAll() {

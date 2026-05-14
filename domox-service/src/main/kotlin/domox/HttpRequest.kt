@@ -13,10 +13,10 @@ class HttpRequest {
     {"annotators":"tokenize, ssplit, pos, lemma, ner, parse, sentiment","outputFormat":"json"}
     %7B%22annotators%22%3A%22tokenize%2C+ssplit%2C+pos%2C+lemma%2C+ner%2C+parse%2C+sentiment%22%2C%22outputFormat%22%3A%22json%22%7D
      */
-    fun invokeCoreNLP_Fuel(arg: String, parameters: String): String {
+    fun invokeCoreNLP_Fuel(arg: String, parameters: String, host: String = Constants.coreNlpHost, port: Int = Constants.coreNlpPort): String {
         System.out.println("[invokeCoreNLP] " + parameters)
         val query = listOf("properties" to parameters)
-        val coreNlpUrl = Constants.coreNlpScheme + "://" + Constants.coreNlpHost + "/" + Constants.coreNlpPort
+        val coreNlpUrl = Constants.coreNlpScheme + "://" + host + ":" + port
         Thread.sleep(10000)
         FuelManager.instance.timeoutInMillisecond = TimeUnit.SECONDS.toMillis(20).toInt()    // overall request timeout
         FuelManager.instance.timeoutReadInMillisecond = TimeUnit.SECONDS.toMillis(60).toInt() // socket read timeout

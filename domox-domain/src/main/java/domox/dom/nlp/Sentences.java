@@ -8,7 +8,6 @@ import domox.svc.SentenceAdapter;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.Action;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
@@ -24,12 +23,18 @@ import java.util.List;
 @DomainService
 @Named(DomainModule.NAMESPACE + ".Sentences")
 @Priority(PriorityPrecedence.EARLY)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Sentences {
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
     private final Tokens tokens;
+
+    @Inject
+    public Sentences(RepositoryService repositoryService, FactoryService factoryService, Tokens tokens) {
+        this.repositoryService = repositoryService;
+        this.factoryService = factoryService;
+        this.tokens = tokens;
+    }
 
     @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)

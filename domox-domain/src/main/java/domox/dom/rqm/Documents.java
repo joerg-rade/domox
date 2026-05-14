@@ -10,7 +10,6 @@ import domox.svc.DocumentAdapter;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import lombok.RequiredArgsConstructor;
 import org.apache.causeway.applib.annotation.Action;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
@@ -26,11 +25,16 @@ import java.util.List;
 @Named(DomainModule.NAMESPACE + ".Documents")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
-@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Documents {
 
     private final RepositoryService repositoryService;
     private final Sentences sentences;
+
+    @Inject
+    public Documents(RepositoryService repositoryService, Sentences sentences) {
+        this.repositoryService = repositoryService;
+        this.sentences = sentences;
+    }
 
     @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)

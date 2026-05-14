@@ -8,10 +8,10 @@
         <causeway.version>3.5.0</causeway.version>
         <spring-boot.version>3.5.10</spring-boot.version>
         <spring-framework.version>6.2.6</spring-framework.version>
-        <lombok.version>1.18.32</lombok.version>
+        <lombok.version>1.18.38</lombok.version>
         <jmock.version>2.12.0</jmock.version>
         <file.encoding>UTF-8</file.encoding>
-        <kotlin.version>1.9.25</kotlin.version>
+        <kotlin.version>2.2.0</kotlin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <fuel.version>2.3.1</fuel.version>
@@ -22,8 +22,8 @@
         <junit.version>5.10.2</junit.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
         <mockito-inline.version>3.11.2</mockito-inline.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
         <project.version>0.1.0-SNAPSHOT</project.version>
         <maven-cucumber-reporting.version>4.11.2</maven-cucumber-reporting.version>
         <archunit.version>1.3.0</archunit.version>
@@ -39,7 +39,7 @@
     <parent>
         <groupId>org.apache.causeway.app</groupId>
         <artifactId>causeway-app-starter-parent</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.0</version>
         <relativePath/>
     </parent>
 
@@ -375,6 +375,30 @@
                 <artifactId>commons-collections4</artifactId>
                 <version>4.5.0</version>
             </dependency>
+            <!-- force resteasy versions for convergence -->
+            <dependency>
+                <groupId>org.jboss.resteasy</groupId>
+                <artifactId>resteasy-core</artifactId>
+                <version>7.0.0.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.resteasy</groupId>
+                <artifactId>resteasy-core-spi</artifactId>
+                <version>7.0.0.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers</artifactId>
+                <version>1.19.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>1.19.3</version>
+                <scope>test</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
