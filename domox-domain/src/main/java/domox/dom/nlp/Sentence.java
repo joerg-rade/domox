@@ -30,7 +30,6 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.Title;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
-import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.slf4j.Logger;
@@ -107,7 +106,7 @@ public class Sentence implements Comparable<Sentence> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Sentence other) {
-        return ObjectContracts.compare(this, other, "id");
+        return Long.compare(this.id, other.id);
     }
     //endregion
 

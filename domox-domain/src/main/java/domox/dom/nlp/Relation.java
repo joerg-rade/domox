@@ -20,9 +20,9 @@ import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.Publishing;
+import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
-import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.util.ArrayList;
@@ -55,17 +55,20 @@ public class Relation implements Comparable<Relation> {
 
     //TODO cardinality 1:2
     @OneToMany(mappedBy = "relation", cascade = CascadeType.ALL)
+    @Programmatic
     private List<TypedDependency> modelDependencies = new ArrayList<>();
 
     //region > compareTo, toString
     @Override
     public int compareTo(final Relation other) {
-        return ObjectContracts.compare(this, other, "id");
+        return Long.compare(this.id, other.id);
     }
 
     @Override
     public String toString() {
-        return ObjectContracts.toString(this, "id");
+        return "Relation{" +
+                "id=" + id +
+                '}';
     }
     //endregion
 

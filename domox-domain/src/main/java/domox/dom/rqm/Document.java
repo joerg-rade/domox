@@ -33,8 +33,8 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.annotation.Title;
+import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
-import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.applib.value.Clob;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
@@ -77,41 +77,17 @@ public class Document implements Comparable<Document> {
     @Setter
     private String title;
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     @PropertyLayout(sequence = "2")
     @Column(nullable = false)
     @Getter
     @Setter
     private String docVersion; //SemVer
 
-    public String getDocVersion() {
-        return docVersion;
-    }
-
-    public void setDocVersion(String docVersion) {
-        this.docVersion = docVersion;
-    }
-
     @PropertyLayout(sequence = "3")
     @Column(nullable = true)
     @Getter
     @Setter
     private String url;
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
 
     //Column(nullable = false)
     @Embedded
@@ -141,14 +117,6 @@ public class Document implements Comparable<Document> {
     @ToString.Exclude
     private List<Sentence> sentences;
 
-    public List<Sentence> getSentences() {
-        return sentences;
-    }
-
-    public void setSentences(List<Sentence> sentences) {
-        this.sentences = sentences;
-    }
-
     @PropertyLayout(sequence = "6")
     @ManyToMany(mappedBy = "documents", cascade = CascadeType.ALL)
     @Getter
@@ -156,26 +124,10 @@ public class Document implements Comparable<Document> {
     @ToString.Exclude
     public List<Author> authors;
 
-    public List<Author> getAuthors() {
-        return authors;
-    }
-
-    public void setAuthors(List<Author> authors) {
-        this.authors = authors;
-    }
-
     @Column(nullable = false)
     @Getter
     @Setter
     private Timestamp createdAt;
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
 
     @Column(nullable = true)
     private Timestamp updatedAt;
@@ -183,12 +135,13 @@ public class Document implements Comparable<Document> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Document other) {
-        return ObjectContracts.compare(this, other, "id");
+        return Long.compare(this.id, other.id);
     }
     //endregion
 
     @ManyToOne()
     @JoinColumn(name = "corpus_id")
+    @Programmatic
     private Corpus corpus;
 
 }

@@ -2,14 +2,9 @@
 <project version="4">
   <component name="RemoteRepositoriesConfiguration">
     <remote-repository>
-      <option name="id" value="BintrayJCenter" />
-      <option name="name" value="BintrayJCenter" />
-      <option name="url" value="https://jcenter.bintray.com/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="central" />
-      <option name="name" value="Central Repository" />
-      <option name="url" value="https://repo.maven.apache.org/maven2" />
+      <option name="id" value="apache-causeway-snapshots" />
+      <option name="name" value="Apache Causeway Snapshots" />
+      <option name="url" value="https://raw.githubusercontent.com/apache-causeway-committers/causeway-nightly/master/mvn-snapshots" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="repository.nexus" />
@@ -22,11 +17,6 @@
       <option name="url" value="http://repo.maven.apache.org/maven2" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="central" />
-      <option name="name" value="Maven Central repository" />
-      <option name="url" value="https://repo1.maven.org/maven2" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="nexus-incode-work" />
       <option name="name" value="Incode Work (maven)" />
       <option name="url" value="https://nexus.incode.work/repository/nightly-builds" />
@@ -37,14 +27,24 @@
       <option name="url" value="https://repository.int.kn/nexus/content/repositories/sso/" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="central" />
+      <option name="url" value="https://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="Apache Nexus snapshots" />
+      <option name="name" value="Apache Nexus snapshots" />
+      <option name="url" value="https://repository.apache.org/content/repositories/snapshots/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="repository.nexus" />
       <option name="name" value="repository.nexus" />
       <option name="url" value="https://repository.int.kn/nexus/content/groups/public" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="repository.nexus.thirdparty" />
-      <option name="name" value="repository.nexus.thirdparty" />
-      <option name="url" value="http://repository.int.kn:8081/nexus/content/repositories/thirdparty/" />
+      <option name="id" value="apache-releases" />
+      <option name="name" value="Apache Releases" />
+      <option name="url" value="https://repository.apache.org/content/repositories/releases/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="repository.nexus" />
@@ -52,9 +52,9 @@
       <option name="url" value="http://repository.int.kn/nexus/content/groups/public" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="repository.nexus.thirdparty" />
-      <option name="name" value="repository.nexus.thirdparty" />
-      <option name="url" value="http://repository.int.kn/nexus/content/repositories/thirdparty/" />
+      <option name="id" value="causeway-nightly-snapshots" />
+      <option name="name" value="Causeway Nightly Snapshots (maven)" />
+      <option name="url" value="https://raw.githubusercontent.com/apache-causeway-committers/causeway-nightly/master/mvn-snapshots" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="MavenRepo" />
@@ -72,11 +72,6 @@
       <option name="url" value="https://repo.incode.work" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="Apache Repository" />
-      <option name="name" value="Apache Repository" />
-      <option name="url" value="http://repository.apache.org" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="repository.nexus.thirdparty" />
       <option name="name" value="repository.nexus.thirdparty" />
       <option name="url" value="https://repository.int.kn/nexus/content/repositories/thirdparty/" />
@@ -87,9 +82,54 @@
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="Sonatype OSS snapshots" />
+      <option name="name" value="Sonatype OSS snapshots" />
+      <option name="url" value="https://oss.sonatype.org/content/repositories/snapshots/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="repository.nexus3" />
       <option name="name" value="repository.nexus3" />
       <option name="url" value="https://repository.int.kn/repository/maven/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repository.nexus.old" />
+      <option name="name" value="repository.nexus.old" />
+      <option name="url" value="http://repository.int.kn:8081/nexus/content/groups/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="BintrayJCenter" />
+      <option name="name" value="BintrayJCenter" />
+      <option name="url" value="https://jcenter.bintray.com/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Central Repository" />
+      <option name="url" value="https://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Maven Central repository" />
+      <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repository.nexus.thirdparty" />
+      <option name="name" value="repository.nexus.thirdparty" />
+      <option name="url" value="http://repository.int.kn:8081/nexus/content/repositories/thirdparty/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repository.nexus.thirdparty" />
+      <option name="name" value="repository.nexus.thirdparty" />
+      <option name="url" value="http://repository.int.kn/nexus/content/repositories/thirdparty/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="nexus3" />
+      <option name="name" value="Nexus Maven Repository" />
+      <option name="url" value="https://repository.int.kn/repository/maven/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="Apache Repository" />
+      <option name="name" value="Apache Repository" />
+      <option name="url" value="http://repository.apache.org" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="repository.central" />
@@ -97,9 +137,9 @@
       <option name="url" value="http://repo.maven.apache.org/maven2" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="repository.nexus.old" />
-      <option name="name" value="repository.nexus.old" />
-      <option name="url" value="http://repository.int.kn:8081/nexus/content/groups/public" />
+      <option name="id" value="central" />
+      <option name="name" value="central" />
+      <option name="url" value="https://repository.apache.org/" />
     </remote-repository>
   </component>
 </project>

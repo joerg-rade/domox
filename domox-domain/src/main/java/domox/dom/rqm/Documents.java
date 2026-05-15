@@ -48,7 +48,7 @@ public class Documents {
         final Document obj = new Document();
         obj.setTitle(title);
         obj.setUrl(url);
-        obj.setContent(content.getChars().toString());
+        obj.setContent(content.chars().toString());
         obj.setAuthors(authors);
         obj.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         obj.setDocVersion("1.0.0");

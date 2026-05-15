@@ -26,7 +26,6 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
-import org.apache.causeway.applib.util.ObjectContracts;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.util.ArrayList;
@@ -64,12 +63,15 @@ public class TypedDependency implements Comparable<TypedDependency> {
     @OneToMany(mappedBy = "typedDependency", cascade = CascadeType.ALL)
     @Getter
     @Setter
+    @Programmatic
     private List<Token> tokenList = new ArrayList<>(2);
 
+    @Programmatic
     public Token getPartA() {
-        return tokenList.isEmpty() ? null : tokenList.get(0);
+        return tokenList.isEmpty() ? null : tokenList.getFirst();
     }
 
+    @Programmatic
     public Token getPartB() {
         return tokenList.isEmpty() ? null : tokenList.get(1);
     }
@@ -81,7 +83,7 @@ public class TypedDependency implements Comparable<TypedDependency> {
     //region > compareTo, toString
     @Override
     public int compareTo(final TypedDependency other) {
-        return ObjectContracts.compare(this, other, "id");
+        return Long.compare(this.id, other.id);
     }
     //endregion
 

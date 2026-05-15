@@ -10,7 +10,7 @@ import org.apache.causeway.extensions.cors.impl.CausewayModuleExtCors;
 import org.apache.causeway.persistence.jpa.eclipselink.CausewayModulePersistenceJpaEclipselink;
 import org.apache.causeway.security.bypass.CausewayModuleSecurityBypass;
 import org.apache.causeway.testing.fixtures.applib.CausewayModuleTestingFixturesApplib;
-import org.apache.causeway.viewer.restfulobjects.jaxrsresteasy.CausewayModuleViewerRestfulObjectsJaxrsResteasy;
+import org.apache.causeway.viewer.restfulobjects.viewer.CausewayModuleViewerRestfulObjectsViewer;
 import org.apache.causeway.viewer.wicket.viewer.CausewayModuleViewerWicketViewer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -25,7 +25,7 @@ import org.springframework.context.annotation.PropertySources;
         CausewayModuleCoreRuntimeServices.class,
         CausewayModuleSecurityBypass.class,
         CausewayModulePersistenceJpaEclipselink.class,
-        CausewayModuleViewerRestfulObjectsJaxrsResteasy.class,
+        CausewayModuleViewerRestfulObjectsViewer.class,
 
         CausewayModuleCoreConfig.class,
         CausewayModuleExtCors.class,

@@ -5,7 +5,7 @@
 
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
-        <causeway.version>3.5.0</causeway.version>
+        <causeway.version>4.0.0-M1</causeway.version>
         <spring-boot.version>3.5.10</spring-boot.version>
         <spring-framework.version>6.2.6</spring-framework.version>
         <lombok.version>1.18.38</lombok.version>
@@ -22,8 +22,8 @@
         <junit.version>5.10.2</junit.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
         <mockito-inline.version>3.11.2</mockito-inline.version>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.version>0.1.0-SNAPSHOT</project.version>
         <maven-cucumber-reporting.version>4.11.2</maven-cucumber-reporting.version>
         <archunit.version>1.3.0</archunit.version>
@@ -39,7 +39,7 @@
     <parent>
         <groupId>org.apache.causeway.app</groupId>
         <artifactId>causeway-app-starter-parent</artifactId>
-        <version>3.6.0</version>
+        <version>4.0.0-M1</version>
         <relativePath/>
     </parent>
 
@@ -155,7 +155,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.causeway.viewer</groupId>
-                <artifactId>causeway-viewer-restfulobjects-jaxrsresteasy</artifactId>
+                <artifactId>causeway-viewer-restfulobjects-viewer</artifactId>
                 <version>${causeway.version}</version>
             </dependency>
             <dependency>
@@ -199,6 +199,148 @@
                 <artifactId>causeway-testing-fixtures-applib</artifactId>
                 <scope>compile</scope>
                 <version>${causeway.version}</version>
+            </dependency>
+            <!-- Additional Causeway dependencies with explicit versions to override parent POM -->
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-schema</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.persistence</groupId>
+                <artifactId>causeway-persistence-jpa-eclipselink</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-core-security</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-core-runtimeservices</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-core-webapp</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-core-metamodel</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.valuetypes</groupId>
+                <artifactId>causeway-valuetypes-asciidoc-ui-wkt</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.valuetypes</groupId>
+                <artifactId>causeway-valuetypes-asciidoc-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-tabular-excel</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-fullcalendar-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-fullcalendar-wicket-integration</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-pdfjs-wicket-ui</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-secman-encryption-spring</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-secman-persistence-jpa</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-sessionlog-persistence-jpa</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-audittrail-persistence-jpa</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-commandlog-persistence-jpa</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-executionlog-persistence-jpa</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-executionoutbox-persistence-jpa</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-cors-impl</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-graphql-model</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-wicket-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-commons-services</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-commons-prism</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.security</groupId>
+                <artifactId>causeway-security-bypass</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.testing</groupId>
+                <artifactId>causeway-testing-integtestsupport-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.testing</groupId>
+                <artifactId>causeway-testing-h2console-ui</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.mavendeps</groupId>
+                <artifactId>causeway-mavendeps-webapp</artifactId>
+                <version>${causeway.version}</version>
+                <type>pom</type>
             </dependency>
 
             <!-- Spring -->
@@ -403,6 +545,132 @@
                 <artifactId>resteasy-core-spi</artifactId>
                 <version>7.0.0.Final</version>
             </dependency>
+            <!-- Override 0.1.0-SNAPSHOT transitive Causeway sub-modules with correct version -->
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-core-codegen-bytebuddy</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-core-interaction</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-core-runtime</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.core</groupId>
+                <artifactId>causeway-core-transaction</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-audittrail-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-commandlog-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-executionlog-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-executionoutbox-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-pdfjs-metamodel</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-pdfjs-wicket-integration</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-secman-integration</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-sessionlog-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-tabular-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.persistence</groupId>
+                <artifactId>causeway-persistence-jpa-integration</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.testing</groupId>
+                <artifactId>causeway-testing-fakedata-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-commons-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-commons-model</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-graphql-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-restfulobjects-rendering</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-wicket-model</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.viewer</groupId>
+                <artifactId>causeway-viewer-restfulobjects-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.persistence</groupId>
+                <artifactId>causeway-persistence-commons</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.persistence</groupId>
+                <artifactId>causeway-persistence-jpa-metamodel</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-pdfjs-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-secman-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers</artifactId>
@@ -418,6 +686,78 @@
 
         </dependencies>
     </dependencyManagement>
+
+    <repositories>
+        <repository>
+            <id>repository.nexus.thirdparty</id>
+            <name>Nexus ThirdParty Repository</name>
+            <url>https://repository.int.kn/nexus/content/repositories/thirdparty/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>nexus3</id>
+            <name>Nexus Maven Repository</name>
+            <url>https://repository.int.kn/repository/maven/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>apache-releases</id>
+            <name>Apache Releases</name>
+            <url>https://repository.apache.org/content/repositories/releases/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>Apache Nexus snapshots</id>
+            <name>Apache Nexus snapshots</name>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>apache-causeway-snapshots</id>
+            <name>Apache Causeway Snapshots</name>
+            <url>https://raw.githubusercontent.com/apache-causeway-committers/causeway-nightly/master/mvn-snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>Sonatype OSS snapshots</id>
+            <name>Sonatype OSS snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
 
     <modules>
         <module>domox-domain</module>
