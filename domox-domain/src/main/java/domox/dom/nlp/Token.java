@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.ToString.Include;
 import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -49,7 +50,6 @@ import java.util.Comparator;
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-@ToString(onlyExplicitlyIncluded = true)
 @Getter @Setter
 public class Token implements Comparable<Token> {
 
@@ -66,6 +66,7 @@ public class Token implements Comparable<Token> {
 
     @Column(nullable = false)
     @Property()
+    @Include
     private String text;
 
     @Column(nullable = false)
@@ -86,6 +87,11 @@ public class Token implements Comparable<Token> {
     @Override
     public int compareTo(final Token other) {
         return comparator.compare(this, other);
+    }
+
+    @Override
+    public String toString() {
+        return text;
     }
 
 }

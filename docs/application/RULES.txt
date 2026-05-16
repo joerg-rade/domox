@@ -1,0 +1,316 @@
+TDR1.
+if Dependency= nsubj(A, B)  OR nsubjpass(A, B)
+    if A=VB|VBN and B=Noun and B≠Basic_Attrib then
+ If prevTD = “compound” then
+  Entity.add(compound(B) + Compound(A))
+              else  Entity.add(nsubj(B))
+
+TDR2.
+if Dependency= (nsubj(A, B)  OR nsubjpass(A, B))
+      if A=VB|VBN and B=Noun and B = Basic_Attrib then
+ If prevTD = “compound” then
+  Attributes.add(compound(B) + Compound(A))
+              else  Attributes.add(nsubj(B))
+
+TDR3.
+if Dependencies= (dobj (A,B) OR iobj(A,B) OR pobj(A,B))
+if A=VB and B=Noun and B≠Basic_Attrib and prevTD≠”amod” and
+prevTD≠”advmod” and VB≠ ”entered” | “inputted” | “saved” |”added” |
+“has” then
+ if prevTD = “compound” then
+  Entity.add(compound(B) + Compound(A))
+              else  Entity.add(dobj(B))
+
+TDR4.
+if Dependencies= (dobj (A,B) OR iobj(A,B) OR pobj(A,B))
+if A=VB and B=Noun and (B = Basic_Attrib OR VB =”entered” |
+“inputted” | “saved” |”added” | “has”) then
+ If prevTD = “compound” then
+  Attributes.add(compound(B) + Compound(A))
+              else  Attributes.add(dobj(B))
+TDR5.
+if Dependencies= (dobj (A,B) OR iobj(A,B) OR pobj(A,B))
+if A=VB and B=Noun and (B = Basic_Attrib OR VB =”entered” |
+“inputted” | “saved” |”added” | “has”) then
+         If (prevTD = “amod” || prevTD = “advmod”) and prev(B)=”JJ” then
+  Attributes.add(amod(B) + amod(A))
+         else  Attributes.add(dobj(B))
+TDR6.
+if Dependency = nmod:of(A,B)
+      if A=noun and B=Noun and A = Basic_Attrib and B≠Basic_Attrib then
+ Entity.add(B)
+              Attributes.add(A)
+      if A=noun and B=Noun and  A≠Basic_Attrib and  B≠Basic_Attrib then
+ Entity.add(A)
+Entity.add(A)
+      if A=noun and B=Noun and  A=Basic_Attrib and  B=Basic_Attrib then
+ Attributes.add(A + “of” + B)
+
+TDR7.
+if Dependency= nmod:in(A,B)
+       if A=Noun and B=Noun then
+ Entity.add(B)
+Attributes.add(A)
+
+
+TDR8.
+if Dependency= nmod:to(A,B) OR nmod:for(A,B) OR  nmod:from(A,B)
+OR nmod:as(A,B)
+     if  B=Noun then
+ Entity.add(B)
+
+
+TDR9.
+if Dependencies = nmod:by(A,B) OR nmod:agent(A,B) OR
+nmod:with(A,B)
+       if B=Noun and B = Basic_Attrib then
+               Attributes.add(B)
+        else if B=Noun and B ≠ Basic_Attrib then
+                Entity.add(B)
+
+TDR10.
+if Dependencies= nmod:poss(A,B)
+    if A=Noun and B = Noun then
+        Entity.add(B)
+        Attributes.add(A)
+   else if A=Noun and B= PREP ≠ Basic_Attrib then
+        Attributes.add(B)
+
+TDR11.
+if Dependencies = amod(A,B)
+    if A=Noun and B = JJ and A=basic_Attrib then
+              Attributes.add(B + A)
+    else if A=Noun and B=JJ and A ≠ Basic_Attrib and then
+             Entity.add(A)
+
+TDR12.
+ if Dependencies =compound(A,B)  and nextTD≠nsubj and nextTD≠dobj
+     if A=Noun and B = Noun and A=Basic_Attrib and B≠ Basic_Attrib then
+                  Attributes.add(B + A)
+Entity.add(B)
+     else if  A=Noun and B = Noun and A≠Basic_Attrib and B=
+Basic_Attrib then
+                  Attributes.add(A + B )
+ Entity.add(A)
+     else if  A=Noun and B = Noun and A=Basic_Attrib and B=
+Basic_Attrib then
+ Attributes.add(B+A)
+     else if  A=Noun and B = Noun and A≠Basic_Attrib and B≠
+Basic_Attrib then
+ Entity.add(B+A)
+     EndIf
+
+TDR13.
+if Dependencies = nmod:and(A,B) OR nmod:or(A,B)
+   if A=Noun and B = Noun and A=Basic_Attrib and B= Basic_Attrib then
+  Attributes.add(A)
+ Attributes.add(B)
+   else if A=Noun and B = Noun and A≠Basic_Attrib and B≠ Basic_Attrib
+then
+                Entity.add(A)
+                  Entity.add(B)
+
+Appendix A.2
+Rules to genrate relationships, carinalities and operations for flow
+
+TDR14.
+if nsubj(Verb, E1) & dobj(Verb, E2)
+   relationship.add( E1 (Verb) E2)
+
+TDR15.
+if nsubjpass(VBN, E1) and (nmod:agent (VBN, E2) or nmod:by (VBN, E2))
+   relationship.add ( E1 (VBN) E2)
+
+TDR16.
+if nmod:of (E1, E2)
+     relationship.add(E1 (has) E2 )
+
+TDR17.
+if nsubj(Verb, E1) and dobj(VBN, E2) and nmod:of (E2, E3)
+      relationship.add (E1 (VB) E2 )
+      relationship.add ( E2 (“has”) E3 )
+
+TDR18.
+if nsubj(VB, E1) and dobj(VB, E2) and nmod:to (VB, E3)
+ relationship.add (E1 (VB) E2)
+ relationship.add (E2 (VB+ “to”) E3 )
+ relationship.add(E1 (VB+ “to”) E3)
+
+TDR19.
+if nsubjpass(VBN, E1) and nmod:to (VBN, E2)
+    relationship.add ( E1 (VBN + “to”) E2)
+
+TDR20.
+if nsubj(Verb, E1) and nsubjpass(VBN, E2) and nmod:to (VBN, E3)
+       relationship.add (E1 (VB) E2 )
+       relationship.add,(E1 (VBN + “to”) E3 )
+       relationship.add ( E2 (VBN + “to”) E3)
+
+TDR21.
+if nsubj(VB, E1) and nmod:in (VB, E2)
+    relationship.add ( E1 (VB +”in”) E2)
+
+TDR22.
+if nsubj(VB, E1) and nmod:for (VB, E2)
+ relationship.add (E1 (VB + “for”) E2)
+
+TDR23.
+if nmod:as(VB, E1) and dobj (VB, E2)
+    relationship.add (E1 (VB) E2)
+
+Appendix A.3
+Rules to genrate carinalities.
+TDR24.
+if dependency = amod( E1, JJ)
+cardinalities.add (E1 “>”JJ )
+TDR25.
+if dependency = nummod( E1, CD)
+cardinalities.add (E1 “>” CD )
+
+TDR26.
+if dependency = det( E1, DT)
+ if (DT=”Each” OR ”All” OR ”some” OR ”Any” OR “Many” OR
+“Every” OR “multiple”)
+     cardinalities.add (E1 “>” N )
+ if (DT= “a” OR “an”  )
+     cardinalities.add (E1 “>” 1)
+
+TDR 27.
+if Dependencies= nsubj(A,B) OR nsubjpass(A,B) OR dobj (A,B) OR
+iobj(A,B) OR pobj(A,B) OR iobj(A,B) OR nmod:to(A,B) OR mark(A,B)
+if A=VB and A ∈ {input, enter, fill, click, select, add, record, process,
+validate} then
+while (TD≠nsubj || nsubjpass || dobj || iobj || pobj || mark)
+if(TD.B==attributes)
+   Input_Data.add(B)
+End if
+  End While
+End if
+End if
+
+TDR 28.
+if Dependencies= nsubj(A,B) OR nsubjpass(A,B) OR dobj (A,B) OR
+iobj(A,B) OR pobj(A,B) OR iobj(A,B) OR nmod:to(A,B) OR mark(A,B)
+if A=VB and A ∈ {display, output, retrieve, show, view, print} then
+while (TD≠nsubj || nsubjpass || dobj || iobj || pobj || mark)
+if(TD.B==attributes)
+   Output_Data.add(B)
+   End if
+       End While
+     End if
+   End if
+
+TDR 29.
+if Dependencies= nsubj(A,B) OR nsubjpass(A,B) OR dobj (A,B) OR
+iobj(A,B) OR pobj(A,B) OR iobj(A,B) OR nmod:to(A,B) OR mark(A,B)
+ if A=VB AND A ∈ {get, send, prepare } then
+ while (TD≠nsubj || nsubjpass || dobj || iobj || pobj || mark)
+  if(B=’system’)
+     if(TD.B==attributes AND )
+     Output_Data.add(B)
+Else if(B≠’system’)
+     if(TD.B==attributes AND )
+     Input_Data.add(B)
+    End While
+  End if
+End if
+
+TDR 30.
+if Dependencies= nmod:by(A,B) OR nmod:agent(A,B) OR
+nmod:with(A,B)
+if A=VB and A ∈ {inputted, entered, filled, clicked, selected, added,
+recorded, processed, validateed} then
+ while (TD≠ nmod:by || nmod:agent || nmod:with)
+  if(TD.B==attributes)
+     Input_Data.add(B)
+End if
+    End While
+  End if
+End if
+
+TDR 31.
+if Dependencies= nmod:by(A,B) OR nmod:agent(A,B) OR
+nmod:with(A,B)
+if A=VB and A ∈ {displayed, outputted, retrieved, showed, viewed,
+printed} then
+ while (TD≠ nmod:by || nmod:agent || nmod:with)
+  if(TD.B==attributes)
+     Output_Data.add(B)
+End if
+    End While
+  End if
+End if
+
+TDR 32.
+if Dependencies= nsubj(A,B) OR nmod:by (A,B)
+if A=VB and A ∈ {input, enter, fill, click, select, add, submit, choose}
+AND  B=External Actor then
+  User_Action.add(A)
+  End if
+if A=VB and A ∈ {display, output, retrieve, show, view, print, calculate,
+process, update, delete, search. modify, edit, calculate, remove} AND
+B= System then
+  System_Actions.add(A)
+ End if
+End if
+
+
+TDR 33.
+if Dependencies= nsubj(A,B) OR nmod:by (A,B)
+if A=VB and A ∈ {receive, accept, get, obtain, acquire, redeem}
+    if B=System then
+          User_Action.add(A)
+       Else  User_Action.add(A)
+       End if
+  End if
+End if
+
+TDR 34.
+if Dependencies= xcomp(A,B) OR amod(A,B) OR neg(A,B)
+if  A ||B ∈ {error, fail, wrong, invalid, incorrect, not} then
+ Exceptions.add(B + A)
+  End if
+End if
+
+TDR 35.
+if Dependencies= (advcl:if(A,B) OR mark(A,if))
+ Susyem_Actions.add (“if” + dobj.B + dobj.A)
+ while (TD≠advmod)
+  if(TD.B==attributes)
+     System_Actions.add(B)
+End if
+    End While
+ End if
+if Dependencies= advmod(A,then) and advmod(A,else)
+ Susyem_Actions.add (“then” + dobj.B + dobj.A)
+ while (TD≠advmod)
+  if(TD.B==attributes)
+     System_Actions.add(B)
+End if
+    End While
+ End if
+if Dependencies= and advmod(A,else)
+ Susyem_Actions.add (“else” + dobj.B + dobj.A)
+ while (TD≠NULL)
+  if(TD.B==attributes)
+     System_Actions.add(B)
+End if
+    End While
+ End if
+
+TDR 36.
+if Dependencies= nsubj(A,B) and A=”validate”
+ Susyem_Actions.add (B + A)
+ while (TD≠NULL)
+  if(TD.B==attributes)
+     System_Actions.add(B)
+End if
+    End While
+ End if
+
+TDR 37.
+if Dependencies= nsubj(A,B) OR xcomp(A,B)
+if  A ∈ {continue, restart, go, repeat} then
+ System_Action.add(A + nummod.B || dobj.B)
+  End if
+End if

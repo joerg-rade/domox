@@ -7,8 +7,8 @@ import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
-@Rule(order = 1)
-public class TDR1 extends TypedDependencyRuleWithPreviousAndNext {
+@Rule(order = 4)
+public class TDR4 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Result
     private String result;
@@ -19,11 +19,12 @@ public class TDR1 extends TypedDependencyRuleWithPreviousAndNext {
         if (currentTd == null) {
             return false;
         }
-
         boolean answer = false;
-        if (currentTd.nsubj() || currentTd.nsubjpass()) {
-            if (currentTd.isVerbA() && currentTd.isNounB() && !currentTd.isBasicAttributeB()) {
-                answer = true;  // Rule fires regardless of previousTd.compound()
+        if (currentTd.dobj() || currentTd.iobj() || currentTd.pobj()) {
+            if (currentTd.isVerbA() && currentTd.isNounB()) {
+                if (currentTd.isBasicAttributeB() || isBlockedVerb(currentTd.getA())) {
+                    answer = true;
+                }
             }
         }
         return answer;
@@ -32,12 +33,21 @@ public class TDR1 extends TypedDependencyRuleWithPreviousAndNext {
     @Then
     public void then() {
         if (previousTd.compound()) {
-            // Entity.add(compound(B) + Compound(A))
+            // Attributes.add(compound(B) + Compound(A))
             result = "compound(" + currentTd.getB() + ") + Compound(" + currentTd.getA() + ")";
         } else {
-            // Entity.add(nsubj(B))
-            result = "nsubj(" + currentTd.getB() + ")";
+            // Attributes.add(dobj(B))
+            result = "dobj(" + currentTd.getB() + ")";
         }
     }
 
+    private boolean isBlockedVerb(String verb) {
+        return verb.equalsIgnoreCase("entered") ||
+               verb.equalsIgnoreCase("inputted") ||
+               verb.equalsIgnoreCase("saved") ||
+               verb.equalsIgnoreCase("added") ||
+               verb.equalsIgnoreCase("has");
+    }
+
 }
+

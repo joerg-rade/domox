@@ -81,6 +81,13 @@
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-batik</artifactId> <!-- svg -->
+            <exclusions>
+                <!-- Use spring-jcl instead of commons-logging -->
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
@@ -88,10 +95,24 @@
             <version>${twelvemonkeys.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
+            <exclusions>
+                <!-- Use spring-jcl instead of commons-logging -->
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-transcoder</artifactId>
+            <exclusions>
+                <!-- Use spring-jcl instead of commons-logging -->
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

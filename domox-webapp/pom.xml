@@ -102,6 +102,13 @@
             <groupId>org.apache.causeway.mavendeps</groupId>
             <artifactId>causeway-mavendeps-webapp</artifactId>
             <type>pom</type>
+            <exclusions>
+                <!-- Use spring-jcl instead of commons-logging -->
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.viewer</groupId>

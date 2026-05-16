@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import com.deliveredtechnologies.rulebook.NameValueReferable;
 import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.CascadeType;
@@ -41,7 +42,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
-public class TypedDependency implements Comparable<TypedDependency> {
+public class TypedDependency implements Comparable<TypedDependency>, NameValueReferable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -107,7 +108,9 @@ public class TypedDependency implements Comparable<TypedDependency> {
             PartOfSpeechType.VBZ};
 
     public boolean isVerbA() {
-        final PartOfSpeechType aType = getPartA().getType();
+        Token partA = getPartA();
+        if (partA == null) return false;
+        final PartOfSpeechType aType = partA.getType();
         return Arrays.asList(VERB_TYPES).contains(aType);
     }
 
@@ -118,14 +121,177 @@ public class TypedDependency implements Comparable<TypedDependency> {
             PartOfSpeechType.NFP};
 
     public boolean isNounB() {
-        final PartOfSpeechType bType = getPartB().getType();
+        Token partB = getPartB();
+        if (partB == null) return false;
+        final PartOfSpeechType bType = partB.getType();
         return Arrays.asList(NOUN_TYPES).contains(bType);
     }
 
     private static final String[] BASIC_ATTRIB = {"name", "number", "type", "address", "level", "date", "time"};
 
     public boolean isBasicAttributeB() {
-        final String bName = getPartB().toString();
+        Token partB = getPartB();
+        if (partB == null) return false;
+        final String bName = partB.toString();
         return Arrays.asList(BASIC_ATTRIB).contains(bName);
+    }
+
+    public boolean isBasicAttributeA() {
+        Token partA = getPartA();
+        if (partA == null) return false;
+        final String aName = partA.toString();
+        return Arrays.asList(BASIC_ATTRIB).contains(aName);
+    }
+
+    public String getA() {
+        Token partA = getPartA();
+        return partA != null ? partA.toString() : null;
+    }
+
+    public String getB() {
+        Token partB = getPartB();
+        return partB != null ? partB.toString() : null;
+    }
+
+    public boolean isNounA() {
+        Token partA = getPartA();
+        if (partA == null) return false;
+        final PartOfSpeechType aType = partA.getType();
+        return Arrays.asList(NOUN_TYPES).contains(aType);
+    }
+
+    private static final PartOfSpeechType[] ADJECTIVE_TYPES = {
+            PartOfSpeechType.JJ};
+
+    public boolean isAdjectiveB() {
+        Token partB = getPartB();
+        if (partB == null) return false;
+        final PartOfSpeechType bType = partB.getType();
+        return Arrays.asList(ADJECTIVE_TYPES).contains(bType);
+    }
+
+    public boolean dobj() {
+        // Direct object: in Stanford UD, this is 'obj'
+        return getType().equals(TdType.OBJ);
+    }
+
+    public boolean iobj() {
+        // Indirect object: check for indirect object patterns in obl types
+        return getType().equals(TdType.OBL);
+    }
+
+    public boolean pobj() {
+        // Prepositional object: check for obl types
+        return getType().toString().startsWith("OBL");
+    }
+
+    public boolean amod() {
+        return getType().equals(TdType.AMOD);
+    }
+
+    public boolean advmod() {
+        return getType().equals(TdType.ADVMOD);
+    }
+
+    public boolean nmodOf() {
+        return getType().equals(TdType.NMOD_OF);
+    }
+
+    public boolean nmodIn() {
+        // in: use obl:in or similar
+        return getType().equals(TdType.OBL_IN) || getType().equals(TdType.NMOD);
+    }
+
+    public boolean nmodTo() {
+        // to: use obl:to or similar
+        return getType().equals(TdType.OBL_TO);
+    }
+
+    public boolean nmodFor() {
+        return getType().equals(TdType.NMOD_FOR) || getType().equals(TdType.OBL_FOR);
+    }
+
+    public boolean nmodFrom() {
+        // from: check for obl types
+        return getType().toString().contains("FROM") || getType().toString().contains("from");
+    }
+
+    public boolean nmodAs() {
+        // as: check obl types or nmod
+        return getType().toString().contains("AS") || getType().toString().contains("as");
+    }
+
+    public boolean nmodBy() {
+        return getType().equals(TdType.OBL_BY) || getType().equals(TdType.NMOD);
+    }
+
+    public boolean nmodAgent() {
+        // agent: typically obl:agent or nmod:agent, might not exist exactly
+        return getType().toString().contains("AGENT") || getType().toString().contains("agent");
+    }
+
+    public boolean nmodWith() {
+        return getType().equals(TdType.NMOD_WITH) || getType().equals(TdType.OBL_WIN);
+    }
+
+    public boolean nmodPoss() {
+        return getType().equals(TdType.NMOD_POSS);
+    }
+
+    public boolean nmodAnd() {
+        return getType().equals(TdType.CONJ_AND);
+    }
+
+    public boolean nmodOr() {
+        return getType().equals(TdType.CONJ_OR);
+    }
+
+    public boolean mark() {
+        return getType().equals(TdType.MARK);
+    }
+
+    public boolean xcomp() {
+        return getType().equals(TdType.XCOMP);
+    }
+
+    public boolean advcl() {
+        return getType().equals(TdType.ADVCL);
+    }
+
+    public boolean nummod() {
+        return getType().equals(TdType.NUMMOD);
+    }
+
+    public boolean det() {
+        return getType().equals(TdType.DET);
+    }
+
+    public boolean neg() {
+        // neg doesn't exist in TdType, so check if it might be in a string or as a pattern
+        return getType().toString().contains("NEG") || getType().toString().contains("neg");
+    }
+
+    // ===== NameValueReferable Implementation =====
+
+    @Override
+    public String getName() {
+        return "TypedDependency_" + (id != null ? id : "new");
+    }
+
+    @Override
+    public void setName(String name) {
+        // setName not applicable for TypedDependency; name is auto-generated
+        // This method is required by NameValueReferable but not used
+    }
+
+    @Override
+    public Object getValue() {
+        return this;
+    }
+
+    @Override
+    public void setValue(Object value) {
+        // setValue not applicable for TypedDependency; this object is immutable
+        // This method is required by NameValueReferable but not used
     }
 }

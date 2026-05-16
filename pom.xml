@@ -4,32 +4,69 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
+        <!-- Project versions -->
         <project.version>0.1.0-SNAPSHOT</project.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <file.encoding>UTF-8</file.encoding>
+
+        <!-- Compiler versions -->
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+
+        <!-- Framework versions -->
         <causeway.version>4.0.0-M1</causeway.version>
         <spring-boot.version>3.5.14</spring-boot.version>
         <spring-framework.version>6.2.6</spring-framework.version>
+        <spring-core.version>6.2.18</spring-core.version>
+        <spring-jdbc.version>6.2.1</spring-jdbc.version>
+        <kotlin.version>2.2.0</kotlin.version>
+
+        <!-- Dependency versions -->
         <lombok.version>1.18.38</lombok.version>
         <jmock.version>2.12.0</jmock.version>
-        <file.encoding>UTF-8</file.encoding>
-        <kotlin.version>2.2.0</kotlin.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <postgresql.version>42.7.2</postgresql.version>
         <jakarta.xml.bind-api.version>4.0.1</jakarta.xml.bind-api.version>
         <junit.version>5.10.2</junit.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
         <mockito-inline.version>3.11.2</mockito-inline.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.version>0.1.0-SNAPSHOT</project.version>
+        <postgresql.version>42.7.2</postgresql.version>
         <maven-cucumber-reporting.version>4.11.2</maven-cucumber-reporting.version>
         <archunit.version>1.3.0</archunit.version>
         <osgi.version>8.0.0</osgi.version>
 
+        <!-- Plugin versions -->
+        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+
+        <!-- Test and build support -->
+        <assertj-core.version>3.27.7</assertj-core.version>
+        <approvaltests.version>23.0.0</approvaltests.version>
+        <guava.version>33.1.0-jre</guava.version>
+        <junit-platform.version>1.10.2</junit-platform.version>
+        <junit-bom.version>4.13.2</junit-bom.version>
+        <testcontainers.version>1.20.5</testcontainers.version>
+
+        <!-- Library versions -->
+        <json.version>20250107</json.version>
+        <json-simple.version>1.1.1</json-simple.version>
+        <annotations.version>13.0</annotations.version>
+        <jakarta.inject-api.version>2.0.1</jakarta.inject-api.version>
+        <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
+        <shiro-core.version>2.0.2</shiro-core.version>
+        <asm-commons.version>9.7.1</asm-commons.version>
+        <asciidoctorj-api.version>3.0.0</asciidoctorj-api.version>
+        <commons-collections4.version>4.5.0</commons-collections4.version>
+        <commons-compress.version>1.28.0</commons-compress.version>
+        <result.version>3.1.0</result.version>
+        <resteasy-core.version>7.0.0.Final</resteasy-core.version>
+        <tomcat-embed-core.version>11.0.22</tomcat-embed-core.version>
+        <jackson-core.version>2.18.6</jackson-core.version>
+
+        <!-- Batik versions (used in domox-domain) -->
+        <batik-transcoder.version>1.19</batik-transcoder.version>
+        <twelvemonkeys.version>3.12.0</twelvemonkeys.version>
+
+        <!-- Build settings -->
         <!--skipBDD>${skipTests}</skipBDD-->
         <skipBDD>true</skipBDD>
-
-        <!-- PLUGIN -->
-        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     </properties>
 
     <parent>
@@ -103,6 +140,12 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
+                    <configuration>
+                        <!-- Configure byte-buddy agent for Mockito inline-mock-maker -->
+                        <argLine>
+                            -javaagent:"${settings.localRepository}"/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar
+                        </argLine>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>net.masterthought</groupId>
@@ -387,12 +430,17 @@
                         <groupId>org.apache.logging.log4j</groupId>
                         <artifactId>log4j-to-slf4j</artifactId>
                     </exclusion>
+                    <!-- Exclude old android-json in favor of org.json:json -->
+                    <exclusion>
+                        <groupId>com.vaadin.external.google</groupId>
+                        <artifactId>android-json</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>jakarta.inject</groupId>
                 <artifactId>jakarta.inject-api</artifactId>
-                <version>2.0.1</version>
+                <version>${jakarta.inject-api.version}</version>
             </dependency>
 
             <!-- used components -->
@@ -433,23 +481,23 @@
               <dependency>
                   <groupId>junit</groupId>
                   <artifactId>junit</artifactId>
-                  <version>4.13.2</version>
+                  <version>${junit-bom.version}</version>
                   <scope>test</scope>
               </dependency>
               <dependency>
                   <groupId>org.junit.platform</groupId>
                   <artifactId>junit-platform-commons</artifactId>
-                  <version>1.10.2</version>
+                  <version>${junit-platform.version}</version>
               </dependency>
              <dependency>
                  <groupId>org.junit.platform</groupId>
                  <artifactId>junit-platform-engine</artifactId>
-                 <version>1.10.2</version>
+                 <version>${junit-platform.version}</version>
              </dependency>
              <dependency>
                  <groupId>org.junit.platform</groupId>
                  <artifactId>junit-platform-launcher</artifactId>
-                 <version>1.10.2</version>
+                 <version>${junit-platform.version}</version>
              </dependency>
 
              <dependency>
@@ -460,12 +508,12 @@
              <dependency>
                  <groupId>com.github.kittinunf.result</groupId>
                  <artifactId>result</artifactId>
-                 <version>3.1.0</version>
+                 <version>${result.version}</version>
              </dependency>
              <dependency>
                  <groupId>com.googlecode.json-simple</groupId>
                 <artifactId>json-simple</artifactId>
-                <version>1.1.1</version>
+                <version>${json-simple.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>junit</groupId>
@@ -476,12 +524,12 @@
             <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
-                <version>13.0</version>
+                <version>${annotations.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>33.1.0-jre</version>
+                <version>${guava.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -491,59 +539,59 @@
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
-                <version>3.27.7</version>
+                <version>${assertj-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.approvaltests</groupId>
                 <artifactId>approvaltests</artifactId>
-                <version>23.0.0</version>
+                <version>${approvaltests.version}</version>
              </dependency>
              <dependency>
                  <groupId>javax.xml.bind</groupId>
                 <artifactId>jaxb-api</artifactId>
-                <version>2.4.0-b180830.0359</version>
+                <version>${jaxb-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
-                <version>20250107</version>
+                <version>${json.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shiro</groupId>
                 <artifactId>shiro-core</artifactId>
-                <version>2.0.2</version>
+                <version>${shiro-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm-commons</artifactId>
-                <version>9.7.1</version>
+                <version>${asm-commons.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctorj-api</artifactId>
-                <version>3.0.0</version>
+                <version>${asciidoctorj-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-jdbc</artifactId>
-                <version>6.2.1</version>
+                <version>${spring-jdbc.version}</version>
              </dependency>
              <!-- force versions due to dependency conversion conflicts in aw 3.5.0 / wicket-->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
-                <version>4.5.0</version>
+                <version>${commons-collections4.version}</version>
             </dependency>
             <!-- force resteasy versions for convergence -->
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-core</artifactId>
-                <version>7.0.0.Final</version>
+                <version>${resteasy-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-core-spi</artifactId>
-                <version>7.0.0.Final</version>
+                <version>${resteasy-core.version}</version>
             </dependency>
             <!-- Override 0.1.0-SNAPSHOT transitive Causeway sub-modules with correct version -->
             <dependency>
@@ -674,7 +722,7 @@
              <dependency>
                  <groupId>org.testcontainers</groupId>
                  <artifactId>testcontainers</artifactId>
-                 <version>1.20.5</version>
+                 <version>${testcontainers.version}</version>
                  <scope>test</scope>
                  <exclusions>
                      <exclusion>
@@ -686,7 +734,7 @@
              <dependency>
                  <groupId>org.testcontainers</groupId>
                  <artifactId>junit-jupiter</artifactId>
-                 <version>1.20.5</version>
+                 <version>${testcontainers.version}</version>
                  <scope>test</scope>
                  <exclusions>
                      <exclusion>
@@ -700,22 +748,27 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
-                <version>1.28.0</version>
+                <version>${commons-compress.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
-                <version>6.2.18</version>
+                <version>${spring-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.appache.tomcat.embed</groupId>
                 <artifactId>tomcat-embed-core</artifactId>
-                <version>11.0.22</version>
+                <version>${tomcat-embed-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>2.18.6</version>
+                <version>${jackson-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>6.2.18</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
