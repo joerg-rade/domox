@@ -84,7 +84,7 @@ public class Document implements Comparable<Document> {
     private String docVersion; //SemVer
 
     @PropertyLayout(sequence = "3")
-    @Column(nullable = true)
+    @Column
     @Getter
     @Setter
     private String url;
@@ -129,7 +129,7 @@ public class Document implements Comparable<Document> {
     @Setter
     private Timestamp createdAt;
 
-    @Column(nullable = true)
+    @Column
     private Timestamp updatedAt;
 
     //region > compareTo, toString

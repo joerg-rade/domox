@@ -13,6 +13,27 @@
     <artifactId>domox-domain</artifactId>
     <name>DoMoX Domain Module</name>
 
+    <!-- Module-specific properties (used only by this module) -->
+    <properties>
+        <twelvemonkeys.version>3.12.0</twelvemonkeys.version>
+        <batik-transcoder.version>1.19</batik-transcoder.version>
+    </properties>
+
+    <!-- Module-specific dependency management -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.twelvemonkeys.imageio</groupId>
+                <artifactId>imageio-batik</artifactId>
+                <version>${twelvemonkeys.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.xmlgraphics</groupId>
+                <artifactId>batik-transcoder</artifactId>
+                <version>${batik-transcoder.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -22,7 +43,6 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>13.0</version>
         </dependency>
 
         <dependency>
@@ -41,17 +61,14 @@
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
             <artifactId>causeway-applib</artifactId>
-            <version>${causeway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.core</groupId>
             <artifactId>causeway-schema</artifactId>
-            <version>${causeway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.persistence</groupId>
             <artifactId>causeway-persistence-jpa-applib</artifactId>
-            <version>${causeway.version}</version>
          </dependency>
         <dependency>
             <groupId>org.apache.causeway.domox</groupId>
@@ -64,19 +81,17 @@
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-batik</artifactId> <!-- svg -->
-            <version>3.12.0</version>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-batik</artifactId> <!-- svg -->
-            <version>3.12.0</version>
+            <version>${twelvemonkeys.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-transcoder</artifactId>
-            <version>1.19</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -154,7 +169,6 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.version}</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -164,7 +178,6 @@
                         </goals>
                         <configuration>
                             <sourceDirs>
-                                <source>src/main/java</source>
                                 <source>src/main/java</source>
                             </sourceDirs>
                         </configuration>
@@ -178,14 +191,10 @@
                         <configuration>
                             <sourceDirs>
                                 <source>src/test/java</source>
-                                <source>src/test/java</source>
                             </sourceDirs>
                         </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <jvmTarget>21</jvmTarget>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -215,9 +224,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
-                    <release>21</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

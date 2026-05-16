@@ -13,10 +13,6 @@
         <file.encoding>UTF-8</file.encoding>
         <kotlin.version>2.2.0</kotlin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <fuel.version>2.3.1</fuel.version>
-        <tika.version>3.2.3</tika.version>
-        <okhttp.version>4.12.0</okhttp.version>
         <postgresql.version>42.7.2</postgresql.version>
         <jakarta.xml.bind-api.version>4.0.1</jakarta.xml.bind-api.version>
         <junit.version>5.10.2</junit.version>
@@ -52,6 +48,69 @@
     <packaging>pom</packaging>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>${maven.compiler.source}</source>
+                        <target>${maven.compiler.target}</target>
+                        <release>${maven.compiler.target}</release>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.5.0</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-constraints</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireMavenVersion>
+                                        <version>[3.9.9,)</version>
+                                    </requireMavenVersion>
+                                    <requireJavaVersion>
+                                        <version>[21,)</version>
+                                    </requireJavaVersion>
+                                    <dependencyConvergence/>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-maven-plugin</artifactId>
+                    <version>${kotlin.version}</version>
+                    <configuration>
+                        <jvmTarget>${maven.compiler.target}</jvmTarget>
+                        <languageVersion>2.2</languageVersion>
+                        <apiVersion>2.2</apiVersion>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>net.masterthought</groupId>
+                    <artifactId>maven-cucumber-reporting</artifactId>
+                    <version>${maven-cucumber-reporting.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <resources>
             <resource>
                 <filtering>true</filtering>
@@ -81,41 +140,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.5.0</version> <!-- Use the latest stable version -->
-                <executions>
-                    <execution>
-                        <id>enforce-constraints</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <!-- Require a specific Maven version -->
-                                <requireMavenVersion>
-                                    <version>[3.9.9,)</version> <!-- Require Maven 3.6 or higher -->
-                                </requireMavenVersion>
-                                <!-- Require a specific Java version -->
-                                <requireJavaVersion>
-                                    <version>[21,)</version> <!-- Require Java 11 or higher -->
-                                </requireJavaVersion>
-                                <!-- Require a specific operating system family -->
-                                <!--requireOS>
-                                    <family>windows</family>
-                                </requireOS-->
-                                <!-- Enforce dependency convergence -->
-                                <dependencyConvergence/>
-                                <!-- Banned dependencies example -->
-                                <bannedDependencies>
-                                    <excludes>
-                                        <exclude>org.example:old-library
-                                        </exclude> <!-- Example of a banned dependency -->
-                                    </excludes>
-                                    <message>Banned dependency detected!</message>
-                                </bannedDependencies>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
@@ -405,12 +429,18 @@
                  <version>${archunit.version}</version>
              </dependency>
 
-             <!-- Force JUnit Platform versions for consistency -->
-             <dependency>
-                 <groupId>org.junit.platform</groupId>
-                 <artifactId>junit-platform-commons</artifactId>
-                 <version>1.10.2</version>
-             </dependency>
+              <!-- Force JUnit Platform versions for consistency -->
+              <dependency>
+                  <groupId>junit</groupId>
+                  <artifactId>junit</artifactId>
+                  <version>4.13.2</version>
+                  <scope>test</scope>
+              </dependency>
+              <dependency>
+                  <groupId>org.junit.platform</groupId>
+                  <artifactId>junit-platform-commons</artifactId>
+                  <version>1.10.2</version>
+              </dependency>
              <dependency>
                  <groupId>org.junit.platform</groupId>
                  <artifactId>junit-platform-engine</artifactId>
@@ -426,29 +456,14 @@
                  <groupId>org.postgresql</groupId>
                  <artifactId>postgresql</artifactId>
                  <version>${postgresql.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.kittinunf.fuel</groupId>
-                <artifactId>fuel</artifactId>
-                <version>${fuel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.kittinunf.fuel</groupId>
-                <artifactId>fuel-json</artifactId>
-                <version>${fuel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.kittinunf.result</groupId>
-                <artifactId>result</artifactId>
-                <version>3.1.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.tika</groupId>
-                <artifactId>tika-core</artifactId>
-                <version>${tika.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.googlecode.json-simple</groupId>
+             </dependency>
+             <dependency>
+                 <groupId>com.github.kittinunf.result</groupId>
+                 <artifactId>result</artifactId>
+                 <version>3.1.0</version>
+             </dependency>
+             <dependency>
+                 <groupId>com.googlecode.json-simple</groupId>
                 <artifactId>json-simple</artifactId>
                 <version>1.1.1</version>
                 <exclusions>
@@ -482,19 +497,9 @@
                 <groupId>com.approvaltests</groupId>
                 <artifactId>approvaltests</artifactId>
                 <version>23.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.deliveredtechnologies</groupId>
-                <artifactId>rulebook-core</artifactId>
-                <version>0.12</version>
-            </dependency>
-            <dependency>
-                <groupId>com.deliveredtechnologies</groupId>
-                <artifactId>rulebook-spring</artifactId>
-                <version>0.12</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.xml.bind</groupId>
+             </dependency>
+             <dependency>
+                 <groupId>javax.xml.bind</groupId>
                 <artifactId>jaxb-api</artifactId>
                 <version>2.4.0-b180830.0359</version>
             </dependency>
@@ -522,13 +527,8 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-jdbc</artifactId>
                 <version>6.2.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
-                <version>${okhttp.version}</version>
-            </dependency>
-            <!-- force versions due to dependency conversion conflicts in aw 3.5.0 / wicket-->
+             </dependency>
+             <!-- force versions due to dependency conversion conflicts in aw 3.5.0 / wicket-->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
@@ -671,18 +671,30 @@
                 <artifactId>causeway-extensions-secman-applib</artifactId>
                 <version>${causeway.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers</artifactId>
-                <version>1.19.3</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>1.19.3</version>
-                <scope>test</scope>
-            </dependency>
+             <dependency>
+                 <groupId>org.testcontainers</groupId>
+                 <artifactId>testcontainers</artifactId>
+                 <version>1.20.5</version>
+                 <scope>test</scope>
+                 <exclusions>
+                     <exclusion>
+                         <groupId>junit</groupId>
+                         <artifactId>junit</artifactId>
+                     </exclusion>
+                 </exclusions>
+             </dependency>
+             <dependency>
+                 <groupId>org.testcontainers</groupId>
+                 <artifactId>junit-jupiter</artifactId>
+                 <version>1.20.5</version>
+                 <scope>test</scope>
+                 <exclusions>
+                     <exclusion>
+                         <groupId>junit</groupId>
+                         <artifactId>junit</artifactId>
+                     </exclusion>
+                 </exclusions>
+             </dependency>
 
         </dependencies>
     </dependencyManagement>
