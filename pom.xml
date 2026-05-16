@@ -6,7 +6,7 @@
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
         <causeway.version>4.0.0-M1</causeway.version>
-        <spring-boot.version>3.5.10</spring-boot.version>
+        <spring-boot.version>3.5.14</spring-boot.version>
         <spring-framework.version>6.2.6</spring-framework.version>
         <lombok.version>1.18.38</lombok.version>
         <jmock.version>2.12.0</jmock.version>
@@ -491,7 +491,7 @@
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
-                <version>3.24.2</version>
+                <version>3.27.7</version>
             </dependency>
             <dependency>
                 <groupId>com.approvaltests</groupId>
@@ -696,6 +696,27 @@
                  </exclusions>
              </dependency>
 
+            <!-- Override (transitive/vulnerable) dependencies -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.28.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>6.2.18</version>
+            </dependency>
+            <dependency>
+                <groupId>org.appache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>11.0.22</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>2.18.6</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

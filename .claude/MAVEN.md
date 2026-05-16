@@ -101,6 +101,26 @@ Version numbers and dependency management should be organized based on their sco
 
 ---
 
+## 4. Parent POM Inheritance
+
+Every module inherits from the root POM via `<parent>`:
+
+```xml
+<parent>
+  <groupId>org.apache.causeway.domox</groupId>
+  <artifactId>domox</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <relativePath>../pom.xml</relativePath>
+</parent>
+```
+
+**Benefits:**
+- Shared properties (Java version, compiler config)
+- Shared plugins and their versions
+- Consistent build behavior across all modules
+
+---
+
 ## 5. Root-Level Dependency Management
 
 Use `<dependencyManagement>` in the root POM for centralized cross-module version control:
@@ -134,27 +154,7 @@ Child modules declare dependencies **without versions**:
 
 ---
 
-## 6. Parent POM Inheritance
-
-Every module inherits from the root POM via `<parent>`:
-
-```xml
-<parent>
-  <groupId>org.apache.causeway.domox</groupId>
-  <artifactId>domox</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
-  <relativePath>../pom.xml</relativePath>
-</parent>
-```
-
-**Benefits:**
-- Shared properties (Java version, compiler config)
-- Shared plugins and their versions
-- Consistent build behavior across all modules
-
----
-
-## 5. Plugin Management
+## 6. Plugin Management
 
 Define plugin versions only in the root POM's `<pluginManagement>`:
 
@@ -196,7 +196,7 @@ Child modules should **only invoke** plugins, not define versions:
 
 ---
 
-## 6. DoMoX-Specific Configuration
+## 7. DoMoX-Specific Configuration
 
 ### Java Version
 
@@ -252,7 +252,7 @@ All child modules **inherit** these repositories; no duplication needed.
 
 ---
 
-## 7. Transitive Dependency Management
+## 8. Transitive Dependency Management
 
 When transitive dependencies have incorrect versions, override them via `<dependencyManagement>`:
 
@@ -273,7 +273,146 @@ This forces all modules to use the correct version without explicit declarations
 
 ---
 
-## 8. Module Responsibilities
+## 9. Security Vulnerability Fixes via Transitive Dependencies
+
+### Identifying Vulnerabilities
+
+**CVE scanning tools:**
+- Maven plugin: `mvn dependency:check` (requires plugins setup)
+- GitHub Dependabot: Automatic PR creation for vulnerable deps
+- OWASP Dependency-Check: Comprehensive CVE scanning
+- Manual check using CVE databases for key dependencies
+
+**Example (from DoMoX project):**
+```bash
+# Check specific dependencies for CVEs
+mvn validate  # If enforcer plugin is configured
+# Or use external tools to scan project dependencies
+```
+
+### Fixing Transitive Vulnerabilities
+
+When a transitive dependency has a known CVE, override it in the root POM's `<dependencyManagement>` section with a patched version:
+
+```xml
+<!-- In pom.xml dependencyManagement section -->
+<dependencyManagement>
+    <dependencies>
+        <!-- Override transitive/vulnerable dependencies -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.28.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <version>3.5.14</version>  <!-- Fixes CVE-2026-40973 -->
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.11</version>  <!-- Fixes CVE-2026-42198 -->
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.18.6</version>  <!-- Fixes DoS vulnerability -->
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+### Important: Don't Declare Direct Dependencies
+
+**Wrong approach:**
+```xml
+<!-- ❌ WRONG - This creates a direct dependency -->
+<dependencies>
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.28.0</version>
+    </dependency>
+</dependencies>
+```
+
+**Correct approach:**
+```xml
+<!-- ✅ CORRECT - Declare ONLY in dependencyManagement -->
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.28.0</version>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+<!-- The version is applied transitively to all modules -->
+```
+
+### DoMoX Security Patch Examples
+
+**Spring Boot temporal directory DoS** (CVE-2026-40973):
+- Affected: 3.5.0–3.5.13
+- Fixed: 3.5.14+
+- Patch: Override `spring-boot` version in dependencyManagement
+
+**PostgreSQL PBKDF2 CPU exhaustion** (CVE-2026-42198):
+- Affected: 42.7.2
+- Fixed: 42.7.11+
+- Patch: Override `postgresql` version
+
+**Jackson Core number parsing DoS** (GHSA-72hv-8253-57qq):
+- Affected: 2.20.0
+- Fixed: 2.18.6+
+- Patch: Override `jackson-core` version
+
+**Apache Tomcat multiple critical CVEs** (20+ issues):
+- Affected: 10.1.36 (transitively from Spring Boot)
+- Fixed: 11.0.22+
+- Patch: Override `tomcat-embed-core` version
+
+### Verification After Patching
+
+1. **Rebuild and verify no regressions:**
+   ```bash
+   mvn clean install -DskipTests
+   ```
+
+2. **Check dependency tree to confirm versions:**
+   ```bash
+   mvn dependency:tree | grep commons-compress  # Should show patched version
+   ```
+
+3. **Run full test suite:**
+   ```bash
+   mvn clean install  # Include tests
+   ```
+
+### When Patches Aren't Available
+
+**Some CVEs cannot be immediately fixed:**
+- New CVEs with no patch yet (0-day)
+- Incompatible version constraints (e.g., Spring Framework 7.0.7 requires Spring Boot 3.2+, but your project uses 3.5.x)
+
+**Action plan:**
+1. Document the unpatchable CVEs with their CVE IDs
+2. Add risk assessment (can it be mitigated at application level?)
+3. Set reminder to upgrade when patches become available
+4. Monitor for workarounds or alternative libraries
+
+**Example (unpatchable):**
+```xml
+<!-- Spring Core CVE-2025-41249 - No patch available yet (Spring 6.2.6) -->
+<!-- Will be fixable in next major Spring version -->
+<!-- Current mitigation: Don't use @EnableMethodSecurity with generic superclasses -->
+```
+
+---
+
+## 10. Module Responsibilities
 
 ### domox-domain
 - JPA entities with Causeway annotations
@@ -303,7 +442,7 @@ This forces all modules to use the correct version without explicit declarations
 
 ---
 
-## 9. Build Operations
+## 11. Build Operations
 
 ### Clean build all modules:
 ```bash
@@ -335,7 +474,7 @@ mvn dependency:tree | grep "^\["
 
 ---
 
-## 10. Understanding the Module Dependency Graph
+## 12. Understanding the Module Dependency Graph
 
 DoMoX follows a **layered architecture**:
 
@@ -357,7 +496,7 @@ domox (parent configuration, no dependencies)
 
 ---
 
-## 11. Common Issues & Solutions
+## 13. Common Issues & Solutions
 
 ### Issue: "Cannot find artifact X:Y:Z:jar:0.1.0-SNAPSHOT"
 
@@ -396,7 +535,7 @@ domox (parent configuration, no dependencies)
 
 ---
 
-## 12. Repository & Settings Configuration
+## 14. Repository & Settings Configuration
 
 ### Global Settings (~/.m2/settings.xml)
 
@@ -449,7 +588,7 @@ Configure Maven to use both:
 
 ---
 
-## 13. Build Performance
+## 15. Build Performance
 
 1. **Use incremental builds during development:**
    ```bash
@@ -470,7 +609,7 @@ Configure Maven to use both:
 
 ---
 
-## 14. Testing Best Practices
+## 16. Testing Best Practices
 
 - **Unit tests:** Each module's own `src/test/java`
 - **Integration tests:** Use TestContainers for databases
@@ -479,7 +618,7 @@ Configure Maven to use both:
 
 ---
 
-## 15. Release & Versioning
+## 17. Release & Versioning
 
 ### Semantic Versioning
 
@@ -495,7 +634,7 @@ All modules share one version (`0.1.0-SNAPSHOT`). Incrementing happens for the e
 
 ---
 
-## 16. Health Checklist
+## 18. Health Checklist
 
 - [ ] Root POM uses `packaging: pom`
 - [ ] All modules declared in `<modules>`

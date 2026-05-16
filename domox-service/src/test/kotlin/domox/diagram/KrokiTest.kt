@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
-import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 
 @Disabled("Requires Docker environment with Kroki container")
@@ -28,14 +30,15 @@ class KrokiTest {
                 val plantUmlCode = "@startuml\nAlice -> Bob: Hello\n@enduml"
                 val postData = plantUmlCode.toByteArray(StandardCharsets.UTF_8)
 
-                // Send request to Kroki
-                val connection = URL(krokiUrl).openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.doOutput = true
-                connection.outputStream.write(postData)
+                // Send request to Kroki using modern HttpClient
+                val client = HttpClient.newBuilder().build()
+                val request = HttpRequest.newBuilder()
+                    .uri(URI(krokiUrl))
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(postData))
+                    .build()
 
-                // Validate response
-                Assertions.assertEquals(200, connection.responseCode)
+                val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+                Assertions.assertEquals(200, response.statusCode())
             }
     }
 
