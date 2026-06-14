@@ -1,45 +1,27 @@
-# referecnes to *.int.kn can be removed, when running "in the wild"
-# Use an official OpenJDK image as the base image
-FROM repository.int.kn/openjdk:8-jdk-alpine
+FROM eclipse-temurin:11-jre-alpine
 
-# Set proxy first (before any network operations)
-ENV http_proxy="http://zscaler.proxy.int.kn:80" \
-    https_proxy="http://zscaler.proxy.int.kn:80" \
-    no_proxy="localhost,127.0.0.1,.int.kn,10.,10.0.0.0/8,.eks.amazonaws.com"
+# Set CoreNLP version here
+ENV CORENLP_VERSION=4.5.10
+ENV CORENLP_HOME=/opt/corenlp
 
-# Set environment variables
-ENV CORENLP_VERSION=4.5.9
-ENV CORENLP_DIR=/app/corenlp
-ENV CORENLP_URL=https://nlp.stanford.edu/software/stanford-corenlp-${CORENLP_VERSION}.zip
-#ENV MODELS_DIR=/app/models
+# Install curl + unzip + bash + ca-certificates
+RUN apk add --no-cache curl unzip bash ca-certificates && update-ca-certificates
 
-# Create directory for CoreNLP
-RUN mkdir -p $CORENLP_DIR
-    #&& mkdir -p $MODELS_DIR
+# Download and extract Stanford CoreNLP
+RUN mkdir -p ${CORENLP_HOME} && curl -k -L -o /tmp/corenlp.zip "https://nlp.stanford.edu/software/stanford-corenlp-${CORENLP_VERSION}.zip" && unzip /tmp/corenlp.zip -d ${CORENLP_HOME} && rm /tmp/corenlp.zip
 
-# Download and extract CoreNLP
-RUN apk add --no-cache curl unzip && \
-    curl -o /tmp/corenlp.zip -L $CORENLP_URL && \
-    unzip /tmp/corenlp.zip -d $CORENLP_DIR && \
-    rm /tmp/corenlp.zip
+WORKDIR ${CORENLP_HOME}/stanford-corenlp-${CORENLP_VERSION}
 
-# Extract CoreNLP models
-#RUN unzip $CORENLP_DIR/stanford-corenlp-${CORENLP_VERSION}/stanford-corenlp-${CORENLP_VERSION}-models.jar -d /tmp
-#RUN ls -laR /tmp
-#COPY /tmp/edu/stanford/nlp/models/parser/nndep/english_UD.gz $MODELS_DIR/
-
-#ENV PATH=$MODELS_DIR:$PATH
-
-# Set up classpath environment variable
-#ENV CLASSPATH=$CORENLP_DIR/stanford-corenlp-${CORENLP_VERSION}/*
-#ENV CLASSPATH=$CLASSPATH:$CORENLP_DIR/stanford-corenlp-${CORENLP_VERSION}/*
-#ENV CLASSPATH=$CLASSPATH:$MODELS_DIR
-
-# Expose port 9000
+# Expose CoreNLP server port
 EXPOSE 9000
 
-# Set working directory
-WORKDIR $CORENLP_DIR
+# Default annotators (you can override at runtime)
+ENV CORENLP_ANNOTATORS="tokenize,ssplit,pos,lemma,ner,parse,depparse"
 
-# Default command to start the CoreNLP server
-CMD ["java", "-mx3g", "edu.stanford.nlp.pipeline.StanfordCoreNLPServer", "--port", "9000"]
+# Start the CoreNLP server
+CMD ["bash", "-c", "java -mx4g -cp '*' edu.stanford.nlp.pipeline.StanfordCoreNLPServer \
+    -port 9000 \
+    -timeout 15000 \
+    -annotators ${CORENLP_ANNOTATORS} \
+    -preload ${CORENLP_ANNOTATORS} \
+    -threads 4"]

@@ -21,7 +21,7 @@
             Template Maven build cache configuration
           -->
     <configuration>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
         <hashAlgorithm>SHA-256</hashAlgorithm>
         <validateXml>true</validateXml>
         <remote enabled="false">
