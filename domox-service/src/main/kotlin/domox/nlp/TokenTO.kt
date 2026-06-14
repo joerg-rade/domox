@@ -1,22 +1,20 @@
-package domox.nlp;
+package domox.nlp
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore
 
-@Data
-public class TokenTO {
-    Long index = 0L;
-    public String word = "";
-    String originalText = "";
-    String lemma = "";
-    Long characterOffsetBegin = 0L;
-    Long characterOffsetEnd = 0L;
-    public String pos = "";
-    String ner = "";
-    String before = "";
-    String after = "";
-    String speaker = "";
-    String normalizedNER = null;
+data class TokenTO(
+    val index: Long = 0L,
+    val word: String = "",
+    val originalText: String = "",
+    val lemma: String = "",
+    val characterOffsetBegin: Long = 0L,
+    val characterOffsetEnd: Long = 0L,
+    val pos: String = "",
+    val ner: String = "",
+    val before: String = "",
+    val after: String = "",
+    val speaker: String = "",
+    val normalizedNER: String? = null,
     @JsonIgnore
-    TimexTO timex = null;
-}
+    val timex: TimexTO? = null
+)

@@ -2,20 +2,22 @@ package domox.nlp
 
 import domox.HttpRequest
 import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.utility.DockerImageName
 
 @Testcontainers
-@Disabled("Requires Docker environment with CoreNLP container")
 class HttpRequestTest {
 
-    @Container
-    private val coreNlp = GenericContainer("corenlp:latest")
-        .withExposedPorts(9000)
-        .withEnv("JVM_OPTS", "-Xmx4g")
+    companion object {
+        @Container
+        @JvmStatic
+        val coreNlp = GenericContainer(DockerImageName.parse("graham3333/corenlp-complete").asCompatibleSubstituteFor("corenlp"))
+            .withExposedPorts(9000)
+            .withEnv("JVM_OPTS", "-Xmx4g")
+    }
 
     @Test
     fun testInvokeCoreNLP() {

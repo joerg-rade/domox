@@ -1,12 +1,9 @@
-package domox.nlp;
+package domox.nlp
 
-import lombok.Data;
-
-@Data
-public class BasicDependencyTO {
-    public String dep = "";
-    public Long governor = 0L;
-    String governorGloss = "";
-    public Long dependent = 0L;
-    String dependentGloss = "";
-}
+data class BasicDependencyTO(
+    val dep: String = "",
+    val governor: Long = 0L,
+    val governorGloss: String = "",
+    val dependent: Long = 0L,
+    val dependentGloss: String = ""
+)

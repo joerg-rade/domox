@@ -20,14 +20,15 @@ package domox
 
 class UmlUtils {
 
-    fun generateDiagram(pumlCode: String): String {
+    fun generateDiagram(pumlCode: String, host: String = "localhost", port: Int = 8000): String {
         var arg = "{"
         arg += "\"diagram_source\":" + pumlCode + ","
         arg += "\"diagram_type\":" + "\"plantuml\","
-        arg += "\"output_format\":" + "\"png\""
+        arg += "\"output_format\":" + "\"svg\""
         arg += "}"
 
-        return HttpRequest().invokeAnonymous(Constants.plantUmlUrl, arg)
+        val url = "http://$host:$port"
+        return HttpRequest().invokeAnonymous(url, arg)
     }
 
 }

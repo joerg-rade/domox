@@ -1,12 +1,5 @@
 package domox.nlp
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-
-data class DocumentTO(
-    val sentences: List<SentenceTO> = emptyList()
-)
-
-/* Commented out for future use
 data class CorefMentionTO(
     val number: String? = null,
     val startIndex: Int = 0,
@@ -19,8 +12,6 @@ data class CorefMentionTO(
     val text: String? = null,
     val position: List<Int>? = null,
     val type: String? = null,
-    val headIndex: Int = 0,
-    @JsonIgnore
-    val corefs: Map<String, List<CorefMentionTO>>? = null
+    val headIndex: Int = 0
 )
-*/
+

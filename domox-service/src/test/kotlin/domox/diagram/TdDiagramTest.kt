@@ -1,22 +1,33 @@
 package domox.diagram
 
-import domox.Constants
 import domox.nlp.DocumentTO
 import domox.nlp.StanfordCoreNlpAPI
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.utility.DockerImageName
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-@Disabled("Requires CoreNLP service running")
+@Testcontainers
 internal class TdDiagramTest {
+
+    companion object {
+        @Container
+        @JvmStatic
+        val coreNlp = GenericContainer(DockerImageName.parse("graham3333/corenlp-complete").asCompatibleSubstituteFor("corenlp"))
+            .withExposedPorts(9000)
+            .withEnv("JVM_OPTS", "-Xmx4g")
+    }
+
     @Test
     fun testBuild() {
         //given
-        val scheme = Constants.coreNlpScheme
-        val host = Constants.coreNlpHost
-        val port = Constants.coreNlpPort
+        val scheme = "http"
+        val host = coreNlp.host
+        val port = coreNlp.getMappedPort(9000)
         val text = "A language tape has a title language and level."
         val coreDocument: DocumentTO = StanfordCoreNlpAPI(scheme, host, port).annotate(text)
         assertNotNull(coreDocument)

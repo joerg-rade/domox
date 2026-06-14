@@ -84,10 +84,10 @@ public class Sentences {
             final String depCode = dependency.getDep();
             td.setType(TdType.fromCode(depCode));
             //
-            final int govIndex = dependency.getGovernor().intValue();
+            final int govIndex = (int) dependency.getGovernor();
             final Token a = sentence.getToken(govIndex);
             //
-            final int depIndex = dependency.getDependent().intValue();
+            final int depIndex = (int) dependency.getDependent();
             final Token b = sentence.getToken(depIndex);
             //
             final List<Token> tokens = new ArrayList<>(2);

@@ -1,22 +1,18 @@
-package domox.nlp;
+package domox.nlp
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore
 
-import java.util.List;
-
-@Data
-public class SentenceTO {
-    Long index = 0L;
-    String parse = "";
-    List<BasicDependencyTO> basicDependencies = null;
-    List<BasicDependencyTO> enhancedDependencies = null;
-    public List<BasicDependencyTO> enhancedPlusPlusDependencies = null;
-    String sentimentValue = "";
-    String sentiment = "";
-    List<Long> sentimentDistribution = null;
-    String sentimentTree = "";
+data class SentenceTO(
+    val index: Long = 0L,
+    val parse: String = "",
+    val basicDependencies: List<BasicDependencyTO> = emptyList(),
+    val enhancedDependencies: List<BasicDependencyTO> = emptyList(),
+    val enhancedPlusPlusDependencies: List<BasicDependencyTO> = emptyList(),
+    val sentimentValue: String = "",
+    val sentiment: String = "",
+    val sentimentDistribution: List<Long> = emptyList(),
+    val sentimentTree: String = "",
     @JsonIgnore
-    List<EntityMentionTO> entitymentions = null;
-    public List<TokenTO> tokens = null;
-}
+    val entitymentions: List<EntityMentionTO>? = null,
+    val tokens: List<TokenTO> = emptyList()
+)

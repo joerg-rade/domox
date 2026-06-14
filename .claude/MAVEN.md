@@ -61,7 +61,7 @@ Version numbers and dependency management should be organized based on their sco
 <!-- root pom.xml - used by multiple modules -->
 <properties>
   <kotlin.version>2.2.0</kotlin.version>
-  <junit-jupiter.version>5.10.2</junit-jupiter.version>
+  <junit-jupiter.version>6.1.0</junit-jupiter.version>
 </properties>
 
 <!-- domox-domain/pom.xml - used only by domox-domain -->

@@ -2,7 +2,11 @@ package domox.webapp.integtests;
 
 import org.apache.causeway.testing.integtestsupport.applib.CausewayIntegrationTestAbstract;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Testcontainers
 @SpringBootTest(
     classes = {
             // we use a slightly different confuguration compared to the production (AppManifest/webapp)
@@ -16,5 +20,11 @@ import org.springframework.boot.test.context.SpringBootTest;
     }
 )
 public abstract class ApplicationIntegTestAbstract extends CausewayIntegrationTestAbstract {
+
+    @Container
+    public static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest")
+            .withDatabaseName("domox")
+            .withUsername("domox")
+            .withPassword("domox");
 
 }

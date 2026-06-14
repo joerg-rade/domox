@@ -327,12 +327,34 @@
             <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-commons</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+         <dependency>
+             <groupId>org.junit.platform</groupId>
+             <artifactId>junit-platform-commons</artifactId>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.testcontainers</groupId>
+             <artifactId>testcontainers</artifactId>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.testcontainers</groupId>
+             <artifactId>postgresql</artifactId>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.testcontainers</groupId>
+             <artifactId>junit-jupiter</artifactId>
+             <scope>test</scope>
+         </dependency>
+         <!-- JUnit 4 needed for testcontainers' GenericContainer base class (not used for testing) -->
+         <dependency>
+             <groupId>junit</groupId>
+             <artifactId>junit</artifactId>
+             <version>4.13.2</version>
+             <scope>test</scope>
+         </dependency>
+     </dependencies>
 
     <profiles>
         <profile>

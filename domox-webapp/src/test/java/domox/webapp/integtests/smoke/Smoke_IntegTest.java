@@ -1,11 +1,14 @@
 package domox.webapp.integtests.smoke;
 
 import domox.webapp.integtests.ApplicationIntegTestAbstract;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+@ContextConfiguration(initializers = Smoke_IntegTest.Initializer.class)
 @Transactional
-@SpringBootTest
 class Smoke_IntegTest extends ApplicationIntegTestAbstract {
 
     /*@Autowired
@@ -78,4 +81,18 @@ class Smoke_IntegTest extends ApplicationIntegTestAbstract {
         assertThat(all).hasSize(1);
     }
 */
+
+    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext context) {
+            if (ApplicationIntegTestAbstract.postgres != null && ApplicationIntegTestAbstract.postgres.isRunning()) {
+                TestPropertyValues.of(
+                        "spring.datasource.url=" + ApplicationIntegTestAbstract.postgres.getJdbcUrl(),
+                        "spring.datasource.username=" + ApplicationIntegTestAbstract.postgres.getUsername(),
+                        "spring.datasource.password=" + ApplicationIntegTestAbstract.postgres.getPassword()
+                ).applyTo(context.getEnvironment());
+            }
+        }
+    }
+
 }

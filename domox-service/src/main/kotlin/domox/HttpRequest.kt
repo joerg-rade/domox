@@ -50,9 +50,12 @@ class HttpRequest {
         }
     }
 
-    fun invokePlantUML(arg: String): String {
+    @JvmOverloads
+    fun invokePlantUML(arg: String, host: String = "", port: Int = 0): String {
         System.out.println("[invokePlantUML] " + arg)
-        val endpoint = Constants.plantUmlUrl + "/plantuml"
+        val krokiHost = if (host.isEmpty()) getSystemProperty("kroki.host", "localhost") else host
+        val krokiPort = if (port == 0) getSystemProperty("kroki.port", "8000").toInt() else port
+        val endpoint = "http://" + krokiHost + ":" + krokiPort + "/plantuml"
         val (request, response, result) = endpoint
             .httpPost()
             .set("Accept", Constants.svgMimeType)
@@ -60,6 +63,10 @@ class HttpRequest {
             .body(arg)
             .responseString()
         return result.get()
+    }
+
+    private fun getSystemProperty(key: String, defaultValue: String): String {
+        return System.getProperty(key) ?: defaultValue
     }
 
     fun invokeAnonymous(url: String, arg: String): String {
