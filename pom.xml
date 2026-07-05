@@ -40,7 +40,7 @@
         <approvaltests.version>23.0.0</approvaltests.version>
         <guava.version>33.1.0-jre</guava.version>
         <junit-platform.version>1.11.0</junit-platform.version>
-        <testcontainers.version>1.20.5</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
 
         <!-- Library versions -->
         <json.version>20250107</json.version>
@@ -55,7 +55,7 @@
         <commons-compress.version>1.28.0</commons-compress.version>
         <result.version>3.1.0</result.version>
         <resteasy-core.version>7.0.0.Final</resteasy-core.version>
-        <tomcat-embed-core.version>11.0.22</tomcat-embed-core.version>
+        <tomcat-embed-core.version>11.0.11</tomcat-embed-core.version>
         <jackson-core.version>2.18.6</jackson-core.version>
 
         <!-- Batik versions (used in domox-domain) -->
@@ -73,7 +73,7 @@
     <parent>
         <groupId>org.apache.causeway.app</groupId>
         <artifactId>causeway-app-starter-parent</artifactId>
-        <version>4.0.0-M1</version>
+        <version>3.6.0</version>
         <relativePath/>
     </parent>
 
@@ -717,7 +717,7 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers</artifactId>
-                <version>${testcontainers.version}</version>
+                <version>2.0.5</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
@@ -729,7 +729,7 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>junit-jupiter</artifactId>
-                <version>${testcontainers.version}</version>
+                <version>1.21.4</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
@@ -770,6 +770,33 @@
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${joda-time.version}</version>
+            </dependency>
+            <!-- Override Spring Boot components pulled in by Causeway 4.0.0-M1
+                 to use Spring Boot 3.5.13 for compatibility -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-actuator</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-jpa</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jdbc</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-data-jpa</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,26 +1,6 @@
 package domox.nlp
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-
+@Suppress("WRONG_ANNOTATION_TARGET", "unused")
 data class DocumentTO(
     val sentences: List<SentenceTO> = emptyList()
 )
-
-/* Commented out for future use
-data class CorefMentionTO(
-    val number: String? = null,
-    val startIndex: Int = 0,
-    val gender: String? = null,
-    val sentNum: Int = 0,
-    val endIndex: Int = 0,
-    val isRepresentativeMention: Boolean = false,
-    val animacy: String? = null,
-    val id: Int = 0,
-    val text: String? = null,
-    val position: List<Int>? = null,
-    val type: String? = null,
-    val headIndex: Int = 0,
-    @JsonIgnore
-    val corefs: Map<String, List<CorefMentionTO>>? = null
-)
-*/

@@ -16,7 +16,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories
 @EntityScan(basePackageClasses = {
         DomainModule.class
-})public class DomainModule implements ModuleWithFixtures {
+})
+public class DomainModule implements ModuleWithFixtures {
 
     public static final String NAMESPACE = DomainModule.SCHEMA;
     public static final String SCHEMA = "domox";

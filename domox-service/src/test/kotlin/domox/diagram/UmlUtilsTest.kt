@@ -1,12 +1,11 @@
 package domox.diagram
 
 import domox.UmlUtils
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @Testcontainers
 internal class UmlUtilsTest {

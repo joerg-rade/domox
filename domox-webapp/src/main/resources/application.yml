@@ -28,6 +28,7 @@ causeway:
     meta-model:
       introspector:
         lock-after-full-introspection: true
+        class-exclusions: domox.nlp.**
       validator:
         allow-deprecated: false
         no-params-only: true
@@ -88,9 +89,14 @@ spring:
   banner:
     location: banner.txt
   main:
-    web-application-typ: SERVLET
+    web-application-type: SERVLET
   datasource:
     driverClassName: org.postgresql.Driver
+  # Exclude Spring Boot 4.0.0-M3 autoconfiguration classes that are incompatible with Spring Boot 3.5.13
+#  autoconfigure:
+ #   exclude:
+  #      - org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorsSupplier
+   #     - org.springframework.boot.actuate.autoconfigure.tracing.TracingAutoConfiguration
 
   quartz:
     job-store-type: memory

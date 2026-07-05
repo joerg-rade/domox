@@ -38,7 +38,7 @@ class SentenceAdapterTest {
 
     @Test
     void buildTypedDependencyDiagram() {
-        final String filename = "PetShop_useCases.txt";
+        final String filename = "PetClinic.txt";
         final String txtContent = new FileUtil().readFileFromResources(filename);
         final DocumentTO documentTO = new DocumentAdapter().parseTextAndAmend(txtContent);
         final SentenceTO sentenceTO = documentTO.getSentences().getFirst();

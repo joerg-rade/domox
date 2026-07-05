@@ -2,14 +2,12 @@ package domox.diagram
 
 import domox.nlp.DocumentTO
 import domox.nlp.StanfordCoreNlpAPI
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @Testcontainers
 internal class TdDiagramTest {

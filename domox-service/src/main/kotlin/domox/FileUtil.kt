@@ -1,21 +1,13 @@
 package domox
 
-import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class FileUtil {
 
-     fun readFileFromResources(fileName: String): String {
-        var answer = ""
-        val inputStream = javaClass.classLoader.getResourceAsStream(fileName)
-        val reader = BufferedReader(InputStreamReader(inputStream))
-
-        var line: String?
-        while (reader.readLine().also { line = it } != null) {
-            answer += line
-        }
-        reader.close()
-        return answer
+    fun readFileFromResources(path: String): String {
+        val inputStream = this::class.java.getResourceAsStream("/$path")
+            ?: throw IllegalArgumentException("Datei nicht gefunden im Classpath: $path")
+        return InputStreamReader(inputStream).use { it.readText() }
     }
 
 }
