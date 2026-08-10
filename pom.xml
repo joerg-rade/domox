@@ -142,10 +142,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
                     <configuration>
-                        <!-- Configure byte-buddy agent for Mockito inline-mock-maker -->
-                        <argLine>
-                            -javaagent:"${settings.localRepository}"/net/bytebuddy/byte-buddy-agent/1.17.7/byte-buddy-agent-1.17.7.jar
-                        </argLine>
+                        <argLine>-Xmx2048m -XX:+EnableDynamicAgentLoading</argLine>
                     </configuration>
                 </plugin>
                 <plugin>

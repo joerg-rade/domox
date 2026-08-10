@@ -27,14 +27,14 @@
       <option name="url" value="https://repository.int.kn/nexus/content/repositories/sso/" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="central" />
-      <option name="name" value="central" />
-      <option name="url" value="https://repo.maven.apache.org/maven2" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="Apache Nexus snapshots" />
       <option name="name" value="Apache Nexus snapshots" />
       <option name="url" value="https://repository.apache.org/content/repositories/snapshots/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="central" />
+      <option name="url" value="https://repo.maven.apache.org/maven2" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="repository.nexus" />
