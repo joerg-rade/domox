@@ -241,10 +241,20 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-lombok</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <args>
                         <arg>-Xjvm-default=all</arg>
                     </args>
+                    <compilerPlugins>
+                        <plugin>lombok</plugin>
+                    </compilerPlugins>
                 </configuration>
                 <executions>
                     <execution>
@@ -253,6 +263,7 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
+                        <configuration/>
                     </execution>
                     <execution>
                         <id>test-compile</id>

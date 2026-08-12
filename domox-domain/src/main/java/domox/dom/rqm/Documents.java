@@ -10,11 +10,7 @@ import domox.svc.DocumentAdapter;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.apache.causeway.applib.annotation.Action;
-import org.apache.causeway.applib.annotation.ActionLayout;
-import org.apache.causeway.applib.annotation.DomainService;
-import org.apache.causeway.applib.annotation.PriorityPrecedence;
-import org.apache.causeway.applib.annotation.SemanticsOf;
+import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
 
@@ -78,6 +74,7 @@ public class Documents {
         return document;
     }
 
+    @Programmatic
     public List<Sentence> createSentences(Document document, DocumentTO to) {
         final List<SentenceTO> toList = to.getSentences();
         final List<Sentence> sentenceList = new ArrayList<>();

@@ -55,7 +55,7 @@
         <commons-compress.version>1.28.0</commons-compress.version>
         <result.version>3.1.0</result.version>
         <resteasy-core.version>7.0.0.Final</resteasy-core.version>
-        <tomcat-embed-core.version>11.0.11</tomcat-embed-core.version>
+        <tomcat-embed-core.version>10.1.34</tomcat-embed-core.version>
         <jackson-core.version>2.18.6</jackson-core.version>
 
         <!-- Batik versions (used in domox-domain) -->
