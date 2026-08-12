@@ -52,7 +52,7 @@ public class Sentence implements Comparable<Sentence> {
     private static final Logger log = LoggerFactory.getLogger(Sentence.class);
 
     @Title
-    String title() {
+    public String title() {
         return this.document.getTitle() + ".S" + this.id + "." + this.version;
     }
 
