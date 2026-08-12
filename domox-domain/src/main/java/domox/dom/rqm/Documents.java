@@ -92,7 +92,7 @@ public class Documents {
     @ActionLayout(sequence = "5", cssClassFa = "play")
     public Document loadFileSample() {
         final String title = "Pet Shop Use Cases";
-        final String filename = "PetShop_useCases.txt";
+        final String filename = "PetShop_UseCases.txt";
         final String txtContent = new FileUtil().readFileFromResources(filename);
         final Clob content = new Clob("", "text/xml", txtContent);
         final Author author = new Author();
