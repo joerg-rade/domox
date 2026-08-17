@@ -81,7 +81,8 @@ public class Documents {
         for (SentenceTO st : toList) {
             final Sentence sentence = sentences.build(st);
             sentence.setDocument(document);
-            sentenceList.add(sentence);
+            if (sentence.getText().trim().length() > 4) //IMPROVE skip stuff like "13."
+                sentenceList.add(sentence);
             sentences.initDiagram(st, sentence);
         }
         return sentenceList;

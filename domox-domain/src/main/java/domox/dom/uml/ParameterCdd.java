@@ -55,6 +55,11 @@ public class ParameterCdd
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
+    @Column(name = "name", nullable = false)
+    @Getter
+    @Setter
+    public String name;
+
     @Getter
     @Setter
     @ManyToOne()

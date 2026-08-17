@@ -8,6 +8,11 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 7)
+/**
+ * Purpose: Likely identifies classes from possessive dependencies (poss).
+ * Example: "The user's profile is incomplete." → Profile is identified as a class.
+ * Candidate Type: ClassCdd.
+ */
 public class TDR7 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Result

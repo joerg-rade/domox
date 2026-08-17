@@ -8,6 +8,11 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 8)
+/**
+ * Purpose: Likely identifies classes from prepositional phrases (prep).
+ * Example: "The report for the project is ready." → Project is identified as a class.
+ * Candidate Type: ClassCdd.
+ */
 public class TDR8 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Result

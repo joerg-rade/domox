@@ -1,6 +1,8 @@
 package domox.dom.nlp;
 
 import domox.DomainModule;
+import domox.dom.Analysis;
+import domox.dom.rqm.Document;
 import domox.nlp.BasicDependencyTO;
 import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
@@ -16,6 +18,8 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,15 +28,22 @@ import java.util.List;
 @Named(DomainModule.NAMESPACE + ".Sentences")
 @Priority(PriorityPrecedence.EARLY)
 public class Sentences {
+    private static final Logger log = LoggerFactory.getLogger(Analysis.class);
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
+    private final SentenceRepository sentenceRepository;
     private final Tokens tokens;
 
     @Inject
-    public Sentences(RepositoryService repositoryService, FactoryService factoryService, Tokens tokens) {
+    public Sentences(
+            RepositoryService repositoryService,
+            FactoryService factoryService,
+            SentenceRepository sentenceRepository,
+            Tokens tokens) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
+        this.sentenceRepository = sentenceRepository;
         this.tokens = tokens;
     }
 
@@ -99,4 +110,7 @@ public class Sentences {
         }
     }
 
+    public List<Sentence> findByDocument(Document document) {
+        return sentenceRepository.findByDocument(document);
+    }
 }

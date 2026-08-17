@@ -8,6 +8,11 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 9)
+/**
+ * Purpose: Likely identifies classes from conjunctions (conj).
+ * Example: "The customer and the supplier agreed." → Customer and Supplier are identified as classes.
+ * Candidate Type: ClassCdd.
+ */
 public class TDR9 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Result

@@ -29,6 +29,7 @@ import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +43,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
-public class TypedDependency implements Comparable<TypedDependency>, NameValueReferable {
+public class TypedDependency implements Comparable<TypedDependency>, NameValueReferable, Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -60,6 +61,12 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @Getter
     @Setter
     private TdType type;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "sentence_id")
+    @Getter
+    @Setter
+    private Sentence sentence;
 
     @OneToMany(mappedBy = "typedDependency", cascade = CascadeType.ALL)
     @Getter

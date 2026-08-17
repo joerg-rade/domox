@@ -800,28 +800,6 @@
 
     <repositories>
         <repository>
-            <id>repository.nexus.thirdparty</id>
-            <name>Nexus ThirdParty Repository</name>
-            <url>https://repository.int.kn/nexus/content/repositories/thirdparty/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>nexus3</id>
-            <name>Nexus Maven Repository</name>
-            <url>https://repository.int.kn/repository/maven/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <repository>
             <id>apache-releases</id>
             <name>Apache Releases</name>
             <url>https://repository.apache.org/content/repositories/releases/</url>
@@ -844,7 +822,7 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
-        <repository>
+        <!--repository>
             <id>apache-causeway-snapshots</id>
             <name>Apache Causeway Snapshots</name>
             <url>https://raw.githubusercontent.com/apache-causeway-committers/causeway-nightly/master/mvn-snapshots
@@ -856,7 +834,7 @@
             <releases>
                 <enabled>false</enabled>
             </releases>
-        </repository>
+        </repository-->
         <repository>
             <id>Sonatype OSS snapshots</id>
             <name>Sonatype OSS snapshots</name>

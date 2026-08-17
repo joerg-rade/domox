@@ -3,26 +3,33 @@ package domox.dom.rules;
 import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
-import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
+import domox.dom.nlp.Sentence;
+import domox.dom.nlp.TypedDependency;
+import domox.dom.uml.Candidate;
+import domox.dom.uml.PropertyCandidates;
+import jakarta.inject.Inject;
 
 @RuleBean
 @Rule(order = 2)
 public class TDR2 extends TypedDependencyRuleWithPreviousAndNext {
 
+    @Inject
+    private PropertyCandidates propertyCandidates;
+
     @Result
     private String result;
 
-    @When
+    @Override
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null) {
             return false;
         }
+
         boolean answer = false;
         if (currentTd.nsubj() || currentTd.nsubjpass()) {
             if (currentTd.isVerbA() && currentTd.isNounB() && currentTd.isBasicAttributeB()) {
-                answer = true;  // Rule fires regardless of previousTd.compound()
+                answer = true;
             }
         }
         return answer;
@@ -31,13 +38,42 @@ public class TDR2 extends TypedDependencyRuleWithPreviousAndNext {
     @Then
     public void then() {
         if (previousTd.compound()) {
-            // Attributes.add(compound(B) + Compound(A))
             result = "compound(" + currentTd.getB() + ") + Compound(" + currentTd.getA() + ")";
         } else {
-            // Attributes.add(nsubj(B))
             result = "nsubj(" + currentTd.getB() + ")";
         }
     }
 
-}
+    @Override
+    protected Candidate createNewCandidate(TypedDependency dependency, Sentence sentence) {
+        String className = determineClassName();
+        String propertyName = currentTd.getB();
+        String type = determineType();
 
+        // Validate inputs
+        if (className == null || className.isEmpty()) {
+            throw new IllegalArgumentException("Class name cannot be null or empty.");
+        }
+        if (propertyName == null || propertyName.isEmpty()) {
+            throw new IllegalArgumentException("Property name cannot be null or empty.");
+        }
+
+        return propertyCandidates.findOrCreate(className, propertyName, type);
+    }
+
+    @Override
+    protected String getResult() {
+        return result;
+    }
+
+    /**
+     * Determines the class name for this property.
+     * In this rule, the class name is inferred from the governor of the dependency (currentTd.getA()).
+     * @return The name of the class to which this property belongs.
+     */
+    String determineClassName() {
+        // Example: "The customer name is required." → "customer" is the class name.
+        return capitalizeFirstLetter(currentTd.getA());
+    }
+
+}

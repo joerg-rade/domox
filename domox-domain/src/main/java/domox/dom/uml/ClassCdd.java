@@ -15,6 +15,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.causeway.applib.annotation.Bounding;
@@ -63,6 +64,11 @@ public class ClassCdd
     @Column(name = "version", nullable = false)
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
+
+    @Column(name = "name", nullable = false)
+    @Getter
+    @Setter
+    public String name;
 
     @Property
     @JoinColumn

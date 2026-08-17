@@ -15,7 +15,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -56,6 +58,11 @@ public class ActionCdd
     @Column(name = "version", nullable = false)
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
+
+    @Column(name = "name", nullable = false)
+    @Getter
+    @Setter
+    public String name;
 
     @Property
     @JoinColumn(nullable = false)

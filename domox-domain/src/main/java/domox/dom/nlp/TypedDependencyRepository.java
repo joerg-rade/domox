@@ -7,5 +7,6 @@ import java.util.List;
 public interface TypedDependencyRepository extends JpaRepository<TypedDependency, Long> {
 
     List<TypedDependency> findByType(final TdType type);
+    List<TypedDependency> findBySentence(final Sentence sentence);
 
 }

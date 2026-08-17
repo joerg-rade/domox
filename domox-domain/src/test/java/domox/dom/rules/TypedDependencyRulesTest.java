@@ -6,6 +6,10 @@ import domox.dom.nlp.PartOfSpeechType;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.Token;
 import domox.dom.nlp.TypedDependency;
+import domox.dom.uml.PropertyCandidates;
+import org.mockito.Mockito;
+import domox.dom.uml.ClassCandidates;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +46,16 @@ public class TypedDependencyRulesTest {
             SpringAwareRuleBookRunner runner = new SpringAwareRuleBookRunner("domox.dom.rules");
             runner.setApplicationContext(applicationContext);
             return runner;
+        }
+
+        @Bean
+        public ClassCandidates classCandidates() {
+            return Mockito.mock(ClassCandidates.class);
+        }
+
+        @Bean
+        public PropertyCandidates propertyCandidates() {
+            return Mockito.mock(PropertyCandidates.class);
         }
     }
 
@@ -104,9 +118,7 @@ public class TypedDependencyRulesTest {
     public void testTDR1_SubjectEntityExtraction() {
         // Create a dependency: nsubj(created, document)
         // Where: created=VB, document=NN (non-basic attribute)
-        TypedDependency td = createTypedDependency(TdType.NSUBJ,
-            createToken("created", PartOfSpeechType.VB),
-            createToken("document", PartOfSpeechType.NN));
+        TypedDependency td = createTypedDependency(TdType.NSUBJ, createToken("created", PartOfSpeechType.VB), createToken("document", PartOfSpeechType.NN));
 
         // Test the rule directly
         tdr1.currentTd = td;
@@ -132,9 +144,7 @@ public class TypedDependencyRulesTest {
     public void testTDR2_AttributeExtraction() {
         // Create a dependency: nsubj(created, name)
         // Where: created=VB, name=NN (basic attribute)
-        TypedDependency td = createTypedDependency(TdType.NSUBJ,
-            createToken("created", PartOfSpeechType.VB),
-            createToken("name", PartOfSpeechType.NN));
+        TypedDependency td = createTypedDependency(TdType.NSUBJ, createToken("created", PartOfSpeechType.VB), createToken("name", PartOfSpeechType.NN));
 
         // Test the rule directly
         tdr2.currentTd = td;
@@ -155,9 +165,7 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR6_PossessiveRelationship() {
         // Create a dependency: nmod:of(name, document)
-        TypedDependency td = createTypedDependency(TdType.NMOD_OF,
-            createToken("name", PartOfSpeechType.NN),
-            createToken("document", PartOfSpeechType.NN));
+        TypedDependency td = createTypedDependency(TdType.NMOD_OF, createToken("name", PartOfSpeechType.NN), createToken("document", PartOfSpeechType.NN));
 
         tdr6.currentTd = td;
         tdr6.previousTd = createTypedDependency(TdType.COMPOUND, null, null);
@@ -177,14 +185,10 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR14_SubjectObjectRelationship() {
         // Create: nsubj(creates, user)
-        TypedDependency currentTd = createTypedDependency(TdType.NSUBJ,
-            createToken("creates", PartOfSpeechType.VB),
-            createToken("user", PartOfSpeechType.NN));
+        TypedDependency currentTd = createTypedDependency(TdType.NSUBJ, createToken("creates", PartOfSpeechType.VB), createToken("user", PartOfSpeechType.NN));
 
         // Create: dobj(creates, document)
-        TypedDependency nextTd = createTypedDependency(TdType.OBJ,
-            createToken("creates", PartOfSpeechType.VB),
-            createToken("document", PartOfSpeechType.NN));
+        TypedDependency nextTd = createTypedDependency(TdType.OBJ, createToken("creates", PartOfSpeechType.VB), createToken("document", PartOfSpeechType.NN));
 
         tdr14.currentTd = currentTd;
         tdr14.previousTd = createTypedDependency(TdType.COMPOUND, null, null);
@@ -204,9 +208,7 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR24_CardinalityFromAdjective() {
         // Create: amod(users, multiple)
-        TypedDependency td = createTypedDependency(TdType.AMOD,
-            createToken("users", PartOfSpeechType.NN),
-            createToken("multiple", PartOfSpeechType.JJ));
+        TypedDependency td = createTypedDependency(TdType.AMOD, createToken("users", PartOfSpeechType.NN), createToken("multiple", PartOfSpeechType.JJ));
 
         tdr24.currentTd = td;
         tdr24.previousTd = createTypedDependency(TdType.COMPOUND, null, null);
@@ -226,9 +228,7 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR27_InputDataExtraction() {
         // Create: nsubj(enter, user) with object being an attribute
-        TypedDependency td = createTypedDependency(TdType.NSUBJ,
-            createToken("enter", PartOfSpeechType.VB),
-            createToken("name", PartOfSpeechType.NN));
+        TypedDependency td = createTypedDependency(TdType.NSUBJ, createToken("enter", PartOfSpeechType.VB), createToken("name", PartOfSpeechType.NN));
 
         tdr27.currentTd = td;
         tdr27.previousTd = createTypedDependency(TdType.COMPOUND, null, null);
@@ -248,9 +248,7 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR34_ExceptionHandling() {
         // Create: amod(validation, invalid)
-        TypedDependency td = createTypedDependency(TdType.AMOD,
-            createToken("validation", PartOfSpeechType.NN),
-            createToken("invalid", PartOfSpeechType.JJ));
+        TypedDependency td = createTypedDependency(TdType.AMOD, createToken("validation", PartOfSpeechType.NN), createToken("invalid", PartOfSpeechType.JJ));
 
         tdr34.currentTd = td;
         tdr34.previousTd = createTypedDependency(TdType.COMPOUND, null, null);
@@ -278,9 +276,7 @@ public class TypedDependencyRulesTest {
      */
     @Test
     public void testTDR1DirectInstantiation() {
-        TypedDependency td = createTypedDependency(TdType.NSUBJ,
-            createToken("created", PartOfSpeechType.VB),
-            createToken("document", PartOfSpeechType.NN));
+        TypedDependency td = createTypedDependency(TdType.NSUBJ, createToken("created", PartOfSpeechType.VB), createToken("document", PartOfSpeechType.NN));
 
         // Manually check conditions
         assertTrue(td.nsubj(), "Should be nsubj");
@@ -298,9 +294,7 @@ public class TypedDependencyRulesTest {
     public void testTDR1AutwiredBean() {
         assertNotNull(tdr1, "TDR1 bean should be autowired from Spring context");
 
-        TypedDependency td = createTypedDependency(TdType.NSUBJ,
-            createToken("created", PartOfSpeechType.VB),
-            createToken("document", PartOfSpeechType.NN));
+        TypedDependency td = createTypedDependency(TdType.NSUBJ, createToken("created", PartOfSpeechType.VB), createToken("document", PartOfSpeechType.NN));
 
         // Set the fields manually on the bean
         tdr1.currentTd = td;

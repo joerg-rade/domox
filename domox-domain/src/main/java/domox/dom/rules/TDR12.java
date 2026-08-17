@@ -8,6 +8,11 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 12)
+/**
+ * Purpose: Likely identifies classes from nominal modifiers (nmod).
+ * Example: "The price of the product." → Product is identified as a class.
+ * Candidate Type: ClassCdd.
+ */
 public class TDR12 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Result

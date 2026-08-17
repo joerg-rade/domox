@@ -4,9 +4,7 @@ import domox.DomainModule;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.apache.causeway.applib.annotation.ActionLayout;
-import org.apache.causeway.applib.annotation.DomainService;
-import org.apache.causeway.applib.annotation.PriorityPrecedence;
+import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
@@ -20,12 +18,18 @@ public class TypedDependencies {
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
     private final TypedDependencyRepository typedDependencyRepository;
+    private final SentenceRepository sentenceRepository;
 
     @Inject
-    public TypedDependencies(RepositoryService repositoryService, FactoryService factoryService, TypedDependencyRepository typedDependencyRepository) {
+    public TypedDependencies(
+            RepositoryService repositoryService,
+            FactoryService factoryService,
+            TypedDependencyRepository typedDependencyRepository,
+            SentenceRepository sentenceRepository) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.typedDependencyRepository = typedDependencyRepository;
+        this.sentenceRepository = sentenceRepository;
     }
 
     @ActionLayout(sequence = "1")
@@ -33,7 +37,21 @@ public class TypedDependencies {
         return repositoryService.allInstances(TypedDependency.class);
     }
 
-    @ActionLayout(sequence = "2")
+    @Action
+    @ActionLayout(sequence = "2", named = "List By Sentence")
+    public List<TypedDependency> listBySentence(
+            @ParameterLayout(named = "Sentence")
+            final Sentence sentence) {
+        return typedDependencyRepository.findBySentence(sentence);
+    }
+
+    // Add choices for the 'sentence' parameter
+    @MemberSupport
+    public List<Sentence> choices0ListBySentence() {
+        return sentenceRepository.findAll();
+    }
+
+    @ActionLayout(sequence = "3")
     public TypedDependency create() {
         final TypedDependency obj = factoryService.detachedEntity(TypedDependency.class);
         repositoryService.persist(obj);

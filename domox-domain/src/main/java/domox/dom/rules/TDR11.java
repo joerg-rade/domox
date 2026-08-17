@@ -8,6 +8,11 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 11)
+/**
+ * Purpose: Likely identifies classes from relative clauses (relcl).
+ * Example: "The employee who submitted the form." → Employee is identified as a class.
+ * Candidate Type: ClassCdd.
+ */
 public class TDR11 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Result

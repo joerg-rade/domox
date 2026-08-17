@@ -8,6 +8,11 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 10)
+/**
+ * Purpose: Likely identifies classes from passive constructions (nsubjpass).
+ * Example: "The request was approved by the manager." → Request and Manager are identified as classes.
+ * Candidate Type: ClassCdd.
+ */
 public class TDR10 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Result

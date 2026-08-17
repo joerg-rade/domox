@@ -1,6 +1,8 @@
 package domox.dom.uml;
 
 import domox.DomainModule;
+import domox.dom.nlp.Sentence;
+import domox.dom.nlp.TypedDependency;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,10 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -39,10 +38,16 @@ import org.jetbrains.annotations.NotNull;
 public class PropertyCdd
         extends Candidate
         implements Comparable<PropertyCdd> {
+    private Cardinality cardinality;
 
-    public PropertyCdd(String name, String type) {
-        this.name = name;
+    public PropertyCdd(String propertyName, String type) {
+        this.name = propertyName;
         this.type = type;
+    }
+
+    public PropertyCdd(Sentence sentence, TypedDependency dependency) {
+        setSentence(sentence);
+        addTypedDependency(dependency);
     }
 
     @Id
@@ -55,14 +60,23 @@ public class PropertyCdd
     @PropertyLayout(fieldSetId = "metadata", sequence = "999")
     private long version;
 
+    @Column(name = "name", nullable = false)
+    @Getter
+    @Setter
+    public String name;
+
     @Property
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false) // this always points to the owning class
     @ManyToOne
     public ClassCdd classCdd;
 
     @Setter
     @Property
     @Column(nullable = false)
+    /**
+     * Field to store the property type (e.g., "int", "String")
+     * But not only primitives - class candidates from the scope of this analysis are to be set here as well
+     */
     public String type;
 
     @Override

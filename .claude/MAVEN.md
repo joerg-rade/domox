@@ -239,12 +239,12 @@ DoMoX uses Apache Causeway 4.0.0-M1. Repository configuration is centralized in 
     <snapshots><enabled>false</enabled></snapshots>
   </repository>
   
-  <repository>
+  <!--repository>
     <id>apache-causeway-snapshots</id>
     <url>https://raw.githubusercontent.com/apache-causeway-committers/causeway-nightly/master/mvn-snapshots</url>
     <snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>
     <releases><enabled>false</enabled></releases>
-  </repository>
+  </repository-->
 </repositories>
 ```
 
