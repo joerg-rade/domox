@@ -30,6 +30,7 @@ public enum TdType {
     NMOD_FOR("nmod:for"),
     NMOD_INCLUDING("nmod:including"),
     NMOD_OF("nmod:of"),
+    NMOD_ON("nmod:on"),
     NMOD_POSS("nmod:poss"),
     NMOD_SUCH_AS("nmod:such_as"),
     NMOD_WITH("nmod:with"),

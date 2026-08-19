@@ -1,12 +1,10 @@
 package domox.dom.rqm;
 
 import domox.DomainModule;
-import domox.FileUtil;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.Sentences;
 import domox.nlp.DocumentTO;
 import domox.nlp.SentenceTO;
-import domox.svc.DocumentAdapter;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -64,42 +62,19 @@ public class Documents {
         return answer;
     }
 
-    private Document build(String title, String url, Clob content, List<Author> authors) {
-        final Document document = create(title, url, content, authors);
-        final String rawText = document.getContent();
-        final DocumentTO documentTO = new DocumentAdapter().parseTextAndAmend(rawText);
-        repositoryService.persistAndFlush(document);
-        List<Sentence> sentences = createSentences(document, documentTO);
-        document.setSentences(sentences);
-        return document;
-    }
-
     @Programmatic
     public List<Sentence> createSentences(Document document, DocumentTO to) {
         final List<SentenceTO> toList = to.getSentences();
         final List<Sentence> sentenceList = new ArrayList<>();
         for (SentenceTO st : toList) {
             final Sentence sentence = sentences.build(st);
-            sentence.setDocument(document);
-            if (sentence.getText().trim().length() > 4) //IMPROVE skip stuff like "13."
+            if (null != sentence) {
+                sentence.setDocument(document);
                 sentenceList.add(sentence);
-            sentences.initDiagram(st, sentence);
+                sentences.initDiagram(st, sentence);
+            }
         }
         return sentenceList;
-    }
-
-    //TODO move to Prototyping
-    @Action()
-    @ActionLayout(sequence = "5", cssClassFa = "play")
-    public Document loadFileSample() {
-        final String title = "Pet Shop Use Cases";
-        final String filename = "PetShop_UseCases.txt";
-        final String txtContent = new FileUtil().readFileFromResources(filename);
-        final Clob content = new Clob("", "text/xml", txtContent);
-        final Author author = new Author();
-        final List<Author> authors = new ArrayList<>();
-        authors.add(author);
-        return build(title, filename, content, authors);
     }
 
     @Action()

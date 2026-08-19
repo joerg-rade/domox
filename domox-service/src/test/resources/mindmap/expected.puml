@@ -9,7 +9,7 @@ top to bottom direction
 +++[#CYAN] NN
 ++++_ tape
 ++[#CHARTREUSE] VP
-+++[#CHARTREUSE] VB
++++[#CHARTREUSE] VBZ
 ++++_ has
 ++ NP
 +++[#MAGENTA] DT
@@ -24,5 +24,4 @@ top to bottom direction
 +++_ level
 ++[#LIGHTGREY] .
 +++_ .
-
 @endmindmap

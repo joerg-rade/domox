@@ -57,5 +57,14 @@ public class TypedDependencies {
         repositoryService.persist(obj);
         return obj;
     }
+
+    @Action()
+    @ActionLayout(sequence = "4", cssClassFa = "trash")
+    public void deleteAll() {
+        var all = listAll();
+        for (TypedDependency td : all) {
+            repositoryService.remove(td);
+        }
+    }
     
 }

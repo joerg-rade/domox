@@ -5,10 +5,7 @@ import domox.nlp.TokenTO;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.apache.causeway.applib.annotation.ActionLayout;
-import org.apache.causeway.applib.annotation.DomainService;
-import org.apache.causeway.applib.annotation.PriorityPrecedence;
-import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
@@ -49,6 +46,15 @@ public class Tokens {
         final PartOfSpeechType partOfSpeechType = PartOfSpeechType.fromCode(pos);
         obj.setType(partOfSpeechType);
         return obj;
+    }
+
+    @Action()
+    @ActionLayout(sequence = "6", cssClassFa = "trash")
+    public void deleteAll() {
+        var all = listAll();
+        for (Token t : all) {
+            repositoryService.remove(t);
+        }
     }
 
 }

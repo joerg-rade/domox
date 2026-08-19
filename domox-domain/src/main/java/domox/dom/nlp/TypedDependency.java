@@ -127,6 +127,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
             PartOfSpeechType.NNS,
             PartOfSpeechType.NFP};
 
+    @Programmatic
     public boolean isNounB() {
         Token partB = getPartB();
         if (partB == null) return false;
@@ -136,6 +137,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
 
     private static final String[] BASIC_ATTRIB = {"name", "number", "type", "address", "level", "date", "time"};
 
+    @Programmatic
     public boolean isBasicAttributeB() {
         Token partB = getPartB();
         if (partB == null) return false;
@@ -143,6 +145,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
         return Arrays.asList(BASIC_ATTRIB).contains(bName);
     }
 
+    @Programmatic
     public boolean isBasicAttributeA() {
         Token partA = getPartA();
         if (partA == null) return false;
@@ -160,6 +163,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
         return partB != null ? partB.toString() : null;
     }
 
+    @Programmatic
     public boolean isNounA() {
         Token partA = getPartA();
         if (partA == null) return false;
@@ -170,6 +174,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     private static final PartOfSpeechType[] ADJECTIVE_TYPES = {
             PartOfSpeechType.JJ};
 
+    @Programmatic
     public boolean isAdjectiveB() {
         Token partB = getPartB();
         if (partB == null) return false;

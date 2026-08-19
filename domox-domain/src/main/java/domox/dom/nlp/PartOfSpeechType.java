@@ -27,6 +27,7 @@ public enum PartOfSpeechType {
     PRP("PRP"),
     PRP$("PRP$"),
     RB("RB"),
+    RRB("-RRB-"),
     /*    SBAR,*/
     TO("TO"),
     VB("VB"),

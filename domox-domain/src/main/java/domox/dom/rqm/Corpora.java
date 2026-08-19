@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Named(DomainModule.NAMESPACE + ".Corpora")
-@DomainService
+//@DomainService
 @Priority(PriorityPrecedence.EARLY)
 public class Corpora {
 

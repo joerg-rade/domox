@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -120,4 +121,14 @@ public class Sentence implements Comparable<Sentence> {
         return tokens.get(index);
     }
 
+    @OneToMany(mappedBy = "sentence")
+    private Collection<TypedDependency> typedDependency;
+
+    public Collection<TypedDependency> getTypedDependency() {
+        return typedDependency;
+    }
+
+    public void setTypedDependency(Collection<TypedDependency> typedDependency) {
+        this.typedDependency = typedDependency;
+    }
 }

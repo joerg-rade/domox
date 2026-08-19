@@ -850,9 +850,9 @@
     </repositories>
 
     <modules>
+        <module>domox-service</module>
         <module>domox-domain</module>
         <module>domox-webapp</module>
-        <module>domox-service</module>
     </modules>
 
 </project>

@@ -5,13 +5,12 @@ import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.apache.causeway.applib.annotation.ActionLayout;
-import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
 import java.util.List;
 
-@DomainService
+//@DomainService
 @Named(DomainModule.NAMESPACE + ".Relations")
 @Priority(PriorityPrecedence.EARLY)
 public class Relations {
