@@ -1,0 +1,10 @@
+package domox.nlp
+
+data class ExtendedDependencyTO(
+    val dep: String = "",
+    val governor: Long = 0L,
+    val governorGloss: String = "",
+    val dependent: Long = 0L,
+    val dependentGloss: String = "",
+    val pos: String = ""
+)

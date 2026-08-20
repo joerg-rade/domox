@@ -1,7 +1,7 @@
 package domox.svc;
 
 import domox.HttpRequest;
-import domox.diagram.TdDiagramMindmap;
+import domox.diagram.ColoredPlantUmlMindmapGenerator;
 import domox.nlp.BasicDependencyTO;
 import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
@@ -22,8 +22,8 @@ public class SentenceAdapter {
         return sb.toString().trim();
     }
 
-    public byte[] buildTypedDependencyDiagram(SentenceTO sentenceTO) {
-        final String pumlCode = TdDiagramMindmap.INSTANCE.build(sentenceTO);
+    public byte[] buildTypedDependencyDiagram(SentenceTO sentence) {
+        final String pumlCode = new ColoredPlantUmlMindmapGenerator(sentence).generateMindmap();
         final String diagram = new HttpRequest().invokePlantUML(pumlCode);
         return diagram.getBytes();
     }

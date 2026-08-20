@@ -1,70 +1,114 @@
-/home/jrade/.sdkman/candidates/java/21.0.12-tem/bin/java -javaagent:/home/jrade/.local/share/JetBrains/IntelliJIdea2026.2/java/lib/rt/debugger-agent.jar=file:///tmp/capture200638576062127938.props -ea -Xmx2048m -XX:+EnableDynamicAgentLoading -Didea.test.cyclic.buffer.size=1048576 -javaagent:/snap/intellij-idea/118/lib/idea_rt.jar=39121 -Dkotlinx.coroutines.debug.enable.creation.stack.trace=false -Ddebugger.agent.enable.coroutines=true -Dkotlinx.coroutines.debug.enable.flows.stack.trace=true -Dkotlinx.coroutines.debug.enable.mutable.state.flows.stack.trace=true -Ddebugger.async.stack.trace.for.all.threads=true -Ddebugger.agent.enable.log.capture=true -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath /home/jrade/.m2/repository/org/junit/vintage/junit-vintage-engine/5.11.0/junit-vintage-engine-5.11.0.jar:/snap/intellij-idea/118/lib/idea_rt.jar:/snap/intellij-idea/118/plugins/junit/lib/junit5-rt.jar:/snap/intellij-idea/118/plugins/junit/lib/junit-rt.jar:/home/jrade/projects/domox/domox-service/target/test-classes:/home/jrade/projects/domox/domox-service/target/classes:/home/jrade/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/2.2.0/kotlin-stdlib-2.2.0.jar:/home/jrade/.m2/repository/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar:/home/jrade/.m2/repository/com/github/kittinunf/fuel/fuel/2.3.1/fuel-2.3.1.jar:/home/jrade/.m2/repository/com/github/kittinunf/fuel/fuel-json/2.3.1/fuel-json-2.3.1.jar:/home/jrade/.m2/repository/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0.jar:/home/jrade/.m2/repository/com/squareup/okio/okio/3.6.0/okio-3.6.0.jar:/home/jrade/.m2/repository/com/squareup/okio/okio-jvm/3.6.0/okio-jvm-3.6.0.jar:/home/jrade/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.25/kotlin-stdlib-common-1.9.25.jar:/home/jrade/.m2/repository/org/json/json/20250107/json-20250107.jar:/home/jrade/.m2/repository/org/apache/tika/tika-core/3.2.3/tika-core-3.2.3.jar:/home/jrade/.m2/repository/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar:/home/jrade/.m2/repository/commons-io/commons-io/2.21.0/commons-io-2.21.0.jar:/home/jrade/.m2/repository/com/deliveredtechnologies/rulebook-core/0.12/rulebook-core-0.12.jar:/home/jrade/.m2/repository/org/reflections/reflections/0.9.9/reflections-0.9.9.jar:/home/jrade/.m2/repository/com/google/guava/guava/33.1.0-jre/guava-33.1.0-jre.jar:/home/jrade/.m2/repository/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar:/home/jrade/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/home/jrade/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/home/jrade/.m2/repository/org/checkerframework/checker-qual/3.42.0/checker-qual-3.42.0.jar:/home/jrade/.m2/repository/com/google/errorprone/error_prone_annotations/2.48.0/error_prone_annotations-2.48.0.jar:/home/jrade/.m2/repository/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar:/home/jrade/.m2/repository/org/javassist/javassist/3.30.2-GA/javassist-3.30.2-GA.jar:/home/jrade/.m2/repository/com/google/code/findbugs/annotations/2.0.1/annotations-2.0.1.jar:/home/jrade/.m2/repository/com/deliveredtechnologies/rulebook-spring/0.12/rulebook-spring-0.12.jar:/home/jrade/.m2/repository/org/springframework/spring-test/6.2.18/spring-test-6.2.18.jar:/home/jrade/.m2/repository/org/springframework/spring-core/6.2.18/spring-core-6.2.18.jar:/home/jrade/.m2/repository/org/springframework/spring-jcl/6.2.17/spring-jcl-6.2.17.jar:/home/jrade/.m2/repository/org/springframework/boot/spring-boot-starter-test/3.5.13/spring-boot-starter-test-3.5.13.jar:/home/jrade/.m2/repository/org/springframework/boot/spring-boot-starter/3.5.13/spring-boot-starter-3.5.13.jar:/home/jrade/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/3.5.13/spring-boot-autoconfigure-3.5.13.jar:/home/jrade/.m2/repository/org/springframework/boot/spring-boot-starter-logging/3.5.13/spring-boot-starter-logging-3.5.13.jar:/home/jrade/.m2/repository/ch/qos/logback/logback-classic/1.5.32/logback-classic-1.5.32.jar:/home/jrade/.m2/repository/ch/qos/logback/logback-core/1.5.32/logback-core-1.5.32.jar:/home/jrade/.m2/repository/org/slf4j/jul-to-slf4j/2.0.17/jul-to-slf4j-2.0.17.jar:/home/jrade/.m2/repository/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar:/home/jrade/.m2/repository/org/yaml/snakeyaml/2.4/snakeyaml-2.4.jar:/home/jrade/.m2/repository/org/springframework/boot/spring-boot-test-autoconfigure/3.5.13/spring-boot-test-autoconfigure-3.5.13.jar:/home/jrade/.m2/repository/com/jayway/jsonpath/json-path/2.9.0/json-path-2.9.0.jar:/home/jrade/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/4.0.1/jakarta.xml.bind-api-4.0.1.jar:/home/jrade/.m2/repository/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar:/home/jrade/.m2/repository/net/minidev/json-smart/2.5.2/json-smart-2.5.2.jar:/home/jrade/.m2/repository/net/minidev/accessors-smart/2.5.2/accessors-smart-2.5.2.jar:/home/jrade/.m2/repository/org/ow2/asm/asm/9.9.1/asm-9.9.1.jar:/home/jrade/.m2/repository/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar:/home/jrade/.m2/repository/net/bytebuddy/byte-buddy/1.17.8/byte-buddy-1.17.8.jar:/home/jrade/.m2/repository/org/awaitility/awaitility/4.2.2/awaitility-4.2.2.jar:/home/jrade/.m2/repository/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar:/home/jrade/.m2/repository/org/mockito/mockito-core/5.17.0/mockito-core-5.17.0.jar:/home/jrade/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar:/home/jrade/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:/home/jrade/.m2/repository/org/mockito/mockito-junit-jupiter/5.17.0/mockito-junit-jupiter-5.17.0.jar:/home/jrade/.m2/repository/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar:/home/jrade/.m2/repository/org/xmlunit/xmlunit-core/2.10.4/xmlunit-core-2.10.4.jar:/home/jrade/.m2/repository/org/springframework/boot/spring-boot-test/3.5.13/spring-boot-test-3.5.13.jar:/home/jrade/.m2/repository/org/springframework/boot/spring-boot/3.5.13/spring-boot-3.5.13.jar:/home/jrade/.m2/repository/org/springframework/spring-context/6.2.17/spring-context-6.2.17.jar:/home/jrade/.m2/repository/org/springframework/spring-aop/6.2.17/spring-aop-6.2.17.jar:/home/jrade/.m2/repository/org/springframework/spring-beans/6.2.17/spring-beans-6.2.17.jar:/home/jrade/.m2/repository/org/springframework/spring-expression/6.2.17/spring-expression-6.2.17.jar:/home/jrade/.m2/repository/io/micrometer/micrometer-observation/1.15.10/micrometer-observation-1.15.10.jar:/home/jrade/.m2/repository/io/micrometer/micrometer-commons/1.15.10/micrometer-commons-1.15.10.jar:/home/jrade/.m2/repository/org/jetbrains/kotlin/kotlin-test-junit5/2.2.0/kotlin-test-junit5-2.2.0.jar:/home/jrade/.m2/repository/org/jetbrains/kotlin/kotlin-test/1.9.25/kotlin-test-1.9.25.jar:/home/jrade/.m2/repository/com/github/kittinunf/result/result/3.1.0/result-3.1.0.jar:/home/jrade/.m2/repository/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar:/home/jrade/.m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar:/home/jrade/.m2/repository/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar:/home/jrade/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.21.2/jackson-databind-2.21.2.jar:/home/jrade/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.21/jackson-annotations-2.21.jar:/home/jrade/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.18.6/jackson-core-2.18.6.jar:/home/jrade/.m2/repository/org/antlr/ST4/4.3.4/ST4-4.3.4.jar:/home/jrade/.m2/repository/org/antlr/antlr-runtime/3.5.3/antlr-runtime-3.5.3.jar:/home/jrade/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/home/jrade/.m2/repository/org/hamcrest/hamcrest-core/3.0/hamcrest-core-3.0.jar:/home/jrade/.m2/repository/org/testcontainers/testcontainers/2.0.5/testcontainers-2.0.5.jar:/home/jrade/.m2/repository/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar:/home/jrade/.m2/repository/commons-codec/commons-codec/1.18.0/commons-codec-1.18.0.jar:/home/jrade/.m2/repository/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar:/home/jrade/.m2/repository/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar:/home/jrade/.m2/repository/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar:/home/jrade/.m2/repository/com/github/docker-java/docker-java-transport-zerodep/3.7.1/docker-java-transport-zerodep-3.7.1.jar:/home/jrade/.m2/repository/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar:/home/jrade/.m2/repository/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar:/home/jrade/.m2/repository/org/testcontainers/junit-jupiter/1.21.4/junit-jupiter-1.21.4.jar:/home/jrade/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.11.0/junit-jupiter-api-5.11.0.jar:/home/jrade/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/jrade/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/jrade/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.11.0/junit-jupiter-engine-5.11.0.jar:/home/jrade/.m2/repository/org/junit/platform/junit-platform-commons/1.11.0/junit-platform-commons-1.11.0.jar:/home/jrade/.m2/repository/org/junit/platform/junit-platform-engine/1.11.0/junit-platform-engine-1.11.0.jar:/home/jrade/.m2/repository/org/junit/platform/junit-platform-launcher/1.11.0/junit-platform-launcher-1.11.0.jar com.intellij.rt.junit.JUnitStarter -ideVersion5 -junit5 domox.diagram.TdDiagramMindmapTest,testBuildFox
-17:27:54.382 [main] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
-17:27:54.385 [main] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
-17:27:54.392 [main] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
-17:27:54.474 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
-17:27:54.731 [main] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Unix socket (unix:///var/run/docker.sock)
-17:27:54.732 [main] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
-17:27:54.745 [main] INFO org.testcontainers.DockerClientFactory -- Connected to docker:
-  Server Version: 29.1.3
-  API Version: 1.52
-  Operating System: Ubuntu 26.04 LTS
-  Total Memory: 62550 MB
-17:27:54.803 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
-17:27:54.806 [main] INFO org.testcontainers.utility.RegistryAuthLocator -- Failure when attempting to lookup auth config. Please ignore if you don't have images in an authenticated registry. Details: (dockerImageName: testcontainers/ryuk:0.14.0, configFile: /home/jrade/.docker/config.json, configEnv: DOCKER_AUTH_CONFIG). Falling back to docker-java default behaviour. Exception message: Status 404: No config supplied. Checked in order: /home/jrade/.docker/config.json (file not found), DOCKER_AUTH_CONFIG (not set)
-17:27:54.879 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 58759e11d2cb03eaaf149403fa9707b96cb843f120cbc4c66fcf1f5dc2394a89
-17:27:55.099 [main] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.295875882S
-17:27:55.102 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
-17:27:55.102 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
-17:27:55.102 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
-17:27:55.112 [main] INFO tc.graham3333/corenlp-complete:latest -- Creating container for image: graham3333/corenlp-complete:latest
-17:27:55.126 [main] INFO tc.graham3333/corenlp-complete:latest -- Container graham3333/corenlp-complete:latest is starting: 69bb09b30db8bb7bbb46bd83f27a9aeaa4f546de3bbc43679409f0e76506c16c
-17:27:55.359 [main] INFO tc.graham3333/corenlp-complete:latest -- Container graham3333/corenlp-complete:latest started in PT0.246971129S
-TokenTO(index=1, word=The, originalText=The, lemma=, characterOffsetBegin=0, characterOffsetEnd=3, pos=DT, ner=, before=, after= , speaker=, normalizedNER=null, timex=null)
-TokenTO(index=2, word=quick, originalText=quick, lemma=, characterOffsetBegin=4, characterOffsetEnd=9, pos=JJ, ner=, before= , after= , speaker=, normalizedNER=null, timex=null)
-TokenTO(index=3, word=brown, originalText=brown, lemma=, characterOffsetBegin=10, characterOffsetEnd=15, pos=JJ, ner=, before= , after= , speaker=, normalizedNER=null, timex=null)
-TokenTO(index=4, word=fox, originalText=fox, lemma=, characterOffsetBegin=16, characterOffsetEnd=19, pos=NN, ner=, before= , after= , speaker=, normalizedNER=null, timex=null)
-TokenTO(index=5, word=jumps, originalText=jumps, lemma=, characterOffsetBegin=20, characterOffsetEnd=25, pos=VBZ, ner=, before= , after= , speaker=, normalizedNER=null, timex=null)
-TokenTO(index=6, word=over, originalText=over, lemma=, characterOffsetBegin=26, characterOffsetEnd=30, pos=IN, ner=, before= , after= , speaker=, normalizedNER=null, timex=null)
-TokenTO(index=7, word=the, originalText=the, lemma=, characterOffsetBegin=31, characterOffsetEnd=34, pos=DT, ner=, before= , after= , speaker=, normalizedNER=null, timex=null)
-TokenTO(index=8, word=lazy, originalText=lazy, lemma=, characterOffsetBegin=35, characterOffsetEnd=39, pos=JJ, ner=, before= , after= , speaker=, normalizedNER=null, timex=null)
-TokenTO(index=9, word=dog, originalText=dog, lemma=, characterOffsetBegin=40, characterOffsetEnd=43, pos=NN, ner=, before= , after=, speaker=, normalizedNER=null, timex=null)
-TokenTO(index=10, word=., originalText=., lemma=, characterOffsetBegin=43, characterOffsetEnd=44, pos=., ner=, before=, after=, speaker=, normalizedNER=null, timex=null)
-BasicDependencyTO(dep=ROOT, governor=0, governorGloss=ROOT, dependent=5, dependentGloss=jumps)
-BasicDependencyTO(dep=det, governor=4, governorGloss=fox, dependent=1, dependentGloss=The)
-BasicDependencyTO(dep=amod, governor=4, governorGloss=fox, dependent=2, dependentGloss=quick)
-BasicDependencyTO(dep=amod, governor=4, governorGloss=fox, dependent=3, dependentGloss=brown)
-BasicDependencyTO(dep=nsubj, governor=5, governorGloss=jumps, dependent=4, dependentGloss=fox)
-BasicDependencyTO(dep=case, governor=9, governorGloss=dog, dependent=6, dependentGloss=over)
-BasicDependencyTO(dep=det, governor=9, governorGloss=dog, dependent=7, dependentGloss=the)
-BasicDependencyTO(dep=amod, governor=9, governorGloss=dog, dependent=8, dependentGloss=lazy)
-BasicDependencyTO(dep=nmod:over, governor=5, governorGloss=jumps, dependent=9, dependentGloss=dog)
-BasicDependencyTO(dep=punct, governor=5, governorGloss=jumps, dependent=10, dependentGloss=.)
-
 @startmindmap
-top to bottom direction
-+ S
-++ NP
-+++[#MAGENTA] DT
-++++_ The
-+++[#e3e3e3] JJ
-++++_ quick
-+++[#e3e3e3] JJ
-++++_ brown
-+++[#CYAN] NN
-++++_ fox
-++[#CHARTREUSE] VP
-+++[#CHARTREUSE] VBZ
-++++_ jumps
-++ NP
-+++[#e3e3e3] IN
-++++_ over
-+++[#MAGENTA] DT
-++++_ the
-+++[#e3e3e3] JJ
-++++_ lazy
-+++[#CYAN] NN
-++++_ dog
-++[#LIGHTGREY] .
-+++_ .
+caption: Though a new paradigm may possess few or none none of the capabilities of its predecessor , it nevertheless preserves a large part of the concrete problem-solving activity activity that science has gained through its predecessors .
+*[#E74C3C]:<U+0023>19
+<b>preserves</b>
+VBZ / <i>ROOT</i>;
+**[#AAB7B8]:<U+0023>6
+<b>possess</b>
+VB / <i>advcl:though</i>;
+***[#F39C12]:<U+0023>1
+<b>Though</b>
+IN / <i>mark</i>;
+***[#3498DB]:<U+0023>4
+<b>paradigm</b>
+NN / <i>nsubj</i>;
+****[#F39C12]:<U+0023>2
+<b>a</b>
+DT / <i>det</i>;
+****[#2ECC71]:<U+0023>3
+<b>new</b>
+JJ / <i>amod</i>;
+***[#F39C12]:<U+0023>5
+<b>may</b>
+MD / <i>aux</i>;
+***[#3498DB]:<U+0023>7
+<b>few</b>
+JJ / <i>dobj</i>;
+****[#F39C12]:<U+0023>8
+<b>or</b>
+CC / <i>cc</i>;
+****[#AAB7B8]:<U+0023>9
+<b>none</b>
+NN / <i>conj:or</i>;
+****[#AAB7B8]:<U+0023>12
+<b>capabilities</b>
+NNS / <i>nmod:of</i>;
+*****[#F39C12]:<U+0023>10
+<b>of</b>
+IN / <i>case</i>;
+*****[#F39C12]:<U+0023>11
+<b>the</b>
+DT / <i>det</i>;
+*****[#AAB7B8]:<U+0023>15
+<b>predecessor</b>
+NN / <i>nmod:of</i>;
+******[#F39C12]:<U+0023>13
+<b>of</b>
+IN / <i>case</i>;
+******[#AAB7B8]:<U+0023>14
+<b>its</b>
+PRP$ / <i>nmod:poss</i>;
+***[#3498DB]:<U+0023>9
+<b>none</b>
+NN / <i>dobj</i>;
+**[#BDC3C7]:<U+0023>16
+<b>,</b>
+, / <i>punct</i>;
+**[#3498DB]:<U+0023>17
+<b>it</b>
+PRP / <i>nsubj</i>;
+**[#2ECC71]:<U+0023>18
+<b>nevertheless</b>
+RB / <i>advmod</i>;
+**[#3498DB]:<U+0023>22
+<b>part</b>
+NN / <i>dobj</i>;
+***[#F39C12]:<U+0023>20
+<b>a</b>
+DT / <i>det</i>;
+***[#2ECC71]:<U+0023>21
+<b>large</b>
+JJ / <i>amod</i>;
+***[#AAB7B8]:<U+0023>27
+<b>activity</b>
+NN / <i>nmod:of</i>;
+****[#F39C12]:<U+0023>23
+<b>of</b>
+IN / <i>case</i>;
+****[#F39C12]:<U+0023>24
+<b>the</b>
+DT / <i>det</i>;
+****[#2ECC71]:<U+0023>25
+<b>concrete</b>
+JJ / <i>amod</i>;
+****[#2ECC71]:<U+0023>26
+<b>problem-solving</b>
+JJ / <i>amod</i>;
+****[#AAB7B8]:<U+0023>28
+<b>that</b>
+WDT / <i>ref</i>;
+****[#AAB7B8]:<U+0023>31
+<b>gained</b>
+VBN / <i>acl:relcl</i>;
+*****[#3498DB]:<U+0023>27
+<b>activity</b>
+NN / <i>dobj</i>;
+*****[#3498DB]:<U+0023>29
+<b>science</b>
+NN / <i>nsubj</i>;
+*****[#F39C12]:<U+0023>30
+<b>has</b>
+VBZ / <i>aux</i>;
+*****[#AAB7B8]:<U+0023>34
+<b>predecessors</b>
+NNS / <i>nmod:through</i>;
+******[#F39C12]:<U+0023>32
+<b>through</b>
+IN / <i>case</i>;
+******[#AAB7B8]:<U+0023>33
+<b>its</b>
+PRP$ / <i>nmod:poss</i>;
+**[#BDC3C7]:<U+0023>35
+<b>.</b>
+. / <i>punct</i>;
 @endmindmap
