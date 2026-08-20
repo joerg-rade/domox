@@ -1,0 +1,41 @@
+@startuml
+skinparam style strictuml
+autonumber
+
+actor "Customer" as user
+participant "Order Service" as orderSvc
+queue "Event Bus\n(Kafka/RabbitMQ)" as bus
+participant "Payment Service" as paySvc
+participant "Inventory Service" as invSvc
+
+== Event Generation ==
+user -> orderSvc: Place Order
+activate orderSvc
+
+' Order Service publishes an event
+orderSvc -> bus: Publish Event: **OrderCreated**
+deactivate orderSvc
+
+== Event Processing (Asynchronous) ==
+' Multiple consumers process the event in parallel
+par Payment Processing
+    bus -> paySvc: Consume: **OrderCreated**
+    activate paySvc
+    paySvc -> paySvc: Charge Customer
+    paySvc -> bus: Publish Event: **PaymentSucceeded**
+    deactivate paySvc
+else Inventory Allocation
+    bus -> invSvc: Consume: **OrderCreated**
+    activate invSvc
+    invSvc -> invSvc: Reserve Items
+    invSvc -> bus: Publish Event: **InventoryReserved**
+    deactivate invSvc
+end
+
+== Secondary Event Handling ==
+bus -> orderSvc: Consume: **PaymentSucceeded**
+activate orderSvc
+orderSvc -> user: Send Confirmation Email
+deactivate orderSvc
+
+@enduml

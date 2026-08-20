@@ -1,114 +1,102 @@
 @startmindmap
-caption: Though a new paradigm may possess few or none none of the capabilities of its predecessor , it nevertheless preserves a large part of the concrete problem-solving activity activity that science has gained through its predecessors .
-*[#E74C3C]:<U+0023>19
-<b>preserves</b>
+caption: The wealth of those societies societies in which the capitalist mode of production prevails , presents itself as an immense accumulation of commodities ; the individual commodity appears as its elementary form .
+*[#E74C3C]:<U+0023>15
+<b>presents</b>
 VBZ / <i>ROOT</i>;
-**[#AAB7B8]:<U+0023>6
-<b>possess</b>
-VB / <i>advcl:though</i>;
-***[#F39C12]:<U+0023>1
-<b>Though</b>
-IN / <i>mark</i>;
-***[#3498DB]:<U+0023>4
-<b>paradigm</b>
+**[#3498DB]:<U+0023>2
+<b>wealth</b>
 NN / <i>nsubj</i>;
-****[#F39C12]:<U+0023>2
-<b>a</b>
+***[#F39C12]:<U+0023>1
+<b>The</b>
 DT / <i>det</i>;
-****[#2ECC71]:<U+0023>3
-<b>new</b>
-JJ / <i>amod</i>;
-***[#F39C12]:<U+0023>5
-<b>may</b>
-MD / <i>aux</i>;
-***[#3498DB]:<U+0023>7
-<b>few</b>
-JJ / <i>dobj</i>;
-****[#F39C12]:<U+0023>8
-<b>or</b>
-CC / <i>cc</i>;
-****[#AAB7B8]:<U+0023>9
-<b>none</b>
-NN / <i>conj:or</i>;
-****[#AAB7B8]:<U+0023>12
-<b>capabilities</b>
+***[#AAB7B8]:<U+0023>5
+<b>societies</b>
 NNS / <i>nmod:of</i>;
-*****[#F39C12]:<U+0023>10
+****[#F39C12]:<U+0023>3
 <b>of</b>
 IN / <i>case</i>;
-*****[#F39C12]:<U+0023>11
+****[#F39C12]:<U+0023>4
+<b>those</b>
+DT / <i>det</i>;
+****[#AAB7B8]:<U+0023>7
+<b>which</b>
+WDT / <i>ref</i>;
+*****[#F39C12]:<U+0023>6
+<b>in</b>
+IN / <i>case</i>;
+****[#AAB7B8]:<U+0023>13
+<b>prevails</b>
+VBZ / <i>acl:relcl</i>;
+*****[#AAB7B8]:<U+0023>5
+<b>societies</b>
+NNS / <i>nmod:in</i>;
+*****[#3498DB]:<U+0023>10
+<b>mode</b>
+NN / <i>nsubj</i>;
+******[#F39C12]:<U+0023>8
 <b>the</b>
 DT / <i>det</i>;
-*****[#AAB7B8]:<U+0023>15
-<b>predecessor</b>
+******[#2ECC71]:<U+0023>9
+<b>capitalist</b>
+JJ / <i>amod</i>;
+******[#AAB7B8]:<U+0023>12
+<b>production</b>
 NN / <i>nmod:of</i>;
-******[#F39C12]:<U+0023>13
+*******[#F39C12]:<U+0023>11
 <b>of</b>
 IN / <i>case</i>;
-******[#AAB7B8]:<U+0023>14
-<b>its</b>
-PRP$ / <i>nmod:poss</i>;
-***[#3498DB]:<U+0023>9
-<b>none</b>
-NN / <i>dobj</i>;
-**[#BDC3C7]:<U+0023>16
+***[#BDC3C7]:<U+0023>14
 <b>,</b>
 , / <i>punct</i>;
-**[#3498DB]:<U+0023>17
-<b>it</b>
-PRP / <i>nsubj</i>;
-**[#2ECC71]:<U+0023>18
-<b>nevertheless</b>
-RB / <i>advmod</i>;
-**[#3498DB]:<U+0023>22
-<b>part</b>
-NN / <i>dobj</i>;
-***[#F39C12]:<U+0023>20
-<b>a</b>
+**[#3498DB]:<U+0023>16
+<b>itself</b>
+PRP / <i>dobj</i>;
+**[#AAB7B8]:<U+0023>20
+<b>accumulation</b>
+NN / <i>nmod:as</i>;
+***[#F39C12]:<U+0023>17
+<b>as</b>
+IN / <i>case</i>;
+***[#F39C12]:<U+0023>18
+<b>an</b>
 DT / <i>det</i>;
-***[#2ECC71]:<U+0023>21
-<b>large</b>
+***[#2ECC71]:<U+0023>19
+<b>immense</b>
 JJ / <i>amod</i>;
-***[#AAB7B8]:<U+0023>27
-<b>activity</b>
-NN / <i>nmod:of</i>;
-****[#F39C12]:<U+0023>23
+***[#AAB7B8]:<U+0023>22
+<b>commodities</b>
+NNS / <i>nmod:of</i>;
+****[#F39C12]:<U+0023>21
 <b>of</b>
 IN / <i>case</i>;
+**[#BDC3C7]:<U+0023>23
+<b>;</b>
+: / <i>punct</i>;
+**[#9B59B6]:<U+0023>27
+<b>appears</b>
+VBZ / <i>parataxis</i>;
+***[#3498DB]:<U+0023>26
+<b>commodity</b>
+NN / <i>nsubj</i>;
 ****[#F39C12]:<U+0023>24
 <b>the</b>
 DT / <i>det</i>;
 ****[#2ECC71]:<U+0023>25
-<b>concrete</b>
+<b>individual</b>
 JJ / <i>amod</i>;
-****[#2ECC71]:<U+0023>26
-<b>problem-solving</b>
-JJ / <i>amod</i>;
-****[#AAB7B8]:<U+0023>28
-<b>that</b>
-WDT / <i>ref</i>;
-****[#AAB7B8]:<U+0023>31
-<b>gained</b>
-VBN / <i>acl:relcl</i>;
-*****[#3498DB]:<U+0023>27
-<b>activity</b>
-NN / <i>dobj</i>;
-*****[#3498DB]:<U+0023>29
-<b>science</b>
-NN / <i>nsubj</i>;
-*****[#F39C12]:<U+0023>30
-<b>has</b>
-VBZ / <i>aux</i>;
-*****[#AAB7B8]:<U+0023>34
-<b>predecessors</b>
-NNS / <i>nmod:through</i>;
-******[#F39C12]:<U+0023>32
-<b>through</b>
+***[#AAB7B8]:<U+0023>31
+<b>form</b>
+NN / <i>nmod:as</i>;
+****[#F39C12]:<U+0023>28
+<b>as</b>
 IN / <i>case</i>;
-******[#AAB7B8]:<U+0023>33
+****[#AAB7B8]:<U+0023>29
 <b>its</b>
 PRP$ / <i>nmod:poss</i>;
-**[#BDC3C7]:<U+0023>35
+****[#2ECC71]:<U+0023>30
+<b>elementary</b>
+JJ / <i>amod</i>;
+**[#BDC3C7]:<U+0023>32
 <b>.</b>
 . / <i>punct</i>;
 @endmindmap

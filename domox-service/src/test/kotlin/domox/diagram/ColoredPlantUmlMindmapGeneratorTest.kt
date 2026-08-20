@@ -72,7 +72,7 @@ class ColoredPlantUmlMindmapGeneratorTest {
     }
 
     @Test
-    fun testBuildKuhn() {
+    fun testKuhn() {
         //given
         val text =
             "Though a new paradigm may possess few or none of the capabilities of its predecessor, it nevertheless preserves a large part of the concrete problem-solving activity that science has gained through its predecessors."
@@ -85,6 +85,37 @@ class ColoredPlantUmlMindmapGeneratorTest {
         println(actualPuml)
         //then
         assertTrue(actualPuml.contains("paradigm"))
+    }
+
+    @Test
+    fun testSkinner() {
+        //given
+        val text =
+            "Men act upon the world, and change it, and are changed in turn by the consequences of their actions."
+        val sentence: SentenceTO = invokeCoreNlp(text)
+        //then
+        assertNotNull(sentence.enhancedPlusPlusDependencies)
+
+        //when
+        val actualPuml = ColoredPlantUmlMindmapGenerator(sentence).generateMindmap()
+        println(actualPuml)
+        //then
+        assertTrue(actualPuml.contains("consequences"))
+    }    @Test
+
+    fun testMarx() {
+        //given
+        val text =
+            "The wealth of those societies in which the capitalist mode of production prevails, presents itself as an immense accumulation of commodities; the individual commodity appears as its elementary form ."
+        val sentence: SentenceTO = invokeCoreNlp(text)
+        //then
+        assertNotNull(sentence.enhancedPlusPlusDependencies)
+
+        //when
+        val actualPuml = ColoredPlantUmlMindmapGenerator(sentence).generateMindmap()
+        println(actualPuml)
+        //then
+        assertTrue(actualPuml.contains("production"))
     }
 
 }

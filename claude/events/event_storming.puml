@@ -1,0 +1,78 @@
+@startuml
+'!option handwritten true
+skinparam shadowing true
+'defaultFontName Arial
+
+' Style Definitions for Event Storming Elements
+skinparam rectangle {
+    RoundCorner 10
+    BorderColor #333333
+}
+
+' Define custom styling tags for sticky notes
+<style>
+.event {
+    BackgroundColor #FFA500
+    FontColor #000000
+}
+.command {
+    BackgroundColor #87CEEB
+    FontColor #000000
+}
+.aggregate {
+    BackgroundColor #FFFACD
+    FontColor #000000
+}
+.readmodel {
+    BackgroundColor #90EE90
+    FontColor #000000
+}
+.policy {
+    BackgroundColor #E6E6FA
+    FontColor #000000
+}
+.externalsystem {
+    BackgroundColor #FFB6C1
+    FontColor #000000
+}
+.hotspot {
+    BackgroundColor #FF4500
+    FontColor #FFFFFF
+}
+</style>
+
+title Event Storming Flow: E-Commerce Checkout Process
+
+' Canvas Elements
+actor "Customer" as customer
+
+rectangle "Checkout Summary Page" as read_summary <<readmodel>>
+rectangle "Submit Order" as cmd_submit <<command>>
+rectangle "Order [Aggregate]" as agg_order <<aggregate>>
+rectangle "Order Placed" as evt_placed <<event>>
+
+rectangle "Is inventory guaranteed\nat this stage?" as hot_inventory <<hotspot>>
+
+rectangle "Whenever Order Placed,\nTrigger Payment" as pol_pay <<policy>>
+rectangle "Process Payment" as cmd_pay <<command>>
+rectangle "Stripe Payment Gateway" as ext_stripe <<externalsystem>>
+rectangle "Payment Confirmed" as evt_paid <<event>>
+
+rectangle "Whenever Payment Confirmed,\nReserve Warehouse Stock" as pol_stock <<policy>>
+
+' Connections / Timeline Flow
+customer -right-> read_summary : Views
+read_summary -right-> cmd_submit : Triggers
+cmd_submit -right-> agg_order : Handles
+agg_order -right-> evt_placed : Emits
+
+evt_placed .. hot_inventory : Issue / Risk
+
+evt_placed -down-> pol_pay : Listens to
+pol_pay -right-> cmd_pay : Triggers
+cmd_pay -right-> ext_stripe : Calls
+ext_stripe -right-> evt_paid : Emits
+
+evt_paid -down-> pol_stock : Listens to
+
+@enduml
