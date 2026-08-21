@@ -47,6 +47,17 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         else -> "#AAB7B8"                                           // Fallback Neutral
     }
 
+    /**
+     * Maps Universal Dependency relations to standard color hex codes.
+     */
+    fun getPosSymbol(pos: String): String = when (pos) {
+        "NN" -> "<\$square{scale=0.3}>"
+        "NNS" -> "<\$th{scale=0.3}>"
+        "JJ" -> "<\$plus{scale=0.3}>"
+        "VB", "VBZ" -> "<\$play{scale=0.3}>"
+        else -> "<\$question{scale=0.3}>"
+    }
+
     fun generateMindmap(): String {
         val rootDep = dependencies.firstOrNull { it.governor == 0.toLong() }
             ?: return "@startmindmap\n* Error: No Root Found\n@endmindmap"
@@ -78,6 +89,10 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
 
         val builder = StringBuilder()
         builder.appendLine("@startmindmap")
+        builder.appendLine("!include <tupadr3/font-awesome/square>")
+        builder.appendLine("!include <tupadr3/font-awesome/th>")
+        builder.appendLine("!include <tupadr3/font-awesome/play>")
+        builder.appendLine("!include <tupadr3/font-awesome/plus>")
 
         fun reconstructText(): String {
             val answer = StringBuilder()
@@ -91,11 +106,12 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         fun renderNode(node: TreeNode, depth: Int) {
             val stars = "*".repeat(depth)
             val colorHex = getDepColor(node.depRelation)
+            val posSymbol = getPosSymbol(node.pos)
 
             // Appends [#HEX] to style the background box of the mindmap node
-            builder.appendLine("$stars[$colorHex]:<U+0023>${node.index}")
-            builder.appendLine("<b>${node.word}</b>")
-            builder.appendLine(node.pos + " / <i>${node.depRelation}</i>;")
+            builder.appendLine("$stars[$colorHex]:<U+0023>${node.index} / <i>${node.depRelation}</i>")
+            builder.appendLine("$posSymbol <b>${node.word}</b>")
+            builder.appendLine("${node.pos};")
 
             for (child in node.children) {
                 renderNode(child, depth + 1)
