@@ -3,104 +3,122 @@
 !include <tupadr3/font-awesome/th>
 !include <tupadr3/font-awesome/play>
 !include <tupadr3/font-awesome/plus>
-caption: The wealth of those societies societies in which the capitalist mode of production prevails , presents itself as an immense accumulation of commodities ; the individual commodity appears as its elementary form .
-*[#E74C3C]:<U+0023>15 / <i>ROOT</i>
-<$play{scale=0.3}> <b>presents</b>
-VBZ;
-**[#3498DB]:<U+0023>2 / <i>nsubj</i>
-<$square{scale=0.3}> <b>wealth</b>
-NN;
-***[#F39C12]:<U+0023>1 / <i>det</i>
-<$question{scale=0.3}> <b>The</b>
-DT;
-***[#AAB7B8]:<U+0023>5 / <i>nmod:of</i>
-<$th{scale=0.3}> <b>societies</b>
-NNS;
-****[#F39C12]:<U+0023>3 / <i>case</i>
-<$question{scale=0.3}> <b>of</b>
-IN;
-****[#F39C12]:<U+0023>4 / <i>det</i>
-<$question{scale=0.3}> <b>those</b>
-DT;
-****[#AAB7B8]:<U+0023>7 / <i>ref</i>
-<$question{scale=0.3}> <b>which</b>
-WDT;
-*****[#F39C12]:<U+0023>6 / <i>case</i>
-<$question{scale=0.3}> <b>in</b>
-IN;
-****[#AAB7B8]:<U+0023>13 / <i>acl:relcl</i>
-<$play{scale=0.3}> <b>prevails</b>
-VBZ;
-*****[#AAB7B8]:<U+0023>5 / <i>nmod:in</i>
-<$th{scale=0.3}> <b>societies</b>
-NNS;
-*****[#3498DB]:<U+0023>10 / <i>nsubj</i>
-<$square{scale=0.3}> <b>mode</b>
-NN;
-******[#F39C12]:<U+0023>8 / <i>det</i>
-<$question{scale=0.3}> <b>the</b>
-DT;
-******[#2ECC71]:<U+0023>9 / <i>amod</i>
-<$plus{scale=0.3}> <b>capitalist</b>
-JJ;
-******[#AAB7B8]:<U+0023>12 / <i>nmod:of</i>
-<$square{scale=0.3}> <b>production</b>
-NN;
-*******[#F39C12]:<U+0023>11 / <i>case</i>
-<$question{scale=0.3}> <b>of</b>
-IN;
-***[#BDC3C7]:<U+0023>14 / <i>punct</i>
-<$question{scale=0.3}> <b>,</b>
-,;
-**[#3498DB]:<U+0023>16 / <i>dobj</i>
-<$question{scale=0.3}> <b>itself</b>
-PRP;
-**[#AAB7B8]:<U+0023>20 / <i>nmod:as</i>
-<$square{scale=0.3}> <b>accumulation</b>
-NN;
-***[#F39C12]:<U+0023>17 / <i>case</i>
-<$question{scale=0.3}> <b>as</b>
-IN;
-***[#F39C12]:<U+0023>18 / <i>det</i>
-<$question{scale=0.3}> <b>an</b>
-DT;
-***[#2ECC71]:<U+0023>19 / <i>amod</i>
-<$plus{scale=0.3}> <b>immense</b>
-JJ;
-***[#AAB7B8]:<U+0023>22 / <i>nmod:of</i>
-<$th{scale=0.3}> <b>commodities</b>
-NNS;
-****[#F39C12]:<U+0023>21 / <i>case</i>
-<$question{scale=0.3}> <b>of</b>
-IN;
-**[#BDC3C7]:<U+0023>23 / <i>punct</i>
-<$question{scale=0.3}> <b>;</b>
-:;
-**[#9B59B6]:<U+0023>27 / <i>parataxis</i>
-<$play{scale=0.3}> <b>appears</b>
-VBZ;
-***[#3498DB]:<U+0023>26 / <i>nsubj</i>
-<$square{scale=0.3}> <b>commodity</b>
-NN;
-****[#F39C12]:<U+0023>24 / <i>det</i>
-<$question{scale=0.3}> <b>the</b>
-DT;
-****[#2ECC71]:<U+0023>25 / <i>amod</i>
-<$plus{scale=0.3}> <b>individual</b>
-JJ;
-***[#AAB7B8]:<U+0023>31 / <i>nmod:as</i>
-<$square{scale=0.3}> <b>form</b>
-NN;
-****[#F39C12]:<U+0023>28 / <i>case</i>
-<$question{scale=0.3}> <b>as</b>
-IN;
-****[#AAB7B8]:<U+0023>29 / <i>nmod:poss</i>
-<$question{scale=0.3}> <b>its</b>
-PRP$;
-****[#2ECC71]:<U+0023>30 / <i>amod</i>
-<$plus{scale=0.3}> <b>elementary</b>
-JJ;
-**[#BDC3C7]:<U+0023>32 / <i>punct</i>
-<$question{scale=0.3}> <b>.</b>
-.;
+!include <tupadr3/font-awesome/flag>
+!include <tupadr3/font-awesome/user>
+!include <tupadr3/font-awesome/cube>
+!include <tupadr3/font-awesome/cubes>
+!include <tupadr3/font-awesome/sliders>
+!include <tupadr3/font-awesome/tag>
+!include <tupadr3/font-awesome/road>
+!include <tupadr3/font-awesome/circle>
+!include <tupadr3/font-awesome/question>
+caption: The wealth of those societies in which the capitalist mode of production prevails , presents itself as an immense accumulation of commodities ; the individual commodity appears as its elementary form .
+*[#E74C3C]:<U+0023>15 <i>VBZ
+<size:16><b>presents</b></size>
+<$flag{scale=0.5}> <i>ROOT</i>;
+**[#3498DB]:<U+0023>2 <i>NN
+<size:16><b>wealth</b></size>
+<$user{scale=0.5}> <i>nsubj</i>;
+***[#F39C12]:<U+0023>1 <i>DT
+<size:16><b>The</b></size>
+<$tag{scale=0.5}> <i>det</i>;
+***[#3498DB]:<U+0023>5 <i>NNS
+<size:16><b>societies</b></size>
+<$question{scale=0.5}> <i>nmod:of</i>;
+****[#AAB7B8]:<U+0023>3 <i>IN
+<size:16><b>of</b></size>
+<$road{scale=0.5}> <i>case</i>;
+****[#F39C12]:<U+0023>4 <i>DT
+<size:16><b>those</b></size>
+<$tag{scale=0.5}> <i>det</i>;
+****[#AAB7B8]:<U+0023>7 <i>WDT
+<size:16><b>which</b></size>
+<$question{scale=0.5}> <i>ref</i>;
+*****[#AAB7B8]:<U+0023>6 <i>IN
+<size:16><b>in</b></size>
+<$road{scale=0.5}> <i>case</i>;
+****[#E74C3C]:<U+0023>13 <i>VBZ
+<size:16><b>prevails</b></size>
+<$question{scale=0.5}> <i>acl:relcl</i>;
+*****[#3498DB]:<U+0023>10 <i>NN
+<size:16><b>mode</b></size>
+<$user{scale=0.5}> <i>nsubj</i>;
+******[#F39C12]:<U+0023>8 <i>DT
+<size:16><b>the</b></size>
+<$tag{scale=0.5}> <i>det</i>;
+******[#2ECC71]:<U+0023>9 <i>JJ
+<size:16><b>capitalist</b></size>
+<$sliders{scale=0.5}> <i>amod</i>;
+******[#3498DB]:<U+0023>12 <i>NN
+<size:16><b>production</b></size>
+<$question{scale=0.5}> <i>nmod:of</i>;
+*******[#AAB7B8]:<U+0023>11 <i>IN
+<size:16><b>of</b></size>
+<$road{scale=0.5}> <i>case</i>;
+***[#BDC3C7]:<U+0023>14 <i>,
+<size:16><b>,</b></size>
+<$circle{scale=0.5}> <i>punct</i>;
+**[#9B59B6]:<U+0023>16 <i>PRP
+<size:16><b>itself</b></size>
+<$cube{scale=0.5}> <i>dobj</i>;
+**[#3498DB]:<U+0023>20 <i>NN
+<size:16><b>accumulation</b></size>
+<$question{scale=0.5}> <i>nmod:as</i>;
+***[#AAB7B8]:<U+0023>17 <i>IN
+<size:16><b>as</b></size>
+<$road{scale=0.5}> <i>case</i>;
+***[#F39C12]:<U+0023>18 <i>DT
+<size:16><b>an</b></size>
+<$tag{scale=0.5}> <i>det</i>;
+***[#2ECC71]:<U+0023>19 <i>JJ
+<size:16><b>immense</b></size>
+<$sliders{scale=0.5}> <i>amod</i>;
+***[#3498DB]:<U+0023>22 <i>NNS
+<size:16><b>commodities</b></size>
+<$question{scale=0.5}> <i>nmod:of</i>;
+****[#AAB7B8]:<U+0023>21 <i>IN
+<size:16><b>of</b></size>
+<$road{scale=0.5}> <i>case</i>;
+**[#AAB7B8]:<U+0023>23 <i>:
+<size:16><b>;</b></size>
+<$circle{scale=0.5}> <i>punct</i>;
+**[#E74C3C]:<U+0023>27 <i>VBZ
+<size:16><b>appears</b></size>
+<$question{scale=0.5}> <i>parataxis</i>;
+***[#3498DB]:<U+0023>26 <i>NN
+<size:16><b>commodity</b></size>
+<$user{scale=0.5}> <i>nsubj</i>;
+****[#F39C12]:<U+0023>24 <i>DT
+<size:16><b>the</b></size>
+<$tag{scale=0.5}> <i>det</i>;
+****[#2ECC71]:<U+0023>25 <i>JJ
+<size:16><b>individual</b></size>
+<$sliders{scale=0.5}> <i>amod</i>;
+***[#3498DB]:<U+0023>31 <i>NN
+<size:16><b>form</b></size>
+<$question{scale=0.5}> <i>nmod:as</i>;
+****[#AAB7B8]:<U+0023>28 <i>IN
+<size:16><b>as</b></size>
+<$road{scale=0.5}> <i>case</i>;
+****[#9B59B6]:<U+0023>29 <i>PRP$
+<size:16><b>its</b></size>
+<$question{scale=0.5}> <i>nmod:poss</i>;
+****[#2ECC71]:<U+0023>30 <i>JJ
+<size:16><b>elementary</b></size>
+<$sliders{scale=0.5}> <i>amod</i>;
+**[#BDC3C7]:<U+0023>32 <i>.
+<size:16><b>.</b></size>
+<$circle{scale=0.5}> <i>punct</i>;
+legend left
+  | Icon  | Meaning | Color | Meaning |
+  | <$flag{scale=0.5}> | ROOT | <#3498DB>Nouns | NN, NNS |
+  | <$user{scale=0.5}> | nsubj | <#E74C3C>Verbs | VB, VBZ, VBD, VBG, VBN, VBP |
+  | <$cube{scale=0.5}> | dobj, obj, iobj | <#2ECC71>Adjectives | JJ, JJR, JJS |
+  | <$sliders{scale=0.5}> | amod, advmod | | |
+  | <$cubes{scale=0.5}> | compound | <#9B59B6>Pronouns | PRP, PRP$ |
+  | <$tag{scale=0.5}> | det | <#F39C12>Determiners | DT |
+  | <$road{scale=0.5}> | case | <#AAB7B8>Prepositions | IN |
+  | <$circle{scale=0.5}> | punct | <#BDC3C7>Punctuation | , . ! ? |
+  | <$question{scale=0.5}> | others |  <#AAB7B8>Others |  |
+endlegend
 @endmindmap

@@ -35,27 +35,33 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
     }
 
     /**
-     * Maps Universal Dependency relations to standard color hex codes.
+     * Maps Part-of-Speech (POS) tags to standard color hex codes.
+     * Uses Universal Dependencies color conventions for grammatical categories.
      */
-    fun getDepColor(depRelation: String): String = when (depRelation) {
-        "ROOT", "root" -> "#E74C3C"                                  // Crimson (Root)
-        "nsubj", "dobj", "obj", "iobj", "csubj" -> "#3498DB"         // Blue (Core Arguments)
-        "amod", "advmod", "compound", "nummod" -> "#2ECC71"         // Green (Modifiers)
-        "det", "case", "mark", "cc", "aux", "cop" -> "#F39C12"       // Amber (Function Words)
-        "parataxis", "advcl", "advcl:to", "xcomp" -> "#9B59B6"      // Purple (Clauses)
-        "punct" -> "#BDC3C7"                                         // Grey (Punctuation)
-        else -> "#AAB7B8"                                           // Fallback Neutral
+    fun getPosColor(pos: String): String = when (pos) {
+        "NN", "NNS" -> "#3498DB"     // Blue for nouns
+        "VB", "VBZ", "VBD", "VBG", "VBN", "VBP" -> "#E74C3C"  // Red for verbs
+        "JJ", "JJR", "JJS" -> "#2ECC71"  // Green for adjectives
+        "DT" -> "#F39C12"          // Orange for determiners
+        "PRP", "PRP$" -> "#9B59B6"  // Purple for pronouns
+        "IN" -> "#AAB7B8"          // Gray for prepositions
+        ",", ".", "!", "?" -> "#BDC3C7"  // Light gray for punctuation
+        else -> "#AAB7B8"          // Neutral gray for others
     }
 
     /**
-     * Maps Universal Dependency relations to standard color hex codes.
+     * Maps dependency relations to intuitive Font Awesome icons.
      */
-    fun getPosSymbol(pos: String): String = when (pos) {
-        "NN" -> "<\$square{scale=0.3}>"
-        "NNS" -> "<\$th{scale=0.3}>"
-        "JJ" -> "<\$plus{scale=0.3}>"
-        "VB", "VBZ" -> "<\$play{scale=0.3}>"
-        else -> "<\$question{scale=0.3}>"
+    fun getDepIcon(depRelation: String): String = when (depRelation) {
+        "ROOT" -> "<\$flag{scale=0.5}>"          // Flag for root
+        "nsubj" -> "<\$user{scale=0.5}>"         // User for subject
+        "dobj", "obj", "iobj" -> "<\$cube{scale=0.5}>"  // Cube for objects
+        "amod", "advmod" -> "<\$sliders{scale=0.5}>"  // Sliders for modifiers
+        "compound" -> "<\$cubes{scale=0.5}>"     // Cubes for compounds
+        "det" -> "<\$tag{scale=0.5}>"           // Tag for determiners
+        "case" -> "<\$road{scale=0.5}>"         // Road for prepositions/cases
+        "punct" -> "<\$circle{scale=0.5}>"       // Circle for punctuation
+        else -> "<\$question{scale=0.5}>"       // Question for others
     }
 
     fun generateMindmap(): String {
@@ -80,7 +86,10 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
 
             val childDeps = childrenMap[currentDep.dependent] ?: emptyList()
             for (childDep in childDeps.sortedBy { it.dependent }) {
-                node.children.add(buildTree(childDep, visited))
+                // Skip if this child was already processed as a different dependency type
+                if (!visited.contains(childDep.dependent)) {
+                    node.children.add(buildTree(childDep, visited))
+                }
             }
             return node
         }
@@ -93,25 +102,34 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         builder.appendLine("!include <tupadr3/font-awesome/th>")
         builder.appendLine("!include <tupadr3/font-awesome/play>")
         builder.appendLine("!include <tupadr3/font-awesome/plus>")
+        builder.appendLine("!include <tupadr3/font-awesome/flag>")
+        builder.appendLine("!include <tupadr3/font-awesome/user>")
+        builder.appendLine("!include <tupadr3/font-awesome/cube>")
+        builder.appendLine("!include <tupadr3/font-awesome/cubes>")
+        builder.appendLine("!include <tupadr3/font-awesome/sliders>")
+        builder.appendLine("!include <tupadr3/font-awesome/tag>")
+        builder.appendLine("!include <tupadr3/font-awesome/road>")
+        builder.appendLine("!include <tupadr3/font-awesome/circle>")
+        builder.appendLine("!include <tupadr3/font-awesome/question>")
 
         fun reconstructText(): String {
-            val answer = StringBuilder()
+            val uniqueWords = mutableMapOf<Int, String>()
             for (dep in dependencies.sortedBy { it.dependent }) {
-                answer.append(dep.dependentGloss).append(" ")
+                uniqueWords[dep.dependent.toInt()] = dep.dependentGloss
             }
-            return answer.toString().trim()
+            return uniqueWords.toSortedMap().values.joinToString(" ")
         }
         builder.appendLine("caption: ${reconstructText()}")
 
         fun renderNode(node: TreeNode, depth: Int) {
             val stars = "*".repeat(depth)
-            val colorHex = getDepColor(node.depRelation)
-            val posSymbol = getPosSymbol(node.pos)
+            val posColor = getPosColor(node.pos)
+            val depIcon = getDepIcon(node.depRelation)
 
-            // Appends [#HEX] to style the background box of the mindmap node
-            builder.appendLine("$stars[$colorHex]:<U+0023>${node.index} / <i>${node.depRelation}</i>")
-            builder.appendLine("$posSymbol <b>${node.word}</b>")
-            builder.appendLine("${node.pos};")
+            // Use POS color for background and dependency icon for visual encoding
+            builder.appendLine("$stars[$posColor]:<U+0023>${node.index} <i>${node.pos}")
+            builder.appendLine("<size:16><b>${node.word}</b></size>")
+            builder.appendLine("$depIcon <i>${node.depRelation}</i>;")
 
             for (child in node.children) {
                 renderNode(child, depth + 1)
@@ -119,10 +137,27 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         }
 
         renderNode(treeRoot, 1)
+        builder.appendLine(legend())
         builder.appendLine("@endmindmap")
 
         return builder.toString()
     }
 
-
+    private fun legend(): String {
+        return """
+legend left
+  | Icon  | Dependency | Color | PartOfSpeech |
+  | <${'$'}flag{scale=0.5}> | ROOT | <#3498DB>Nouns | NN, NNS |
+  | <${'$'}user{scale=0.5}> | nsubj | <#E74C3C>Verbs | VB, VBZ, VBD, VBG, VBN, VBP |
+  | <${'$'}cube{scale=0.5}> | dobj, obj, iobj | <#2ECC71>Adjectives | JJ, JJR, JJS |
+  | <${'$'}sliders{scale=0.5}> | amod, advmod | | |
+  | <${'$'}cubes{scale=0.5}> | compound | <#9B59B6>Pronouns | PRP, PRP$ |
+  | <${'$'}tag{scale=0.5}> | det | <#F39C12>Determiners | DT |
+  | <${'$'}road{scale=0.5}> | case | <#AAB7B8>Prepositions | IN |
+  | <${'$'}circle{scale=0.5}> | punct | <#BDC3C7>Punctuation | , . ! ? |
+  | <${'$'}question{scale=0.5}> | others |  <#AAB7B8>Others |  |
+endlegend
+        """.trimIndent()
+    }
 }
+
