@@ -49,21 +49,6 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         else -> "#AAB7B8"          // Neutral gray for others
     }
 
-    /**
-     * Maps dependency relations to intuitive Font Awesome icons.
-     */
-    fun getDepIcon(depRelation: String): String = when (depRelation) {
-        "ROOT" -> "<\$flag{scale=0.5}>"          // Flag for root
-        "nsubj" -> "<\$user{scale=0.5}>"         // User for subject
-        "dobj", "obj", "iobj" -> "<\$cube{scale=0.5}>"  // Cube for objects
-        "amod", "advmod" -> "<\$sliders{scale=0.5}>"  // Sliders for modifiers
-        "compound" -> "<\$cubes{scale=0.5}>"     // Cubes for compounds
-        "det" -> "<\$tag{scale=0.5}>"           // Tag for determiners
-        "case" -> "<\$road{scale=0.5}>"         // Road for prepositions/cases
-        "punct" -> "<\$circle{scale=0.5}>"       // Circle for punctuation
-        else -> "<\$question{scale=0.5}>"       // Question for others
-    }
-
     fun generateMindmap(): String {
         val rootDep = dependencies.firstOrNull { it.governor == 0.toLong() }
             ?: return "@startmindmap\n* Error: No Root Found\n@endmindmap"
@@ -97,20 +82,7 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         val treeRoot = buildTree(rootDep)
 
         val builder = StringBuilder()
-        builder.appendLine("@startmindmap")
-        builder.appendLine("!include <tupadr3/font-awesome/square>")
-        builder.appendLine("!include <tupadr3/font-awesome/th>")
-        builder.appendLine("!include <tupadr3/font-awesome/play>")
-        builder.appendLine("!include <tupadr3/font-awesome/plus>")
-        builder.appendLine("!include <tupadr3/font-awesome/flag>")
-        builder.appendLine("!include <tupadr3/font-awesome/user>")
-        builder.appendLine("!include <tupadr3/font-awesome/cube>")
-        builder.appendLine("!include <tupadr3/font-awesome/cubes>")
-        builder.appendLine("!include <tupadr3/font-awesome/sliders>")
-        builder.appendLine("!include <tupadr3/font-awesome/tag>")
-        builder.appendLine("!include <tupadr3/font-awesome/road>")
-        builder.appendLine("!include <tupadr3/font-awesome/circle>")
-        builder.appendLine("!include <tupadr3/font-awesome/question>")
+        builder.append(header())
 
         fun reconstructText(): String {
             val uniqueWords = mutableMapOf<Int, String>()
@@ -127,7 +99,7 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
             val depIcon = getDepIcon(node.depRelation)
 
             // Use POS color for background and dependency icon for visual encoding
-            builder.appendLine("$stars[$posColor]:<U+0023>${node.index} <i>${node.pos}")
+            builder.appendLine("$stars[$posColor]:<U+0023>${node.index} / <i>${node.pos}")
             builder.appendLine("<size:16><b>${node.word}</b></size>")
             builder.appendLine("$depIcon <i>${node.depRelation}</i>;")
 
@@ -143,6 +115,27 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         return builder.toString()
     }
 
+    private fun header(): String {
+        val builder = StringBuilder()
+        builder.appendLine("@startmindmap")
+        builder.appendLine("!include <tupadr3/font-awesome/square>")
+        builder.appendLine("!include <tupadr3/font-awesome/th>")
+        builder.appendLine("!include <tupadr3/font-awesome/play>")
+        builder.appendLine("!include <tupadr3/font-awesome/plus>")
+        builder.appendLine("!include <tupadr3/font-awesome/flag>")
+        builder.appendLine("!include <tupadr3/font-awesome/user>")
+        builder.appendLine("!include <tupadr3/font-awesome/cube>")
+        builder.appendLine("!include <tupadr3/font-awesome/cubes>")
+        builder.appendLine("!include <tupadr3/font-awesome/sliders>")
+        builder.appendLine("!include <tupadr3/font-awesome/tag>")
+        builder.appendLine("!include <tupadr3/font-awesome/link>")
+        builder.appendLine("!include <tupadr3/font-awesome/circle>")
+        builder.appendLine("!include <tupadr3/font-awesome/question>")
+        builder.appendLine("!include <tupadr3/font-awesome/sitemap>")
+        builder.appendLine("!include <tupadr3/font-awesome/crosshairs>")
+        return builder.toString()
+    }
+
     private fun legend(): String {
         return """
 legend left
@@ -151,13 +144,31 @@ legend left
   | <${'$'}user{scale=0.5}> | nsubj | <#E74C3C>Verbs | VB, VBZ, VBD, VBG, VBN, VBP |
   | <${'$'}cube{scale=0.5}> | dobj, obj, iobj | <#2ECC71>Adjectives | JJ, JJR, JJS |
   | <${'$'}sliders{scale=0.5}> | amod, advmod | | |
+  | <${'$'}link{scale=0.5}> | nmod:* | | |
   | <${'$'}cubes{scale=0.5}> | compound | <#9B59B6>Pronouns | PRP, PRP$ |
   | <${'$'}tag{scale=0.5}> | det | <#F39C12>Determiners | DT |
-  | <${'$'}road{scale=0.5}> | case | <#AAB7B8>Prepositions | IN |
+  | <${'$'}sitemap{scale=0.5}> | case | <#AAB7B8>Prepositions | IN |
   | <${'$'}circle{scale=0.5}> | punct | <#BDC3C7>Punctuation | , . ! ? |
   | <${'$'}question{scale=0.5}> | others |  <#AAB7B8>Others |  |
 endlegend
         """.trimIndent()
     }
+
+    /**
+     * Maps dependency relations to intuitive Font Awesome icons.
+     */
+    fun getDepIcon(depRelation: String): String = when (depRelation) {
+        "ROOT" -> "<\$flag{scale=0.5}>"          // Flag for root
+        "nsubj" -> "<\$user{scale=0.5}>"         // User for subject
+        "dobj", "obj", "iobj" -> "<\$cube{scale=0.5}>"  // Cube for objects
+        "amod", "advmod" -> "<\$sliders{scale=0.5}>"  // Sliders for modifiers
+        "compound" -> "<\$cubes{scale=0.5}>"     // Cubes for compounds
+        "det" -> "<\$tag{scale=0.5}>"           // Tag for determiners
+        "case" -> "<\$sitemap{scale=0.5}>"         // Sitemap for prepositions/cases
+        "punct" -> "<\$circle{scale=0.5}>"       // Circle for punctuation
+        "nmod:of", "nmod:about", "nmod:for", "nmod:with", "nmod:from", "nmod:as" -> "<\$link{scale=0.5}>"       // Road for nmod:of
+        else -> "<\$question{scale=0.5}>"       // Question for others
+    }
+
 }
 
