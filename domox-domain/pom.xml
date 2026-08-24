@@ -16,7 +16,7 @@
     <!-- Module-specific properties (used only by this module) -->
     <properties>
         <twelvemonkeys.version>3.12.0</twelvemonkeys.version>
-        <batik-transcoder.version>1.19</batik-transcoder.version>
+        <batik-transcoder.version>1.18</batik-transcoder.version>
     </properties>
 
     <!-- Module-specific dependency management -->

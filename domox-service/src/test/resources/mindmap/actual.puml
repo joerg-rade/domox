@@ -14,101 +14,62 @@
 !include <tupadr3/font-awesome/question>
 !include <tupadr3/font-awesome/sitemap>
 !include <tupadr3/font-awesome/crosshairs>
-caption: The wealth of those societies in which the capitalist mode of production prevails , presents itself as an immense accumulation of commodities ; the individual commodity appears as its elementary form .
-*[#E74C3C]:<U+0023>15 <i>VBZ
-<size:16><b>presents</b></size>
+caption: 11 -RRB- Pet photography : Some pet shops offer pet photography services to capture memorable moments with pets .
+*[#3498DB]:<U+0023>4 / <i>NN
+<size:16><b>photography</b></size>
 <$flag{scale=0.5}> <i>ROOT</i>;
-**[#3498DB]:<U+0023>2 <i>NN
-<size:16><b>wealth</b></size>
-<$user{scale=0.5}> <i>nsubj</i>;
-***[#F39C12]:<U+0023>1 <i>DT
-<size:16><b>The</b></size>
-<$tag{scale=0.5}> <i>det</i>;
-***[#3498DB]:<U+0023>5 <i>NNS
-<size:16><b>societies</b></size>
-<$link{scale=0.5}> <i>nmod:of</i>;
-****[#AAB7B8]:<U+0023>3 <i>IN
-<size:16><b>of</b></size>
-<$sitemap{scale=0.5}> <i>case</i>;
-****[#F39C12]:<U+0023>4 <i>DT
-<size:16><b>those</b></size>
-<$tag{scale=0.5}> <i>det</i>;
-****[#AAB7B8]:<U+0023>7 <i>WDT
-<size:16><b>which</b></size>
-<$question{scale=0.5}> <i>ref</i>;
-*****[#AAB7B8]:<U+0023>6 <i>IN
-<size:16><b>in</b></size>
-<$sitemap{scale=0.5}> <i>case</i>;
-****[#E74C3C]:<U+0023>13 <i>VBZ
-<size:16><b>prevails</b></size>
-<$question{scale=0.5}> <i>acl:relcl</i>;
-*****[#3498DB]:<U+0023>10 <i>NN
-<size:16><b>mode</b></size>
-<$user{scale=0.5}> <i>nsubj</i>;
-******[#F39C12]:<U+0023>8 <i>DT
-<size:16><b>the</b></size>
-<$tag{scale=0.5}> <i>det</i>;
-******[#2ECC71]:<U+0023>9 <i>JJ
-<size:16><b>capitalist</b></size>
-<$sliders{scale=0.5}> <i>amod</i>;
-******[#3498DB]:<U+0023>12 <i>NN
-<size:16><b>production</b></size>
-<$link{scale=0.5}> <i>nmod:of</i>;
-*******[#AAB7B8]:<U+0023>11 <i>IN
-<size:16><b>of</b></size>
-<$sitemap{scale=0.5}> <i>case</i>;
-***[#BDC3C7]:<U+0023>14 <i>,
-<size:16><b>,</b></size>
+**[#AAB7B8]:<U+0023>1 / <i>CD
+<size:16><b>11</b></size>
+<$question{scale=0.5}> <i>nummod</i>;
+**[#AAB7B8]:<U+0023>2 / <i>-RRB-
+<size:16><b>-RRB-</b></size>
 <$circle{scale=0.5}> <i>punct</i>;
-**[#9B59B6]:<U+0023>16 <i>PRP
-<size:16><b>itself</b></size>
-<$cube{scale=0.5}> <i>dobj</i>;
-**[#3498DB]:<U+0023>20 <i>NN
-<size:16><b>accumulation</b></size>
-<$link{scale=0.5}> <i>nmod:as</i>;
-***[#AAB7B8]:<U+0023>17 <i>IN
-<size:16><b>as</b></size>
-<$sitemap{scale=0.5}> <i>case</i>;
-***[#F39C12]:<U+0023>18 <i>DT
-<size:16><b>an</b></size>
-<$tag{scale=0.5}> <i>det</i>;
-***[#2ECC71]:<U+0023>19 <i>JJ
-<size:16><b>immense</b></size>
-<$sliders{scale=0.5}> <i>amod</i>;
-***[#3498DB]:<U+0023>22 <i>NNS
-<size:16><b>commodities</b></size>
-<$link{scale=0.5}> <i>nmod:of</i>;
-****[#AAB7B8]:<U+0023>21 <i>IN
-<size:16><b>of</b></size>
-<$sitemap{scale=0.5}> <i>case</i>;
-**[#AAB7B8]:<U+0023>23 <i>:
-<size:16><b>;</b></size>
+**[#AAB7B8]:<U+0023>3 / <i>NNP
+<size:16><b>Pet</b></size>
+<$cubes{scale=0.5}> <i>compound</i>;
+**[#AAB7B8]:<U+0023>5 / <i>:
+<size:16><b>:</b></size>
 <$circle{scale=0.5}> <i>punct</i>;
-**[#E74C3C]:<U+0023>27 <i>VBZ
-<size:16><b>appears</b></size>
+**[#E74C3C]:<U+0023>9 / <i>VBP
+<size:16><b>offer</b></size>
 <$question{scale=0.5}> <i>parataxis</i>;
-***[#3498DB]:<U+0023>26 <i>NN
-<size:16><b>commodity</b></size>
+***[#3498DB]:<U+0023>8 / <i>NNS
+<size:16><b>shops</b></size>
 <$user{scale=0.5}> <i>nsubj</i>;
-****[#F39C12]:<U+0023>24 <i>DT
-<size:16><b>the</b></size>
+****[#F39C12]:<U+0023>6 / <i>DT
+<size:16><b>Some</b></size>
 <$tag{scale=0.5}> <i>det</i>;
-****[#2ECC71]:<U+0023>25 <i>JJ
-<size:16><b>individual</b></size>
+****[#3498DB]:<U+0023>7 / <i>NN
+<size:16><b>pet</b></size>
+<$cubes{scale=0.5}> <i>compound</i>;
+***[#3498DB]:<U+0023>12 / <i>NNS
+<size:16><b>services</b></size>
+<$cube{scale=0.5}> <i>dobj</i>;
+****[#2ECC71]:<U+0023>10 / <i>JJ
+<size:16><b>pet</b></size>
 <$sliders{scale=0.5}> <i>amod</i>;
-***[#3498DB]:<U+0023>31 <i>NN
-<size:16><b>form</b></size>
-<$link{scale=0.5}> <i>nmod:as</i>;
-****[#AAB7B8]:<U+0023>28 <i>IN
-<size:16><b>as</b></size>
+****[#3498DB]:<U+0023>11 / <i>NN
+<size:16><b>photography</b></size>
+<$cubes{scale=0.5}> <i>compound</i>;
+***[#E74C3C]:<U+0023>14 / <i>VB
+<size:16><b>capture</b></size>
+<$question{scale=0.5}> <i>advcl:to</i>;
+****[#AAB7B8]:<U+0023>13 / <i>TO
+<size:16><b>to</b></size>
+<$question{scale=0.5}> <i>mark</i>;
+****[#3498DB]:<U+0023>16 / <i>NNS
+<size:16><b>moments</b></size>
+<$cube{scale=0.5}> <i>dobj</i>;
+*****[#2ECC71]:<U+0023>15 / <i>JJ
+<size:16><b>memorable</b></size>
+<$sliders{scale=0.5}> <i>amod</i>;
+*****[#3498DB]:<U+0023>18 / <i>NNS
+<size:16><b>pets</b></size>
+<$link{scale=0.5}> <i>nmod:with</i>;
+******[#AAB7B8]:<U+0023>17 / <i>IN
+<size:16><b>with</b></size>
 <$sitemap{scale=0.5}> <i>case</i>;
-****[#9B59B6]:<U+0023>29 <i>PRP$
-<size:16><b>its</b></size>
-<$question{scale=0.5}> <i>nmod:poss</i>;
-****[#2ECC71]:<U+0023>30 <i>JJ
-<size:16><b>elementary</b></size>
-<$sliders{scale=0.5}> <i>amod</i>;
-**[#BDC3C7]:<U+0023>32 <i>.
+**[#BDC3C7]:<U+0023>19 / <i>.
 <size:16><b>.</b></size>
 <$circle{scale=0.5}> <i>punct</i>;
 legend left

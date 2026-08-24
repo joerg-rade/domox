@@ -40,7 +40,7 @@
         <approvaltests.version>23.0.0</approvaltests.version>
         <guava.version>33.1.0-jre</guava.version>
         <junit-platform.version>1.11.0</junit-platform.version>
-        <testcontainers.version>1.21.4</testcontainers.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
 
         <!-- Library versions -->
         <json.version>20250107</json.version>
@@ -57,10 +57,6 @@
         <resteasy-core.version>7.0.0.Final</resteasy-core.version>
         <tomcat-embed-core.version>10.1.34</tomcat-embed-core.version>
         <jackson-core.version>2.18.6</jackson-core.version>
-
-        <!-- Batik versions (used in domox-domain) -->
-        <batik-transcoder.version>1.19</batik-transcoder.version>
-        <twelvemonkeys.version>3.12.0</twelvemonkeys.version>
 
         <!-- Other library versions -->
         <joda-time.version>2.14.1</joda-time.version>
@@ -822,20 +818,7 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
-        <!--repository>
-            <id>apache-causeway-snapshots</id>
-            <name>Apache Causeway Snapshots</name>
-            <url>https://raw.githubusercontent.com/apache-causeway-committers/causeway-nightly/master/mvn-snapshots
-            </url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository-->
-        <repository>
+         <repository>
             <id>Sonatype OSS snapshots</id>
             <name>Sonatype OSS snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>

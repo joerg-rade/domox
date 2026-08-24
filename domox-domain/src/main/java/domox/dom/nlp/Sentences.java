@@ -1,11 +1,11 @@
 package domox.dom.nlp;
 
 import domox.DomainModule;
+import domox.diagram.DiagramBuilder;
 import domox.dom.rqm.Document;
 import domox.nlp.BasicDependencyTO;
 import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
-import domox.svc.SentenceAdapter;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -59,9 +59,7 @@ public class Sentences {
     @Programmatic
     public Sentence build(SentenceTO sentenceTO) {
         final Sentence sentence = create();
-        final SentenceAdapter sentenceAdapter = new SentenceAdapter(sentenceTO);
-        //
-        final String text = sentenceAdapter.transferObjectAsString();
+        final String text = transferObjectAsString(sentenceTO);
         sentence.setText(text);
         final List<TokenTO> tokenToList = sentenceTO.getTokens();
         for (final TokenTO tokenTO : tokenToList) {
@@ -74,11 +72,19 @@ public class Sentences {
         return sentence;
     }
 
+    private String transferObjectAsString(SentenceTO sentenceTO) {
+        final StringBuilder sb = new StringBuilder();
+        final List<TokenTO> tokens = sentenceTO.getTokens();
+        for (TokenTO tt : tokens) {
+            sb.append(tt.getWord()).append(" ");
+        }
+        return sb.toString().trim();
+    }
+
     @Programmatic
     public void initDiagram(SentenceTO sentenceTO, Sentence sentence) {
-        final SentenceAdapter sentenceAdapter = new SentenceAdapter(sentenceTO);
-        final byte[] diagram = sentenceAdapter.buildTypedDependencyDiagram(sentenceTO);
-        final String fileName = sentence.title() + ".svg";
+        final byte[] diagram = new DiagramBuilder().buildTypedDependencyDiagram(sentenceTO);
+        final String fileName = sentence.title() + ".pdf";
         sentence.updateImageFromBytes(diagram, fileName);
     }
 

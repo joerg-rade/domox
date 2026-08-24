@@ -1,6 +1,7 @@
 package domox.svc;
 
 import domox.FileUtil;
+import domox.diagram.DiagramBuilder;
 import domox.nlp.DocumentTO;
 import domox.nlp.SentenceTO;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,7 +14,7 @@ import org.testcontainers.utility.DockerImageName;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Testcontainers
-class SentenceAdapterTest {
+class DiagramBuilderTest {
 
     @Container
     private static final GenericContainer<?> coreNlp = new GenericContainer<>(
@@ -43,7 +44,7 @@ class SentenceAdapterTest {
         final DocumentTO documentTO = new DocumentAdapter().parseTextAndAmend(txtContent);
         final SentenceTO sentenceTO = documentTO.getSentences().getFirst();
 
-        final SentenceAdapter sut = new SentenceAdapter(sentenceTO);
+        final DiagramBuilder sut = new DiagramBuilder();
         // when
         final byte[] diagram = sut.buildTypedDependencyDiagram(sentenceTO);
         // then
