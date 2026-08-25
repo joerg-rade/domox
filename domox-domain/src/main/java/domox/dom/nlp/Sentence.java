@@ -19,13 +19,10 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 import org.apache.causeway.persistence.jpa.applib.types.BlobJpaEmbeddable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static org.apache.causeway.applib.annotation.SemanticsOf.IDEMPOTENT;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA, name = "Sentence")
@@ -76,7 +73,7 @@ public class Sentence implements Comparable<Sentence> {
     @Setter
     private List<Token> tokenList = new ArrayList<>();
 
-    // start PDF
+    // region PDF
     @AttributeOverrides({
             @AttributeOverride(name = "name", column = @Column(name = "attachment_name")),
             @AttributeOverride(name = "mimeType", column = @Column(name = "attachment_mimeType")),
@@ -96,25 +93,12 @@ public class Sentence implements Comparable<Sentence> {
         this.attachment = BlobJpaEmbeddable.fromBlob(attachment);
     }
 
-    @Action(semantics = IDEMPOTENT, commandPublishing = Publishing.ENABLED, executionPublishing = Publishing.ENABLED)
-    @ActionLayout(associateWith = "attachment", position = ActionLayout.Position.PANEL)
-    public Sentence updateAttachment(
-            @Nullable final Blob attachment) {
-        setAttachment(attachment);
-        return this;
-    }
-
-    @MemberSupport
-    public Blob default0UpdateAttachment() {
-        return getAttachment();
-    }
-
     @Programmatic
     public void updateImageFromBytes(byte[] bytes, String filename) {
         final Blob blob = new Blob(filename, Constants.pdfMimeType, bytes);
         setAttachment(blob);
     }
-    // end PDF
+    // endregion PDF
 
     @ManyToOne()
     @JoinColumn(name = "documentId")
@@ -141,13 +125,7 @@ public class Sentence implements Comparable<Sentence> {
     }
 
     @OneToMany(mappedBy = "sentence")
+    @Getter @Setter
     private Collection<TypedDependency> typedDependency;
 
-    public Collection<TypedDependency> getTypedDependency() {
-        return typedDependency;
-    }
-
-    public void setTypedDependency(Collection<TypedDependency> typedDependency) {
-        this.typedDependency = typedDependency;
-    }
 }
