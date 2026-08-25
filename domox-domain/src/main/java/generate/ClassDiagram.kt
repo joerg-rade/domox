@@ -26,10 +26,11 @@ class ClassDiagram {
 
     fun build(dm: DomainModel): String {
         val code = PumlCode()
-        dm.classList.forEach { cls: ClassCdd ->
+        // guard against possible null classList
+        dm.classList?.forEach { cls: ClassCdd ->
             amendWithClass(code, cls)
         }
-        dm.classList.forEach { cls: ClassCdd ->
+        dm.classList?.forEach { cls: ClassCdd ->
             amendWithAssociation(code, cls)
         }
         code.asUml()
@@ -37,14 +38,22 @@ class ClassDiagram {
     }
 
     private fun amendWithAssociation(code: PumlCode, cls: ClassCdd): PumlCode {
-        cls.associationList.forEach { asc: AssociationCdd ->
-            code.addAssociation(asc.toPlantUmlString())
+        // guard against possible null associationList
+        cls.associationList?.forEach { asc: AssociationCdd ->
+            val s: String = asc.toPlantUmlString() ?: ""
+            if (s.length > 0) {
+                code.addAssociation(s)
+            }
         }
         return code
     }
 
     private fun amendWithClass(code: PumlCode, cls: ClassCdd): PumlCode {
-        return code.add(cls.toPlantUmlString());
+        val s: String = cls.toPlantUmlString() ?: ""
+        if (s.length > 0) {
+            code.add(s)
+        }
+        return code
     }
 
 }

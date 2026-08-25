@@ -25,7 +25,6 @@
         <lombok.version>1.18.38</lombok.version>
         <jmock.version>2.12.0</jmock.version>
         <jakarta.xml.bind-api.version>4.0.1</jakarta.xml.bind-api.version>
-        <junit-jupiter.version>5.11.0</junit-jupiter.version>
         <mockito-inline.version>3.11.2</mockito-inline.version>
         <postgresql.version>42.7.2</postgresql.version>
         <maven-cucumber-reporting.version>4.11.2</maven-cucumber-reporting.version>
@@ -39,6 +38,7 @@
         <assertj-core.version>3.27.7</assertj-core.version>
         <approvaltests.version>23.0.0</approvaltests.version>
         <guava.version>33.1.0-jre</guava.version>
+        <junit-jupiter.version>5.11.0</junit-jupiter.version>
         <junit-platform.version>1.11.0</junit-platform.version>
         <testcontainers.version>2.0.5</testcontainers.version>
 
@@ -139,7 +139,22 @@
                     <version>3.2.5</version>
                     <configuration>
                         <argLine>-Xmx2048m -XX:+EnableDynamicAgentLoading</argLine>
+                        <includes>
+                            <include>**/*Test.java</include>
+                        </includes>
+                        <properties>
+                            <configurationParameters>
+                                junit.jupiter.extensions.autodetection.enabled=true
+                            </configurationParameters>
+                        </properties>
                     </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.junit.jupiter</groupId>
+                            <artifactId>junit-jupiter-engine</artifactId>
+                            <version>${junit-jupiter.version}</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>net.masterthought</groupId>
@@ -319,8 +334,17 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.causeway.extensions</groupId>
-                <artifactId>causeway-extensions-pdfjs-wicket-ui</artifactId>
+                <artifactId>causeway-extensions-pdfjs</artifactId>
                 <version>${causeway.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-pdfjs-applib</artifactId>
+                <version>${causeway.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.causeway.extensions</groupId>
@@ -624,16 +648,6 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.causeway.extensions</groupId>
-                <artifactId>causeway-extensions-pdfjs-metamodel</artifactId>
-                <version>${causeway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.causeway.extensions</groupId>
-                <artifactId>causeway-extensions-pdfjs-wicket-integration</artifactId>
-                <version>${causeway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.causeway.extensions</groupId>
                 <artifactId>causeway-extensions-secman-integration</artifactId>
                 <version>${causeway.version}</version>
             </dependency>
@@ -699,11 +713,6 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.causeway.extensions</groupId>
-                <artifactId>causeway-extensions-pdfjs-applib</artifactId>
-                <version>${causeway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.causeway.extensions</groupId>
                 <artifactId>causeway-extensions-secman-applib</artifactId>
                 <version>${causeway.version}</version>
             </dependency>
@@ -720,16 +729,16 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>1.21.4</version>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit-jupiter.version}</version>
                 <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>junit</groupId>
-                        <artifactId>junit</artifactId>
-                    </exclusion>
-                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit-jupiter.version}</version>
+                <scope>test</scope>
             </dependency>
 
             <!-- Override (transitive/vulnerable) dependencies -->

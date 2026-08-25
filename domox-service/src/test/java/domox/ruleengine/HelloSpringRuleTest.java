@@ -2,8 +2,8 @@ package domox.ruleengine;
 
 import com.deliveredtechnologies.rulebook.FactMap;
 import com.deliveredtechnologies.rulebook.model.runner.RuleBookRunner;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class HelloSpringRuleTest {
 
@@ -17,6 +17,6 @@ public class HelloSpringRuleTest {
 
         ruleBookRunner.run(facts);
 
-        Assert.assertFalse(ruleBookRunner.getResult().isPresent());
+        assertFalse(ruleBookRunner.getResult().isPresent());
     }
 }

@@ -4,47 +4,38 @@ import domox.Constants;
 import domox.DomainModule;
 import domox.dom.rqm.Document;
 import jakarta.inject.Named;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.causeway.applib.annotation.DomainObject;
-import org.apache.causeway.applib.annotation.DomainObjectLayout;
-import org.apache.causeway.applib.annotation.Nature;
-import org.apache.causeway.applib.annotation.Programmatic;
-import org.apache.causeway.applib.annotation.Property;
-import org.apache.causeway.applib.annotation.Title;
+import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Blob;
+import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
+import org.apache.causeway.persistence.jpa.applib.types.BlobJpaEmbeddable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.apache.causeway.applib.annotation.SemanticsOf.IDEMPOTENT;
+
 @Entity
 @Table(schema = DomainModule.SCHEMA, name = "Sentence")
 @EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".Sentence")
-@DomainObject(nature = Nature.ENTITY)
-@DomainObjectLayout(cssClassFa = "paragraph")
+@DomainObject(entityChangePublishing = Publishing.ENABLED)
+@DomainObjectLayout(
+        cssClassFa = "paragraph",
+        tableDecorator = TableDecorator.DatatablesNet.class,
+        bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
@@ -85,17 +76,45 @@ public class Sentence implements Comparable<Sentence> {
     @Setter
     private List<Token> tokenList = new ArrayList<>();
 
-    @Lob
-    @Getter
-    @Setter
-    private Blob image;
+    // start PDF
+    @AttributeOverrides({
+            @AttributeOverride(name = "name", column = @Column(name = "attachment_name")),
+            @AttributeOverride(name = "mimeType", column = @Column(name = "attachment_mimeType")),
+            @AttributeOverride(name = "bytes", column = @Column(name = "attachment_bytes", columnDefinition = "BYTEA"))
+    })
+    @Embedded
+    private BlobJpaEmbeddable attachment;
 
-    @Programmatic
-    public Sentence updateImageFromBytes(byte[] bytes, String filename) {
-        final Blob blob = new Blob(filename, Constants.svgMimeType, bytes);
-        this.image = blob;
+    @PdfJsViewer
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(fieldSetId = "content", sequence = "1")
+    public Blob getAttachment() {
+        return attachment != null ? BlobJpaEmbeddable.toBlob(attachment) : null;
+    }
+
+    public void setAttachment(final Blob attachment) {
+        this.attachment = BlobJpaEmbeddable.fromBlob(attachment);
+    }
+
+    @Action(semantics = IDEMPOTENT, commandPublishing = Publishing.ENABLED, executionPublishing = Publishing.ENABLED)
+    @ActionLayout(associateWith = "attachment", position = ActionLayout.Position.PANEL)
+    public Sentence updateAttachment(
+            @Nullable final Blob attachment) {
+        setAttachment(attachment);
         return this;
     }
+
+    @MemberSupport
+    public Blob default0UpdateAttachment() {
+        return getAttachment();
+    }
+
+    @Programmatic
+    public void updateImageFromBytes(byte[] bytes, String filename) {
+        final Blob blob = new Blob(filename, Constants.pdfMimeType, bytes);
+        setAttachment(blob);
+    }
+    // end PDF
 
     @ManyToOne()
     @JoinColumn(name = "documentId")
