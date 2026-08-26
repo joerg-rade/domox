@@ -1,6 +1,3 @@
-.Docker
-[plantuml,file="Docker.png"]
---
 @startuml
 
 node HOST as "<<host>>\nDocker Host" {
@@ -30,4 +27,4 @@ DMX -up-> DB_SVC
 DMX -up-> TTS_SVC
 
 @enduml
---
+

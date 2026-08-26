@@ -1,6 +1,3 @@
-.From RAD to MAD
-[plantuml,file="FromRADtoMAD.png"]
---
 @startuml
 
 cloud "Model" as M {
@@ -43,4 +40,3 @@ end note
 UI --> User : interact\nwith UI
 
 @enduml
---
