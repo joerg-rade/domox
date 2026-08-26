@@ -4,15 +4,16 @@
 DoMoX is like Vibe Coding, but in an
 * old-fashioned,
 * best-practice-based,
-* deterministic, and 
-* highly traceable way, 
+* deterministic,  
+* highly traceable way, and with
+* humans in the loop!
 
 i.e. (almost) without AI.
 
 From 
 * textual requirements 
 * candidates for classes, responsibilities, and collaborators are identified [1],
-* leveraging Natural Language Processing (NLP) techniques [2],[3].
+* leveraging [Natural Language Processing (NLP)](#NLP) techniques [2],[3].
 
 From these candidates a Domain Model is distilled by 🧑‍💻 DoMoX users, 
 who select which of the suggested classes, properties, actions, and associations should enter the model.
@@ -23,7 +24,7 @@ You could stop here and use the DM as a blueprint for manual coding, but DoMoX c
 
 Leveraging Apache Causeway [4], an object-oriented web UI can be generated, alongside the backend part (including DB).
 The UI is key to user interactions with the model, and it can be used to validate 🧑 the model with stakeholders.
-If the user experience can be improved, further requirements are fed into the next iteration.
+If the user experience can be improved, further requirements are fed into the next [iteration](#MDD).
 
 It will be possible to trace back every feature of the generated code to the (original) requirements, 
 that led to it's very creation.
@@ -60,5 +61,9 @@ Information and Software Technology, vol. 135, p. 106558, Jul. 2021, doi: 10.101
 [5] PlantUML: https://plantuml.com/
 
 ## Diagrams
-![Preview](./docs/application/FromRADtoMDD.png)
+### Container Diagram
 ![Preview](./docs/application/c4_container.png)
+### NLP
+![Preview](./docs/application/nlp_pipeline.png)
+### MDD
+![Preview](./docs/application/FromRADtoMDD.png)

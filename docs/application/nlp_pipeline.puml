@@ -1,0 +1,44 @@
+@startuml
+left to right direction
+(*) --> "Tokenizer" as TK #PINK
+note top
+ Process
+ Requirement
+ Statements
+end note
+
+note bottom #WHITE
+{{
+class first
+class second
+first <|-right- second
+}}
+end note
+
+TK --> "Sentence\nSplitter" as SS #PINK
+
+SS --> "POS\nTagger" as POS #PINK
+note top
+ POS = PartOfSpeech
+end note
+
+POS -->  "Named Entity\nRecognizer" as NER #PINK
+note top
+ Noun Phrases
+ VerbPhrases
+ "Dependencies"
+end note
+
+NER -->   "Parser" as PAR #PINK
+note top
+  Phrase Structure + Dependency
+  Lift Dependencies to Semantic Units
+end note
+
+PAR --> "Coreference\nResolver"  as CR #PINK
+CR --> (*)
+note top
+  Construct Domain Model
+end note
+
+@enduml
