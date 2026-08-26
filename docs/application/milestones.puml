@@ -1,0 +1,37 @@
+@startuml
+!include <tupadr3/material/face>
+!include <material/file>
+
+!$m1 = "<$ma_file{scale=0.5}>\nImport\nRequirements"
+!$m2 = "<$archimate/equipment{scale=1.2}>\nNLP\nProcessing"
+!$m3 = "<$face{scale=0.5}>\nCandidate\nSelection"
+!$m4 = "<$archimate/equipment{scale=1.2}>\nDomain Model\nGeneration"
+!$m5 = "<$face{scale=0.5}>\nDomain Model\nReview"
+!$m6 = "<$archimate/equipment{scale=1.2}>\nCode\nGeneration"
+!$m7 = "<$face{scale=0.5}>\nManual UI\nTesting"
+!$m8 = "<$face{scale=0.5}>\nRequirement\nRefinement"
+!$m9 = "<$ma_file{scale=0.5}>\nRequirement\nUpdate"
+
+skinparam nodesep 1
+skinparam defaultFontColor white
+skinparam defaultFontSize 16
+skinparam defaultFontWeight bold
+
+action "$m1" as M1 #f80c12
+process "$m2" as M2 #ff3311
+M1 - M2
+process "$m3" as M3 #ff6644
+M2 - M3
+process "$m4" as M4 #feae2d
+M3 - M4
+process "$m5" as M5 #d0c310
+M4 - M5
+process "$m6" as M6 #69d025
+M5 - M6
+process "$m7" as M7 #12bdb9
+M6 - M7
+process "$m8" as M8 #4444dd
+M7 - M8
+process "$m9" as M9 #3b0cbd
+M8 - M9
+@enduml

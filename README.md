@@ -26,6 +26,8 @@ Leveraging Apache Causeway [4], an object-oriented web UI can be generated, alon
 The UI is key to user interactions with the model, and it can be used to validate 🧑 the model with stakeholders.
 If the user experience can be improved, further requirements are fed into the next [iteration](#MDD).
 
+![Preview](./docs/application/milestones.png)
+
 ### Key Benefits
 * The generated code is fully traceable to the Domain Model and requirements,
 * Apache Causeway provides not only a web UI, but also a REST API, than can easily be adapter to AI's (MCP).
@@ -33,7 +35,7 @@ If the user experience can be improved, further requirements are fed into the ne
 ## 🥞 Tech Stack
 Tools applied in DoMoX include:
 * UML, here PlantUML [5]
-* JVM implementaion, using:
+* JVM implementation, using:
   * Spring Boot, 
   * Apache Causeway, 
   * Maven

@@ -1,0 +1,7 @@
+@startuml
+'import as
+'include <material/file>
+' reference:
+' <$ma_file> as file
+listopeniconic
+@enduml
