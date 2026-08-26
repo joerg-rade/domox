@@ -29,7 +29,7 @@ class ColoredPlantUmlMindmapGeneratorTest {
         val coreDocument: DocumentTO = StanfordCoreNlpAPI(scheme, host, port).annotate(text)
 
         val sentence = coreDocument.sentences[0]
-        //logDependencies(sentence)
+        logDependencies(sentence)
         return sentence
     }
 

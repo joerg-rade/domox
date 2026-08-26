@@ -5,7 +5,7 @@ DoMoX is like Vibe Coding, but in an
 * old-fashioned,
 * best-practice-based,
 * deterministic,  
-* highly traceable way, and with
+* fully traceable way, and with
 * humans in the loop!
 
 i.e. (almost) without AI.
@@ -26,9 +26,9 @@ Leveraging Apache Causeway [4], an object-oriented web UI can be generated, alon
 The UI is key to user interactions with the model, and it can be used to validate 🧑 the model with stakeholders.
 If the user experience can be improved, further requirements are fed into the next [iteration](#MDD).
 
-It will be possible to trace back every feature of the generated code to the (original) requirements, 
-that led to it's very creation.
-
+### Key Benefits
+* The generated code is fully traceable to the Domain Model and requirements,
+* Apache Causeway provides not only a web UI, but also a REST API, than can easily be adapter to AI's (MCP).
 
 ## 🥞 Tech Stack
 Tools applied in DoMoX include:

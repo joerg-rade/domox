@@ -1,5 +1,3 @@
-[plantuml,file="Overview.png"]
---
 @startuml
 
 class Corpus
@@ -47,4 +45,3 @@ Relation -l-> "*" Annotation : members
 Annotation -> FeatureMap : features
 
 @enduml
---
