@@ -34,21 +34,6 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         }
     }
 
-    /**
-     * Maps Part-of-Speech (POS) tags to standard color hex codes.
-     * Uses Universal Dependencies color conventions for grammatical categories.
-     */
-    fun getPosColor(pos: String): String = when (pos) {
-        "NN", "NNS" -> "#3498DB"     // Blue for nouns
-        "VB", "VBZ", "VBD", "VBG", "VBN", "VBP" -> "#E74C3C"  // Red for verbs
-        "JJ", "JJR", "JJS" -> "#2ECC71"  // Green for adjectives
-        "DT" -> "#F39C12"          // Orange for determiners
-        "PRP", "PRP$" -> "#9B59B6"  // Purple for pronouns
-        "IN" -> "#AAB7B8"          // Gray for prepositions
-        ",", ".", "!", "?" -> "#BDC3C7"  // Light gray for punctuation
-        else -> "#AAB7B8"          // Neutral gray for others
-    }
-
     fun generateMindmap(): String {
         val rootDep = dependencies.firstOrNull { it.governor == 0.toLong() }
             ?: return "@startmindmap\n* Error: No Root Found\n@endmindmap"
@@ -101,6 +86,7 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
             // Use POS color for background and dependency icon for visual encoding
             builder.appendLine("$stars[$posColor]:<U+0023>${node.index} / <i>${node.pos}")
             builder.appendLine("<size:16><b>${node.word}</b></size>")
+            builder.appendLine("----")
             builder.appendLine("$depIcon <i>${node.depRelation}</i>;")
 
             for (child in node.children) {
@@ -136,24 +122,6 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
         return builder.toString()
     }
 
-    private fun legend(): String {
-        return """
-legend left
-  | Icon  | Dependency | Color | PartOfSpeech |
-  | <${'$'}flag{scale=0.5}> | ROOT | <#3498DB>Nouns | NN, NNS |
-  | <${'$'}user{scale=0.5}> | nsubj | <#E74C3C>Verbs | VB, VBZ, VBD, VBG, VBN, VBP |
-  | <${'$'}cube{scale=0.5}> | dobj, obj, iobj | <#2ECC71>Adjectives | JJ, JJR, JJS |
-  | <${'$'}sliders{scale=0.5}> | amod, advmod | | |
-  | <${'$'}link{scale=0.5}> | nmod:* | | |
-  | <${'$'}cubes{scale=0.5}> | compound | <#9B59B6>Pronouns | PRP, PRP$ |
-  | <${'$'}tag{scale=0.5}> | det | <#F39C12>Determiners | DT |
-  | <${'$'}sitemap{scale=0.5}> | case | <#AAB7B8>Prepositions | IN |
-  | <${'$'}circle{scale=0.5}> | punct | <#BDC3C7>Punctuation | , . ! ? |
-  | <${'$'}question{scale=0.5}> | others |  <#AAB7B8>Others |  |
-endlegend
-        """.trimIndent()
-    }
-
     /**
      * Maps dependency relations to intuitive Font Awesome icons.
      */
@@ -170,5 +138,47 @@ endlegend
         else -> "<\$question{scale=0.5}>"       // Question for others
     }
 
-}
+    private fun legend(): String {
+        return """
+legend left
+  | Icon  | Dependency | | Color | PartOfSpeech |
+  | <${'$'}flag{scale=0.5}> | ROOT | | <#3498DB> Nouns | NN, NNS |
+  | <${'$'}user{scale=0.5}> | nsubj | | <#E74C3C> Verbs | VB, VBZ, VBD, VBG, VBN, VBP |
+  | <${'$'}cube{scale=0.5}> | dobj, obj, iobj | | <#2ECC71> Adjectives | JJ, JJR, JJS |
+  | <${'$'}sliders{scale=0.5}> | amod, advmod | | | |
+  | <${'$'}link{scale=0.5}> | nmod:* | | | |
+  | <${'$'}cubes{scale=0.5}> | compound | | <#9B59B6> Pronouns | PRP, PRP$ |
+  | <${'$'}tag{scale=0.5}> | det | | <#F39C12> Determiners | DT |
+  | <${'$'}sitemap{scale=0.5}> | case | | <#17A2B8> Prepositions | IN |
+  | <${'$'}circle{scale=0.5}> | punct | | <#FFFFFF> Punctuation | , . ! ? ; : |
+  | | | | <#FFBB28> adverbs | RB |
+  | | | | <#F1C40F> numerals| CD |
+  | | | | <#00C49F> coordinating conjunctions | CC |
+  | | | | <#9B59B6> wh-determiners, adverbs, pronouns | WDT, WRB, WP, WP$, WRB |
+  | | | | <#2C3E50> proper nouns | NNP, NNPS |
+  | <${'$'}question{scale=0.5}> | others | | <#AAB7B8> Others |  |
+endlegend
+        """.trimIndent()
+    }
 
+    /**
+     * Maps Part-of-Speech (POS) tags to standard color hex codes.
+     * Uses Universal Dependencies color conventions for grammatical categories.
+     */
+    fun getPosColor(pos: String): String = when (pos) {
+        "NN", "NNS" -> "#3498DB"     // Blue for nouns
+        "VB", "VBZ", "VBD", "VBG", "VBN", "VBP" -> "#E74C3C"  // Red for verbs
+        "JJ", "JJR", "JJS" -> "#2ECC71"  // Green for adjectives
+        "DT" -> "#F39C12"          // Orange for determiners
+        "PRP", "PRP$" -> "#9B59B6"  // Purple for pronouns
+        "IN" -> "#17A2B8"          // Gray for prepositions
+        "RB" -> "#FFBB28"          // Amber for adverbs
+        "CD" -> "#F1C40F"      // Yellow for numerals
+        "CC" -> "#00C49F"          // Teal for coordinating conjunctions
+        "WDT", "WP", "WP$", "WRB" -> "#9B59B6"          // Soft Purple for wh-determiners, adverbs, pronouns
+        "NNP", "NNPS" -> "#2C3E50"     // Deep Blue for proper nouns
+        ",", ".", "!", "?", ";", ":" -> "#FFFFFF"  // White for punctuation
+        else -> "#AAB7B8"          // Neutral gray for others
+    }
+
+}

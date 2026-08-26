@@ -30,7 +30,7 @@ import java.util.List;
 @Named(DomainModule.NAMESPACE + ".Sentence")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(
-        cssClassFa = "paragraph",
+        cssClassFa = "dollar",
         tableDecorator = TableDecorator.DatatablesNet.class,
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)

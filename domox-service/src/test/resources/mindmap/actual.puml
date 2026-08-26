@@ -14,75 +14,112 @@
 !include <tupadr3/font-awesome/question>
 !include <tupadr3/font-awesome/sitemap>
 !include <tupadr3/font-awesome/crosshairs>
-caption: 11 -RRB- Pet photography : Some pet shops offer pet photography services to capture memorable moments with pets .
-*[#3498DB]:<U+0023>4 / <i>NN
-<size:16><b>photography</b></size>
+caption: Men act upon the world , and change it , and are changed in turn by the consequences of their actions .
+*[#3498DB]:<U+0023>2 / <i>NN
+<size:16><b>act</b></size>
+----
 <$flag{scale=0.5}> <i>ROOT</i>;
-**[#AAB7B8]:<U+0023>1 / <i>CD
-<size:16><b>11</b></size>
-<$question{scale=0.5}> <i>nummod</i>;
-**[#AAB7B8]:<U+0023>2 / <i>-RRB-
-<size:16><b>-RRB-</b></size>
-<$circle{scale=0.5}> <i>punct</i>;
-**[#AAB7B8]:<U+0023>3 / <i>NNP
-<size:16><b>Pet</b></size>
+**[#3498DB]:<U+0023>1 / <i>NN
+<size:16><b>Men</b></size>
+----
 <$cubes{scale=0.5}> <i>compound</i>;
-**[#AAB7B8]:<U+0023>5 / <i>:
-<size:16><b>:</b></size>
-<$circle{scale=0.5}> <i>punct</i>;
-**[#E74C3C]:<U+0023>9 / <i>VBP
-<size:16><b>offer</b></size>
-<$question{scale=0.5}> <i>parataxis</i>;
-***[#3498DB]:<U+0023>8 / <i>NNS
-<size:16><b>shops</b></size>
-<$user{scale=0.5}> <i>nsubj</i>;
-****[#F39C12]:<U+0023>6 / <i>DT
-<size:16><b>Some</b></size>
-<$tag{scale=0.5}> <i>det</i>;
-****[#3498DB]:<U+0023>7 / <i>NN
-<size:16><b>pet</b></size>
-<$cubes{scale=0.5}> <i>compound</i>;
-***[#3498DB]:<U+0023>12 / <i>NNS
-<size:16><b>services</b></size>
-<$cube{scale=0.5}> <i>dobj</i>;
-****[#2ECC71]:<U+0023>10 / <i>JJ
-<size:16><b>pet</b></size>
-<$sliders{scale=0.5}> <i>amod</i>;
-****[#3498DB]:<U+0023>11 / <i>NN
-<size:16><b>photography</b></size>
-<$cubes{scale=0.5}> <i>compound</i>;
-***[#E74C3C]:<U+0023>14 / <i>VB
-<size:16><b>capture</b></size>
-<$question{scale=0.5}> <i>advcl:to</i>;
-****[#AAB7B8]:<U+0023>13 / <i>TO
-<size:16><b>to</b></size>
-<$question{scale=0.5}> <i>mark</i>;
-****[#3498DB]:<U+0023>16 / <i>NNS
-<size:16><b>moments</b></size>
-<$cube{scale=0.5}> <i>dobj</i>;
-*****[#2ECC71]:<U+0023>15 / <i>JJ
-<size:16><b>memorable</b></size>
-<$sliders{scale=0.5}> <i>amod</i>;
-*****[#3498DB]:<U+0023>18 / <i>NNS
-<size:16><b>pets</b></size>
-<$link{scale=0.5}> <i>nmod:with</i>;
-******[#AAB7B8]:<U+0023>17 / <i>IN
-<size:16><b>with</b></size>
+**[#3498DB]:<U+0023>5 / <i>NN
+<size:16><b>world</b></size>
+----
+<$question{scale=0.5}> <i>nmod:upon</i>;
+***[#17A2B8]:<U+0023>3 / <i>IN
+<size:16><b>upon</b></size>
+----
 <$sitemap{scale=0.5}> <i>case</i>;
-**[#BDC3C7]:<U+0023>19 / <i>.
+***[#F39C12]:<U+0023>4 / <i>DT
+<size:16><b>the</b></size>
+----
+<$tag{scale=0.5}> <i>det</i>;
+**[#FFFFFF]:<U+0023>6 / <i>,
+<size:16><b>,</b></size>
+----
+<$circle{scale=0.5}> <i>punct</i>;
+**[#00C49F]:<U+0023>7 / <i>CC
+<size:16><b>and</b></size>
+----
+<$question{scale=0.5}> <i>cc</i>;
+**[#E74C3C]:<U+0023>8 / <i>VB
+<size:16><b>change</b></size>
+----
+<$question{scale=0.5}> <i>conj:and</i>;
+***[#9B59B6]:<U+0023>9 / <i>PRP
+<size:16><b>it</b></size>
+----
+<$cube{scale=0.5}> <i>dobj</i>;
+**[#FFFFFF]:<U+0023>10 / <i>,
+<size:16><b>,</b></size>
+----
+<$circle{scale=0.5}> <i>punct</i>;
+**[#00C49F]:<U+0023>11 / <i>CC
+<size:16><b>and</b></size>
+----
+<$question{scale=0.5}> <i>cc</i>;
+**[#E74C3C]:<U+0023>13 / <i>VBN
+<size:16><b>changed</b></size>
+----
+<$question{scale=0.5}> <i>conj:and</i>;
+***[#E74C3C]:<U+0023>12 / <i>VBP
+<size:16><b>are</b></size>
+----
+<$question{scale=0.5}> <i>auxpass</i>;
+***[#3498DB]:<U+0023>15 / <i>NN
+<size:16><b>turn</b></size>
+----
+<$question{scale=0.5}> <i>nmod:in</i>;
+****[#17A2B8]:<U+0023>14 / <i>IN
+<size:16><b>in</b></size>
+----
+<$sitemap{scale=0.5}> <i>case</i>;
+***[#3498DB]:<U+0023>18 / <i>NNS
+<size:16><b>consequences</b></size>
+----
+<$question{scale=0.5}> <i>nmod:agent</i>;
+****[#17A2B8]:<U+0023>16 / <i>IN
+<size:16><b>by</b></size>
+----
+<$sitemap{scale=0.5}> <i>case</i>;
+****[#F39C12]:<U+0023>17 / <i>DT
+<size:16><b>the</b></size>
+----
+<$tag{scale=0.5}> <i>det</i>;
+****[#3498DB]:<U+0023>21 / <i>NNS
+<size:16><b>actions</b></size>
+----
+<$link{scale=0.5}> <i>nmod:of</i>;
+*****[#17A2B8]:<U+0023>19 / <i>IN
+<size:16><b>of</b></size>
+----
+<$sitemap{scale=0.5}> <i>case</i>;
+*****[#9B59B6]:<U+0023>20 / <i>PRP$
+<size:16><b>their</b></size>
+----
+<$question{scale=0.5}> <i>nmod:poss</i>;
+**[#FFFFFF]:<U+0023>22 / <i>.
 <size:16><b>.</b></size>
+----
 <$circle{scale=0.5}> <i>punct</i>;
 legend left
-  | Icon  | Dependency | Color | PartOfSpeech |
-  | <$flag{scale=0.5}> | ROOT | <#3498DB>Nouns | NN, NNS |
-  | <$user{scale=0.5}> | nsubj | <#E74C3C>Verbs | VB, VBZ, VBD, VBG, VBN, VBP |
-  | <$cube{scale=0.5}> | dobj, obj, iobj | <#2ECC71>Adjectives | JJ, JJR, JJS |
-  | <$sliders{scale=0.5}> | amod, advmod | | |
-  | <$link{scale=0.5}> | nmod:* | | |
-  | <$cubes{scale=0.5}> | compound | <#9B59B6>Pronouns | PRP, PRP$ |
-  | <$tag{scale=0.5}> | det | <#F39C12>Determiners | DT |
-  | <$sitemap{scale=0.5}> | case | <#AAB7B8>Prepositions | IN |
-  | <$circle{scale=0.5}> | punct | <#BDC3C7>Punctuation | , . ! ? |
-  | <$question{scale=0.5}> | others |  <#AAB7B8>Others |  |
+  | Icon  | Dependency | | Color | PartOfSpeech |
+  | <$flag{scale=0.5}> | ROOT | | <#3498DB> Nouns | NN, NNS |
+  | <$user{scale=0.5}> | nsubj | | <#E74C3C> Verbs | VB, VBZ, VBD, VBG, VBN, VBP |
+  | <$cube{scale=0.5}> | dobj, obj, iobj | | <#2ECC71> Adjectives | JJ, JJR, JJS |
+  | <$sliders{scale=0.5}> | amod, advmod | | | |
+  | <$link{scale=0.5}> | nmod:* | | | |
+  | <$cubes{scale=0.5}> | compound | | <#9B59B6> Pronouns | PRP, PRP$ |
+  | <$tag{scale=0.5}> | det | | <#F39C12> Determiners | DT |
+  | <$sitemap{scale=0.5}> | case | | <#17A2B8> Prepositions | IN |
+  | <$circle{scale=0.5}> | punct | | <#FFFFFF> Punctuation | , . ! ? ; : |
+  | | | | <#FFBB28> adverbs | RB |
+  | | | | <#F1C40F> numerals| CD |
+  | | | | <#00C49F> coordinating conjunctions | CC |
+  | | | | <#9B59B6> wh-determiners, adverbs, pronouns | WDT, WRB, WP, WP$, WRB |
+  | | | | <#2C3E50> proper nouns | NNP, NNPS |
+  | <$question{scale=0.5}> | others | | <#AAB7B8> Others |  |
 endlegend
 @endmindmap
+
