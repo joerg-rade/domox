@@ -18,20 +18,20 @@ skinparam defaultFontSize 16
 skinparam defaultFontWeight bold
 
 action "$m1" as M1 #f80c12
-process "$m2" as M2 #ff3311
+process "$m2" as M2 #ff6644
 M1 - M2
-process "$m3" as M3 #ff6644
+process "$m3" as M3 #feae2d
 M2 - M3
-process "$m4" as M4 #feae2d
+process "$m4" as M4 #d0c310
 M3 - M4
-process "$m5" as M5 #d0c310
+process "$m5" as M5 #69d025
 M4 - M5
-process "$m6" as M6 #69d025
+process "$m6" as M6 #12bdb9
 M5 - M6
-process "$m7" as M7 #12bdb9
+process "$m7" as M7 #4444dd
 M6 - M7
-process "$m8" as M8 #4444dd
+process "$m8" as M8 #3b0cbd
 M7 - M8
-process "$m9" as M9 #3b0cbd
+process "$m9" as M9 #f80c12
 M8 - M9
 @enduml

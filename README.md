@@ -1,12 +1,10 @@
 # DoMoX
-## 🎯 TL;DR ? [Go to Diagrams](#Diagrams)
 ## 📜 Description
 DoMoX is like Vibe Coding, but in an
-* old-fashioned,
-* best-practice-based,
-* deterministic,  
-* fully traceable way, and with
-* humans in the loop!
+* 🏛️ old-fashioned / best-practice-based,
+* 📐 deterministic,  
+* 🔍 fully traceable way, and with
+* 🧑 humans in the loop 🔁,
 
 i.e. (almost) without AI.
 
@@ -15,15 +13,15 @@ From
 * candidates for classes, responsibilities, and collaborators are identified [1],
 * leveraging [Natural Language Processing (NLP)](#NLP) techniques [2],[3].
 
-From these candidates a Domain Model is distilled by 🧑‍💻 DoMoX users, 
+From these candidates a Domain Model is distilled by desginers, 
 who select which of the suggested classes, properties, actions, and associations should enter the model.
 Relevant candidates are flagged for inclusion in the resulting Domain Model (DM).
 
-The DM (Domain Model) is visualized as UML diagram(s), which can be reviewed and modified 🧑‍💻. 
+The DM (Domain Model) is visualized as UML diagram(s), which can be reviewed and modified. 
 You could stop here and use the DM as a blueprint for manual coding, but DoMoX can also generate code!
 
 Leveraging Apache Causeway [4], an object-oriented web UI can be generated, alongside the backend part (including DB).
-The UI is key to user interactions with the model, and it can be used to validate 🧑 the model with stakeholders.
+The UI is key to user interactions with the model, and it can be used to validate the model with stakeholders.
 If the user experience can be improved, further requirements are fed into the next [iteration](#MDD).
 
 ![Preview](./docs/application/milestones.png)
