@@ -3,36 +3,15 @@ package domox.dom.nlp;
 import com.deliveredtechnologies.rulebook.NameValueReferable;
 import domox.DomainModule;
 import jakarta.inject.Named;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.apache.causeway.applib.annotation.DomainObject;
-import org.apache.causeway.applib.annotation.DomainObjectLayout;
-import org.apache.causeway.applib.annotation.Programmatic;
-import org.apache.causeway.applib.annotation.Property;
-import org.apache.causeway.applib.annotation.Publishing;
+import lombok.*;
+import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
@@ -68,20 +47,66 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @Setter
     private Sentence sentence;
 
-    @OneToMany(mappedBy = "typedDependency", cascade = CascadeType.ALL)
+    @Column(nullable = false)
     @Getter
     @Setter
     @Programmatic
-    private List<Token> tokenList = new ArrayList<>(2);
+    private int governorIndex;
+
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    @Programmatic
+    private int dependentIndex;
+
+    @Column(length = 255)
+    @Getter
+    @Setter
+    @Programmatic
+    private String governorGloss;      // token A text
+
+    @Column(length = 255)
+    @Getter
+    @Setter
+    @Programmatic
+    private String dependentGloss;     // token B text
+
+    @Enumerated(EnumType.STRING)
+    @Getter
+    @Setter
+    @Programmatic
+    private PartOfSpeechType governorPos;
+
+    @Enumerated(EnumType.STRING)
+    @Getter
+    @Setter
+    @Programmatic
+    private PartOfSpeechType dependentPos;
 
     @Programmatic
-    public Token getPartA() {
-        return tokenList.isEmpty() ? null : tokenList.getFirst();
+    public String getPartA() {
+        return governorGloss;
     }
 
     @Programmatic
-    public Token getPartB() {
-        return tokenList.isEmpty() ? null : tokenList.get(1);
+    public String getPartB() {
+        return dependentGloss;
+    }
+
+    public boolean isVerbA() {
+        return governorPos != null && Arrays.asList(VERB_TYPES).contains(governorPos);
+    }
+
+    public boolean isNounB() {
+        return dependentPos != null && Arrays.asList(NOUN_TYPES).contains(dependentPos);
+    }
+
+    public String getA() {
+        return governorGloss;
+    }
+
+    public String getB() {
+        return dependentGloss;
     }
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -114,12 +139,6 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
             PartOfSpeechType.VBP,
             PartOfSpeechType.VBZ};
 
-    public boolean isVerbA() {
-        Token partA = getPartA();
-        if (partA == null) return false;
-        final PartOfSpeechType aType = partA.getType();
-        return Arrays.asList(VERB_TYPES).contains(aType);
-    }
 
     private static final PartOfSpeechType[] NOUN_TYPES = {
             PartOfSpeechType.NN,
@@ -127,48 +146,25 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
             PartOfSpeechType.NNS,
             PartOfSpeechType.NFP};
 
-    @Programmatic
-    public boolean isNounB() {
-        Token partB = getPartB();
-        if (partB == null) return false;
-        final PartOfSpeechType bType = partB.getType();
-        return Arrays.asList(NOUN_TYPES).contains(bType);
-    }
-
     private static final String[] BASIC_ATTRIB = {"name", "number", "type", "address", "level", "date", "time"};
 
     @Programmatic
     public boolean isBasicAttributeB() {
-        Token partB = getPartB();
-        if (partB == null) return false;
-        final String bName = partB.toString();
+        final String bName = getPartB();
+        if (bName == null) return false;
         return Arrays.asList(BASIC_ATTRIB).contains(bName);
     }
 
     @Programmatic
     public boolean isBasicAttributeA() {
-        Token partA = getPartA();
-        if (partA == null) return false;
-        final String aName = partA.toString();
+        final String aName = getPartA();
+        if (aName == null) return false;
         return Arrays.asList(BASIC_ATTRIB).contains(aName);
-    }
-
-    public String getA() {
-        Token partA = getPartA();
-        return partA != null ? partA.toString() : null;
-    }
-
-    public String getB() {
-        Token partB = getPartB();
-        return partB != null ? partB.toString() : null;
     }
 
     @Programmatic
     public boolean isNounA() {
-        Token partA = getPartA();
-        if (partA == null) return false;
-        final PartOfSpeechType aType = partA.getType();
-        return Arrays.asList(NOUN_TYPES).contains(aType);
+        return governorPos != null && Arrays.asList(NOUN_TYPES).contains(governorPos);
     }
 
     private static final PartOfSpeechType[] ADJECTIVE_TYPES = {
@@ -176,10 +172,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
 
     @Programmatic
     public boolean isAdjectiveB() {
-        Token partB = getPartB();
-        if (partB == null) return false;
-        final PartOfSpeechType bType = partB.getType();
-        return Arrays.asList(ADJECTIVE_TYPES).contains(bType);
+        return dependentPos != null && Arrays.asList(ADJECTIVE_TYPES).contains(dependentPos);
     }
 
     public boolean dobj() {

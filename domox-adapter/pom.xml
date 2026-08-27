@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>domox-adapter</artifactId>
-    <name>DoMoX Service Module</name>
+    <name>DoMoX Adapter Module</name>
 
     <!-- Module-specific properties (used only by this module) -->
     <properties>

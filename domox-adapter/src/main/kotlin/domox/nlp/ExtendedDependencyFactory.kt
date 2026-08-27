@@ -20,6 +20,7 @@ class ExtendedDependencyFactory(sentenceTO: SentenceTO) {
                 dep = dep.dep,
                 governor = dep.governor,
                 governorGloss = dep.governorGloss,
+                governorPos = toks.find { it.index == dep.governor }?.pos ?: "",
                 dependent = dep.dependent,
                 dependentGloss = dep.dependentGloss,
                 pos = dependentToken?.pos ?: ""

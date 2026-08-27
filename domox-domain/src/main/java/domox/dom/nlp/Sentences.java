@@ -3,22 +3,17 @@ package domox.dom.nlp;
 import domox.DomainModule;
 import domox.diagram.DiagramBuilder;
 import domox.dom.rqm.Document;
-import domox.nlp.BasicDependencyTO;
+import domox.nlp.ExtendedDependencyFactory;
+import domox.nlp.ExtendedDependencyTO;
 import domox.nlp.SentenceTO;
 import domox.nlp.TokenTO;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.apache.causeway.applib.annotation.Action;
-import org.apache.causeway.applib.annotation.ActionLayout;
-import org.apache.causeway.applib.annotation.DomainService;
-import org.apache.causeway.applib.annotation.PriorityPrecedence;
-import org.apache.causeway.applib.annotation.Programmatic;
-import org.apache.causeway.applib.annotation.SemanticsOf;
+import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @DomainService
@@ -29,18 +24,15 @@ public class Sentences {
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
     private final SentenceRepository sentenceRepository;
-    private final Tokens tokens;
 
     @Inject
     public Sentences(
             RepositoryService repositoryService,
             FactoryService factoryService,
-            SentenceRepository sentenceRepository,
-            Tokens tokens) {
+            SentenceRepository sentenceRepository) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.sentenceRepository = sentenceRepository;
-        this.tokens = tokens;
     }
 
     @ActionLayout(sequence = "1")
@@ -61,12 +53,6 @@ public class Sentences {
         final Sentence sentence = create();
         final String text = transferObjectAsString(sentenceTO);
         sentence.setText(text);
-        final List<TokenTO> tokenToList = sentenceTO.getTokens();
-        for (final TokenTO tokenTO : tokenToList) {
-            final Token t = tokens.build(tokenTO);
-            t.setSentence(sentence);
-            sentence.getTokenList().add(t);
-        }
         // set TypedDependencies
         assignTypedDependencies(sentenceTO, sentence);
         return sentence;
@@ -90,25 +76,17 @@ public class Sentences {
     }
 
     private void assignTypedDependencies(SentenceTO sentenceTO, Sentence sentence) {
-        final List<BasicDependencyTO> rawDependencyList = sentenceTO.getEnhancedPlusPlusDependencies();
+        final List<ExtendedDependencyTO> extended =
+                new ExtendedDependencyFactory(sentenceTO).getDependencies();
 
-        for (final BasicDependencyTO dependency : rawDependencyList) {
+        for (final ExtendedDependencyTO dependency : extended) {
             final TypedDependency td = factoryService.detachedEntity(TypedDependency.class);
-            //
-            final String depCode = dependency.getDep();
-            td.setType(TdType.fromCode(depCode));
-            //
-            final int govIndex = (int) dependency.getGovernor();
-            final Token a = sentence.getToken(govIndex);
-            //
-            final int depIndex = (int) dependency.getDependent();
-            final Token b = sentence.getToken(depIndex);
-            //
-            final List<Token> tokens = new ArrayList<>(2);
-            tokens.add(a);
-            tokens.add(b);
-            td.setTokenList(tokens);
+            td.setType(TdType.fromCode(dependency.getDep()));
+            td.setGovernorIndex((int) dependency.getGovernor());
+            td.setDependentIndex((int) dependency.getDependent());
+            td.setSentence(sentence);
 
+            sentence.addTypedDependency(td);   // needs to keep the list in dependency order
             repositoryService.persist(td);
         }
     }

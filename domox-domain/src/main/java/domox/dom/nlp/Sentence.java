@@ -6,11 +6,7 @@ import domox.dom.rqm.Document;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Blob;
@@ -21,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -68,10 +63,15 @@ public class Sentence implements Comparable<Sentence> {
     @Setter
     private String text;
 
-    @OneToMany(mappedBy = "sentence", cascade = CascadeType.ALL)
-    @Getter
-    @Setter
-    private List<Token> tokenList = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(name = "SENTENCE_WORD", joinColumns = @JoinColumn(name = "sentence_id"))
+    @OrderColumn(name = "word_index")
+    private List<String> words = new ArrayList<>();
+
+    @Programmatic
+    public String getWord(int index) {
+        return index < words.size() ? words.get(index) : null;
+    }
 
     // region PDF
     @AttributeOverrides({
@@ -114,18 +114,29 @@ public class Sentence implements Comparable<Sentence> {
     }
     //endregion
 
+    @OneToMany(mappedBy = "sentence")
+    @Getter
+    @Setter
+    private List<TypedDependency> typedDependencies;
+
     @Programmatic
-    public Token getToken(int index) {
-        final List<Token> tokens = new ArrayList<>(this.tokenList);
-        if (index >= tokens.size()) {
-            log.debug("index >= tokenList");
-            return null;
+    public void addTypedDependency(TypedDependency td) {
+        if (this.typedDependencies == null) {
+            this.typedDependencies = new ArrayList<>();
         }
-        return tokens.get(index);
+        this.typedDependencies.add(td);
     }
 
-    @OneToMany(mappedBy = "sentence")
-    @Getter @Setter
-    private Collection<TypedDependency> typedDependency;
+    @Programmatic
+    public TypedDependency previousTd(TypedDependency current) {
+        int i = typedDependencies.indexOf(current);
+        return i > 0 ? typedDependencies.get(i - 1) : null;
+    }
+
+    @Programmatic
+    public TypedDependency nextTd(TypedDependency current) {
+        int i = typedDependencies.indexOf(current);
+        return (i >= 0 && i < typedDependencies.size() - 1) ? typedDependencies.get(i + 1) : null;
+    }
 
 }

@@ -193,7 +193,7 @@
 - [x] mvn clean compile -DskipTests: ✅ SUCCESS
 - [x] All 4 modules compiled successfully
 - [x] DoMoX Parent: SUCCESS
-- [x] DoMoX Service Module: SUCCESS
+- [x] DoMoX Adapter Module: SUCCESS
 - [x] DoMoX Domain Module: SUCCESS
 - [x] DoMoX Webapp: SUCCESS
 
