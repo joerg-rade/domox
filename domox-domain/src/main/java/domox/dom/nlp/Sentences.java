@@ -83,6 +83,7 @@ public class Sentences {
 
     @Programmatic
     public void initDiagram(SentenceTO sentenceTO, Sentence sentence) {
+        //TODO: pull Diagram building back in, in order to avoid duplication of Dependency+POS
         final byte[] diagram = new DiagramBuilder().buildTypedDependencyDiagram(sentenceTO);
         final String fileName = sentence.title() + ".pdf";
         sentence.updateImageFromBytes(diagram, fileName);

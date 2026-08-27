@@ -1,4 +1,3 @@
-
 package domox.dom;
 
 import domox.DomainModule;
