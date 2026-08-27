@@ -39,7 +39,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.causeway.domox</groupId>
-            <artifactId>domox-service</artifactId>
+            <artifactId>domox-adapter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -78,7 +78,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.domox</groupId>
-            <artifactId>domox-service</artifactId>
+            <artifactId>domox-adapter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.extensions</groupId>

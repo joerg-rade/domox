@@ -205,7 +205,7 @@
             <!-- this project's own modules -->
             <dependency>
                 <groupId>org.apache.causeway.domox</groupId>
-                <artifactId>domox-service</artifactId>
+                <artifactId>domox-adapter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -842,7 +842,7 @@
     </repositories>
 
     <modules>
-        <module>domox-service</module>
+        <module>domox-adapter</module>
         <module>domox-domain</module>
         <module>domox-webapp</module>
     </modules>

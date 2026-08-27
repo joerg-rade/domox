@@ -178,7 +178,7 @@ Expected: 37 files
 - Multiple conditional branches in single rules handle complex scenarios (3-way or 4-way branching)
 
 ## See Also
-- `docs/application/RULES.txt` - Original rule specifications
+- `../../docs/application/RULES.txt` - Original rule specifications
 - `./MAVEN.md` - Maven configuration documentation
 - RuleBook Documentation: https://github.com/deliveredtechnologies/rulebook
 

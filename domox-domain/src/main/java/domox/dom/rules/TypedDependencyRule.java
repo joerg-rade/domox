@@ -10,6 +10,9 @@ import java.util.List;
 
 public abstract class TypedDependencyRule {
 
+    protected static final List<String> BASIC_ATTRIB =
+            java.util.Arrays.asList("name", "number", "type", "address", "level", "date", "time");
+
     @Given("currentTd")
     protected TypedDependency currentTd;
 

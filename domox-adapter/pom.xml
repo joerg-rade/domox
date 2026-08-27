@@ -10,7 +10,7 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>domox-service</artifactId>
+    <artifactId>domox-adapter</artifactId>
     <name>DoMoX Service Module</name>
 
     <!-- Module-specific properties (used only by this module) -->

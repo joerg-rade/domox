@@ -103,23 +103,23 @@ caption: Men act upon the world , and change it , and are changed in turn by the
 <size:16><b>.</b></size>
 ----
 <$circle{scale=0.5}> <i>punct</i>;
-legend left
-  | Icon  | Dependency | | Color | PartOfSpeech |
-  | <$flag{scale=0.5}> | ROOT | | <#3498DB> Nouns | NN, NNS |
-  | <$user{scale=0.5}> | nsubj | | <#E74C3C> Verbs | VB, VBZ, VBD, VBG, VBN, VBP |
-  | <$cube{scale=0.5}> | dobj, obj, iobj | | <#2ECC71> Adjectives | JJ, JJR, JJS |
-  | <$sliders{scale=0.5}> | amod, advmod | | | |
-  | <$link{scale=0.5}> | nmod:* | | | |
-  | <$cubes{scale=0.5}> | compound | | <#9B59B6> Pronouns | PRP, PRP$ |
-  | <$tag{scale=0.5}> | det | | <#F39C12> Determiners | DT |
-  | <$sitemap{scale=0.5}> | case | | <#17A2B8> Prepositions | IN |
-  | <$circle{scale=0.5}> | punct | | <#FFFFFF> Punctuation | , . ! ? ; : |
-  | | | | <#FFBB28> adverbs | RB |
-  | | | | <#F1C40F> numerals| CD |
-  | | | | <#00C49F> coordinating conjunctions | CC |
-  | | | | <#9B59B6> wh-determiners, adverbs, pronouns | WDT, WRB, WP, WP$, WRB |
-  | | | | <#2C3E50> proper nouns | NNP, NNPS |
-  | <$question{scale=0.5}> | others | | <#AAB7B8> Others |  |
+legend right
+  <size:14>**NLP Visualization Key**</size>
+
+  | **POS Tags (Node Colors)** |
+  | <#2C3E50>   **NN / NNP** | Nouns & Proper Nouns |
+  | <#E74C3C>   **VB / VBD** | Main Verbs |
+  | <#E84393>   **MD / AUX** | Auxiliary / Modal Verbs |
+  | <#17A2B8>   **IN** | Prepositions / Subordinating Conj. |
+  | <#00C49F>   **CC** | Coordinating Conjunctions |
+  | <#FFBB28>   **RB / WRB** | Adverbs & Wh-adverbs |
+  | <#9B59B6>   **WP / WP$** | Wh-pronouns |
+  | <#C39BD3>   **WDT / DT** | Determiners & Wh-determiners |
+
+  | **Dependency Edges (Line Styles)** |
+  | **──▶** | **Core Arguments** //(nsubj, obj, iobj)// |
+  | **┈┈▶** | **Non-Core Modifiers** //(advmod, amod, nmod)// |
+  | **══▶** | **Clausal / Root Relations** //(ROOT, ccomp, xcomp)// |
 endlegend
 @endmindmap
 
