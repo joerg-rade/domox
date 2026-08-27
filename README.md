@@ -13,8 +13,8 @@ From
 * candidates for classes, responsibilities, and collaborators are identified [1],
 * leveraging [Natural Language Processing (NLP)](#NLP) techniques [2],[3].
 
-From these candidates a Domain Model is distilled by desginers, 
-who select which of the suggested classes, properties, actions, and associations should enter the model.
+From these candidates a Domain Model is distilled by designers, 
+who select which of the suggested entity classes, properties, actions, and associations should enter the model.
 Relevant candidates are flagged for inclusion in the resulting Domain Model (DM).
 
 The DM (Domain Model) is visualized as UML diagram(s), which can be reviewed and modified. 
@@ -28,7 +28,7 @@ If the user experience can be improved, further requirements are fed into the ne
 
 ### Key Benefits
 * The generated code is fully traceable to the Domain Model and requirements,
-* Apache Causeway provides not only a web UI, but also a REST API, than can easily be adapter to AI's (MCP).
+* Apache Causeway provides not only a web UI, but also a REST API, than can easily be adapted to AI's (MCP).
 
 ## 🥞 Tech Stack
 Tools applied in DoMoX include:
