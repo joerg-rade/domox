@@ -86,8 +86,10 @@ public class Author implements Comparable<Author> {
     @ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "author_document",
-            joinColumns = @JoinColumn(name = "author_id", nullable = true),
-            inverseJoinColumns = @JoinColumn(name = "document_id"))
+            schema = "domox",
+            joinColumns = @JoinColumn(name = "author_id"),
+            inverseJoinColumns = @JoinColumn(name = "document_id")
+    )
     public List<Document> documents;
 
 }

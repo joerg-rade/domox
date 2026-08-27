@@ -5,20 +5,7 @@ import domox.dom.nlp.Sentence;
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
 import jakarta.inject.Named;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -119,6 +106,11 @@ public class Document implements Comparable<Document> {
 
     @PropertyLayout(sequence = "6")
     @ManyToMany(mappedBy = "documents", cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "author_document",
+            schema = "domox",
+            joinColumns = @JoinColumn(name = "author_id", nullable = true),
+            inverseJoinColumns = @JoinColumn(name = "document_id"))
     @Getter
     @Setter
     @ToString.Exclude
