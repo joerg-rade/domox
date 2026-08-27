@@ -39,8 +39,6 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class Author implements Comparable<Author> {
 
-    static final String NAMED_QUERY__FIND_BY_LASTNAME_LIKE = "Author.findByLastNameLike";
-
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     @Column(name = "id", nullable = false)

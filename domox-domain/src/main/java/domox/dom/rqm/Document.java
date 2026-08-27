@@ -109,7 +109,7 @@ public class Document implements Comparable<Document> {
     @JoinTable(
             name = "author_document",
             schema = "domox",
-            joinColumns = @JoinColumn(name = "author_id", nullable = true),
+            joinColumns = @JoinColumn(name = "author_id"),
             inverseJoinColumns = @JoinColumn(name = "document_id"))
     @Getter
     @Setter
