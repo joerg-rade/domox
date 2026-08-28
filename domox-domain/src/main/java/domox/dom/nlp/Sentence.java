@@ -51,12 +51,6 @@ public class Sentence implements Comparable<Sentence> {
     @Column(nullable = false)
     private int version;
 
-    @Column(nullable = false, length = 20)
-    @Property()
-    @Getter
-    @Setter
-    private PartOfSpeechType type;
-
     @Column(nullable = false, length = 2048)
     @Property()
     @Getter
@@ -64,7 +58,10 @@ public class Sentence implements Comparable<Sentence> {
     private String text;
 
     @ElementCollection
-    @CollectionTable(name = "SENTENCE_WORD", joinColumns = @JoinColumn(name = "sentence_id"))
+    @CollectionTable(
+            name = "SENTENCE_WORD",
+            schema = "domox",
+            joinColumns = @JoinColumn(name = "sentence_id"))
     @OrderColumn(name = "word_index")
     private List<String> words = new ArrayList<>();
 

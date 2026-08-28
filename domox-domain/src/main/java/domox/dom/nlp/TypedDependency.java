@@ -18,7 +18,7 @@ import java.util.Arrays;
 @EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".TypedDependency")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
-@DomainObjectLayout(cssClassFa = "scan")
+@DomainObjectLayout(cssClassFa = "text-width")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
@@ -39,36 +39,36 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @Property()
     @Getter
     @Setter
+    @PropertyLayout(sequence = "3")
     private TdType type;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "sentence_id")
     @Getter
     @Setter
+    @Programmatic
     private Sentence sentence;
 
     @Column(nullable = false)
     @Getter
     @Setter
-    @Programmatic
     private int governorIndex;
 
     @Column(nullable = false)
     @Getter
     @Setter
-    @Programmatic
+    @PropertyLayout(sequence = "1")
     private int dependentIndex;
 
     @Column(length = 255)
     @Getter
     @Setter
-    @Programmatic
     private String governorGloss;      // token A text
 
     @Column(length = 255)
     @Getter
     @Setter
-    @Programmatic
+    @PropertyLayout(sequence = "2")
     private String dependentGloss;     // token B text
 
     @Enumerated(EnumType.STRING)
@@ -93,18 +93,22 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
         return dependentGloss;
     }
 
+    @Programmatic
     public boolean isVerbA() {
         return governorPos != null && Arrays.asList(VERB_TYPES).contains(governorPos);
     }
 
+    @Programmatic
     public boolean isNounB() {
         return dependentPos != null && Arrays.asList(NOUN_TYPES).contains(dependentPos);
     }
 
+    @Programmatic
     public String getA() {
         return governorGloss;
     }
 
+    @Programmatic
     public String getB() {
         return dependentGloss;
     }
@@ -120,14 +124,17 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     }
     //endregion
 
+    @Programmatic
     public boolean nsubj() {
         return getType().equals(TdType.NSUBJ);
     }
 
+    @Programmatic
     public boolean nsubjpass() {
         return getType().equals(TdType.NSUBJ);
     }
 
+    @Programmatic
     public boolean compound() {
         return getType().equals(TdType.COMPOUND);
     }
@@ -175,102 +182,125 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
         return dependentPos != null && Arrays.asList(ADJECTIVE_TYPES).contains(dependentPos);
     }
 
+    @Programmatic
     public boolean dobj() {
         // Direct object: in Stanford UD, this is 'obj'
         return getType().equals(TdType.OBJ);
     }
 
+    @Programmatic
     public boolean iobj() {
         // Indirect object: check for indirect object patterns in obl types
         return getType().equals(TdType.OBL);
     }
 
+    @Programmatic
     public boolean pobj() {
         // Prepositional object: check for obl types
         return getType().toString().startsWith("OBL");
     }
 
+    @Programmatic
     public boolean amod() {
         return getType().equals(TdType.AMOD);
     }
 
+    @Programmatic
     public boolean advmod() {
         return getType().equals(TdType.ADVMOD);
     }
 
+    @Programmatic
     public boolean nmodOf() {
         return getType().equals(TdType.NMOD_OF);
     }
 
+    @Programmatic
     public boolean nmodIn() {
         // in: use obl:in or similar
         return getType().equals(TdType.OBL_IN) || getType().equals(TdType.NMOD);
     }
 
+    @Programmatic
     public boolean nmodTo() {
         // to: use obl:to or similar
         return getType().equals(TdType.OBL_TO);
     }
 
+    @Programmatic
     public boolean nmodFor() {
         return getType().equals(TdType.NMOD_FOR) || getType().equals(TdType.OBL_FOR);
     }
 
+    @Programmatic
     public boolean nmodFrom() {
         // from: check for obl types
         return getType().toString().contains("FROM") || getType().toString().contains("from");
     }
 
+    @Programmatic
     public boolean nmodAs() {
         // as: check obl types or nmod
         return getType().toString().contains("AS") || getType().toString().contains("as");
     }
 
+    @Programmatic
     public boolean nmodBy() {
         return getType().equals(TdType.OBL_BY) || getType().equals(TdType.NMOD);
     }
 
+    @Programmatic
     public boolean nmodAgent() {
         // agent: typically obl:agent or nmod:agent, might not exist exactly
         return getType().toString().contains("AGENT") || getType().toString().contains("agent");
     }
 
+    @Programmatic
     public boolean nmodWith() {
         return getType().equals(TdType.NMOD_WITH) || getType().equals(TdType.OBL_WIN);
     }
 
+    @Programmatic
     public boolean nmodPoss() {
         return getType().equals(TdType.NMOD_POSS);
     }
 
+    @Programmatic
     public boolean nmodAnd() {
         return getType().equals(TdType.CONJ_AND);
     }
 
+    @Programmatic
     public boolean nmodOr() {
         return getType().equals(TdType.CONJ_OR);
     }
 
+    @Programmatic
     public boolean mark() {
         return getType().equals(TdType.MARK);
     }
 
+    @Programmatic
     public boolean xcomp() {
         return getType().equals(TdType.XCOMP);
     }
 
+    @Programmatic
     public boolean advcl() {
         return getType().equals(TdType.ADVCL);
     }
 
+    @Programmatic
     public boolean nummod() {
         return getType().equals(TdType.NUMMOD);
     }
 
+    @Programmatic
     public boolean det() {
         return getType().equals(TdType.DET);
     }
 
+    @Programmatic
     public boolean neg() {
         // neg doesn't exist in TdType, so check if it might be in a string or as a pattern
         return getType().toString().contains("NEG") || getType().toString().contains("neg");
@@ -279,6 +309,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     // ===== NameValueReferable Implementation =====
 
     @Override
+    @Programmatic
     public String getName() {
         return "TypedDependency_" + (id != null ? id : "new");
     }
@@ -290,6 +321,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     }
 
     @Override
+    @Programmatic
     public Object getValue() {
         return this;
     }

@@ -84,6 +84,8 @@ public class Sentences {
             td.setType(TdType.fromCode(dependency.getDep()));
             td.setGovernorIndex((int) dependency.getGovernor());
             td.setDependentIndex((int) dependency.getDependent());
+            td.setGovernorGloss(dependency.getGovernorGloss());
+            td.setDependentGloss(dependency.getDependentGloss());
             td.setSentence(sentence);
 
             sentence.addTypedDependency(td);   // needs to keep the list in dependency order
