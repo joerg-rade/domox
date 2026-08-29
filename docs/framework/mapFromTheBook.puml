@@ -1,0 +1,37 @@
+@startuml
+!include <tupadr3/font-awesome/archive>
+!include <tupadr3/font-awesome/cube>
+!include <tupadr3/font-awesome/industry>
+
+    (Model\nDriven\nDesign) as mdd
+    (Services) as svc #lightblue
+    (Domain\nEvents) as de #lightblue
+    (<$archive{scale=0.5}>\nRepositories) as rep #lightblue
+    (Aggregates) as ag
+    (<$cube{scale=0.5}>\nEntities) as e  #lightblue
+    (Value\nObjects) as vo #lightblue
+    (<$industry{scale=0.5}>\nFactories) as fct #lightblue
+    (Smart\nUI) as sui
+    (Layered\nArchitecture) as la
+    
+    mdd -l-> svc : express\nmodel\nwith
+    mdd -> de : express\nchange\nwith
+    mdd -> e : express\nidentity\nwith
+    mdd --> vo : express\nstate &\ncomputation\nwith
+    mdd -u-> sui : X\nmutually\nexclusive\nchoices
+    mdd -u-> la : isolate\ndomain\nexpressions\nwith
+
+    e -> de : push\nstate\nchange\nwith
+    e -l-> rep : access\nwith
+    e --> ag : encap-\nsulate\nwith
+    e --> ag : act as\nroot of:
+    e -r-> fct : encap-\nsulate\nwith
+    
+    ag --> rep : access\nwith
+    ag -> fct : encap-\nsulate\nwith
+    
+    vo --> ag : encap-\nsulate\nwith
+    vo -l-> fct : encap-\nsulate\nwith
+
+
+@enduml

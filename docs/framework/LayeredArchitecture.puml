@@ -1,5 +1,3 @@
-[plantuml,file="LayeredArchitecture.png"]
---
 @startuml
 skinparam nodesep 4
 'skinparam ranksep 10
@@ -260,4 +258,3 @@ DOM -[hidden]r- DOML
 DOML -[hidden]r- DOM_NO
 
 @enduml
---

@@ -1,6 +1,3 @@
-.ProgrammingModel
-[plantuml, ProgrammingModel, png]
---
 @startuml
 
 class Entity << (E,green) @DomainObject >> #lightyellow
@@ -28,5 +25,3 @@ Factory --> Repository : write/read \n from \npersistent \nstore
 View ..> Entity : optionally \n wrapp/decorate \n1..n \nentities
 
 @enduml
-
---

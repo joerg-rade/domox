@@ -1,0 +1,50 @@
+@startuml
+
+    (Model\nDriven\nDesign) as mdd
+    (Ubiquitious Language) as ul
+    mdd -u-> ul : model\ngives\nstructure\nto
+
+    (Bounded Context) as bc
+    mdd -> bc : define\nmodel\nwith
+    bc -> ul : names\nenter
+
+    (Core Domain) as cd
+    cd --> ul : cultivate\nrich\nmodel\nwith
+    cd --> bc : work in\nautnonomous, clean
+
+    (Generic\nSubdomains) as gs
+    cd --> gs : avoid\noverinvesting\nin
+
+    (Continous\nIntegration) as ci
+    bc -l-> ci : keep\nmodel\nunified\nby
+
+    (Context Map) as cm
+    bc --> cm : assess\n/overview\nrelationships\nwith
+
+    (Shared\nKernel) as sk
+    cm -> sk : interdependent\ncontext\nfrom
+    cm -u-> sk : overlap\nallied\ncontexts\nthrough
+
+    (Customer\n/Supplier) as cs
+    cm -l-> cs : relate\nallied\ncontexts\nas
+
+    (Conformist) as c
+    cm --> c : minimize\ntranslation:
+
+    (Open\nHost\nService) as ohs
+    cm --> ohs : support\nmultipe\nclients\nthrough
+
+    (Published\nLanguage) as pl
+    cm --> pl : loosely\ncouple\ncontexts\nthrough
+    ohs --> pl : formalize:
+
+    (Separate\nWays) as sw
+    cm --> sw : frees\nteams\nto go
+
+    (Anti-\ncorruption\nLayer) as acl
+    cm --> acl : translate\nand\ninsulate\nunilateraly\nwith
+
+    (Big\nBall of\nMud) as bbm
+    cm --> bbm : segregate\nthe\nconceptual\nmesses
+
+@enduml

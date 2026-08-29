@@ -1,0 +1,6 @@
+# On Models
+
+* Mental Model (https://en.wikipedia.org/wiki/Mental_model)
+* Conceptual Model (https://en.wikipedia.org/wiki/Conceptual_model)
+* Iconic Model
+https://commons.wikimedia.org/wiki/File:SagradaFamiliaStatikmodell.jpg

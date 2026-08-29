@@ -1,6 +1,3 @@
-.Metamodel
-[plantuml, MetaModel, png]
---
 @startuml
 
 class "DomainObject" as DOM {
@@ -31,4 +28,3 @@ PAR -r-* ACT : 0..n
 PAR --> DOM : type
 
 @enduml
---
