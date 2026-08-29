@@ -8,7 +8,7 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 21)
-public class TDR21 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR21 extends TypedDependencyRule {
 
     @Result
     private String result;

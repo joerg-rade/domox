@@ -44,6 +44,7 @@ public class Sentence implements Comparable<Sentence> {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     @Programmatic
+    @Getter
     private Long id;
 
     @Version

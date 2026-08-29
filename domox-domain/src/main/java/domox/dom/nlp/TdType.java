@@ -35,6 +35,7 @@ public enum TdType {
     NMOD_SUCH_AS("nmod:such_as"),
     NMOD_WITH("nmod:with"),
     NSUBJ("nsubj"),
+    NSUBJPASS("nsubJpass"),
     NSUBJ_XSUBJ("nsubj:xsubj"),
     NUMMOD("nummod"),
     OBJ("obj"),

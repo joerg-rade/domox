@@ -28,7 +28,6 @@ import java.util.List;
 @DomainService
 @Named(DomainModule.NAMESPACE + ".Analysis")
 @DomainServiceLayout(menuBar = DomainServiceLayout.MenuBar.PRIMARY)
-@NoArgsConstructor
 public class Analysis {
     private static final Logger log = LoggerFactory.getLogger(Analysis.class);
 
@@ -44,30 +43,27 @@ public class Analysis {
     @Inject
     private Documents documents;
 
+    private final List<TypedDependencyRule> rules;
+
+    @Inject
+    public Analysis(List<TypedDependencyRule> rules) {
+        this.rules = rules;
+    }
+
     @Action
     public List<Candidate> analyzeDocument(
             @ParameterLayout(named = "Document") final Document document) {
         log.info("Starting analysis phase for document: {}", document.getTitle());
         List<Candidate> candidates = new ArrayList<>();
-        final List<Sentence> docSentences = sentences.findByDocument(document);
 
         // Apply each TypedDependencyRule to each sentence
-        for (Sentence sentence : docSentences) {
-            List<TypedDependency> typedDependenciesList = typedDependencies.listBySentence(sentence);
-
-            // Apply all rules
-            for (TypedDependency dependency : typedDependenciesList) {
-                for (TypedDependencyRule rule : getAllRules()) {
-                    if (rule.appliesTo(dependency)) {
-                        // Create or update candidate(s) from this rule match
-                        Candidate candidate = rule.createCandidate(dependency, sentence, candidates);
-
-                        if (candidate != null && !candidates.contains(candidate)) {
-                            candidates.add(candidate);
-                            log.debug("Created candidate: {}", candidate);
-                        }
-                    }
-                }
+        for (Sentence sentence : document.getSentences()) {
+            for (TypedDependencyRule rule : rules) {   // inject all TDR beans
+                List<Candidate> found = rule.analyze(sentence);
+                log.info("Rule {} on sentence {} over {} deps -> {} candidates",
+                        rule.getRuleName(), sentence.getId(),
+                        sentence.getTypedDependencies().size(), found.size());
+                candidates.addAll(found);
             }
         }
 
@@ -78,10 +74,6 @@ public class Analysis {
 
         log.info("Analysis complete. Created {} candidates", candidates.size());
         return candidates;
-    }
-
-    private List<TypedDependencyRule> getAllRules() {
-        return repositoryService.allInstances(TypedDependencyRule.class);
     }
 
     @Action()

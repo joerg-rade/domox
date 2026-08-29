@@ -13,7 +13,7 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
  * Example: "The report for the project is ready." → Project is identified as a class.
  * Candidate Type: ClassCdd.
  */
-public class TDR8 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR8 extends TypedDependencyRule {
 
     @Result
     private String result;

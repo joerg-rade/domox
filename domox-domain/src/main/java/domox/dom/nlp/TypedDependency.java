@@ -131,8 +131,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
 
     @Programmatic
     public boolean nsubjpass() {
-        return getType().equals(TdType.NSUBJ);
-    }
+        return getType().equals(TdType.NSUBJPASS);    }
 
     @Programmatic
     public boolean compound() {

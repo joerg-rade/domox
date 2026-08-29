@@ -13,7 +13,7 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
  * Example: "The customer and the supplier agreed." → Customer and Supplier are identified as classes.
  * Candidate Type: ClassCdd.
  */
-public class TDR9 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR9 extends TypedDependencyRule {
 
     @Result
     private String result;

@@ -16,6 +16,12 @@ public abstract class TypedDependencyRule {
     @Given("currentTd")
     protected TypedDependency currentTd;
 
+    @Given("previousTd")
+    protected TypedDependency previousTd;
+
+    @Given("nextTd")
+    protected TypedDependency nextTd;
+
     public boolean appliesTo(TypedDependency dependency) {
         this.currentTd = dependency;
         return when();
@@ -23,6 +29,7 @@ public abstract class TypedDependencyRule {
 
     /**
      * Subclasses must implement this method to define their specific rule logic.
+     *
      * @return true if the rule applies to the current dependency, false otherwise.
      */
     public abstract boolean when();
@@ -30,8 +37,9 @@ public abstract class TypedDependencyRule {
     /**
      * Creates or updates a Candidate object based on the rule match.
      * Subclasses can override this method to customize candidate creation.
-     * @param dependency The dependency that triggered the rule.
-     * @param sentence The sentence containing the dependency.
+     *
+     * @param dependency         The dependency that triggered the rule.
+     * @param sentence           The sentence containing the dependency.
      * @param existingCandidates List of existing candidates to check for matches.
      * @return A Candidate object representing the rule match, or null if no candidate is created.
      */
@@ -57,8 +65,9 @@ public abstract class TypedDependencyRule {
     /**
      * Creates a new Candidate object based on the rule match.
      * Subclasses must override this method to create the appropriate Candidate subclass.
+     *
      * @param dependency The dependency that triggered the rule.
-     * @param sentence The sentence containing the dependency.
+     * @param sentence   The sentence containing the dependency.
      * @return A new Candidate object.
      */
     @Programmatic
@@ -69,8 +78,9 @@ public abstract class TypedDependencyRule {
     /**
      * Finds an existing candidate that matches the dependency and sentence.
      * Subclasses can override this method to customize matching logic.
-     * @param dependency The dependency that triggered the rule.
-     * @param sentence The sentence containing the dependency.
+     *
+     * @param dependency         The dependency that triggered the rule.
+     * @param sentence           The sentence containing the dependency.
      * @param existingCandidates List of existing candidates to check.
      * @return The matching candidate, or null if no match is found.
      */
@@ -92,6 +102,7 @@ public abstract class TypedDependencyRule {
 
     /**
      * Subclasses can override this method to provide a custom result.
+     *
      * @return The result of the rule evaluation (e.g., "nsubj(B)").
      */
     @Programmatic
@@ -101,6 +112,7 @@ public abstract class TypedDependencyRule {
 
     /**
      * Returns the name of this rule (e.g., "TDR1").
+     *
      * @return The fully qualified class name of the rule.
      */
     public final String getRuleName() {
@@ -108,11 +120,29 @@ public abstract class TypedDependencyRule {
     }
 
     public List<Candidate> analyze(Sentence sentence) {
-        return null; //FIXME
+        if (sentence == null) {
+            return java.util.Collections.emptyList();
+        }
+        List<Candidate> candidates = new java.util.ArrayList<>();
+        List<TypedDependency> deps = sentence.getTypedDependencies();
+        for (int i = 0; i < deps.size(); i++) {
+            TypedDependency dependency = deps.get(i);
+            this.currentTd = dependency;
+            this.previousTd = i > 0 ? deps.get(i - 1) : null;
+            this.nextTd = i + 1 < deps.size() ? deps.get(i + 1) : null;
+            if (appliesTo(dependency)) {
+                Candidate candidate = createCandidate(dependency, sentence, candidates);
+                if (candidate != null && !candidates.contains(candidate)) {
+                    candidates.add(candidate);
+                }
+            }
+        }
+        return candidates;
     }
 
     /**
      * Capitalizes the first letter of a string.
+     *
      * @param input The string to capitalize.
      * @return The string with the first letter capitalized, or the original string if it is null or empty.
      */
@@ -125,6 +155,7 @@ public abstract class TypedDependencyRule {
 
     /**
      * Determines the type of the property based on its name or context.
+     *
      * @return The type of the property (e.g., "String", "int", "Integer", "Boolean").
      */
     protected String determineType() {

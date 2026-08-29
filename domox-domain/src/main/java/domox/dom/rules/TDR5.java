@@ -13,7 +13,7 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
  * Example: "The red car is fast." → Car is identified as a class, with red as a potential attribute.
  * Candidate Type: ClassCdd.
  */
-public class TDR5 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR5 extends TypedDependencyRule {
 
     @Result
     private String result;

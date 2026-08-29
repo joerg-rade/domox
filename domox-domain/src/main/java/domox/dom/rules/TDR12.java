@@ -13,7 +13,7 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
  * Example: "The price of the product." → Product is identified as a class.
  * Candidate Type: ClassCdd.
  */
-public class TDR12 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR12 extends TypedDependencyRule {
 
     @Result
     private String result;
@@ -21,7 +21,7 @@ public class TDR12 extends TypedDependencyRuleWithPreviousAndNext {
     @When
     public boolean when() {
         // Guard against null currentTd when not in FactMap
-        if (currentTd == null) {
+        if (currentTd == null || nextTd == null) {
             return false;
         }
         return currentTd.compound() &&

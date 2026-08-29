@@ -17,7 +17,7 @@ import jakarta.inject.Inject;
  * Example: "The system processes a payment." → payment is identified as a class.
  * Candidate Type: ClassCdd.
  */
-public class TDR4 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR4 extends TypedDependencyRule {
 
     @Inject
     private PropertyCandidates propertyCandidates;

@@ -13,7 +13,7 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
  * Example: "The employee who submitted the form." → Employee is identified as a class.
  * Candidate Type: ClassCdd.
  */
-public class TDR11 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR11 extends TypedDependencyRule {
 
     @Result
     private String result;

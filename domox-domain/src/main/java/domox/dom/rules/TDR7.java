@@ -13,7 +13,7 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
  * Example: "The user's profile is incomplete." → Profile is identified as a class.
  * Candidate Type: ClassCdd.
  */
-public class TDR7 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR7 extends TypedDependencyRule {
 
     @Result
     private String result;

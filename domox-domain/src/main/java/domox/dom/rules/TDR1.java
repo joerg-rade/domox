@@ -20,7 +20,7 @@ import jakarta.inject.Inject;
  * Example: "The customer places an order." → customer and order are identified as classes.
  * Candidate Type: ClassCdd.
  */
-public class TDR1 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR1 extends TypedDependencyRule {
 
     @Inject
     private ClassCandidates classCandidates;
@@ -45,7 +45,7 @@ public class TDR1 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Then
     public void then() {
-        if (previousTd.compound()) {
+        if (previousTd != null && previousTd.compound()) {
             result = "compound(" + currentTd.getB() + ") + Compound(" + currentTd.getA() + ")";
         } else {
             result = "nsubj(" + currentTd.getB() + ")";
@@ -69,7 +69,7 @@ public class TDR1 extends TypedDependencyRuleWithPreviousAndNext {
     }
 
     private String className() {
-        if (previousTd.compound()) {
+        if (previousTd != null && previousTd.compound()) {
             return currentTd.getB() + capitalizeFirstLetter(currentTd.getA());
         } else {
             return currentTd.getB();

@@ -12,7 +12,7 @@ import jakarta.inject.Inject;
 
 @RuleBean
 @Rule(order = 2)
-public class TDR2 extends TypedDependencyRuleWithPreviousAndNext {
+public class TDR2 extends TypedDependencyRule {
 
     @Inject
     private PropertyCandidates propertyCandidates;
@@ -37,7 +37,7 @@ public class TDR2 extends TypedDependencyRuleWithPreviousAndNext {
 
     @Then
     public void then() {
-        if (previousTd.compound()) {
+        if (previousTd != null && previousTd.compound()) {
             result = "compound(" + currentTd.getB() + ") + Compound(" + currentTd.getA() + ")";
         } else {
             result = "nsubj(" + currentTd.getB() + ")";
@@ -64,6 +64,14 @@ public class TDR2 extends TypedDependencyRuleWithPreviousAndNext {
     @Override
     protected String getResult() {
         return result;
+    }
+
+    private String className() {
+        if (previousTd != null && previousTd.compound()) {
+            return currentTd.getB() + capitalizeFirstLetter(currentTd.getA());
+        } else {
+            return currentTd.getB();
+        }
     }
 
     /**
