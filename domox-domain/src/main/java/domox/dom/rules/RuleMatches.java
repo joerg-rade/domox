@@ -148,4 +148,8 @@ public class RuleMatches {
     public List<RuleMatch> findByRuleClassName(String ruleClassName) {
         return ruleMatchRepository.findByRuleClassName(ruleClassName);
     }
+
+    public void deleteAll() {
+        ruleMatchRepository.deleteAll();
+    }
 }

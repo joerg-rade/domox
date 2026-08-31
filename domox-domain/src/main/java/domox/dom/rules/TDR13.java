@@ -15,9 +15,10 @@ public class TDR13 extends TypedDependencyRule {
         if (currentTd == null) {
             return false;
         }
+        // Spec: nmod:and(A,B) OR nmod:or(A,B), with A=Noun and B=Noun
         return (currentTd.nmodAnd() || currentTd.nmodOr()) &&
-               currentTd.isNounA() &&
-               currentTd.isNounB();
+                currentTd.isNounA() &&
+                currentTd.isNounB();
     }
 
     @Then
@@ -26,15 +27,29 @@ public class TDR13 extends TypedDependencyRule {
         boolean bIsBasicAttrib = currentTd.isBasicAttributeB();
 
         if (aIsBasicAttrib && bIsBasicAttrib) {
-            // if A=Noun and B = Noun and A=Basic_Attrib and B= Basic_Attrib then
+            // A=Noun and B=Noun and A=Basic_Attrib and B=Basic_Attrib then
             // Attributes.add(A), Attributes.add(B)
             result = "Attributes.add(" + currentTd.getA() + "), Attributes.add(" + currentTd.getB() + ")";
+
+            if (ruleMatches != null && currentTd != null) {
+                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                        currentTd.getA(), null, null, result);
+                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                        currentTd.getB(), null, null, result);
+            }
         } else if (!aIsBasicAttrib && !bIsBasicAttrib) {
-            // else if A=Noun and B = Noun and A≠Basic_Attrib and B≠ Basic_Attrib then
+            // A=Noun and B=Noun and A≠Basic_Attrib and B≠Basic_Attrib then
             // Entity.add(A), Entity.add(B)
             result = "Entity.add(" + currentTd.getA() + "), Entity.add(" + currentTd.getB() + ")";
+
+            if (ruleMatches != null && currentTd != null) {
+                ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
+                        capitalizeFirstLetter(currentTd.getA()), null, null, result);
+                ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
+                        capitalizeFirstLetter(currentTd.getB()), null, null, result);
+            }
         }
+        // Mixed case (exactly one basic attribute) is not covered by the spec -> no action
     }
 
 }
-

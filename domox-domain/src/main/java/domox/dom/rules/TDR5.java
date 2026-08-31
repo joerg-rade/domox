@@ -1,29 +1,33 @@
 package domox.dom.rules;
 
-
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
-import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
+import domox.dom.nlp.PartOfSpeechType;
 
 @RuleBean
 @Rule(order = 5)
 /*
- * Purpose: Likely identifies classes from adjectival modifiers (amod).
- * Example: "The red car is fast." → Car is identified as a class, with red as a potential attribute.
- * Candidate Type: ClassCdd.
+ * Purpose: Identifies attributes from direct objects (dobj, iobj, pobj) where
+ *          the verb is the governor and the object is a basic-attribute noun
+ *          (or the verb is one of the "blocked" verbs), refining the result
+ *          when the previous dependency is an amod/advmod with a JJ dependent.
+ * Example: "The user enters the account name." → name is an attribute,
+ *          refined by the amod "account".
+ * Candidate Type: PropertyCdd.
  */
 public class TDR5 extends TypedDependencyRule {
 
-    @When
+    @Override
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null) {
             return false;
         }
         boolean answer = false;
         if (currentTd.dobj() || currentTd.iobj() || currentTd.pobj()) {
-            if (currentTd.isVerbA() && currentTd.isNounB()) {
+            // Spec TDR5: A must be VB (base form verb, not VBG/VBN/VBP/VBZ)
+            PartOfSpeechType pos = currentTd.getGovernorPos();
+            if (pos == PartOfSpeechType.VB && currentTd.isNounB()) {
                 if (currentTd.isBasicAttributeB() || isBlockedVerb(currentTd.getA())) {
                     answer = true;
                 }
@@ -34,22 +38,37 @@ public class TDR5 extends TypedDependencyRule {
 
     @Then
     public void then() {
-        if ((previousTd.amod() || previousTd.advmod()) && previousTd.isAdjectiveB()) {
-            // Attributes.add(amod(B) + amod(A))
+        // Spec: If (prevTD = "amod" || prevTD = "advmod") and prev(B)="JJ" then
+        //       Attributes.add(amod(B) + amod(A))
+        //       else Attributes.add(dobj(B))
+        if (previousTd != null
+                && (previousTd.amod() || previousTd.advmod())
+                && previousTd.isAdjectiveB()) {
             result = "amod(" + currentTd.getB() + ") + amod(" + currentTd.getA() + ")";
         } else {
-            // Attributes.add(dobj(B))
             result = "dobj(" + currentTd.getB() + ")";
+        }
+
+        // Phase 1: record the match — TDR5 outputs Attributes (PropertyCdd)
+        if (ruleMatches != null && currentTd != null) {
+            if (!currentTd.isBasicAttributeA()) {
+                String className = capitalizeFirstLetter(currentTd.getA());
+                String propertyName = currentTd.getA() + " " + currentTd.getB();
+                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
+                ruleMatches.create(currentTd, getRuleName(), "ClassCdd", currentTd.getA(), null, null, result);
+            } else {
+                String className = capitalizeFirstLetter(currentTd.getB());
+                String propertyName = currentTd.getB() + " " + currentTd.getA();
+                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
+            }
         }
     }
 
     private boolean isBlockedVerb(String verb) {
         return verb.equalsIgnoreCase("entered") ||
-               verb.equalsIgnoreCase("inputted") ||
-               verb.equalsIgnoreCase("saved") ||
-               verb.equalsIgnoreCase("added") ||
-               verb.equalsIgnoreCase("has");
+                verb.equalsIgnoreCase("inputted") ||
+                verb.equalsIgnoreCase("saved") ||
+                verb.equalsIgnoreCase("added") ||
+                verb.equalsIgnoreCase("has");
     }
-
 }
-

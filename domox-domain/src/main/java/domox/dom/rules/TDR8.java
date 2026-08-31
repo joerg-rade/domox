@@ -2,19 +2,18 @@ package domox.dom.rules;
 
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
-import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 8)
 /*
- * Purpose: Likely identifies classes from prepositional phrases (prep).
+ * Purpose: Identifies classes from prepositional nmod dependencies (to/for/from/as).
  * Example: "The report for the project is ready." → Project is identified as a class.
  * Candidate Type: ClassCdd.
  */
 public class TDR8 extends TypedDependencyRule {
 
-    @When
+    @Override
     public boolean when() {
         // Guard against null currentTd when not in FactMap
         if (currentTd == null) {
@@ -31,7 +30,12 @@ public class TDR8 extends TypedDependencyRule {
         // Entity.add(B)
         String b = currentTd.getB();
         result = "Entity.add(" + b + ")";
+
+        // Phase 1: persist the RuleMatch record
+        if (ruleMatches != null && currentTd != null) {
+            ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
+                    capitalizeFirstLetter(b), null, null, result);
+        }
     }
 
 }
-

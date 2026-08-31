@@ -8,7 +8,6 @@ import domox.dom.rqm.Documents;
 import domox.dom.rules.RuleMatch;
 import domox.dom.rules.TypedDependencyRule;
 import domox.dom.rqm.Document;
-import domox.dom.uml.Candidate;
 import domox.nlp.DocumentTO;
 import domox.svc.DocumentAdapter;
 import jakarta.inject.Inject;
@@ -31,12 +30,6 @@ public class Analysis {
     @Inject
     private RepositoryService repositoryService;
 
-//    @Inject
-//    private Sentences sentences;
-
-//    @Inject
-//    private TypedDependencies typedDependencies;
-
     @Inject
     private Documents documents;
 
@@ -48,28 +41,19 @@ public class Analysis {
     }
 
     @Action
-    public List<Candidate> analyzeDocument(
+    public void analyzeDocument(
             @ParameterLayout(named = "Document") final Document document) {
         log.info("Starting analysis phase for document: {}", document.getTitle());
-        List<Candidate> candidates = new ArrayList<>();
 
         // Apply each TypedDependencyRule to each sentence
         for (Sentence sentence : document.getSentences()) {
             for (TypedDependencyRule rule : rules) {   // inject all TDR beans
                 List<RuleMatch> found = rule.analyzeAndMatch(sentence);
-                log.info("Rule {} on sentence {} over {} deps -> {} candidates",
+                log.info("Rule {} on sentence {} over {} deps -> {} rules matched",
                         rule.getRuleName(), sentence.getId(),
                         sentence.getTypedDependencies().size(), found.size());
             }
         }
-
-        // Persist all candidates in a single operation
-        if (!candidates.isEmpty()) {
-            repositoryService.persistAndFlush(candidates);
-        }
-
-        log.info("Analysis complete. Created {} candidates", candidates.size());
-        return candidates;
     }
 
     @Action()

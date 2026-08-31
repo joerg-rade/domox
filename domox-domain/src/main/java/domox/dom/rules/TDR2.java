@@ -3,6 +3,7 @@ package domox.dom.rules;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
+import domox.dom.nlp.PartOfSpeechType;
 
 @RuleBean
 @Rule(order = 2)
@@ -16,7 +17,11 @@ public class TDR2 extends TypedDependencyRule {
 
         boolean answer = false;
         if (currentTd.nsubj() || currentTd.nsubjpass()) {
-            if (currentTd.isVerbA() && currentTd.isNounB() && currentTd.isBasicAttributeB()) {
+            // Spec TDR2: A must be VB or VBN (not all verb forms)
+            PartOfSpeechType pos = currentTd.getGovernorPos();
+            if ((pos == PartOfSpeechType.VB || pos == PartOfSpeechType.VBN)
+                    && currentTd.isNounB()
+                    && currentTd.isBasicAttributeB()) {
                 answer = true;
             }
         }
@@ -33,26 +38,16 @@ public class TDR2 extends TypedDependencyRule {
 
         // Phase 1: record the match; dependency and sentence come from the @Given fields
         if (ruleMatches != null && currentTd != null) {
-            boolean aIsBasicAttrib = currentTd.isBasicAttributeA();
-            boolean bIsBasicAttrib = currentTd.isBasicAttributeB();
-
-            if (aIsBasicAttrib && !bIsBasicAttrib) {
-                String className = capitalizeFirstLetter(currentTd.getB());
-                String propertyName = currentTd.getB() + " " + currentTd.getA();
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
-                ruleMatches.create(currentTd, getRuleName(), "ClassCdd", currentTd.getB(), null, null, result);
-            } else if (!aIsBasicAttrib && bIsBasicAttrib) {
+            // when() guarantees B is a Basic Attribute, so only branches with bIsBasicAttrib == true are reachable
+            if (!currentTd.isBasicAttributeA()) {
                 String className = capitalizeFirstLetter(currentTd.getA());
                 String propertyName = currentTd.getA() + " " + currentTd.getB();
                 ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
                 ruleMatches.create(currentTd, getRuleName(), "ClassCdd", currentTd.getA(), null, null, result);
-            } else if (aIsBasicAttrib && bIsBasicAttrib) {
+            } else {
                 String className = capitalizeFirstLetter(currentTd.getB());
                 String propertyName = currentTd.getB() + " " + currentTd.getA();
                 ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
-            } else if (!aIsBasicAttrib && !bIsBasicAttrib) {
-                String entityName = currentTd.getB() + capitalizeFirstLetter(currentTd.getA());
-                ruleMatches.create(currentTd, getRuleName(), "ClassCdd", entityName, null, null, result);
             }
         }
     }
