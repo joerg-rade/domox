@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -8,15 +7,12 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 9)
-/**
+/*
  * Purpose: Likely identifies classes from conjunctions (conj).
  * Example: "The customer and the supplier agreed." → Customer and Supplier are identified as classes.
  * Candidate Type: ClassCdd.
  */
 public class TDR9 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {

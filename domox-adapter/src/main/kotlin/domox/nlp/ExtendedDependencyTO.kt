@@ -7,5 +7,5 @@ data class ExtendedDependencyTO(
     val governorPos: String = "",
     val dependent: Long = 0L,
     val dependentGloss: String = "",
-    val pos: String = ""
+    val dependentPos: String = ""
 )

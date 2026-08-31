@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -9,9 +8,6 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @RuleBean
 @Rule(order = 35)
 public class TDR35 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {
@@ -23,9 +19,7 @@ public class TDR35 extends TypedDependencyRule {
         // Simplified: checking if we have advcl or mark with "if"
         if (currentTd.advcl() || currentTd.mark()) {
             String b = currentTd.getB();
-            if (b.equalsIgnoreCase("if")) {
-                return true;
-            }
+            return b.equalsIgnoreCase("if");
         }
         return false;
     }

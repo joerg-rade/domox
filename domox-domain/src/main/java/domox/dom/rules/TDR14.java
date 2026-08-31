@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -9,9 +8,6 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @RuleBean
 @Rule(order = 14)
 public class TDR14 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {

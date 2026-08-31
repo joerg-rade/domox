@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -9,9 +8,6 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @RuleBean
 @Rule(order = 32)
 public class TDR32 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {
@@ -33,9 +29,7 @@ public class TDR32 extends TypedDependencyRule {
             // if A=VB and A in {display, output, retrieve, show, view, print, calculate,
             // process, update, delete, search, modify, edit, remove}
             // AND B= System
-            if (currentTd.isVerbA() && isSystemOutputVerb(verbA) && isSystem(actorB)) {
-                return true;
-            }
+            return currentTd.isVerbA() && isSystemOutputVerb(verbA) && isSystem(actorB);
         }
         return false;
     }

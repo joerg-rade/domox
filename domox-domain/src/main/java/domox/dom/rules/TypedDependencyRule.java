@@ -3,7 +3,8 @@ package domox.dom.rules;
 import com.deliveredtechnologies.rulebook.annotation.Given;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.TypedDependency;
-import domox.dom.uml.Candidate;
+import jakarta.inject.Inject;
+import lombok.Getter;
 import org.apache.causeway.applib.annotation.Programmatic;
 
 import java.util.List;
@@ -22,6 +23,17 @@ public abstract class TypedDependencyRule {
     @Given("nextTd")
     protected TypedDependency nextTd;
 
+    @Getter
+    @Programmatic
+    /* Human-readable explanation of the match, set inside then(). */
+    protected String result;
+
+    /**
+     * Phase 1: persists RuleMatch records.
+     */
+    @Inject
+    protected RuleMatches ruleMatches;
+
     public boolean appliesTo(TypedDependency dependency) {
         this.currentTd = dependency;
         return when();
@@ -34,81 +46,7 @@ public abstract class TypedDependencyRule {
      */
     public abstract boolean when();
 
-    /**
-     * Creates or updates a Candidate object based on the rule match.
-     * Subclasses can override this method to customize candidate creation.
-     *
-     * @param dependency         The dependency that triggered the rule.
-     * @param sentence           The sentence containing the dependency.
-     * @param existingCandidates List of existing candidates to check for matches.
-     * @return A Candidate object representing the rule match, or null if no candidate is created.
-     */
-    public Candidate createCandidate(TypedDependency dependency, Sentence sentence, List<Candidate> existingCandidates) {
-        // Check if a matching candidate already exists
-        Candidate candidate = findMatchingCandidate(dependency, sentence, existingCandidates);
-
-        if (candidate == null) {
-            // Create a new candidate if no match is found
-            candidate = createNewCandidate(dependency, sentence);
-        }
-
-        // Add the current rule and dependency to the candidate
-        if (candidate != null) {
-            candidate.addMatchingRule(this);
-            candidate.addTypedDependency(dependency);
-            candidate.setResult(getResult());
-        }
-
-        return candidate;
-    }
-
-    /**
-     * Creates a new Candidate object based on the rule match.
-     * Subclasses must override this method to create the appropriate Candidate subclass.
-     *
-     * @param dependency The dependency that triggered the rule.
-     * @param sentence   The sentence containing the dependency.
-     * @return A new Candidate object.
-     */
-    @Programmatic
-    protected Candidate createNewCandidate(TypedDependency dependency, Sentence sentence) {
-        return null;
-    }
-
-    /**
-     * Finds an existing candidate that matches the dependency and sentence.
-     * Subclasses can override this method to customize matching logic.
-     *
-     * @param dependency         The dependency that triggered the rule.
-     * @param sentence           The sentence containing the dependency.
-     * @param existingCandidates List of existing candidates to check.
-     * @return The matching candidate, or null if no match is found.
-     */
-    @Programmatic
-    protected Candidate findMatchingCandidate(TypedDependency dependency, Sentence sentence, List<Candidate> existingCandidates) {
-        if (existingCandidates == null || existingCandidates.isEmpty()) {
-            return null;
-        }
-
-        // Example: Match candidates by sentence and dependency
-        for (Candidate candidate : existingCandidates) {
-            if (candidate.getSentence().equals(sentence) &&
-                    candidate.getTypedDependencies().contains(dependency)) {
-                return candidate;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Subclasses can override this method to provide a custom result.
-     *
-     * @return The result of the rule evaluation (e.g., "nsubj(B)").
-     */
-    @Programmatic
-    protected String getResult() {
-        return null;
-    }
+    public abstract void then();
 
     /**
      * Returns the name of this rule (e.g., "TDR1").
@@ -119,11 +57,19 @@ public abstract class TypedDependencyRule {
         return this.getClass().getSimpleName();
     }
 
-    public List<Candidate> analyze(Sentence sentence) {
+    /**
+     * Phase 1: Analyzes a sentence and creates RuleMatch records for all matching dependencies.
+     * This replaces the old approach of directly creating candidates.
+     *
+     * @param sentence The sentence to analyze.
+     * @return A list of RuleMatch records created (not Candidate objects).
+     */
+    @Programmatic
+    public List<RuleMatch> analyzeAndMatch(Sentence sentence) {
         if (sentence == null) {
             return java.util.Collections.emptyList();
         }
-        List<Candidate> candidates = new java.util.ArrayList<>();
+        List<RuleMatch> matches = new java.util.ArrayList<>();
         List<TypedDependency> deps = sentence.getTypedDependencies();
         for (int i = 0; i < deps.size(); i++) {
             TypedDependency dependency = deps.get(i);
@@ -131,26 +77,11 @@ public abstract class TypedDependencyRule {
             this.previousTd = i > 0 ? deps.get(i - 1) : null;
             this.nextTd = i + 1 < deps.size() ? deps.get(i + 1) : null;
             if (appliesTo(dependency)) {
-                Candidate candidate = createCandidate(dependency, sentence, candidates);
-                if (candidate != null && !candidates.contains(candidate)) {
-                    candidates.add(candidate);
-                }
+                then(); // records the RuleMatch (and sets result)
+                // optionally collect the persisted match here
             }
         }
-        return candidates;
-    }
-
-    /**
-     * Capitalizes the first letter of a string.
-     *
-     * @param input The string to capitalize.
-     * @return The string with the first letter capitalized, or the original string if it is null or empty.
-     */
-    protected static String capitalizeFirstLetter(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
-        return input.substring(0, 1).toUpperCase() + input.substring(1);
+        return matches;
     }
 
     /**
@@ -174,5 +105,23 @@ public abstract class TypedDependencyRule {
             // Default to "String" for other cases
             return "String";
         }
+    }
+
+    /**
+     * Determines the class name for this property.
+     * In this rule, the class name is inferred from the governor of the dependency (currentTd.getA()).
+     *
+     * @return The name of the class to which this property belongs.
+     */
+    protected String determineClassName() {
+        // Example: "The customer name is required." → "customer" is the class name.
+        return capitalizeFirstLetter(currentTd.getA());
+    }
+
+    protected static String capitalizeFirstLetter(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        return input.substring(0, 1).toUpperCase() + input.substring(1);
     }
 }

@@ -1,6 +1,8 @@
 package domox.dom.nlp;
 
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*    ADVP,
     NOUN_PHRASE,
@@ -47,13 +49,21 @@ public enum PartOfSpeechType {
         this.code = code;
     }
 
+    private static final Logger log = LoggerFactory.getLogger(PartOfSpeechType.class);
+
     public static PartOfSpeechType fromCode(String code) {
+        if (code == null || code.isEmpty()) {
+            return null;
+        }
         for (PartOfSpeechType type : PartOfSpeechType.values()) {
             if (type.getCode().equals(code)) {
                 return type;
             }
         }
-        throw new IllegalArgumentException("No enum constant found for code: " + code);
+        final String errMsg = "No enum constant found for code: " + code;
+        final IllegalArgumentException ex = new IllegalArgumentException(errMsg);
+        log.error(errMsg, ex);
+        throw ex;
     }
 
 }

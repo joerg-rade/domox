@@ -3,11 +3,9 @@ package domox.dom;
 import domox.DomainModule;
 import domox.FileUtil;
 import domox.dom.nlp.Sentence;
-import domox.dom.nlp.Sentences;
-import domox.dom.nlp.TypedDependencies;
-import domox.dom.nlp.TypedDependency;
 import domox.dom.rqm.Author;
 import domox.dom.rqm.Documents;
+import domox.dom.rules.RuleMatch;
 import domox.dom.rules.TypedDependencyRule;
 import domox.dom.rqm.Document;
 import domox.dom.uml.Candidate;
@@ -15,7 +13,6 @@ import domox.nlp.DocumentTO;
 import domox.svc.DocumentAdapter;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import lombok.NoArgsConstructor;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
@@ -34,11 +31,11 @@ public class Analysis {
     @Inject
     private RepositoryService repositoryService;
 
-    @Inject
-    private Sentences sentences;
+//    @Inject
+//    private Sentences sentences;
 
-    @Inject
-    private TypedDependencies typedDependencies;
+//    @Inject
+//    private TypedDependencies typedDependencies;
 
     @Inject
     private Documents documents;
@@ -59,11 +56,10 @@ public class Analysis {
         // Apply each TypedDependencyRule to each sentence
         for (Sentence sentence : document.getSentences()) {
             for (TypedDependencyRule rule : rules) {   // inject all TDR beans
-                List<Candidate> found = rule.analyze(sentence);
+                List<RuleMatch> found = rule.analyzeAndMatch(sentence);
                 log.info("Rule {} on sentence {} over {} deps -> {} candidates",
                         rule.getRuleName(), sentence.getId(),
                         sentence.getTypedDependencies().size(), found.size());
-                candidates.addAll(found);
             }
         }
 

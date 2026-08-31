@@ -1,32 +1,17 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
-import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
-import domox.dom.nlp.Sentence;
-import domox.dom.nlp.TypedDependency;
-import domox.dom.uml.Candidate;
-import domox.dom.uml.ClassCandidates;
-import domox.dom.uml.ClassCdd;
-import domox.dom.uml.ClassType;
-import jakarta.inject.Inject;
 
 @RuleBean
 @Rule(order = 1)
-/**
+/*
  * Purpose: Identifies entities (classes) from nsubj or nsubjpass dependencies where the verb is the governor and the noun is the dependent.
  * Example: "The customer places an order." → customer and order are identified as classes.
  * Candidate Type: ClassCdd.
  */
 public class TDR1 extends TypedDependencyRule {
-
-    @Inject
-    private ClassCandidates classCandidates;
-
-    @Result
-    private String result;
 
     @Override
     public boolean when() {
@@ -50,30 +35,40 @@ public class TDR1 extends TypedDependencyRule {
         } else {
             result = "nsubj(" + currentTd.getB() + ")";
         }
-    }
 
-    @Override
-    protected Candidate createNewCandidate(TypedDependency dependency, Sentence sentence) {
-        // Create a ClassCdd candidate for this rule
-        ClassCdd candidate = classCandidates.findOrCreate(className());
-        //FIXME: sentence, dependency need to be taken into consideration
-        candidate.setName(currentTd.getB());
-        //TODO can we assume, all class candidates are entities?
-        //candidate.setClassType(ClassType.ENTITY);
-        return candidate;
-    }
+        // in case of a compound term, each part should be capitalized and the concatenated
 
-    @Override
-    protected String getResult() {
-        return result;
-    }
-
-    private String className() {
-        if (previousTd != null && previousTd.compound()) {
-            return currentTd.getB() + capitalizeFirstLetter(currentTd.getA());
-        } else {
-            return currentTd.getB();
+        // Phase 1: record the match; dependency and sentence come from the @Given fields
+        if (ruleMatches != null && currentTd != null) {
+            ruleMatches.create(
+                    currentTd,
+                    getRuleName(),
+                    "ClassCdd",
+                    determineClassName(),
+                    null,
+                    null,
+                    result);
         }
+    }
+
+    @Override
+    /*
+     * Determines the class name for this dependency.
+     * The class name is derived from the dependent noun (currentTd.getB()).
+     * If the previous dependency is a compound, both parts are capitalized
+     * and concatenated: dependent part first, then the head noun.
+     * Example: compound(document, draft) → "DraftDocument"
+     *
+     * @return The name of the class.
+     */
+    protected String determineClassName() {
+        if (previousTd != null && previousTd.compound()) {
+            // compound(governor=document, dependent=draft) → "DraftDocument"
+            String head = capitalizeFirstLetter(currentTd.getB());
+            String modifier = capitalizeFirstLetter(previousTd.getB());
+            return modifier + head;
+        }
+        return capitalizeFirstLetter(currentTd.getB());
     }
 
 }

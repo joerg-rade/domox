@@ -86,9 +86,11 @@ public class Sentences {
             td.setDependentIndex((int) dependency.getDependent());
             td.setGovernorGloss(dependency.getGovernorGloss());
             td.setDependentGloss(dependency.getDependentGloss());
+            td.setGovernorPos(PartOfSpeechType.fromCode(dependency.getGovernorPos()));
+            td.setDependentPos(PartOfSpeechType.fromCode(dependency.getDependentPos()));
             td.setSentence(sentence);
 
-            sentence.addTypedDependency(td);   // needs to keep the list in dependency order
+            sentence.addTypedDependency(td);
             repositoryService.persist(td);
         }
     }

@@ -1,30 +1,20 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
-import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 6)
-/**
- * Purpose: Likely identifies classes from appositions (appos).
- * Example: "John, the manager, approved the request." → Manager is identified as a class.
- * Candidate Type: ClassCdd.
- */
 public class TDR6 extends TypedDependencyRule {
 
-    @Result
-    private String result;
-
-    @When
+    @Override
     public boolean when() {
         // Guard against null currentTd when not in FactMap
         if (currentTd == null) {
             return false;
         }
-        return currentTd.nmodOf();
+        return currentTd.isNounA() && currentTd.isNounB() && currentTd.nmodOf();
     }
 
     @Then
@@ -48,4 +38,3 @@ public class TDR6 extends TypedDependencyRule {
     }
 
 }
-

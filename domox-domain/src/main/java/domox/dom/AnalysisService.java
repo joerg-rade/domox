@@ -1,9 +1,9 @@
 package domox.dom;
 
 import domox.dom.nlp.Sentence;
+import domox.dom.rules.RuleMatch;
 import domox.dom.rules.TypedDependencyRule;
 import domox.dom.rqm.Document;
-import domox.dom.uml.Candidate;
 import jakarta.inject.Inject;
 import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
@@ -24,10 +24,10 @@ public class AnalysisService {
     @Inject
     private MessageService messageService;
 
-    public List<Candidate> analyzeDocument(Document document) {
+    public List<RuleMatch> analyzeDocument(Document document) {
         log.info("Starting analysis for: {}", document.getTitle());
         
-        List<Candidate> candidates = new ArrayList<>();
+        List<RuleMatch> ruleMatches = new ArrayList<>();
         int rulesToApply = countAllRules();
         int processedRules = 0;
         
@@ -44,20 +44,17 @@ public class AnalysisService {
                 }
                 
                 // Apply rule logic here
-                var results = rule.analyze(sentence);
-                candidates.addAll(results);
-                
-                for (Candidate candidate : results) {
-                    repositoryService.persistAndFlush(candidate);
-                }
+                ruleMatches = rule.analyzeAndMatch(sentence);
+
+                //TODO iterate over matches and create Candidates
             }
         }
         
         messageService.informUser(
-            String.format("Analysis complete! %d candidates created", candidates.size())
+            String.format("Analysis complete! %d rules matched", ruleMatches.size())
         );
         
-        return candidates;
+        return ruleMatches;
     }
 
     private List<TypedDependencyRule> getAllRules() {

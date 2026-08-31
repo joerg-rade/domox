@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -9,9 +8,6 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @RuleBean
 @Rule(order = 34)
 public class TDR34 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {
@@ -24,9 +20,7 @@ public class TDR34 extends TypedDependencyRule {
         if (currentTd.xcomp() || currentTd.amod() || currentTd.neg()) {
             String a = currentTd.getA();
             String b = currentTd.getB();
-            if (isExceptionTerm(a) || isExceptionTerm(b)) {
-                return true;
-            }
+            return isExceptionTerm(a) || isExceptionTerm(b);
         }
         return false;
     }

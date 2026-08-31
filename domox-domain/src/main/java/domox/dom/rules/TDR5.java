@@ -1,6 +1,6 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
+
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -8,15 +8,12 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 5)
-/**
+/*
  * Purpose: Likely identifies classes from adjectival modifiers (amod).
  * Example: "The red car is fast." → Car is identified as a class, with red as a potential attribute.
  * Candidate Type: ClassCdd.
  */
 public class TDR5 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {

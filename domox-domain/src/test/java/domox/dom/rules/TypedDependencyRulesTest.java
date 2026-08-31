@@ -8,8 +8,11 @@ import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.uml.ClassCandidates;
 import domox.dom.uml.PropertyCandidates;
+import org.apache.causeway.applib.services.factory.FactoryService;
+import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -19,11 +22,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for TypedDependency Rules (TDR1-TDR37)
@@ -40,6 +45,11 @@ public class TypedDependencyRulesTest {
     @ComponentScan("domox.dom.rules")
     public static class TestConfig {
         // Component scanning enables discovery of @RuleBean annotated classes
+        // and the @DomainService RuleMatches.
+
+        // In-memory store backed by the mocked RuleMatchRepository so that
+        // matches created by RuleMatches.create() can be read back afterwards.
+        private final List<RuleMatch> matches = new ArrayList<>();
 
         @Bean
         public RuleBook ruleBook(ApplicationContext applicationContext) {
@@ -56,6 +66,36 @@ public class TypedDependencyRulesTest {
         @Bean
         public PropertyCandidates propertyCandidates() {
             return Mockito.mock(PropertyCandidates.class);
+        }
+
+        @Bean
+        public FactoryService factoryService() {
+            FactoryService mock = Mockito.mock(FactoryService.class);
+            Mockito.when(mock.detachedEntity(RuleMatch.class))
+                    .thenAnswer(invocation -> new RuleMatch());
+            return mock;
+        }
+
+        @Bean
+        public RepositoryService repositoryService() {
+            RepositoryService mock = Mockito.mock(RepositoryService.class);
+            Mockito.doAnswer(invocation -> {
+                matches.add(invocation.getArgument(0));
+                return invocation.getArgument(0);
+            }).when(mock).persist(Mockito.any(Object.class));
+            return mock;
+        }
+
+        @Bean
+        public RuleMatchRepository ruleMatchRepository() {
+            RuleMatchRepository repo = Mockito.mock(RuleMatchRepository.class);
+            Mockito.when(repo.findAll())
+                    .thenAnswer(invocation -> new ArrayList<>(matches));
+            Mockito.when(repo.findByRuleClassName(Mockito.anyString()))
+                    .thenAnswer(invocation -> matches.stream()
+                            .filter(m -> invocation.<String>getArgument(0).equals(m.getRuleClassName()))
+                            .collect(Collectors.toList()));
+            return repo;
         }
     }
 
@@ -86,6 +126,12 @@ public class TypedDependencyRulesTest {
     @Autowired
     private RuleBook ruleBook;
 
+    @Mock
+    RuleMatches ruleMatches;
+
+    @Mock
+    RepositoryService repositoryService;
+
     /**
      * Test TDR1: nsubj with verb and noun (non-basic attribute)
      * Rule fires: Entity should be added for the subject noun
@@ -100,14 +146,20 @@ public class TypedDependencyRulesTest {
         // nsubj(created, document): governor=0 (created), dependent=1 (document)
         TypedDependency td = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
         TypedDependency previousTd = createTypedDependency(sentence, TdType.COMPOUND, 1, 2);
-        TypedDependency nextTd = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
 
         tdr1.currentTd = td;
         tdr1.previousTd = previousTd;
-        tdr1.nextTd = nextTd;
+        tdr1.nextTd = null;
 
-        assertTrue(tdr1.when());
-        tdr1.then();
+        assertTrue(tdr1.when(), "TDR1 should fire for nsubj(created, document)");
+        tdr1.then(); // records the match
+
+        List<RuleMatch> matches = tdr1.ruleMatches.findByRuleClassName("TDR1");
+        assertFalse(matches.isEmpty());
+        RuleMatch match = matches.getLast();
+        assertEquals("DraftDocument", match.getCandidateName());
+        assertEquals("ClassCdd", match.getCandidateType());
+        assertNotNull(match.getDescription());
     }
 
     /**

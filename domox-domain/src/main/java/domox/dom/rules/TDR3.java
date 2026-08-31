@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -8,15 +7,12 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 3)
-/**
+/*
  * Purpose: Likely identifies compound nouns (e.g., "order detail" → OrderDetail).
  * Example: "The order detail is missing." → OrderDetail is identified as a class.
  * Candidate Type: ClassCdd.
  */
 public class TDR3 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {

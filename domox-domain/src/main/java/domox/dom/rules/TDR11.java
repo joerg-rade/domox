@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -8,15 +7,12 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
 @RuleBean
 @Rule(order = 11)
-/**
+/*
  * Purpose: Likely identifies classes from relative clauses (relcl).
  * Example: "The employee who submitted the form." → Employee is identified as a class.
  * Candidate Type: ClassCdd.
  */
 public class TDR11 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {

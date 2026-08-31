@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -9,9 +8,6 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @RuleBean
 @Rule(order = 37)
 public class TDR37 extends TypedDependencyRule {
-
-    @Result
-    private String result;
 
     @When
     public boolean when() {
@@ -24,9 +20,7 @@ public class TDR37 extends TypedDependencyRule {
         // if A in {continue, restart, go, repeat}
         if (currentTd.nsubj() || currentTd.xcomp()) {
             String a = currentTd.getA();
-            if (isControlFlowVerb(a)) {
-                return true;
-            }
+            return isControlFlowVerb(a);
         }
         return false;
     }

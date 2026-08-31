@@ -26,7 +26,7 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
                 index = currentDep.dependent.toInt(),
                 word = currentDep.dependentGloss,
                 depRelation = currentDep.dep,
-                pos = currentDep.pos
+                pos = currentDep.dependentPos
             )
 
             // Detect cycles to prevent infinite recursion

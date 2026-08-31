@@ -1,6 +1,6 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
+
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -10,9 +10,6 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @Rule(order = 17)
 public class TDR17 extends TypedDependencyRule {
 
-    @Result
-    private String result;
-
     @When
     public boolean when() {
         // Guard against null currentTd when not in FactMap
@@ -21,11 +18,8 @@ public class TDR17 extends TypedDependencyRule {
         }
         // nsubj(Verb, E1) and dobj(VBN, E2) and nmod:of(E2, E3)
         // This is a complex pattern - for now, checking if we have nsubj and next has dobj
-        if (currentTd.nsubj() && nextTd != null && nextTd.dobj()) {
-            // Further checking would need access to the dependency sequence
-            return true;
-        }
-        return false;
+        // Further checking would need access to the dependency sequence
+        return currentTd.nsubj() && nextTd != null && nextTd.dobj();
     }
 
     @Then

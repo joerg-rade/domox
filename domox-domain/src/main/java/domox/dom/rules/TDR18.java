@@ -1,6 +1,5 @@
 package domox.dom.rules;
 
-import com.deliveredtechnologies.rulebook.annotation.Result;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
@@ -10,9 +9,6 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @Rule(order = 18)
 public class TDR18 extends TypedDependencyRule {
 
-    @Result
-    private String result;
-
     @When
     public boolean when() {
         // Guard against null currentTd when not in FactMap
@@ -20,10 +16,7 @@ public class TDR18 extends TypedDependencyRule {
             return false;
         }
         // nsubj(VB, E1) and dobj(VB, E2) and nmod:to(VB, E3)
-        if (currentTd.nsubj() && nextTd != null && (nextTd.dobj() || nextTd.nmodTo())) {
-            return true;
-        }
-        return false;
+        return currentTd.nsubj() && nextTd != null && (nextTd.dobj() || nextTd.nmodTo());
     }
 
     @Then
