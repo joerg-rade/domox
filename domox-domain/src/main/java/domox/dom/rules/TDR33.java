@@ -9,35 +9,49 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @Rule(order = 33)
 public class TDR33 extends TypedDependencyRule {
 
+    @Override
     @When
     public boolean when() {
         // Guard against null currentTd when not in FactMap
-        if (currentTd == null) {
+        if (currentTd == null || currentTd.getA() == null) {
             return false;
         }
-        // if Dependencies= nsubj(A,B) OR nmod:by(A,B)
-        // if A=VB and A in {receive, accept, get, obtain, acquire, redeem}
+        // Spec: Dependencies = nsubj(A,B) OR nmod:by(A,B)
+        //        if A=VB and A in {receive, accept, get, obtain, acquire, redeem}
         if (currentTd.nsubj() || currentTd.nmodBy()) {
             return currentTd.isVerbA() && isReceiveVerb(currentTd.getA());
         }
         return false;
     }
 
+    @Override
     @Then
     public void then() {
-        // if B=System -> User_Action.add(A), else User_Action.add(A)
+        // Spec: if B=System -> User_Action.add(A), else User_Action.add(A)
+        // (both branches are the same, so B does not affect the outcome)
         String verb = currentTd.getA();
         result = "User_Action.add(" + verb + ")";
+
+        // Phase 1: record the match; dependency and sentence come from the @Given fields
+        if (ruleMatches != null && currentTd != null) {
+            ruleMatches.create(
+                    currentTd,
+                    getRuleName(),
+                    "User_Action",
+                    capitalizeFirstLetter(verb),
+                    null,
+                    null,
+                    result);
+        }
     }
 
     private boolean isReceiveVerb(String verb) {
         return verb.equalsIgnoreCase("receive") ||
-               verb.equalsIgnoreCase("accept") ||
-               verb.equalsIgnoreCase("get") ||
-               verb.equalsIgnoreCase("obtain") ||
-               verb.equalsIgnoreCase("acquire") ||
-               verb.equalsIgnoreCase("redeem");
+                verb.equalsIgnoreCase("accept") ||
+                verb.equalsIgnoreCase("get") ||
+                verb.equalsIgnoreCase("obtain") ||
+                verb.equalsIgnoreCase("acquire") ||
+                verb.equalsIgnoreCase("redeem");
     }
 
 }
-

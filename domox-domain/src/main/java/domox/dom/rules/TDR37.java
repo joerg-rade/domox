@@ -9,15 +9,16 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 @Rule(order = 37)
 public class TDR37 extends TypedDependencyRule {
 
+    @Override
     @When
     public boolean when() {
         // Guard against null currentTd when not in FactMap
-        if (currentTd == null) {
+        if (currentTd == null || currentTd.getA() == null) {
             return false;
         }
 
-        // if Dependencies= nsubj(A,B) OR xcomp(A,B)
-        // if A in {continue, restart, go, repeat}
+        // Spec: Dependencies = nsubj(A,B) OR xcomp(A,B)
+        //        if A in {continue, restart, go, repeat}
         if (currentTd.nsubj() || currentTd.xcomp()) {
             String a = currentTd.getA();
             return isControlFlowVerb(a);
@@ -25,20 +26,33 @@ public class TDR37 extends TypedDependencyRule {
         return false;
     }
 
+    @Override
     @Then
     public void then() {
-        // System_Action.add(A + nummod.B || dobj.B)
+        // Spec: System_Action.add(A + nummod.B || dobj.B)
+        // (falls back to currentTd's B when no nummod/dobj companion exists)
         String a = currentTd.getA();
         String b = currentTd.getB();
         result = "System_Action.add(" + a + " " + b + ")";
+
+        // Phase 1: record the match; dependency and sentence come from the @Given fields
+        if (ruleMatches != null && currentTd != null) {
+            ruleMatches.create(
+                    currentTd,
+                    getRuleName(),
+                    "System_Action",
+                    capitalizeFirstLetter(a),
+                    null,
+                    null,
+                    result);
+        }
     }
 
     private boolean isControlFlowVerb(String verb) {
         return verb.equalsIgnoreCase("continue") ||
-               verb.equalsIgnoreCase("restart") ||
-               verb.equalsIgnoreCase("go") ||
-               verb.equalsIgnoreCase("repeat");
+                verb.equalsIgnoreCase("restart") ||
+                verb.equalsIgnoreCase("go") ||
+                verb.equalsIgnoreCase("repeat");
     }
 
 }
-

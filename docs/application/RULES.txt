@@ -163,6 +163,7 @@ Rules to genrate carinalities.
 TDR24.
 if dependency = amod( E1, JJ)
 cardinalities.add (E1 “>”JJ )
+
 TDR25.
 if dependency = nummod( E1, CD)
 cardinalities.add (E1 “>” CD )
