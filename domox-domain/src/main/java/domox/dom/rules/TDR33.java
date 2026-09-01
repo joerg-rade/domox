@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 33)
 public class TDR33 extends TypedDependencyRule {
@@ -18,8 +20,8 @@ public class TDR33 extends TypedDependencyRule {
         }
         // Spec: Dependencies = nsubj(A,B) OR nmod:by(A,B)
         //        if A=VB and A in {receive, accept, get, obtain, acquire, redeem}
-        if (currentTd.nsubj() || currentTd.nmodBy()) {
-            return currentTd.isVerbA() && isReceiveVerb(currentTd.getA());
+        if (isNsubj(currentTd) || nmodBy(currentTd)) {
+            return isVerbA(currentTd) && isReceiveVerb(currentTd.getA());
         }
         return false;
     }

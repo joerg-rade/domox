@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 34)
 public class TDR34 extends TypedDependencyRule {
@@ -18,7 +20,7 @@ public class TDR34 extends TypedDependencyRule {
         }
         // Spec: Dependencies = xcomp(A,B) OR amod(A,B) OR neg(A,B)
         //        if A || B in {error, fail, wrong, invalid, incorrect, not}
-        if (currentTd.xcomp() || currentTd.amod() || currentTd.neg()) {
+        if (xcomp(currentTd) || amod(currentTd) || neg(currentTd)) {
             String a = currentTd.getA();
             String b = currentTd.getB();
             return isExceptionTerm(a) || isExceptionTerm(b);

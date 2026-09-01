@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.PartOfSpeechType;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 5)
 /*
@@ -24,11 +26,11 @@ public class TDR5 extends TypedDependencyRule {
             return false;
         }
         boolean answer = false;
-        if (currentTd.dobj() || currentTd.iobj() || currentTd.pobj()) {
+        if (dobj(currentTd) || iobj(currentTd) || pobj(currentTd)){
             // Spec TDR5: A must be VB (base form verb, not VBG/VBN/VBP/VBZ)
             PartOfSpeechType pos = currentTd.getGovernorPos();
-            if (pos == PartOfSpeechType.VB && currentTd.isNounB()) {
-                if (currentTd.isBasicAttributeB() || isBlockedVerb(currentTd.getA())) {
+            if (pos == PartOfSpeechType.VB && isNounB(currentTd)){
+                if (isBasicAttributeB(currentTd) || isBlockedVerb(currentTd.getA())) {
                     answer = true;
                 }
             }
@@ -42,8 +44,8 @@ public class TDR5 extends TypedDependencyRule {
         //       Attributes.add(amod(B) + amod(A))
         //       else Attributes.add(dobj(B))
         if (previousTd != null
-                && (previousTd.amod() || previousTd.advmod())
-                && previousTd.isAdjectiveB()) {
+                && (amod(previousTd) || advmod(previousTd))
+                && isAdjectiveB(previousTd)) {
             result = "amod(" + currentTd.getB() + ") + amod(" + currentTd.getA() + ")";
         } else {
             result = "dobj(" + currentTd.getB() + ")";
@@ -51,7 +53,7 @@ public class TDR5 extends TypedDependencyRule {
 
         // Phase 1: record the match — TDR5 outputs Attributes (PropertyCdd)
         if (ruleMatches != null && currentTd != null) {
-            if (!currentTd.isBasicAttributeA()) {
+            if (!isBasicAttributeA(currentTd)) {
                 String className = capitalizeFirstLetter(currentTd.getA());
                 String propertyName = currentTd.getA() + " " + currentTd.getB();
                 ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);

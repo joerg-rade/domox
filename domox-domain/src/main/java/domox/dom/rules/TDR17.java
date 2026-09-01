@@ -8,6 +8,8 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.PartOfSpeechType;
 import domox.dom.nlp.TypedDependency;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 17)
 public class TDR17 extends TypedDependencyRule {
@@ -22,15 +24,15 @@ public class TDR17 extends TypedDependencyRule {
         // Spec: nsubj(Verb, E1) and dobj(VBN, E2) and nmod:of(E2, E3)
         // currentTd = nsubj(Verb, E1), nextTd = dobj(VBN, E2),
         // and an nmod:of(E2, E3) dependency governed by E2 must exist
-        if (!currentTd.nsubj()
-                || !currentTd.isVerbA()
-                || !currentTd.isNounB()) {
+        if (!isNsubj(currentTd)
+                || !isVerbA(currentTd)
+                || !isNounB(currentTd)) {
             return false;
         }
         if (nextTd == null
-                || !nextTd.dobj()
+                || !dobj(nextTd)
                 || nextTd.getGovernorPos() != PartOfSpeechType.VBN
-                || !nextTd.isNounB()
+                || !isNounB(nextTd)
                 || nextTd.getGovernorIndex() != currentTd.getGovernorIndex()) {
             return false;
         }
@@ -81,9 +83,9 @@ public class TDR17 extends TypedDependencyRule {
             return null;
         }
         for (TypedDependency td : dobj.getSentence().getTypedDependencies()) {
-            if (td.nmodOf()
+            if (nmodOf(td)
                     && td.getGovernorIndex() == dobj.getDependentIndex()
-                    && td.isNounB()) {
+                    && isNounB(td)) {
                 return td;
             }
         }

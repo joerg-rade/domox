@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 24)
 public class TDR24 extends TypedDependencyRule {
@@ -18,7 +20,7 @@ public class TDR24 extends TypedDependencyRule {
         }
         // Spec: amod(E1, JJ) -> cardinalities.add(E1 ">" JJ)
         // E1 (governor) must be a noun entity, JJ (dependent) an adjective
-        return currentTd.amod() && currentTd.isNounA() && currentTd.isAdjectiveB();
+        return amod(currentTd) && isNounA(currentTd) && isAdjectiveB(currentTd);
     }
 
     @Override

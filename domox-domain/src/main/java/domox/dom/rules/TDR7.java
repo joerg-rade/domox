@@ -4,6 +4,9 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.TdType;
 
+import static domox.dom.nlp.TypedDependencyPredicates.isNounA;
+import static domox.dom.nlp.TypedDependencyPredicates.isNounB;
+
 @RuleBean
 @Rule(order = 7)
 public class TDR7 extends TypedDependencyRule {
@@ -16,8 +19,7 @@ public class TDR7 extends TypedDependencyRule {
         }
         // Spec: Dependency = nmod:in(A,B) with A=Noun and B=Noun
         // Use precise TdType.OBL_IN check (nmod:in maps to obl:in in UD scheme)
-        return currentTd.isNounA() && currentTd.isNounB()
-                && currentTd.getType() == TdType.OBL_IN;
+        return isNounA(currentTd) && isNounB(currentTd) && currentTd.getType() == TdType.OBL_IN;
     }
 
     @Override

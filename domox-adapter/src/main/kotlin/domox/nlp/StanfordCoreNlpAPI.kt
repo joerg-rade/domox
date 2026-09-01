@@ -17,7 +17,7 @@ class StanfordCoreNlpAPI(
 
     fun annotate(text: String): DocumentTO {
         //val annotators = encodeQuery("{'annotators':'tokenize,ssplit,pos,lemma,ner,parse,depparse,coref'}")
-        val annotators = encodeQuery("{'annotators':'depparse'}")
+        val annotators = encodeQuery("{'annotators':'tokenize,lemma,depparse'}")
         val url = "${scheme}://${host}:${port}/?properties=${annotators}"
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val requestBody = text.toRequestBody(mediaType)

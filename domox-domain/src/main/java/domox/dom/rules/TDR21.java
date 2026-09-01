@@ -6,6 +6,8 @@ import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.TypedDependency;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 21)
 public class TDR21 extends TypedDependencyRule {
@@ -20,9 +22,9 @@ public class TDR21 extends TypedDependencyRule {
         // Spec: nsubj(VB, E1) and nmod:in(VB, E2)
         // currentTd = nsubj(VB, E1), and an nmod:in(VB, E2) dependency
         // governed by the same VB must exist
-        if (!currentTd.nsubj()
-                || !currentTd.isVerbA()
-                || !currentTd.isNounB()) {
+        if (!isNsubj(currentTd)
+                || !isVerbA(currentTd)
+                || !isNounB(currentTd)) {
             return false;
         }
         return findNmodIn(currentTd) != null;
@@ -60,9 +62,9 @@ public class TDR21 extends TypedDependencyRule {
             return null;
         }
         for (TypedDependency td : nsubj.getSentence().getTypedDependencies()) {
-            if (td.nmodIn()
+            if (nmodIn(td)
                     && td.getGovernorIndex() == nsubj.getGovernorIndex()
-                    && td.isNounB()) {
+                    && isNounB(td)) {
                 return td;
             }
         }

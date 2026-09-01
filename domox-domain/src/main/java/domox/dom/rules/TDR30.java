@@ -9,6 +9,8 @@ import domox.dom.nlp.TypedDependency;
 import java.util.ArrayList;
 import java.util.List;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 30)
 public class TDR30 extends TypedDependencyRule {
@@ -23,8 +25,8 @@ public class TDR30 extends TypedDependencyRule {
         // Spec: Dependencies = nmod:by(A,B) OR nmod:agent(A,B) OR nmod:with(A,B)
         //        if A=VB and A in {inputted, entered, filled, clicked, selected,
         //                           added, recorded, processed, validated}
-        if (currentTd.nmodBy() || currentTd.nmodAgent() || currentTd.nmodWith()) {
-            return currentTd.isVerbA() && isInputPastVerb(currentTd.getA());
+        if (nmodBy(currentTd) || nmodAgent(currentTd) || nmodWith(currentTd)) {
+            return isVerbA(currentTd) && isInputPastVerb(currentTd.getA());
         }
         return false;
     }
@@ -37,10 +39,10 @@ public class TDR30 extends TypedDependencyRule {
         List<String> inputData = new ArrayList<>();
         if (currentTd.getSentence() != null) {
             for (TypedDependency td : currentTd.getSentence().getTypedDependencies()) {
-                if (td.nmodBy() || td.nmodAgent() || td.nmodWith()) {
+                if (nmodBy(td) || nmodAgent(td) || nmodWith(td)) {
                     continue;
                 }
-                if (td.isBasicAttributeB()) {
+                if (isBasicAttributeB(td)) {
                     inputData.add(td.getB());
                 }
             }

@@ -48,7 +48,7 @@ Look at the actual dependency data (from `BasicDependencyTO.txt` — the first s
 
 Now check what `TypedDependency` predicates actually match:
 - `compound()` → needs `TdType.COMPOUND` — **no `compound` dependency appears in this sentence at all**
-- `nsubj()` → matches the two `nsubj` entries, but `TDR1` also requires `currentTd.isVerbA() && currentTd.isNounB() && !currentTd.isBasicAttributeB()` — i.e. the governor must be a VB and the dependent a Noun, which depends on `governorPos`/`dependentPos` being populated, and especially on `isVerbA()` which checks a **different** array that only includes VB, VBG, VBN, VBP, VBZ
+- `nsubj()` → matches the two `nsubj` entries, but `TDR1` also requires `isVerbA(currentTd) () && isNounB(currentTd) () && !currentTd.isBasicAttributeB()` — i.e. the governor must be a VB and the dependent a Noun, which depends on `governorPos`/`dependentPos` being populated, and especially on `isVerbA()` which checks a **different** array that only includes VB, VBG, VBN, VBP, VBZ
 - Several tests/methods (e.g. `nsubjpass`, `pobj`, `dobj`, `iobj`, `nmod*`) are mostly `getType().equals(...)` against `TdType` values that may not be defined for the parsed UD labels (e.g. `dobj` → `OBJ`, `nmod:of` → `NMOD_OF`, `nmod:poss` → `NMOD_POSS`, `advcl:though` → `ADVCL` …). If those enum constants map to the wrong labels, or the parser stores the raw UD label differently, none of the `when()` predicates will ever be true.
 
 ### 3. The `nextTd` field is never populated

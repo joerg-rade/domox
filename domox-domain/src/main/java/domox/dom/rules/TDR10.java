@@ -4,6 +4,8 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.PartOfSpeechType;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 /**
  * Purpose: Identifies possessive relationships (nmod:poss).
  * Example: "the customer's name" → name is an attribute of customer.
@@ -21,12 +23,12 @@ public class TDR10 extends TypedDependencyRule {
         }
         // if Dependencies= nmod:poss(A,B) and A=Noun
         // (B=Noun or B=PREP is resolved inside then())
-        return currentTd.nmodPoss() && currentTd.isNounA();
+        return nmodPoss(currentTd) && isNounA(currentTd);
     }
 
     @Override
     public void then() {
-        if (currentTd.isNounB()) {
+        if (isNounB(currentTd)) {
             // if A=Noun and B = Noun then
             // Entity.add(B), Attributes.add(A)
             result = "Entity.add(" + currentTd.getB() + "), Attributes.add(" + currentTd.getA() + ")";
@@ -40,7 +42,7 @@ public class TDR10 extends TypedDependencyRule {
                         capitalizeFirstLetter(currentTd.getB()), result);
             }
         } else if (currentTd.getDependentPos() == PartOfSpeechType.IN
-                && !currentTd.isBasicAttributeB()) {
+                && !isBasicAttributeB(currentTd)) {
             // else if A=Noun and B= PREP ≠ Basic_Attrib then
             // Attributes.add(B)
             result = "Attributes.add(" + currentTd.getB() + ")";

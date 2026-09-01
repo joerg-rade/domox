@@ -71,9 +71,9 @@ causeway:
 
   persistence:
     schema:
-      #auto-create-schemas: domox
+      auto-create-schemas: domox
       create-schema-sql-template: "CREATE SCHEMA IF NOT EXISTS %S"
-      #create-schema-sql-template: DROP SCHEMA domox CASCADE
+      #create-schema-sql-template: "DROP SCHEMA IF EXISTS %S CASCADE; CREATE SCHEMA %S;"
 
 
 resteasy:

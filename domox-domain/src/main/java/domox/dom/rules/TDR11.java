@@ -4,6 +4,8 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 11)
 /*
@@ -20,12 +22,12 @@ public class TDR11 extends TypedDependencyRule {
             return false;
         }
         // if Dependencies = amod(A,B) with A=Noun and B=JJ
-        return currentTd.amod() && currentTd.isNounA() && currentTd.isAdjectiveB();
+        return amod(currentTd) && isNounA(currentTd) && isAdjectiveB(currentTd);
     }
 
     @Then
     public void then() {
-        if (currentTd.isBasicAttributeA()) {
+        if (isBasicAttributeA(currentTd)) {
             // if A=Noun and B = JJ and A=basic_Attrib then Attributes.add(B + A)
             result = "Attributes.add(" + currentTd.getB() + " " + currentTd.getA() + ")";
 

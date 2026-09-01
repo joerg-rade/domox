@@ -6,6 +6,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 16)
 public class TDR16 extends TypedDependencyRule {
@@ -18,9 +20,9 @@ public class TDR16 extends TypedDependencyRule {
             return false;
         }
         // Spec: nmod:of(E1, E2), where E1 and E2 are entities (nouns)
-        return currentTd.nmodOf()
-                && currentTd.isNounA()
-                && currentTd.isNounB();
+        return nmodOf(currentTd)
+                && isNounA(currentTd)
+                && isNounB(currentTd);
     }
 
     @Override

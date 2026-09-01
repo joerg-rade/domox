@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 32)
 public class TDR32 extends TypedDependencyRule {
@@ -17,20 +19,20 @@ public class TDR32 extends TypedDependencyRule {
             return false;
         }
         // Spec: Dependencies = nsubj(A,B) OR nmod:by(A,B)
-        if (currentTd.nsubj() || currentTd.nmodBy()) {
+        if (isNsubj(currentTd) || nmodBy(currentTd)) {
             String verbA = currentTd.getA();
             String actorB = currentTd.getB();
 
             // if A=VB and A in {input, enter, fill, click, select, add, submit, choose}
             // AND B=External Actor -> User_Action.add(A)
-            if (currentTd.isVerbA() && isUserInputVerb(verbA) && isExternalActor(actorB)) {
+            if (isVerbA(currentTd) && isUserInputVerb(verbA) && isExternalActor(actorB)) {
                 return true;
             }
 
             // if A=VB and A in {display, output, retrieve, show, view, print, calculate,
             // process, update, delete, search, modify, edit, remove}
             // AND B= System -> System_Actions.add(A)
-            return currentTd.isVerbA() && isSystemOutputVerb(verbA) && isSystem(actorB);
+            return isVerbA(currentTd) && isSystemOutputVerb(verbA) && isSystem(actorB);
         }
         return false;
     }

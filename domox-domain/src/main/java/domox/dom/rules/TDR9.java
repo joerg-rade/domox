@@ -4,6 +4,8 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 9)
 /*
@@ -21,13 +23,13 @@ public class TDR9 extends TypedDependencyRule {
         }
         // if Dependencies = nmod:by(A,B) OR nmod:agent(A,B) OR nmod:with(A,B)
         // if B=Noun then
-        return (currentTd.nmodBy() || currentTd.nmodAgent() || currentTd.nmodWith())
-                && currentTd.isNounB();
+        return (nmodBy(currentTd) || nmodAgent(currentTd) || nmodWith(currentTd))
+                && isNounB(currentTd);
     }
 
     @Then
     public void then() {
-        if (currentTd.isBasicAttributeB()) {
+        if (isBasicAttributeB(currentTd)) {
             // if B=Noun and B = Basic_Attrib then Attributes.add(B)
             result = "Attributes.add(" + currentTd.getB() + ")";
 

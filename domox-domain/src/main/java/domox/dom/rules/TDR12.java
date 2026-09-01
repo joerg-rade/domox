@@ -3,6 +3,8 @@ package domox.dom.rules;
 import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 12)
 public class TDR12 extends TypedDependencyRule {
@@ -15,17 +17,17 @@ public class TDR12 extends TypedDependencyRule {
         }
         // Spec: compound(A,B) and nextTD≠nsubj and nextTD≠dobj, with A=Noun and B=Noun
         // A null nextTd satisfies "nextTD≠nsubj and nextTD≠dobj"
-        boolean nextIsNotSubjectOrObject = nextTd == null || (!nextTd.nsubj() && !nextTd.dobj());
-        return currentTd.compound()
+        boolean nextIsNotSubjectOrObject = nextTd == null || (!isNsubj(nextTd) && !dobj(nextTd));
+        return isCompound(currentTd)
                 && nextIsNotSubjectOrObject
-                && currentTd.isNounA()
-                && currentTd.isNounB();
+                && isNounA(currentTd)
+                && isNounB(currentTd);
     }
 
     @Override
     public void then() {
-        boolean aIsBasicAttrib = currentTd.isBasicAttributeA();
-        boolean bIsBasicAttrib = currentTd.isBasicAttributeB();
+        boolean aIsBasicAttrib = isBasicAttributeA(currentTd);
+        boolean bIsBasicAttrib = isBasicAttributeB(currentTd);
 
         if (aIsBasicAttrib && !bIsBasicAttrib) {
             // if A=Basic_Attrib and B≠Basic_Attrib then

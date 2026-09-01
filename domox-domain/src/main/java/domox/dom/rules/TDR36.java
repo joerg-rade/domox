@@ -9,6 +9,9 @@ import domox.dom.nlp.TypedDependency;
 import java.util.ArrayList;
 import java.util.List;
 
+import static domox.dom.nlp.TypedDependencyPredicates.isBasicAttributeB;
+import static domox.dom.nlp.TypedDependencyPredicates.isNsubj;
+
 @RuleBean
 @Rule(order = 36)
 public class TDR36 extends TypedDependencyRule {
@@ -21,7 +24,7 @@ public class TDR36 extends TypedDependencyRule {
             return false;
         }
         // Spec: Dependencies = nsubj(A,B) and A = "validate"
-        if (currentTd.nsubj()) {
+        if (isNsubj(currentTd)) {
             String a = currentTd.getA();
             return a != null && a.equalsIgnoreCase("validate");
         }
@@ -46,7 +49,7 @@ public class TDR36 extends TypedDependencyRule {
         List<String> attributeActions = new ArrayList<>();
         if (currentTd.getSentence() != null) {
             for (TypedDependency td : currentTd.getSentence().getTypedDependencies()) {
-                if (td.isBasicAttributeB()) {
+                if (isBasicAttributeB(td)) {
                     attributeNames.add(td.getB());
                     attributeActions.add("System_Actions.add(" + td.getB() + ")");
                 }

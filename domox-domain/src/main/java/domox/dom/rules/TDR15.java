@@ -6,6 +6,8 @@ import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.PartOfSpeechType;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 15)
 public class TDR15 extends TypedDependencyRule {
@@ -20,12 +22,12 @@ public class TDR15 extends TypedDependencyRule {
         // Spec: nsubjpass(VBN, E1) and (nmod:agent(VBN, E2) or nmod:by(VBN, E2))
         // currentTd = nsubjpass(VBN, E1), nextTd = nmod:agent/nmod:by(VBN, E2),
         // both dependencies must be governed by the same VBN
-        return currentTd.nsubjpass()
+        return isNsubjPass(currentTd)
                 && currentTd.getGovernorPos() == PartOfSpeechType.VBN
-                && currentTd.isNounB()
+                && isNounB(currentTd)
                 && nextTd != null
-                && (nextTd.nmodAgent() || nextTd.nmodBy())
-                && nextTd.isNounB()
+                && (nmodAgent(nextTd) || nmodBy(nextTd))
+                && isNounB(nextTd)
                 && nextTd.getGovernorIndex() == currentTd.getGovernorIndex();
     }
 

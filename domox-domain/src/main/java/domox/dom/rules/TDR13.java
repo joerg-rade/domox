@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 13)
 public class TDR13 extends TypedDependencyRule {
@@ -16,15 +18,15 @@ public class TDR13 extends TypedDependencyRule {
             return false;
         }
         // Spec: nmod:and(A,B) OR nmod:or(A,B), with A=Noun and B=Noun
-        return (currentTd.nmodAnd() || currentTd.nmodOr()) &&
-                currentTd.isNounA() &&
-                currentTd.isNounB();
+        return (nmodAnd(currentTd) || nmodOr(currentTd)) &&
+                isNounA(currentTd) &&
+                isNounB(currentTd);
     }
 
     @Then
     public void then() {
-        boolean aIsBasicAttrib = currentTd.isBasicAttributeA();
-        boolean bIsBasicAttrib = currentTd.isBasicAttributeB();
+        boolean aIsBasicAttrib = isBasicAttributeA(currentTd);
+        boolean bIsBasicAttrib = isBasicAttributeB(currentTd);
 
         if (aIsBasicAttrib && bIsBasicAttrib) {
             // A=Noun and B=Noun and A=Basic_Attrib and B=Basic_Attrib then

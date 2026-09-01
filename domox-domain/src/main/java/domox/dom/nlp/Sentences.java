@@ -88,6 +88,8 @@ public class Sentences {
             td.setDependentGloss(dependency.getDependentGloss());
             td.setGovernorPos(PartOfSpeechType.fromCode(dependency.getGovernorPos()));
             td.setDependentPos(PartOfSpeechType.fromCode(dependency.getDependentPos()));
+            td.setGovernorLemma(dependency.getGovernorLemma());
+            td.setDependentLemma(dependency.getDependentLemma());
             td.setSentence(sentence);
 
             sentence.addTypedDependency(td);

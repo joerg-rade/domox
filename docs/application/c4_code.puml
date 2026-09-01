@@ -4,12 +4,12 @@ skinparam ClassBorderThickness 2
 skinparam ClassBackgroundColor LightYellow
 
 package "req" {
-    class Author {
+    class Author #lightyellow {
         firstName:String
         lastName:String
         eMail:String
     }
-    class Document {
+    class Document #lightgreen{
         id: Long
         title: String
         version: SemVer
@@ -22,17 +22,13 @@ package "req" {
 }
 
 package nlp {
-    class Sentence {
+    class Sentence #lightgreen{
         id:Long
         raw: String
         parsed: ParseTree
     }
 
-    class Token {
-        id: Long
-        content: String
-    }
-    enum PartOfSpeechType {
+    enum PartOfSpeechType #lightblue {
         NOUN_PHRASE
         VERB_PHRASE
         VERB
@@ -40,9 +36,8 @@ package nlp {
         PP
         ...
     }
-    Sentence *- Token
 
-    enum TDType{
+    enum TDType #lightblue {
         nsubj
         nsubjpass
         dobj
@@ -72,32 +67,35 @@ package nlp {
         advmod_else
     }
 
-    class TypedDependency {
+    class TypedDependency #pink {
         id: Long
+        governor: String
+        governorIndex: Integer
+        governorGloss: String
+        governorPos: PartOfSpeechType
+        governorLemma: String
+        dependent: String
+        dependentIndex: Integer
+        dependentGloss: String
+        dependentPos: PartOfSpeechType
+        dependentLemma: String
     }
-    TypedDependency -up-> TDType : type
+    Sentence *- TypedDependency
 
-    class Relation {
-        id:Long
-        relevant: Boolean
-    }
-    enum RelationType {
+    TypedDependency -up-> TDType : type
+    TypedDependency -up-> PartOfSpeechType : pos
+
+}
+
+package type_system {
+    enum RelationType #lightblue {
         ASSOCIATION
         AGGREGATION
         GENERALIZATION
         ATTRIBUTE
         BEHAVIOUR
     }
-    Relation -up-> RelationType : type
 
-    Token -up-> PartOfSpeechType : type
-
-    TypedDependency -left-> "A" Token
-    TypedDependency -left-> "B" Token
-    Relation -left-> "2" TypedDependency
-}
-
-package type_system {
     abstract class Candidate {
         name: String
     }
@@ -117,14 +115,30 @@ package type_system {
     ClassCdd -> "0..n" ActionCdd : actions
     ClassCdd "2" -up-> "0..n" AssociationCdd : associations
 
-    class DomainModel {
-        generatePlantUml()
-    }
-
-    DomainModel *-> "1..n" ClassCdd
 }
 
-Sentence -l-> Document : content
+package rule {
+    class RuleMatch #pink {
+        id: Long
+        ruleName: String
+        matchedSentence: Sentence
+        matchedTypedDependency: TypedDependency
+        matchedCandidate: Candidate
+    }
+    RuleMatch -up-> "1" TypedDependency
+
+    abstract class TypedDependencyRule #lightblue {
+        name: String
+        description: String
+        when: TypedDependency -> Boolean
+        then: TypedDependency -> RuleMatch
+    }
+    class "TDR1 .. TDR37" as TDR #lightblue {
+    }
+    TDR -|> TypedDependencyRule
+    RuleMatch -up-> TDR
+}
+Sentence -> Document : content
 
 class Analysis {
     id: Long
@@ -133,24 +147,15 @@ class Analysis {
     processRequrements()
     constructDomainModel()
 }
+class DomainModel {
+    generatePlantUml()
+}
+
+DomainModel *-> "1..n" ClassCdd
 
 Analysis -> "1..n" Document : input
-Analysis -up-> "0..n" Relation
+Analysis -up-> "0..n" RuleMatch
 Analysis -> DomainModel : output
-
-note as N1
-    Stanford (Core) NLP steps:
-    * Sentence Splitter
-    * Part of Speech tagging
-    * Syntactic parsing (Typed Dependency)
-end note
-N1 .. nlp
-
-note as N2
-    * Rule based [1], [2]
-    * Stanford Glove (mord-level RNN)
-end note
-N2 . Relation
 
 @enduml
 

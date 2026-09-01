@@ -5,6 +5,9 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.det;
+import static domox.dom.nlp.TypedDependencyPredicates.isNounA;
+
 @RuleBean
 @Rule(order = 26)
 public class TDR26 extends TypedDependencyRule {
@@ -19,7 +22,7 @@ public class TDR26 extends TypedDependencyRule {
         // Spec: det(E1, DT) -> cardinalities.add based on the DT value
         // E1 (governor) must be a noun entity and DT (dependent) one of
         // the determiners handled by this rule
-        if (!currentTd.det() || !currentTd.isNounA() || currentTd.getB() == null) {
+        if (!det(currentTd) || !isNounA(currentTd) || currentTd.getB() == null) {
             return false;
         }
         String dt = currentTd.getB().toLowerCase();

@@ -9,6 +9,8 @@ import domox.dom.nlp.TypedDependency;
 import java.util.ArrayList;
 import java.util.List;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 35)
 public class TDR35 extends TypedDependencyRule {
@@ -21,15 +23,15 @@ public class TDR35 extends TypedDependencyRule {
             return false;
         }
         // Branch 1: Dependencies = advcl:if(A,B) OR mark(A,if)
-        if (currentTd.advcl() || (currentTd.mark() && isIf(currentTd.getB()))) {
+        if (advcl(currentTd) || (mark(currentTd) && isIf(currentTd.getB()))) {
             return true;
         }
         // Branch 2: Dependencies = advmod(A,then) AND advmod(A,else)
-        if (currentTd.advmod() && isThen(currentTd.getB()) && hasElseAdvmod(currentTd)) {
+        if (advmod(currentTd) && isThen(currentTd.getB()) && hasElseAdvmod(currentTd)) {
             return true;
         }
         // Branch 3: Dependencies = advmod(A,else)
-        return currentTd.advmod() && isElse(currentTd.getB());
+        return advmod(currentTd) && isElse(currentTd.getB());
     }
 
     @Override
@@ -38,10 +40,10 @@ public class TDR35 extends TypedDependencyRule {
         // Determine which branch of the spec fired
         String keyword;
         boolean skipAdvmod;
-        if (currentTd.advcl() || (currentTd.mark() && isIf(currentTd.getB()))) {
+        if (advcl(currentTd) || (mark(currentTd) && isIf(currentTd.getB()))) {
             keyword = "if";
             skipAdvmod = true;      // while (TD≠advmod)
-        } else if (currentTd.advmod() && isThen(currentTd.getB()) && hasElseAdvmod(currentTd)) {
+        } else if (advmod(currentTd) && isThen(currentTd.getB()) && hasElseAdvmod(currentTd)) {
             keyword = "then";
             skipAdvmod = true;      // while (TD≠advmod)
         } else {
@@ -60,10 +62,10 @@ public class TDR35 extends TypedDependencyRule {
         List<String> attributeActions = new ArrayList<>();
         if (currentTd.getSentence() != null) {
             for (TypedDependency td : currentTd.getSentence().getTypedDependencies()) {
-                if (skipAdvmod && td.advmod()) {
+                if (skipAdvmod && advmod(td)) {
                     continue; // while loop condition
                 }
-                if (td.isBasicAttributeB()) {
+                if (isBasicAttributeB(td)) {
                     attributeNames.add(td.getB());
                     attributeActions.add("System_Actions.add(" + td.getB() + ")");
                 }
@@ -119,7 +121,7 @@ public class TDR35 extends TypedDependencyRule {
             return false;
         }
         for (TypedDependency td : current.getSentence().getTypedDependencies()) {
-            if (td.advmod() && isElse(td.getB())) {
+            if (advmod(td) && isElse(td.getB())) {
                 return true;
             }
         }

@@ -7,6 +7,8 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 3)
 /*
@@ -27,9 +29,9 @@ public class TDR3 extends TypedDependencyRule {
             return false;
         }
         boolean answer = false;
-        if (currentTd.dobj() || currentTd.iobj() || currentTd.pobj()) {
-            if (currentTd.isVerbA() && currentTd.isNounB() && !currentTd.isBasicAttributeB()) {
-                if (previousTd == null || (!previousTd.amod() && !previousTd.advmod())) {
+        if (dobj(currentTd) || iobj(currentTd) || pobj(currentTd)) {
+            if (isVerbA(currentTd) && isNounB(currentTd) && !isBasicAttributeB(currentTd)) {
+                if (previousTd == null || (!amod(previousTd) && !advmod(previousTd))) {
                     String verbA = currentTd.getA();
                     if (!isBlockedVerb(verbA)) {
                         answer = true;
@@ -43,7 +45,7 @@ public class TDR3 extends TypedDependencyRule {
     @Then
     public void then() {
         log.debug("TDR3 fired: {}", currentTd);
-        if (previousTd != null && previousTd.compound()) {
+        if (previousTd != null && isCompound(previousTd)) {
             // Entity.add(compound(B) + Compound(A))
             result = "compound(" + currentTd.getB() + ") + Compound(" + currentTd.getA() + ")";
         } else {

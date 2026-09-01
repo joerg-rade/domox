@@ -21,9 +21,11 @@ class ExtendedDependencyFactory(sentenceTO: SentenceTO) {
                 governor = dep.governor,
                 governorGloss = dep.governorGloss,
                 governorPos = toks.find { it.index == dep.governor }?.pos ?: "",
+                governorLemma = toks.find { it.index == dep.governor }?.lemma ?: "",
                 dependent = dep.dependent,
                 dependentGloss = dep.dependentGloss,
-                dependentPos = dependentToken?.pos ?: ""
+                dependentPos = dependentToken?.pos ?: "",
+                dependentLemma = dependentToken?.lemma ?: ""
             )
         }
     }

@@ -9,6 +9,8 @@ import domox.dom.nlp.TypedDependency;
 import java.util.ArrayList;
 import java.util.List;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 29)
 public class TDR29 extends TypedDependencyRule {
@@ -23,9 +25,9 @@ public class TDR29 extends TypedDependencyRule {
         // Spec: Dependencies = nsubj(A,B) OR nsubjpass(A,B) OR dobj(A,B) OR
         //        iobj(A,B) OR pobj(A,B) OR nmod:to(A,B) OR mark(A,B)
         //        if A=VB AND A in {get, send, prepare}
-        if (currentTd.nsubj() || currentTd.nsubjpass() || currentTd.dobj() ||
-                currentTd.iobj() || currentTd.pobj() || currentTd.nmodTo() || currentTd.mark()) {
-            return currentTd.isVerbA() && isActionVerb(currentTd.getA());
+        if (isNsubj(currentTd) || isNsubjPass(currentTd) || dobj(currentTd) ||
+                iobj(currentTd) || pobj(currentTd) || nmodTo(currentTd) || mark(currentTd)) {
+            return isVerbA(currentTd) && isActionVerb(currentTd.getA());
         }
         return false;
     }
@@ -45,13 +47,13 @@ public class TDR29 extends TypedDependencyRule {
         List<String> inputData = new ArrayList<>();
         if (currentTd.getSentence() != null) {
             for (TypedDependency td : currentTd.getSentence().getTypedDependencies()) {
-                if (td.nsubj() || td.nsubjpass() || td.dobj() || td.iobj() ||
-                        td.pobj() || td.mark()) {
+                if (isNsubj(td) || isNsubjPass(td) || dobj(td) || iobj(td) ||
+                        pobj(td) || mark(td)) {
                     continue; // while loop condition: skip these types
                 }
                 if (td.getB() != null && td.getB().equalsIgnoreCase("system")) {
                     outputData.add(td.getB());
-                } else if (td.isBasicAttributeB()) {
+                } else if (isBasicAttributeB(td)) {
                     inputData.add(td.getB());
                 }
             }

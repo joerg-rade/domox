@@ -4,6 +4,8 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 8)
 /*
@@ -21,8 +23,8 @@ public class TDR8 extends TypedDependencyRule {
         }
         // if Dependency= nmod:to(A,B) OR nmod:for(A,B) OR nmod:from(A,B) OR nmod:as(A,B)
         // if B=Noun then
-        return (currentTd.nmodTo() || currentTd.nmodFor() || currentTd.nmodFrom() || currentTd.nmodAs())
-                && currentTd.isNounB();
+        return (nmodTo(currentTd) || nmodFor(currentTd) || nmodFrom(currentTd) || nmodAs(currentTd))
+                && isNounB(currentTd);
     }
 
     @Then

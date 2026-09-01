@@ -5,6 +5,9 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.isNsubj;
+import static domox.dom.nlp.TypedDependencyPredicates.xcomp;
+
 @RuleBean
 @Rule(order = 37)
 public class TDR37 extends TypedDependencyRule {
@@ -19,7 +22,7 @@ public class TDR37 extends TypedDependencyRule {
 
         // Spec: Dependencies = nsubj(A,B) OR xcomp(A,B)
         //        if A in {continue, restart, go, repeat}
-        if (currentTd.nsubj() || currentTd.xcomp()) {
+        if (isNsubj(currentTd) || xcomp(currentTd)) {
             String a = currentTd.getA();
             return isControlFlowVerb(a);
         }

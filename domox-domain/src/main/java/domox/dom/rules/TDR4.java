@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.PartOfSpeechType;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 4)
 /*
@@ -23,11 +25,11 @@ public class TDR4 extends TypedDependencyRule {
             return false;
         }
         boolean answer = false;
-        if (currentTd.dobj() || currentTd.iobj() || currentTd.pobj()) {
+        if (dobj(currentTd) || iobj(currentTd) || pobj(currentTd)) {
             // Spec TDR4: A must be VB (base form verb, not VBG/VBN/VBP/VBZ)
             PartOfSpeechType pos = currentTd.getGovernorPos();
-            if (pos == PartOfSpeechType.VB && currentTd.isNounB()) {
-                if (currentTd.isBasicAttributeB() || isBlockedVerb(currentTd.getA())) {
+            if (pos == PartOfSpeechType.VB && isNounB(currentTd)) {
+                if (isBasicAttributeB(currentTd) || isBlockedVerb(currentTd.getA())) {
                     answer = true;
                 }
             }
@@ -37,7 +39,7 @@ public class TDR4 extends TypedDependencyRule {
 
     @Then
     public void then() {
-        if (previousTd != null && previousTd.compound()) {
+        if (previousTd != null && isCompound(previousTd)) {
             result = "compound(" + currentTd.getB() + ") + Compound(" + currentTd.getA() + ")";
         } else {
             result = "dobj(" + currentTd.getB() + ")";
@@ -47,7 +49,7 @@ public class TDR4 extends TypedDependencyRule {
         if (ruleMatches != null && currentTd != null) {
             // B is a basic attribute (guaranteed by when() unless a blocked verb).
             // The owning class is derived from the non-basic-attrib side if possible.
-            if (!currentTd.isBasicAttributeA()) {
+            if (!isBasicAttributeA(currentTd)) {
                 // A is a non-basic-attrib noun → use A as the owning class
                 String className = capitalizeFirstLetter(currentTd.getA());
                 String propertyName = currentTd.getA() + " " + currentTd.getB();
@@ -76,7 +78,7 @@ public class TDR4 extends TypedDependencyRule {
         // For TDR4, the attribute's owning class is typically the subject noun,
         // which would be the dependent of an nsubj dependency in the same sentence.
         // As a fallback, use the governor (A) when it's a noun.
-        if (!currentTd.isBasicAttributeA() && currentTd.isNounA()) {
+        if (!isBasicAttributeA(currentTd) && isNounA(currentTd)) {
             return capitalizeFirstLetter(currentTd.getA());
         }
         return capitalizeFirstLetter(currentTd.getB());

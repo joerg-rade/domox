@@ -4,6 +4,8 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 1)
 /*
@@ -20,8 +22,8 @@ public class TDR1 extends TypedDependencyRule {
         }
 
         boolean answer = false;
-        if (currentTd.nsubj() || currentTd.nsubjpass()) {
-            if (currentTd.isVerbA() && currentTd.isNounB() && !currentTd.isBasicAttributeB()) {
+        if (isNsubj(currentTd) || isNsubjPass(currentTd)) {
+            if (isVerbA(currentTd) && isNounB(currentTd) && !isBasicAttributeB(currentTd)) {
                 answer = true;
             }
         }
@@ -30,7 +32,7 @@ public class TDR1 extends TypedDependencyRule {
 
     @Then
     public void then() {
-        if (previousTd != null && previousTd.compound()) {
+        if (previousTd != null && isCompound(previousTd)) {
             result = "compound(" + currentTd.getB() + ") + Compound(" + currentTd.getA() + ")";
         } else {
             result = "nsubj(" + currentTd.getB() + ")";
@@ -62,7 +64,7 @@ public class TDR1 extends TypedDependencyRule {
      * @return The name of the class.
      */
     protected String determineClassName() {
-        if (previousTd != null && previousTd.compound()) {
+        if (previousTd != null && isCompound(previousTd)) {
             // compound(governor=document, dependent=draft) → "DraftDocument"
             String head = capitalizeFirstLetter(currentTd.getB());
             String modifier = capitalizeFirstLetter(previousTd.getB());

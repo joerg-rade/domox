@@ -7,6 +7,8 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.PartOfSpeechType;
 import domox.dom.nlp.TypedDependency;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 20)
 public class TDR20 extends TypedDependencyRule {
@@ -21,9 +23,9 @@ public class TDR20 extends TypedDependencyRule {
         // Spec: nsubj(Verb, E1) and nsubjpass(VBN, E2) and nmod:to(VBN, E3)
         // currentTd = nsubj(Verb, E1); a nsubjpass(VBN, E2) must exist, and the
         // nmod:to(VBN, E3) must be governed by the same VBN as that nsubjpass
-        if (!currentTd.nsubj()
-                || !currentTd.isVerbA()
-                || !currentTd.isNounB()) {
+        if (!isNsubj(currentTd)
+                || !isVerbA(currentTd)
+                || !isNounB(currentTd)) {
             return false;
         }
         TypedDependency nsubjpass = findNsubjpass(currentTd);
@@ -84,9 +86,9 @@ public class TDR20 extends TypedDependencyRule {
             return null;
         }
         for (TypedDependency td : nsubj.getSentence().getTypedDependencies()) {
-            if (td.nsubjpass()
+            if (isNsubjPass(td)
                     && td.getGovernorPos() == PartOfSpeechType.VBN
-                    && td.isNounB()) {
+                    && isNounB(td)) {
                 return td;
             }
         }
@@ -102,9 +104,9 @@ public class TDR20 extends TypedDependencyRule {
             return null;
         }
         for (TypedDependency td : nsubjpass.getSentence().getTypedDependencies()) {
-            if (td.nmodTo()
+            if (nmodTo(td)
                     && td.getGovernorIndex() == nsubjpass.getGovernorIndex()
-                    && td.isNounB()) {
+                    && isNounB(td)) {
                 return td;
             }
         }

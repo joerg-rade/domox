@@ -5,6 +5,9 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.isNounA;
+import static domox.dom.nlp.TypedDependencyPredicates.nummod;
+
 @RuleBean
 @Rule(order = 25)
 public class TDR25 extends TypedDependencyRule {
@@ -18,7 +21,7 @@ public class TDR25 extends TypedDependencyRule {
         }
         // Spec: nummod(E1, CD) -> cardinalities.add(E1 ">" CD)
         // E1 (governor) must be a noun entity
-        return currentTd.nummod() && currentTd.isNounA();
+        return nummod(currentTd) && isNounA(currentTd);
     }
 
     @Override

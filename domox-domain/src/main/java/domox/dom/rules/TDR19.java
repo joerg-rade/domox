@@ -7,6 +7,8 @@ import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.PartOfSpeechType;
 import domox.dom.nlp.TypedDependency;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 19)
 public class TDR19 extends TypedDependencyRule {
@@ -21,9 +23,9 @@ public class TDR19 extends TypedDependencyRule {
         // Spec: nsubjpass(VBN, E1) and nmod:to(VBN, E2)
         // currentTd = nsubjpass(VBN, E1), and an nmod:to(VBN, E2)
         // dependency governed by the same VBN must exist
-        if (!currentTd.nsubjpass()
+        if (!isNsubjPass(currentTd)
                 || currentTd.getGovernorPos() != PartOfSpeechType.VBN
-                || !currentTd.isNounB()) {
+                || !isNounB(currentTd)) {
             return false;
         }
         return findNmodTo(currentTd) != null;
@@ -61,9 +63,9 @@ public class TDR19 extends TypedDependencyRule {
             return null;
         }
         for (TypedDependency td : nsubjpass.getSentence().getTypedDependencies()) {
-            if (td.nmodTo()
+            if (nmodTo(td)
                     && td.getGovernorIndex() == nsubjpass.getGovernorIndex()
-                    && td.isNounB()) {
+                    && isNounB(td)) {
                 return td;
             }
         }

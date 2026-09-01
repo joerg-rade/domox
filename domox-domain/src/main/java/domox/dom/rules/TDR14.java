@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import static domox.dom.nlp.TypedDependencyPredicates.*;
+
 @RuleBean
 @Rule(order = 14)
 public class TDR14 extends TypedDependencyRule {
@@ -19,12 +21,12 @@ public class TDR14 extends TypedDependencyRule {
         // Spec: nsubj(Verb, E1) & dobj(Verb, E2)
         // currentTd = nsubj(Verb, E1), nextTd = dobj(Verb, E2),
         // both dependencies must be governed by the same Verb
-        return currentTd.nsubj()
-                && currentTd.isVerbA()
-                && currentTd.isNounB()
+        return isNsubj(currentTd)
+                && isVerbA(currentTd)
+                && isNounB(currentTd)
                 && nextTd != null
-                && nextTd.dobj()
-                && nextTd.isNounB()
+                && dobj(nextTd)
+                && isNounB(nextTd)
                 && nextTd.getGovernorIndex() == currentTd.getGovernorIndex();
     }
 
