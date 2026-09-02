@@ -11,9 +11,6 @@ import java.util.List;
 
 public abstract class TypedDependencyRule {
 
-    protected static final List<String> BASIC_ATTRIB =
-            java.util.Arrays.asList("name", "number", "type", "address", "level", "date", "time");
-
     @Given("currentTd")
     protected TypedDependency currentTd;
 
@@ -59,7 +56,6 @@ public abstract class TypedDependencyRule {
 
     /**
      * Phase 1: Analyzes a sentence and creates RuleMatch records for all matching dependencies.
-     * This replaces the old approach of directly creating candidates.
      *
      * @param sentence The sentence to analyze.
      * @return A list of RuleMatch records created (not Candidate objects).

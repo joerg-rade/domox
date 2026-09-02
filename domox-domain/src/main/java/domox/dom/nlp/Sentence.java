@@ -13,8 +13,6 @@ import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.persistence.jpa.applib.types.BlobJpaEmbeddable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +30,6 @@ import java.util.List;
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
 public class Sentence implements Comparable<Sentence> {
-
-    private static final Logger log = LoggerFactory.getLogger(Sentence.class);
 
     @Title
     public String title() {
@@ -66,10 +62,10 @@ public class Sentence implements Comparable<Sentence> {
     @OrderColumn(name = "word_index")
     private List<String> words = new ArrayList<>();
 
-    @Programmatic
-    public String getWord(int index) {
-        return index < words.size() ? words.get(index) : null;
-    }
+//    @Programmatic
+//    public String getWord(int index) {
+//        return index < words.size() ? words.get(index) : null;
+//    }
 
     // region PDF
     @AttributeOverrides({
@@ -112,7 +108,7 @@ public class Sentence implements Comparable<Sentence> {
     }
     //endregion
 
-    @OneToMany(mappedBy = "sentence")
+    @OneToMany(mappedBy = "sentence", cascade = CascadeType.ALL)
     @Getter
     @Setter
     private List<TypedDependency> typedDependencies;

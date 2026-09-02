@@ -1,7 +1,6 @@
 package domox.dom.nlp;
 
-import java.util.Arrays;
-import java.util.Set;
+import java.util.*;
 
 public final class TypedDependencyPredicates {
 
@@ -15,9 +14,6 @@ public final class TypedDependencyPredicates {
 
     private static final PartOfSpeechType[] ADJECTIVE_TYPES = {
             PartOfSpeechType.JJ};
-
-    private static final Set<String> BASIC_ATTRIB = Set.of(
-            "name", "number", "type", "address", "level", "date", "time");
 
     public static boolean isNsubj(TypedDependency td) {
         return td.getType() == TdType.NSUBJ;
@@ -35,14 +31,28 @@ public final class TypedDependencyPredicates {
         return td.getDependentPos() != null && NOUN_TYPES.contains(td.getDependentPos());
     }
 
-    public static boolean isBasicAttributeB(TypedDependency td) {
-        return td.getB() != null && BASIC_ATTRIB.contains(td.getB());
-    }
-
     public static boolean isCompound(TypedDependency td) {
         return td.getType() == TdType.COMPOUND;
     }
 
+    //region BASIC_ATTRIB
+    private static final Set<String> BASIC_ATTRIB = new HashSet<>(Set.of(
+            "name", "number", "type", "address", "level", "date", "time", "owner"));
+
+    /**
+     * Reset to the default set (for testing purposes).
+     */
+    public static void resetBasicAttributes() {
+        BASIC_ATTRIB.clear();
+        BASIC_ATTRIB.addAll(Set.of(
+                "name", "number", "type", "address", "level", "date", "time", "owner"));
+    }
+
+    public static void registerBasicAttributes(Collection<String> attributes) {
+        if (attributes != null) {
+            BASIC_ATTRIB.addAll(attributes);
+        }
+    }
 
     public static boolean isBasicAttributeA(TypedDependency td) {
         final String aName = td.getA();
@@ -50,6 +60,73 @@ public final class TypedDependencyPredicates {
         return BASIC_ATTRIB.contains(aName);
     }
 
+    public static boolean isBasicAttributeB(TypedDependency td) {
+        return td.getB() != null && BASIC_ATTRIB.contains(td.getB());
+    }
+    // end region
+
+    //region ACTION_VERBS & SERVICE_NOUNS
+    private static final Set<String> ACTION_VERBS = new HashSet<>(Set.of(
+            "offer", "provide", "sell", "purchase", "buy", "adopt", "order",
+            "deliver", "train", "groom", "board", "organize", "host",
+            "maintain", "capture", "facilitate", "connect", "partner",
+            "operate", "care", "attract", "allow", "leave", "book"));
+
+    private static final Set<String> SERVICE_NOUNS = new HashSet<>(Set.of(
+            "grooming", "boarding", "daycare", "adoption", "training",
+            "photography", "insurance", "delivery", "socialization",
+            "fashion", "workshop", "event", "class", "service"));
+
+    /**
+     * Reset to the default action vocabularies (for testing purposes).
+     */
+    public static void resetActionVocabularies() {
+        ACTION_VERBS.clear();
+        ACTION_VERBS.addAll(Set.of(
+                "offer", "provide", "sell", "purchase", "buy", "adopt", "order",
+                "deliver", "train", "groom", "board", "organize", "host",
+                "maintain", "capture", "facilitate", "connect", "partner",
+                "operate", "care", "attract", "allow", "leave", "book"));
+        SERVICE_NOUNS.clear();
+        SERVICE_NOUNS.addAll(Set.of(
+                "grooming", "boarding", "daycare", "adoption", "training",
+                "photography", "insurance", "delivery", "socialization",
+                "fashion", "workshop", "event", "class", "service"));
+    }
+
+    public static void registerActionVerbs(Collection<String> verbs) {
+        if (verbs != null) {
+            verbs.forEach(v -> {
+                if (v != null) ACTION_VERBS.add(v.toLowerCase(Locale.ROOT));
+            });
+        }
+    }
+
+    public static void registerServiceNouns(Collection<String> nouns) {
+        if (nouns != null) {
+            nouns.forEach(n -> {
+                if (n != null) SERVICE_NOUNS.add(n.toLowerCase(Locale.ROOT));
+            });
+        }
+    }
+
+    public static boolean isActionVerbA(TypedDependency td) {
+        return td.getA() != null && ACTION_VERBS.contains(td.getA().toLowerCase(Locale.ROOT));
+    }
+
+    public static boolean isActionVerbB(TypedDependency td) {
+        return td.getB() != null && ACTION_VERBS.contains(td.getB().toLowerCase(Locale.ROOT));
+    }
+
+    public static boolean isServiceNounA(TypedDependency td) {
+        return td.getA() != null && SERVICE_NOUNS.contains(td.getA().toLowerCase(Locale.ROOT));
+    }
+
+    public static boolean isServiceNounB(TypedDependency td) {
+        return td.getB() != null && SERVICE_NOUNS.contains(td.getB().toLowerCase(Locale.ROOT));
+    }
+
+    // endregion
     public static boolean isNounA(TypedDependency td) {
         return td.getGovernorPos() != null && NOUN_TYPES.contains(td.getGovernorPos());
     }
@@ -184,5 +261,6 @@ public final class TypedDependencyPredicates {
 
     private TypedDependencyPredicates() {
     }
+
 }
 

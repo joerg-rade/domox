@@ -2,14 +2,7 @@ package domox.dom.rqm;
 
 import domox.DomainModule;
 import jakarta.inject.Named;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -55,7 +48,7 @@ public class Corpus implements Comparable<Corpus> {
     private String title;
 
     @PropertyLayout(sequence = "1")
-    @OneToMany(mappedBy = "corpus")
+    @OneToMany(mappedBy = "corpus", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Document> documents;
 
     @PropertyLayout(sequence = "2")

@@ -17,7 +17,7 @@ import org.jspecify.annotations.NonNull;
 @Named(DomainModule.NAMESPACE + ".RuleMatch")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(
-        cssClassFa = "rupee",
+        cssClassFa = "thumbs-up",
         tableDecorator = TableDecorator.DatatablesNet.class,
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)

@@ -105,7 +105,7 @@ public class Document implements Comparable<Document> {
     private List<Sentence> sentences;
 
     @PropertyLayout(sequence = "6")
-    @ManyToMany(mappedBy = "documents", cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "documents", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "author_document",
             schema = "domox",
@@ -131,7 +131,7 @@ public class Document implements Comparable<Document> {
     }
     //endregion
 
-    @ManyToOne()
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "corpus_id")
     @Programmatic
     private Corpus corpus;

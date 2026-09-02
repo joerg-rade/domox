@@ -55,7 +55,7 @@ causeway:
         # https://stackoverflow.com/a/38983935/56880
 
       credit:
-        - url:  http://causeway.apache.org
+        - url: http://causeway.apache.org
           image: images/apache-causeway/logo-48x48.png
           name: Apache Causeway
 
@@ -92,11 +92,11 @@ spring:
     web-application-type: SERVLET
   datasource:
     driverClassName: org.postgresql.Driver
-  # Exclude Spring Boot 4.0.0-M3 autoconfiguration classes that are incompatible with Spring Boot 3.5.13
-#  autoconfigure:
- #   exclude:
-  #      - org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorsSupplier
-   #     - org.springframework.boot.actuate.autoconfigure.tracing.TracingAutoConfiguration
+    # Exclude Spring Boot 4.0.0-M3 autoconfiguration classes that are incompatible with Spring Boot 3.5.13
+    #  autoconfigure:
+    #   exclude:
+    #      - org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorsSupplier
+    #     - org.springframework.boot.actuate.autoconfigure.tracing.TracingAutoConfiguration
 
   quartz:
     job-store-type: memory
@@ -113,3 +113,10 @@ app:
         validation:
           message: "'{character}' is invalid."
           prohibited-characters: "&%$!"
+
+domox:
+  nlp:
+    # extra action verbs for TDR38 (space- or comma-separated)
+    action-verbs: bath, clip, vaccinate, microchip, adopt
+    # extra service nouns for TDR39
+    service-nouns: bathing, haircut, nail-trimming, dental-care, consultation

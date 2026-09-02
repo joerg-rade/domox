@@ -141,6 +141,7 @@ public class RuleMatches {
         return "String";
     }
 
+    //Actions for UI
     public List<RuleMatch> listAll() {
         return ruleMatchRepository.findAll();
     }

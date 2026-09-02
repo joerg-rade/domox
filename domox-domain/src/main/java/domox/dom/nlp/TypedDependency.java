@@ -2,6 +2,7 @@ package domox.dom.nlp;
 
 import com.deliveredtechnologies.rulebook.NameValueReferable;
 import domox.DomainModule;
+import domox.dom.rules.RuleMatch;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -11,6 +12,7 @@ import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
@@ -41,7 +43,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @PropertyLayout(sequence = "3")
     private TdType type;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "sentence_id")
     @Getter
     @Setter
@@ -62,13 +64,13 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @Column(length = 255)
     @Getter
     @Setter
-    private String governorGloss;      // token A text
+    private String governorGloss;
 
     @Column(length = 255)
     @Getter
     @Setter
     @PropertyLayout(sequence = "2")
-    private String dependentGloss;     // token B text
+    private String dependentGloss;
 
     @Enumerated(EnumType.STRING)
     @Getter
@@ -96,13 +98,19 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
 
     @Programmatic
     public String getA() {
-        return governorGloss;
+        return governorLemma;
     }
 
     @Programmatic
     public String getB() {
-        return dependentGloss;
+        return dependentLemma;
     }
+
+    @OneToMany(mappedBy = "typedDependency", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "typed_dependency_id")
+    @Getter
+    @Setter
+    private List<RuleMatch> ruleMatches;
 
     //region > compareTo, toString
     @Override

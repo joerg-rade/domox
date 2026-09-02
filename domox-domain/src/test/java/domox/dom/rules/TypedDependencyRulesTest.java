@@ -126,8 +126,8 @@ public class TypedDependencyRulesTest {
     @Autowired
     private RuleBook ruleBook;
 
-    @Mock
-    RuleMatches ruleMatches;
+    @Autowired
+    private RuleMatches ruleMatches;
 
     @Mock
     RepositoryService repositoryService;
@@ -145,6 +145,7 @@ public class TypedDependencyRulesTest {
 
         // nsubj(created, document): governor=0 (created), dependent=1 (document)
         TypedDependency td = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
+        // compound(document, draft): governor=1 (document), dependent=2 (draft)
         TypedDependency previousTd = createTypedDependency(sentence, TdType.COMPOUND, 1, 2);
 
         tdr1.currentTd = td;
@@ -155,7 +156,7 @@ public class TypedDependencyRulesTest {
         tdr1.then(); // records the match
 
         List<RuleMatch> matches = tdr1.ruleMatches.findByRuleClassName("TDR1");
-        assertFalse(matches.isEmpty());
+        assertFalse(matches.isEmpty(), "TDR1 should have created a RuleMatch");
         RuleMatch match = matches.getLast();
         assertEquals("DraftDocument", match.getCandidateName());
         assertEquals("ClassCdd", match.getCandidateType());
@@ -361,6 +362,10 @@ public class TypedDependencyRulesTest {
         td.setDependentIndex(dependentIndex);
         td.setGovernorPos(tokenTypes.get(governorIndex));
         td.setDependentPos(tokenTypes.get(dependentIndex));
+        // getA()/getB() read the LEMMA fields — without these the rules see null
+        // text and persist null candidate names.
+        td.setGovernorLemma(tokenTexts.get(governorIndex));
+        td.setDependentLemma(tokenTexts.get(dependentIndex));
         td.setGovernorGloss(tokenTexts.get(governorIndex));
         td.setDependentGloss(tokenTexts.get(dependentIndex));
         sentence.addTypedDependency(td);  // keeps ordered list
