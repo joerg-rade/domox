@@ -6,10 +6,12 @@ import domox.dom.nlp.PartOfSpeechType;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
+import domox.dom.nlp.TypedDependencyPredicates;
 import domox.dom.uml.ClassCandidates;
 import domox.dom.uml.PropertyCandidates;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -56,6 +59,51 @@ public class TypedDependencyRulesTest {
             SpringAwareRuleBookRunner runner = new SpringAwareRuleBookRunner("domox.dom.rules");
             runner.setApplicationContext(applicationContext);
             return runner;
+        }
+
+        /**
+         * Production {@code domox.nlp.*} configuration, mirrored from
+         * {@code domox-webapp/src/main/resources/application.yml}. The test context
+         * never loads that file, so without this bean every {@code NlpProperties}
+         * list stays empty and rules that consult it (TDR27/TDR28/TDR29/TDR30/TDR31/
+         * TDR32/TDR33/TDR34) can never fire.
+         */
+        @Bean
+        public NlpProperties nlpProperties() {
+            NlpProperties props = new NlpProperties();
+            props.setExceptionTerms(List.of(
+                    "error", "fail", "wrong", "invalid", "incorrect", "unable",
+                    "exception", "problem", "issue", "fault", "bug", "crash",
+                    "halt", "stop", "terminate"));
+            props.setUserInputVerbs(List.of(
+                    "input", "enter", "save", "fill", "click", "select", "add",
+                    "record", "store", "process", "validate", "choose", "pick",
+                    "create", "update", "edit", "change", "modify", "remove",
+                    "delete", "discard"));
+            props.setSystemOutputVerbs(List.of(
+                    "display", "output", "retrieve", "show", "view", "print",
+                    "calculate", "update", "delete", "search", "modify", "edit",
+                    "remove", "generate", "prepare", "send", "get", "execute",
+                    "run", "perform", "start", "stop", "finish", "complete"));
+            props.setActionVerbs(List.of(
+                    "get", "send", "prepare", "generate", "calculate", "compute",
+                    "execute", "run", "perform", "start", "stop", "finish",
+                    "complete", "contain", "include", "exclude"));
+            props.setInputPastVerbs(List.of(
+                    "inputted", "entered", "filled", "clicked", "selected", "added",
+                    "recorded", "processed", "validated", "chosen", "picked",
+                    "created", "updated", "edited", "changed", "modified", "removed",
+                    "deleted", "discarded"));
+            props.setOutputPastVerbs(List.of(
+                    "displayed", "outputted", "retrieved", "showed", "viewed",
+                    "printed", "calculated", "updated", "deleted", "searched",
+                    "modified", "edited", "removed", "generated", "prepared",
+                    "sent", "got", "executed", "ran", "performed", "started",
+                    "stopped", "finished", "completed"));
+            props.setReceiveVerbs(List.of(
+                    "receive", "accept", "get", "obtain", "acquire", "redeem",
+                    "collect", "capture", "fetch", "download"));
+            return props;
         }
 
         @Bean
@@ -131,6 +179,21 @@ public class TypedDependencyRulesTest {
 
     @Mock
     RepositoryService repositoryService;
+
+    /**
+     * Seeds the static predicate vocabularies before each test, mirroring what
+     * {@code BasicAttributeCatalog} does at application startup. {@code BASIC_ATTRIB}
+     * starts empty and is only populated from configuration; without this, every
+     * rule that calls {@code isBasicAttributeB(...)} (TDR2, TDR4, TDR6, TDR13, ...)
+     * would see an empty set and never fire.
+     */
+    @BeforeEach
+    void setUp() {
+        TypedDependencyPredicates.resetBasicAttributes();
+        TypedDependencyPredicates.resetActionVocabularies();
+        TypedDependencyPredicates.registerBasicAttributes(Set.of(
+                "name", "number", "type", "address", "level", "date", "time"));
+    }
 
     /**
      * Test TDR1: nsubj with verb and noun (non-basic attribute)
@@ -346,8 +409,6 @@ public class TypedDependencyRulesTest {
     private final Map<Integer, PartOfSpeechType> tokenTypes = new HashMap<>();
     // Holds the text for each token index, used for governor/dependent glosses
     private final Map<Integer, String> tokenTexts = new HashMap<>();
-
-    // ... existing code ...
 
     private void addToken(Sentence sentence, int index, String text, PartOfSpeechType type) {
         tokenTexts.put(index, text);

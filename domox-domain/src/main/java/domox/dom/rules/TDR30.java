@@ -15,18 +15,20 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 @Rule(order = 30)
 public class TDR30 extends TypedDependencyRule {
 
+    private final NlpProperties nlpProperties;
+
+    public TDR30(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
     @Override
     @When
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null || currentTd.getA() == null) {
             return false;
         }
-        // Spec: Dependencies = nmod:by(A,B) OR nmod:agent(A,B) OR nmod:with(A,B)
-        //        if A=VB and A in {inputted, entered, filled, clicked, selected,
-        //                           added, recorded, processed, validated}
         if (nmodBy(currentTd) || nmodAgent(currentTd) || nmodWith(currentTd)) {
-            return isVerbA(currentTd) && isInputPastVerb(currentTd.getA());
+            return isVerbA(currentTd) && nlpProperties.getInputPastVerbs().contains(currentTd.getA().toLowerCase());
         }
         return false;
     }
@@ -34,8 +36,6 @@ public class TDR30 extends TypedDependencyRule {
     @Override
     @Then
     public void then() {
-        // while (TD≠ nmod:by || nmod:agent || nmod:with)
-        //   if (TD.B == attributes) Input_Data.add(B)
         List<String> inputData = new ArrayList<>();
         if (currentTd.getSentence() != null) {
             for (TypedDependency td : currentTd.getSentence().getTypedDependencies()) {
@@ -51,7 +51,6 @@ public class TDR30 extends TypedDependencyRule {
                 ? "Input_Data.add(" + currentTd.getB() + ")"
                 : "Input_Data.add(" + String.join(", ", inputData) + ")";
 
-        // Phase 1: record the match; dependency and sentence come from the @Given fields
         if (ruleMatches != null && currentTd != null) {
             for (String b : inputData) {
                 ruleMatches.create(
@@ -65,17 +64,4 @@ public class TDR30 extends TypedDependencyRule {
             }
         }
     }
-
-    private boolean isInputPastVerb(String verb) {
-        return verb.equalsIgnoreCase("inputted") ||
-                verb.equalsIgnoreCase("entered") ||
-                verb.equalsIgnoreCase("filled") ||
-                verb.equalsIgnoreCase("clicked") ||
-                verb.equalsIgnoreCase("selected") ||
-                verb.equalsIgnoreCase("added") ||
-                verb.equalsIgnoreCase("recorded") ||
-                verb.equalsIgnoreCase("processed") ||
-                verb.equalsIgnoreCase("validated");
-    }
-
 }

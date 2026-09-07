@@ -11,17 +11,20 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 @Rule(order = 33)
 public class TDR33 extends TypedDependencyRule {
 
+    private final NlpProperties nlpProperties;
+
+    public TDR33(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
     @Override
     @When
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null || currentTd.getA() == null) {
             return false;
         }
-        // Spec: Dependencies = nsubj(A,B) OR nmod:by(A,B)
-        //        if A=VB and A in {receive, accept, get, obtain, acquire, redeem}
         if (isNsubj(currentTd) || nmodBy(currentTd)) {
-            return isVerbA(currentTd) && isReceiveVerb(currentTd.getA());
+            return isVerbA(currentTd) && nlpProperties.getReceiveVerbs().contains(currentTd.getA().toLowerCase());
         }
         return false;
     }
@@ -29,12 +32,9 @@ public class TDR33 extends TypedDependencyRule {
     @Override
     @Then
     public void then() {
-        // Spec: if B=System -> User_Action.add(A), else User_Action.add(A)
-        // (both branches are the same, so B does not affect the outcome)
         String verb = currentTd.getA();
         result = "User_Action.add(" + verb + ")";
 
-        // Phase 1: record the match; dependency and sentence come from the @Given fields
         if (ruleMatches != null && currentTd != null) {
             ruleMatches.create(
                     currentTd,
@@ -46,14 +46,4 @@ public class TDR33 extends TypedDependencyRule {
                     result);
         }
     }
-
-    private boolean isReceiveVerb(String verb) {
-        return verb.equalsIgnoreCase("receive") ||
-                verb.equalsIgnoreCase("accept") ||
-                verb.equalsIgnoreCase("get") ||
-                verb.equalsIgnoreCase("obtain") ||
-                verb.equalsIgnoreCase("acquire") ||
-                verb.equalsIgnoreCase("redeem");
-    }
-
 }

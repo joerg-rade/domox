@@ -11,28 +11,27 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 @Rule(order = 32)
 public class TDR32 extends TypedDependencyRule {
 
+    private final NlpProperties nlpProperties;
+
+    public TDR32(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
     @Override
     @When
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null || currentTd.getA() == null || currentTd.getB() == null) {
             return false;
         }
-        // Spec: Dependencies = nsubj(A,B) OR nmod:by(A,B)
         if (isNsubj(currentTd) || nmodBy(currentTd)) {
-            String verbA = currentTd.getA();
+            String verbA = currentTd.getA().toLowerCase();
             String actorB = currentTd.getB();
 
-            // if A=VB and A in {input, enter, fill, click, select, add, submit, choose}
-            // AND B=External Actor -> User_Action.add(A)
-            if (isVerbA(currentTd) && isUserInputVerb(verbA) && isExternalActor(actorB)) {
+            if (isVerbA(currentTd) && nlpProperties.getUserInputVerbs().contains(verbA) && isExternalActor(actorB)) {
                 return true;
             }
 
-            // if A=VB and A in {display, output, retrieve, show, view, print, calculate,
-            // process, update, delete, search, modify, edit, remove}
-            // AND B= System -> System_Actions.add(A)
-            return isVerbA(currentTd) && isSystemOutputVerb(verbA) && isSystem(actorB);
+            return isVerbA(currentTd) && nlpProperties.getSystemOutputVerbs().contains(verbA) && isSystem(actorB);
         }
         return false;
     }
@@ -43,10 +42,9 @@ public class TDR32 extends TypedDependencyRule {
         String verb = currentTd.getA();
         String actor = currentTd.getB();
 
-        if (isUserInputVerb(verb) && isExternalActor(actor)) {
+        if (nlpProperties.getUserInputVerbs().contains(verb.toLowerCase()) && isExternalActor(actor)) {
             result = "User_Action.add(" + verb + ")";
 
-            // Phase 1: record the match; dependency and sentence come from the @Given fields
             if (ruleMatches != null && currentTd != null) {
                 ruleMatches.create(
                         currentTd,
@@ -57,10 +55,9 @@ public class TDR32 extends TypedDependencyRule {
                         null,
                         result);
             }
-        } else if (isSystemOutputVerb(verb) && isSystem(actor)) {
+        } else if (nlpProperties.getSystemOutputVerbs().contains(verb.toLowerCase()) && isSystem(actor)) {
             result = "System_Actions.add(" + verb + ")";
 
-            // Phase 1: record the match; dependency and sentence come from the @Given fields
             if (ruleMatches != null && currentTd != null) {
                 ruleMatches.create(
                         currentTd,
@@ -74,41 +71,11 @@ public class TDR32 extends TypedDependencyRule {
         }
     }
 
-    private boolean isUserInputVerb(String verb) {
-        return verb.equalsIgnoreCase("input") ||
-                verb.equalsIgnoreCase("enter") ||
-                verb.equalsIgnoreCase("fill") ||
-                verb.equalsIgnoreCase("click") ||
-                verb.equalsIgnoreCase("select") ||
-                verb.equalsIgnoreCase("add") ||
-                verb.equalsIgnoreCase("submit") ||
-                verb.equalsIgnoreCase("choose");
-    }
-
-    private boolean isSystemOutputVerb(String verb) {
-        return verb.equalsIgnoreCase("display") ||
-                verb.equalsIgnoreCase("output") ||
-                verb.equalsIgnoreCase("retrieve") ||
-                verb.equalsIgnoreCase("show") ||
-                verb.equalsIgnoreCase("view") ||
-                verb.equalsIgnoreCase("print") ||
-                verb.equalsIgnoreCase("calculate") ||
-                verb.equalsIgnoreCase("process") ||
-                verb.equalsIgnoreCase("update") ||
-                verb.equalsIgnoreCase("delete") ||
-                verb.equalsIgnoreCase("search") ||
-                verb.equalsIgnoreCase("modify") ||
-                verb.equalsIgnoreCase("edit") ||
-                verb.equalsIgnoreCase("remove");
-    }
-
     private boolean isExternalActor(String actor) {
-        // External actor is typically user, customer, etc.
         return !actor.equalsIgnoreCase("system");
     }
 
     private boolean isSystem(String actor) {
         return actor.equalsIgnoreCase("system");
     }
-
 }

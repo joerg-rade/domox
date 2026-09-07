@@ -15,19 +15,21 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 @Rule(order = 28)
 public class TDR28 extends TypedDependencyRule {
 
+    private final NlpProperties nlpProperties;
+
+    public TDR28(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
     @Override
     @When
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null || currentTd.getA() == null) {
             return false;
         }
-        // Spec: Dependencies = nsubj(A,B) OR nsubjpass(A,B) OR dobj(A,B) OR
-        //        iobj(A,B) OR pobj(A,B) OR nmod:to(A,B) OR mark(A,B)
-        //        if A=VB and A in {display, output, retrieve, show, view, print}
         if (isNsubj(currentTd) || isNsubjPass(currentTd) || dobj(currentTd) ||
                 iobj(currentTd) || pobj(currentTd) || nmodTo(currentTd) || mark(currentTd)) {
-            return isVerbA(currentTd) && isOutputVerb(currentTd.getA());
+            return isVerbA(currentTd) && nlpProperties.getSystemOutputVerbs().contains(currentTd.getA().toLowerCase());
         }
         return false;
     }
@@ -35,8 +37,6 @@ public class TDR28 extends TypedDependencyRule {
     @Override
     @Then
     public void then() {
-        // while (TD≠nsubj || nsubjpass || dobj || iobj || pobj || mark)
-        //   if (TD.B == attributes) Output_Data.add(B)
         List<String> outputData = new ArrayList<>();
         if (currentTd.getSentence() != null) {
             for (TypedDependency td : currentTd.getSentence().getTypedDependencies()) {
@@ -53,7 +53,6 @@ public class TDR28 extends TypedDependencyRule {
                 ? "Output_Data.add(" + currentTd.getB() + ")"
                 : "Output_Data.add(" + String.join(", ", outputData) + ")";
 
-        // Phase 1: record the match; dependency and sentence come from the @Given fields
         if (ruleMatches != null && currentTd != null) {
             for (String b : outputData) {
                 ruleMatches.create(
@@ -67,14 +66,4 @@ public class TDR28 extends TypedDependencyRule {
             }
         }
     }
-
-    private boolean isOutputVerb(String verb) {
-        return verb.equalsIgnoreCase("display") ||
-                verb.equalsIgnoreCase("output") ||
-                verb.equalsIgnoreCase("retrieve") ||
-                verb.equalsIgnoreCase("show") ||
-                verb.equalsIgnoreCase("view") ||
-                verb.equalsIgnoreCase("print");
-    }
-
 }

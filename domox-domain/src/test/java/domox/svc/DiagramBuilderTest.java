@@ -7,9 +7,12 @@ import domox.nlp.SentenceTO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -25,7 +28,10 @@ class DiagramBuilderTest {
     @Container
     private static final GenericContainer<?> kroki = new GenericContainer<>("yuzutech/kroki:latest")
             .withExposedPorts(8000)
-            .withEnv("KROKI_PLANTUML_JAVAFLAGS", "-Xmx2g");
+            .withEnv("KROKI_PLANTUML_JAVAFLAGS", "-Xmx2g")
+            .waitingFor(new LogMessageWaitStrategy()
+                    .withRegEx(".*Kroki server started successfully on port 8000.*")
+                    .withStartupTimeout(Duration.ofSeconds(60)));
 
     @BeforeAll
     static void setUpContainers() {

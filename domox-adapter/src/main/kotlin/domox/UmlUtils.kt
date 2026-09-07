@@ -20,7 +20,7 @@ package domox
 
 class UmlUtils {
 
-    fun generateDiagram(pumlCode: String, host: String = "localhost", port: Int = 8000): String {
+    fun generateDiagram(pumlCode: String, host: String = "localhost", port: Int = 8800): String {
         var arg = "{"
         arg += "\"diagram_source\":" + pumlCode + ","
         arg += "\"diagram_type\":" + "\"plantuml\","

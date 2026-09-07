@@ -4,9 +4,15 @@ import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.fuel.json.responseJson
 import com.github.kittinunf.result.Result
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
-class HttpRequest {
+@Component
+@EnableConfigurationProperties(KrokiProperties::class)
+class HttpRequest(
+    private val krokiProperties: KrokiProperties = KrokiProperties(),
+) {
 
     /*
     https://www.url-encode-decode.com/
@@ -53,9 +59,13 @@ class HttpRequest {
     @JvmOverloads
     fun invokePlantUML(arg: String, host: String = "", port: Int = 0): String {
         System.out.println("[invokePlantUML] " + arg)
-        val krokiHost = if (host.isEmpty()) getSystemProperty("kroki.host", "localhost") else host
-        val krokiPort = if (port == 0) getSystemProperty("kroki.port", "8000").toInt() else port
-        val endpoint = "http://" + krokiHost + ":" + krokiPort + "/plantuml"
+        val krokiHost = if (host.isEmpty())
+            getSystemProperty("kroki.host", krokiProperties.host)
+        else host
+        val krokiPort = if (port == 0)
+            getSystemProperty("kroki.port", krokiProperties.port.toString()).toInt()
+        else port
+        val endpoint = "http://" + krokiHost + ":" + krokiPort + "/plantuml/svg"
         val (request, response, result) = endpoint
             .httpPost()
             .set("Accept", Constants.svgMimeType)

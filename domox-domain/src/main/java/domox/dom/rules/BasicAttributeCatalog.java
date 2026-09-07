@@ -1,9 +1,9 @@
 package domox.dom.rules;
 
 import domox.dom.nlp.TypedDependencyPredicates;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -15,40 +15,39 @@ import java.util.Set;
  * Vocabulary of "generic" attribute lemmas treated as attributes rather than entities
  * by the TDR rules (see RULES_EXAMPLES.md, TDR1-TDR13).
  *
- * <p>The vocabulary is the union of a built-in default set and any lemmas from the
- * {@code domox.nlp.basic-attributes} configuration property, so it can be extended at
- * deployment time without recompiling the rules.</p>
+ * <p>The vocabulary is populated from the {@code domox.nlp.basic-attributes}
+ * configuration property, so it can be customized per deployment without
+ * recompiling the rules.</p>
  */
 @Service
 public class BasicAttributeCatalog {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BasicAttributeCatalog.class);
-
-    private static final Set<String> DEFAULT_ATTRIBUTES = Set.of(
-            // original vocabulary
-            "name", "number", "type", "address", "level", "date", "time",
-            // additional generic attribute lemmas that were previously misclassified as entities
-            "id", "code", "status", "description", "title", "label", "value",
-            "amount", "quantity", "size", "color", "email", "phone", "username",
-            "password", "comment", "note", "version", "category", "priority");
-
     private final Set<String> attributes = new HashSet<>();
+    private final NlpProperties nlpProperties;
 
-    public BasicAttributeCatalog(
-            @Value("${domox.nlp.basic-attributes:}") List<String> configured) {
-        attributes.addAll(DEFAULT_ATTRIBUTES);
-        if (configured != null) {
-            configured.stream()
-                    .filter(t -> t != null && !t.isBlank())
-                    .map(t -> t.trim().toLowerCase(Locale.ROOT))
-                    .forEach(attributes::add);
-        }
-        TypedDependencyPredicates.registerBasicAttributes(attributes);
-        LOG.info("BasicAttributeCatalog initialised with {} attribute lemmas", attributes.size());
+    public BasicAttributeCatalog(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
+    @PostConstruct
+    public void init() {
+        addAll(nlpProperties.getBasicAttributes());
     }
 
     public boolean contains(String lemma) {
         return lemma != null && attributes.contains(lemma.toLowerCase(Locale.ROOT));
+    }
+
+    private void addAll(List<String> verbs) {
+        if (verbs != null) {
+            for (String verb : verbs) {
+                String lower = verb.toLowerCase(Locale.ROOT);
+                attributes.add(lower);
+                // Make the same vocabulary available to TypedDependencyPredicates
+                // so that static predicate methods (isBasicAttributeA/B) see it.
+                TypedDependencyPredicates.registerBasicAttributes(Set.of(lower));
+            }
+        }
     }
 
     /** Programmatic extension, e.g. from SeedService or tests. */
@@ -58,5 +57,9 @@ public class BasicAttributeCatalog {
             TypedDependencyPredicates.registerBasicAttributes(Set.of(lemma));
         }
         return added;
+    }
+
+    public boolean isBasicAttribute(String lemma) {
+        return attributes.contains(lemma);
     }
 }

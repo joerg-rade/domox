@@ -116,7 +116,39 @@ app:
 
 domox:
   nlp:
-    # extra action verbs for TDR38 (space- or comma-separated)
-    action-verbs: bath, clip, vaccinate, microchip, adopt
-    # extra service nouns for TDR39
-    service-nouns: bathing, haircut, nail-trimming, dental-care, consultation
+    auxiliary-verbs: be, am, is, are, was, were, been, being, have, has, had, having, do, does, did, doing
+    modal-verbs: can, could, may, might, shall, should, will, would, must
+    # TDR27
+    user-input-verbs: input, enter, save, fill, click, select, add, record, store, process, validate, choose, pick, create, update, edit, change, modify, remove, delete, discard
+    # TDR28
+    system-output-verbs: display, output, retrieve, show, view, print, calculate, update, delete, search, modify, edit, remove, generate, prepare, send, get, execute, run, perform, start, stop, finish, complete
+    # TDR29
+    action-verbs: get, send, prepare, generate, calculate, compute, execute, run, perform, start, stop, finish, complete, contain, include, exclude
+    # TDR30 — past-tense forms of user-input verbs
+    input-past-verbs: inputted, entered, filled, clicked, selected, added, recorded, processed, validated, chosen, picked, created, updated, edited, changed, modified, removed, deleted, discarded
+    # TDR31 — past-tense forms of system-output verbs
+    output-past-verbs: displayed, outputted, retrieved, showed, viewed, printed, calculated, updated, deleted, searched, modified, edited, removed, generated, prepared, sent, got, executed, ran, performed, started, stopped, finished, completed
+    #TDR32
+    # user-input-verbs, system-output-verbs,
+    # TDR33
+    receive-verbs: receive, accept, get, obtain, acquire, redeem, collect, capture, fetch, download
+    # TDR34
+    exception-terms: error, fail, wrong, invalid, incorrect, unable, exception, problem, issue, fault, bug, crash, halt, stop, terminate
+    # TDR37
+    control-flow-verbs: continue, restart, go, repeat, cancel, exit, quit
+    # TDR38
+    customer-actors: user, customer, owner, person, people, shopper, client, buyer, visitor, consumer, subscriber, member, guest
+    # TDRxx
+    control-flow-terms: next, previous, back, forward
+    # TDR39 - generic service concepts (domain-specific service nouns are detected via negation)
+    service-nouns: service, product, booking, reservation, subscription, membership, shipment, delivery
+    # TDR4/TDR5 — verbs whose direct-object nouns become attributes even when not basic
+    blocked-verbs: entered, inputted, saved, added, has
+    basic-attributes: name, number, type, address, level, date, time,
+                        id, code, status, description, title, label, value,
+                        amount, quantity, size, color, email, phone, username,
+                        password, comment, note, version, category, priority, 
+                        created-date, modified-date
+  kroki:
+    host: localhost
+    port: 8001

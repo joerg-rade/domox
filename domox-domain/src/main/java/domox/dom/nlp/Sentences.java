@@ -24,15 +24,18 @@ public class Sentences {
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
     private final SentenceRepository sentenceRepository;
+    private final DiagramBuilder diagramBuilder;
 
     @Inject
     public Sentences(
             RepositoryService repositoryService,
             FactoryService factoryService,
-            SentenceRepository sentenceRepository) {
+            SentenceRepository sentenceRepository,
+            DiagramBuilder diagramBuilder) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.sentenceRepository = sentenceRepository;
+        this.diagramBuilder = diagramBuilder;
     }
 
     @ActionLayout(sequence = "1")
@@ -70,7 +73,7 @@ public class Sentences {
     @Programmatic
     public void initDiagram(SentenceTO sentenceTO, Sentence sentence) {
         //TODO: pull Diagram building back in, in order to avoid duplication of Dependency+POS
-        final byte[] diagram = new DiagramBuilder().buildTypedDependencyDiagram(sentenceTO);
+        final byte[] diagram = diagramBuilder.buildTypedDependencyDiagram(sentenceTO);
         final String fileName = sentence.title() + ".pdf";
         sentence.updateImageFromBytes(diagram, fileName);
     }

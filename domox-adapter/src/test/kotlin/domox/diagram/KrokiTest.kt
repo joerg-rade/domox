@@ -3,6 +3,7 @@ package domox.diagram
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
@@ -17,17 +18,21 @@ class KrokiTest {
 
     companion object {
         private val KROKI_IMAGE = DockerImageName.parse("yuzutech/kroki")
-        
+        private const val PORT = 8000
+
         @Container
         @JvmStatic
         val kroki: GenericContainer<*> = GenericContainer(KROKI_IMAGE)
-            .withExposedPorts(8000)
+            .withExposedPorts(PORT)
+            .waitingFor(LogMessageWaitStrategy()
+                .withRegEx(".*Kroki server started successfully on port $PORT.*")
+                .withStartupTimeout(java.time.Duration.ofSeconds(60)))
     }
 
     @Test
     @Throws(Exception::class)
     fun testKrokiContainer() {
-        val krokiUrl = "http://" + kroki.host + ":" + kroki.getMappedPort(8000) + "/plantuml/svg/"
+        val krokiUrl = "http://" + kroki.host + ":" + kroki.getMappedPort(PORT) + "/plantuml/svg/"
 
         // Example PlantUML diagram
         val plantUmlCode = "@startuml\nAlice -> Bob: Hello\n@enduml"

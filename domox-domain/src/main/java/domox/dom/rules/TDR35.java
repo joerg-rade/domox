@@ -18,7 +18,6 @@ public class TDR35 extends TypedDependencyRule {
     @Override
     @When
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null) {
             return false;
         }
@@ -37,33 +36,29 @@ public class TDR35 extends TypedDependencyRule {
     @Override
     @Then
     public void then() {
-        // Determine which branch of the spec fired
         String keyword;
         boolean skipAdvmod;
         if (advcl(currentTd) || (mark(currentTd) && isIf(currentTd.getB()))) {
             keyword = "if";
-            skipAdvmod = true;      // while (TD≠advmod)
+            skipAdvmod = true;
         } else if (advmod(currentTd) && isThen(currentTd.getB()) && hasElseAdvmod(currentTd)) {
             keyword = "then";
-            skipAdvmod = true;      // while (TD≠advmod)
+            skipAdvmod = true;
         } else {
             keyword = "else";
-            skipAdvmod = false;     // while (TD≠NULL)
+            skipAdvmod = false;
         }
 
-        // System_Actions.add("keyword" + dobj.B + dobj.A)
         String a = currentTd.getA();
         String b = currentTd.getB();
         String keywordAction = "System_Actions.add(\"" + keyword + "\" + " + (b != null ? b : "") + " + " + (a != null ? a : "") + ")";
 
-        // while (TD≠advmod | NULL)
-        //   if (TD.B == attributes) System_Actions.add(B)
         List<String> attributeNames = new ArrayList<>();
         List<String> attributeActions = new ArrayList<>();
         if (currentTd.getSentence() != null) {
             for (TypedDependency td : currentTd.getSentence().getTypedDependencies()) {
                 if (skipAdvmod && advmod(td)) {
-                    continue; // while loop condition
+                    continue;
                 }
                 if (isBasicAttributeB(td)) {
                     attributeNames.add(td.getB());
@@ -77,7 +72,6 @@ public class TDR35 extends TypedDependencyRule {
             result += ", " + String.join(", ", attributeActions);
         }
 
-        // Phase 1: record the matches; dependency and sentence come from the @Given fields
         if (ruleMatches != null && currentTd != null) {
             ruleMatches.create(
                     currentTd,
@@ -112,10 +106,6 @@ public class TDR35 extends TypedDependencyRule {
         return term != null && term.equalsIgnoreCase("else");
     }
 
-    /**
-     * Checks whether the sentence contains an advmod dependency whose dependent
-     * is "else" (used by the "then ... and ... else" branch of the spec).
-     */
     private boolean hasElseAdvmod(TypedDependency current) {
         if (current == null || current.getSentence() == null) {
             return false;
@@ -127,5 +117,4 @@ public class TDR35 extends TypedDependencyRule {
         }
         return false;
     }
-
 }

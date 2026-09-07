@@ -15,6 +15,12 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 @Rule(order = 27)
 public class TDR27 extends TypedDependencyRule {
 
+    private final NlpProperties nlpProperties;
+
+    public TDR27(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
     @Override
     @When
     public boolean when() {
@@ -24,10 +30,10 @@ public class TDR27 extends TypedDependencyRule {
         }
         // Spec: Dependencies = nsubj(A,B) OR nsubjpass(A,B) OR dobj(A,B) OR
         //        iobj(A,B) OR pobj(A,B) OR nmod:to(A,B) OR mark(A,B)
-        //        if A=VB and A in {input, enter, fill, click, select, add, record, process, validate}
+        //        if A=VB and A in configured user-input-verbs
         if (isNsubj(currentTd) || isNsubjPass(currentTd) || dobj(currentTd) ||
                 iobj(currentTd) || pobj(currentTd) || nmodTo(currentTd) || mark(currentTd)) {
-            return isVerbA(currentTd) && isInputVerb(currentTd.getA());
+            return isVerbA(currentTd) && nlpProperties.getUserInputVerbs().contains(currentTd.getA().toLowerCase());
         }
         return false;
     }
@@ -67,17 +73,4 @@ public class TDR27 extends TypedDependencyRule {
             }
         }
     }
-
-    private boolean isInputVerb(String verb) {
-        return verb.equalsIgnoreCase("input") ||
-                verb.equalsIgnoreCase("enter") ||
-                verb.equalsIgnoreCase("fill") ||
-                verb.equalsIgnoreCase("click") ||
-                verb.equalsIgnoreCase("select") ||
-                verb.equalsIgnoreCase("add") ||
-                verb.equalsIgnoreCase("record") ||
-                verb.equalsIgnoreCase("process") ||
-                verb.equalsIgnoreCase("validate");
-    }
-
 }

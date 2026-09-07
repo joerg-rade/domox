@@ -5,14 +5,18 @@ import domox.nlp.SentenceTO
 import org.apache.batik.transcoder.TranscoderInput
 import org.apache.batik.transcoder.TranscoderOutput
 import org.apache.fop.svg.PDFTranscoder
+import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
 import java.io.StringReader
 
-class DiagramBuilder {
+@Component
+class DiagramBuilder @JvmOverloads constructor(
+    private val httpRequest: HttpRequest = HttpRequest(),
+) {
 
     fun buildTypedDependencyDiagram(sentence: SentenceTO): ByteArray {
         val pumlCode = ColoredPlantUmlMindmapGenerator(sentence).generateMindmap()
-        val svgDiagram = HttpRequest().invokePlantUML(pumlCode)
+        val svgDiagram = httpRequest.invokePlantUML(pumlCode)
         return convertSvgToPdf(svgDiagram)
     }
 

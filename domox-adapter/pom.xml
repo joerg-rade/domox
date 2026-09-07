@@ -138,6 +138,12 @@
             <artifactId>spring-context</artifactId>
             <scope>compile</scope>
         </dependency>
+        <!-- Spring Boot configuration properties (@ConfigurationProperties) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-test-junit5</artifactId>
@@ -290,6 +296,11 @@
                         <artifactId>kotlin-maven-lombok</artifactId>
                         <version>${kotlin.version}</version>
                     </dependency>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
                 </dependencies>
                 <configuration>
                     <args>
@@ -297,6 +308,7 @@
                     </args>
                     <compilerPlugins>
                         <plugin>lombok</plugin>
+                        <plugin>spring</plugin>
                     </compilerPlugins>
                 </configuration>
                 <executions>
@@ -306,6 +318,7 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
+                        <configuration/>
                     </execution>
                     <execution>
                         <id>test-compile</id>

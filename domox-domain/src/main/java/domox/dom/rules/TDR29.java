@@ -15,19 +15,21 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 @Rule(order = 29)
 public class TDR29 extends TypedDependencyRule {
 
+    private final NlpProperties nlpProperties;
+
+    public TDR29(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
     @Override
     @When
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null || currentTd.getA() == null) {
             return false;
         }
-        // Spec: Dependencies = nsubj(A,B) OR nsubjpass(A,B) OR dobj(A,B) OR
-        //        iobj(A,B) OR pobj(A,B) OR nmod:to(A,B) OR mark(A,B)
-        //        if A=VB AND A in {get, send, prepare}
         if (isNsubj(currentTd) || isNsubjPass(currentTd) || dobj(currentTd) ||
                 iobj(currentTd) || pobj(currentTd) || nmodTo(currentTd) || mark(currentTd)) {
-            return isVerbA(currentTd) && isActionVerb(currentTd.getA());
+            return isVerbA(currentTd) && nlpProperties.getActionVerbs().contains(currentTd.getA().toLowerCase());
         }
         return false;
     }
@@ -35,21 +37,13 @@ public class TDR29 extends TypedDependencyRule {
     @Override
     @Then
     public void then() {
-        // Spec:
-        //   while (TD≠nsubj || nsubjpass || dobj || iobj || pobj || mark)
-        //     if (B == 'system')      -> Output_Data.add(B)
-        //     else if (B != 'system') -> Input_Data.add(B)
-        //
-        // Process all dependencies in the sentence that are NOT one of the
-        // excluded types; check B == 'system' FIRST (not gated by attributes),
-        // and collect matching B's into their respective lists.
         List<String> outputData = new ArrayList<>();
         List<String> inputData = new ArrayList<>();
         if (currentTd.getSentence() != null) {
             for (TypedDependency td : currentTd.getSentence().getTypedDependencies()) {
                 if (isNsubj(td) || isNsubjPass(td) || dobj(td) || iobj(td) ||
                         pobj(td) || mark(td)) {
-                    continue; // while loop condition: skip these types
+                    continue;
                 }
                 if (td.getB() != null && td.getB().equalsIgnoreCase("system")) {
                     outputData.add(td.getB());
@@ -66,7 +60,6 @@ public class TDR29 extends TypedDependencyRule {
             result = "Input_Data/Output_Data.add(" + currentTd.getB() + ")";
         }
 
-        // Phase 1: record the matches; dependency and sentence come from the @Given fields
         if (ruleMatches != null && currentTd != null) {
             for (String b : outputData) {
                 ruleMatches.create(
@@ -90,11 +83,4 @@ public class TDR29 extends TypedDependencyRule {
             }
         }
     }
-
-    private boolean isActionVerb(String verb) {
-        return verb.equalsIgnoreCase("get") ||
-                verb.equalsIgnoreCase("send") ||
-                verb.equalsIgnoreCase("prepare");
-    }
-
 }

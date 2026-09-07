@@ -11,15 +11,18 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 @Rule(order = 34)
 public class TDR34 extends TypedDependencyRule {
 
+    private final NlpProperties nlpProperties;
+
+    public TDR34(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
     @Override
     @When
     public boolean when() {
-        // Guard against null currentTd when not in FactMap
         if (currentTd == null) {
             return false;
         }
-        // Spec: Dependencies = xcomp(A,B) OR amod(A,B) OR neg(A,B)
-        //        if A || B in {error, fail, wrong, invalid, incorrect, not}
         if (xcomp(currentTd) || amod(currentTd) || neg(currentTd)) {
             String a = currentTd.getA();
             String b = currentTd.getB();
@@ -31,12 +34,10 @@ public class TDR34 extends TypedDependencyRule {
     @Override
     @Then
     public void then() {
-        // Spec: Exceptions.add(B + A)
         String a = currentTd.getA();
         String b = currentTd.getB();
         result = "Exceptions.add(" + b + " " + a + ")";
 
-        // Phase 1: record the match; dependency and sentence come from the @Given fields
         if (ruleMatches != null && currentTd != null) {
             ruleMatches.create(
                     currentTd,
@@ -50,13 +51,6 @@ public class TDR34 extends TypedDependencyRule {
     }
 
     private boolean isExceptionTerm(String term) {
-        return term != null && (
-                term.equalsIgnoreCase("error") ||
-                        term.equalsIgnoreCase("fail") ||
-                        term.equalsIgnoreCase("wrong") ||
-                        term.equalsIgnoreCase("invalid") ||
-                        term.equalsIgnoreCase("incorrect") ||
-                        term.equalsIgnoreCase("not"));
+        return term != null && nlpProperties.getExceptionTerms().contains(term.toLowerCase());
     }
-
 }

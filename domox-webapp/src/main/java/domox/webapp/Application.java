@@ -3,9 +3,11 @@ package domox.webapp;
 import org.apache.causeway.core.config.presets.CausewayPresets;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan("domox")
 @Import({AppManifest.class})
 public class Application /*extends SpringBootServletInitializer*/ {
 

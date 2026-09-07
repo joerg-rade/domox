@@ -35,17 +35,14 @@ public final class TypedDependencyPredicates {
         return td.getType() == TdType.COMPOUND;
     }
 
-    //region BASIC_ATTRIB
-    private static final Set<String> BASIC_ATTRIB = new HashSet<>(Set.of(
-            "name", "number", "type", "address", "level", "date", "time", "owner"));
+    //region BASIC_ATTRIB (populated from config by BasicAttributeCatalog)
+    private static final Set<String> BASIC_ATTRIB = new HashSet<>();
 
     /**
-     * Reset to the default set (for testing purposes).
+     * Reset to empty set (for testing purposes).
      */
     public static void resetBasicAttributes() {
         BASIC_ATTRIB.clear();
-        BASIC_ATTRIB.addAll(Set.of(
-                "name", "number", "type", "address", "level", "date", "time", "owner"));
     }
 
     public static void registerBasicAttributes(Collection<String> attributes) {
@@ -65,48 +62,35 @@ public final class TypedDependencyPredicates {
     }
     // end region
 
-    //region ACTION_VERBS & SERVICE_NOUNS
-    private static final Set<String> ACTION_VERBS = new HashSet<>(Set.of(
-            "offer", "provide", "sell", "purchase", "buy", "adopt", "order",
-            "deliver", "train", "groom", "board", "organize", "host",
-            "maintain", "capture", "facilitate", "connect", "partner",
-            "operate", "care", "attract", "allow", "leave", "book"));
-
-    private static final Set<String> SERVICE_NOUNS = new HashSet<>(Set.of(
-            "grooming", "boarding", "daycare", "adoption", "training",
-            "photography", "insurance", "delivery", "socialization",
-            "fashion", "workshop", "event", "class", "service"));
+    //region ACTION_VERBS & SERVICE_NOUNS (populated from config by ActionVocabularyCatalog)
+    private static final Set<String> ACTION_VERBS = new HashSet<>();
+    private static final Set<String> SERVICE_NOUNS = new HashSet<>();
 
     /**
-     * Reset to the default action vocabularies (for testing purposes).
+     * Reset to empty sets (for testing purposes).
      */
     public static void resetActionVocabularies() {
         ACTION_VERBS.clear();
-        ACTION_VERBS.addAll(Set.of(
-                "offer", "provide", "sell", "purchase", "buy", "adopt", "order",
-                "deliver", "train", "groom", "board", "organize", "host",
-                "maintain", "capture", "facilitate", "connect", "partner",
-                "operate", "care", "attract", "allow", "leave", "book"));
         SERVICE_NOUNS.clear();
-        SERVICE_NOUNS.addAll(Set.of(
-                "grooming", "boarding", "daycare", "adoption", "training",
-                "photography", "insurance", "delivery", "socialization",
-                "fashion", "workshop", "event", "class", "service"));
     }
 
     public static void registerActionVerbs(Collection<String> verbs) {
         if (verbs != null) {
-            verbs.forEach(v -> {
-                if (v != null) ACTION_VERBS.add(v.toLowerCase(Locale.ROOT));
-            });
+            for (String verb : verbs) {
+                if (verb != null) {
+                    ACTION_VERBS.add(verb.toLowerCase(Locale.ROOT));
+                }
+            }
         }
     }
 
     public static void registerServiceNouns(Collection<String> nouns) {
         if (nouns != null) {
-            nouns.forEach(n -> {
-                if (n != null) SERVICE_NOUNS.add(n.toLowerCase(Locale.ROOT));
-            });
+            for (String noun : nouns) {
+                if (noun != null) {
+                    SERVICE_NOUNS.add(noun.toLowerCase(Locale.ROOT));
+                }
+            }
         }
     }
 
@@ -125,8 +109,8 @@ public final class TypedDependencyPredicates {
     public static boolean isServiceNounB(TypedDependency td) {
         return td.getB() != null && SERVICE_NOUNS.contains(td.getB().toLowerCase(Locale.ROOT));
     }
-
     // endregion
+
     public static boolean isNounA(TypedDependency td) {
         return td.getGovernorPos() != null && NOUN_TYPES.contains(td.getGovernorPos());
     }
