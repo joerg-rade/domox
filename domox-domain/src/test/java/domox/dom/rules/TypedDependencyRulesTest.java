@@ -2,11 +2,7 @@ package domox.dom.rules;
 
 import com.deliveredtechnologies.rulebook.model.RuleBook;
 import com.deliveredtechnologies.rulebook.spring.SpringAwareRuleBookRunner;
-import domox.dom.nlp.PartOfSpeechType;
-import domox.dom.nlp.Sentence;
-import domox.dom.nlp.TdType;
-import domox.dom.nlp.TypedDependency;
-import domox.dom.nlp.TypedDependencyPredicates;
+import domox.dom.nlp.*;
 import domox.dom.uml.ClassCandidates;
 import domox.dom.uml.PropertyCandidates;
 import org.apache.causeway.applib.services.factory.FactoryService;
@@ -14,7 +10,6 @@ import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -24,11 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -145,10 +136,15 @@ public class TypedDependencyRulesTest {
                             .collect(Collectors.toList()));
             return repo;
         }
-    }
 
-    @Autowired
-    private ApplicationContext applicationContext;
+        @Bean
+        public domox.dom.nlp.SentenceRepository sentenceRepository() {
+            domox.dom.nlp.SentenceRepository repo =
+                    Mockito.mock(domox.dom.nlp.SentenceRepository.class);
+            Mockito.when(repo.findAll()).thenReturn(new ArrayList<>());
+            return repo;
+        }
+    }
 
     @Autowired
     private TDR1 tdr1;
@@ -173,12 +169,6 @@ public class TypedDependencyRulesTest {
 
     @Autowired
     private RuleBook ruleBook;
-
-    @Autowired
-    private RuleMatches ruleMatches;
-
-    @Mock
-    RepositoryService repositoryService;
 
     /**
      * Seeds the static predicate vocabularies before each test, mirroring what

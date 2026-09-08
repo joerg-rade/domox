@@ -24,6 +24,7 @@ public class ActionCatalog {
         addAll(nlpProperties.getOutputPastVerbs());
         addAll(nlpProperties.getReceiveVerbs());
         addAll(nlpProperties.getControlFlowVerbs());
+        addAll(nlpProperties.getBlockedVerbs());
     }
 
     private void addAll(List<String> verbs) {

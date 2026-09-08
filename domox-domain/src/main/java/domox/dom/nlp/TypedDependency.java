@@ -47,12 +47,13 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @JoinColumn(name = "sentence_id")
     @Getter
     @Setter
-    @Programmatic
+    @PropertyLayout(sequence = "3")
     private Sentence sentence;
 
     @Column(nullable = false)
     @Getter
     @Setter
+    @PropertyLayout(sequence = "6")
     private int governorIndex;
 
     @Column(nullable = false)
@@ -61,12 +62,12 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @PropertyLayout(sequence = "1")
     private int dependentIndex;
 
-    @Column(length = 255)
+    @Column
     @Getter
     @Setter
     private String governorGloss;
 
-    @Column(length = 255)
+    @Column
     @Getter
     @Setter
     @PropertyLayout(sequence = "2")
@@ -84,13 +85,13 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @Programmatic
     private PartOfSpeechType dependentPos;
 
-    @Column(length = 255)
+    @Column
     @Getter
     @Setter
     @PropertyLayout(sequence = "4")
     private String governorLemma;
 
-    @Column(length = 255)
+    @Column
     @Getter
     @Setter
     @PropertyLayout(sequence = "5")

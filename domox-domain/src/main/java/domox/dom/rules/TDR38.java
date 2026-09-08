@@ -5,31 +5,37 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
-import java.util.Locale;
-import java.util.Set;
+import java.util.List;
 
 import static domox.dom.nlp.TypedDependencyPredicates.*;
 
 /**
- * TDR38 — Business Action Detection (NEW, not included in RULES_EXAMPLES.md)
+ * TDR38 — Domain Action Detection (generic, no whitelist needed)
  *
  * <p>Remedy for the "bottom line" gap of TDR27-TDR37: those rules only match
  * closed, IT-flavoured verb sets (input/output/validate/...), so business-level
  * actions such as "offer", "provide", "sell" or "train" are never detected.</p>
  *
- * <p>This rule fires on any dependency whose governor (A) is a verb from the
- * registered action vocabulary (see {@link ActionCatalog}, extendable via
- * {@code domox.nlp.action-verbs}). When the dependency type exposes the
- * actor (subject/agent) as B, it is recorded as the related candidate.</p>
+ * <p>This rule fires on any dependency whose governor (A) is a verb that is
+ * <em>not</em> in any of the technical verb lists configured in
+ * {@code domox.nlp.*} (see {@link ActionCatalog#isDomainAction(String)}).
+ * When the dependency type exposes the actor (subject/agent) as B, the actor
+ * is checked against the configurable {@code domox.nlp.customer-actors} list
+ * to determine whether the action is user-initiated or system-initiated.</p>
  */
 @RuleBean
 @Rule(order = 38)
 public class TDR38 extends TypedDependencyRule {
 
-    /** Actors on the customer side; everything else is treated as business/system. */
-    private static final Set<String> CUSTOMER_ACTORS = Set.of(
-            "user", "customer", "owner", "person", "people", "shopper",
-            "client", "buyer", "visitor");
+    private final ActionCatalog actionCatalog;
+    private final List<String> customerActors;
+
+    public TDR38(ActionCatalog actionCatalog, NlpProperties nlpProperties) {
+        this.actionCatalog = actionCatalog;
+        this.customerActors = nlpProperties.getCustomerActors() != null
+                ? nlpProperties.getCustomerActors()
+                : List.of();
+    }
 
     @Override
     @When
@@ -44,7 +50,8 @@ public class TDR38 extends TypedDependencyRule {
                 nmodWith(currentTd) || nmodTo(currentTd) || nmodFor(currentTd))) {
             return false;
         }
-        return isVerbA(currentTd) && isActionVerbA(currentTd);
+        // A must be a verb and must NOT be a technical (non-domain) verb
+        return isVerbA(currentTd) && actionCatalog.isDomainAction(currentTd.getA());
     }
 
     @Override
@@ -54,7 +61,7 @@ public class TDR38 extends TypedDependencyRule {
         String actor = currentTd.getB();
 
         boolean customerAction = actor != null &&
-                CUSTOMER_ACTORS.contains(actor.toLowerCase(Locale.ROOT));
+                customerActors.stream().anyMatch(a -> a.equalsIgnoreCase(actor));
         String candidateType = customerAction ? "User_Action" : "System_Actions";
         result = candidateType + ".add(" + verb + ")";
 
@@ -64,7 +71,7 @@ public class TDR38 extends TypedDependencyRule {
                     currentTd,
                     getRuleName(),
                     candidateType,
-                    capitalizeFirstLetter(verb),
+                    verb,
                     // Actor (subject/agent) when the dependency exposes one
                     actor != null ? "Actor" : null,
                     actor != null ? capitalizeFirstLetter(actor) : null,

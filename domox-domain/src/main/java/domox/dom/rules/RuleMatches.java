@@ -1,6 +1,8 @@
 package domox.dom.rules;
 
 import domox.DomainModule;
+import domox.dom.nlp.Sentence;
+import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.uml.Candidate;
 import domox.dom.uml.ClassCandidates;
@@ -9,10 +11,15 @@ import domox.dom.uml.PropertyCandidates;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import org.apache.causeway.applib.annotation.Action;
+import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.DomainServiceLayout;
+import org.apache.causeway.applib.annotation.MemberSupport;
+import org.apache.causeway.applib.annotation.ParameterLayout;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
@@ -28,6 +35,7 @@ public class RuleMatches {
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
     private final RuleMatchRepository ruleMatchRepository;
+    private final SentenceRepository sentenceRepository;
     private final ClassCandidates classCandidates;
     private final PropertyCandidates propertyCandidates;
 
@@ -36,11 +44,13 @@ public class RuleMatches {
             RepositoryService repositoryService,
             FactoryService factoryService,
             RuleMatchRepository ruleMatchRepository,
+            SentenceRepository sentenceRepository,
             ClassCandidates classCandidates,
             PropertyCandidates propertyCandidates) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatchRepository = ruleMatchRepository;
+        this.sentenceRepository = sentenceRepository;
         this.classCandidates = classCandidates;
         this.propertyCandidates = propertyCandidates;
     }
@@ -148,6 +158,20 @@ public class RuleMatches {
 
     public List<RuleMatch> findByRuleClassName(String ruleClassName) {
         return ruleMatchRepository.findByRuleClassName(ruleClassName);
+    }
+
+    @Action(semantics = SemanticsOf.SAFE)
+    @ActionLayout(sequence = "2.5", named = "List By Sentence")
+    public List<RuleMatch> listBySentence(
+            @ParameterLayout(named = "Sentence")
+            final Sentence sentence) {
+        return ruleMatchRepository.findByTypedDependency_Sentence(sentence);
+    }
+
+    // Provide choices for the 'sentence' parameter
+    @MemberSupport
+    public List<Sentence> choices0ListBySentence() {
+        return sentenceRepository.findAll();
     }
 
     public void deleteAll() {

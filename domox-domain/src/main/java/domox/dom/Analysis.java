@@ -4,10 +4,11 @@ import domox.DomainModule;
 import domox.FileUtil;
 import domox.dom.nlp.Sentence;
 import domox.dom.rqm.Author;
+import domox.dom.rqm.Document;
 import domox.dom.rqm.Documents;
 import domox.dom.rules.RuleMatch;
+import domox.dom.rules.RuleMatches;
 import domox.dom.rules.TypedDependencyRule;
-import domox.dom.rqm.Document;
 import domox.nlp.DocumentTO;
 import domox.svc.DocumentAdapter;
 import jakarta.inject.Inject;
@@ -27,20 +28,23 @@ import java.util.List;
 public class Analysis {
     private static final Logger log = LoggerFactory.getLogger(Analysis.class);
 
-    @Inject
-    private RepositoryService repositoryService;
-
-    @Inject
-    private Documents documents;
-
+    private final RepositoryService repositoryService;
+    private final Documents documents;
+    private final RuleMatches ruleMatches;
     private final List<TypedDependencyRule> rules;
 
     @Inject
-    public Analysis(List<TypedDependencyRule> rules) {
+    public Analysis(RepositoryService repositoryService,
+                    Documents documents,
+                    RuleMatches ruleMatches,
+                    List<TypedDependencyRule> rules) {
+        this.repositoryService = repositoryService;
+        this.documents = documents;
+        this.ruleMatches = ruleMatches;
         this.rules = rules;
     }
 
-    @Action
+    @Programmatic
     public void analyzeDocument(
             @ParameterLayout(named = "Document") final Document document) {
         log.info("Starting analysis phase for document: {}", document.getTitle());
@@ -48,17 +52,14 @@ public class Analysis {
         // Apply each TypedDependencyRule to each sentence
         for (Sentence sentence : document.getSentences()) {
             for (TypedDependencyRule rule : rules) {   // inject all TDR beans
-                List<RuleMatch> found = rule.analyzeAndMatch(sentence);
-                log.info("Rule {} on sentence {} over {} deps -> {} rules matched",
-                        rule.getRuleName(), sentence.getId(),
-                        sentence.getTypedDependencies().size(), found.size());
+                rule.analyzeAndMatch(sentence);
             }
         }
     }
 
     @Action()
     @ActionLayout(sequence = "5", cssClassFa = "play")
-    public Document loadFileSample() {
+    public List<RuleMatch> loadFileSample() {
         final String title = "Pet Shop Use Cases";
         final String filename = "PetShop_UseCases.txt";
         final String txtContent = new FileUtil().readFileFromResources(filename);
@@ -66,7 +67,9 @@ public class Analysis {
         final Author author = new Author();
         final List<Author> authors = new ArrayList<>();
         authors.add(author);
-        return build(title, filename, content, authors);
+        final Document document = build(title, filename, content, authors);
+        analyzeDocument(document);
+        return ruleMatches.listAll();
     }
 
     private Document build(String title, String url, Clob content, List<Author> authors) {

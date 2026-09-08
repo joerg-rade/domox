@@ -33,7 +33,9 @@ public class Sentence implements Comparable<Sentence> {
 
     @Title
     public String title() {
-        return this.document.getTitle() + ".S" + this.id + "." + this.version;
+        if (this.text == null) return "";
+        int colonIndex = this.text.indexOf(':');
+        return colonIndex >= 0 ? this.text.substring(0, colonIndex).strip() : this.text.strip();
     }
 
     @Id
@@ -62,35 +64,30 @@ public class Sentence implements Comparable<Sentence> {
     @OrderColumn(name = "word_index")
     private List<String> words = new ArrayList<>();
 
-//    @Programmatic
-//    public String getWord(int index) {
-//        return index < words.size() ? words.get(index) : null;
-//    }
-
     // region PDF
     @AttributeOverrides({
-            @AttributeOverride(name = "name", column = @Column(name = "attachment_name")),
-            @AttributeOverride(name = "mimeType", column = @Column(name = "attachment_mimeType")),
-            @AttributeOverride(name = "bytes", column = @Column(name = "attachment_bytes", columnDefinition = "BYTEA"))
+            @AttributeOverride(name = "name", column = @Column(name = "diagram_name")),
+            @AttributeOverride(name = "mimeType", column = @Column(name = "diagram_mimeType")),
+            @AttributeOverride(name = "bytes", column = @Column(name = "diagram_bytes", columnDefinition = "BYTEA"))
     })
     @Embedded
-    private BlobJpaEmbeddable attachment;
+    private BlobJpaEmbeddable diagram;
 
     @PdfJsViewer
     @Property(optionality = Optionality.OPTIONAL)
-    @PropertyLayout(fieldSetId = "content", sequence = "1")
-    public Blob getAttachment() {
-        return attachment != null ? BlobJpaEmbeddable.toBlob(attachment) : null;
+    @PropertyLayout(named = "Syntax Diagram", fieldSetId = "content", sequence = "1")
+    public Blob getDiagram() {
+        return diagram != null ? BlobJpaEmbeddable.toBlob(diagram) : null;
     }
 
-    public void setAttachment(final Blob attachment) {
-        this.attachment = BlobJpaEmbeddable.fromBlob(attachment);
+    public void setDiagram(final Blob diagram) {
+        this.diagram = BlobJpaEmbeddable.fromBlob(diagram);
     }
 
     @Programmatic
     public void updateImageFromBytes(byte[] bytes, String filename) {
         final Blob blob = new Blob(filename, Constants.pdfMimeType, bytes);
-        setAttachment(blob);
+        setDiagram(blob);
     }
     // endregion PDF
 
