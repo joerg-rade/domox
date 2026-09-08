@@ -27,6 +27,31 @@ public final class TypedDependencyPredicates {
         return td.getGovernorPos() != null && VERB_TYPES.contains(td.getGovernorPos());
     }
 
+    //region BLOCKED_VERBS (populated from config by BlockedVerbCatalog)
+    private static final Set<String> BLOCKED_VERBS = new HashSet<>();
+
+    /**
+     * Reset to empty set (for testing purposes).
+     */
+    public static void resetBlockedVerbs() {
+        BLOCKED_VERBS.clear();
+    }
+
+    public static void registerBlockedVerbs(Collection<String> verbs) {
+        if (verbs != null) {
+            for (String verb : verbs) {
+                if (verb != null) {
+                    BLOCKED_VERBS.add(verb.toLowerCase(Locale.ROOT));
+                }
+            }
+        }
+    }
+
+    public static boolean isBlockedVerb(String verb) {
+        return verb != null && BLOCKED_VERBS.contains(verb.toLowerCase(Locale.ROOT));
+    }
+    // endregion
+
     public static boolean isNounB(TypedDependency td) {
         return td.getDependentPos() != null && NOUN_TYPES.contains(td.getDependentPos());
     }

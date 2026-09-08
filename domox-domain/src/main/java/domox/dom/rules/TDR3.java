@@ -66,11 +66,4 @@ public class TDR3 extends TypedDependencyRule {
         }
     }
 
-    private boolean isBlockedVerb(String verb) {
-        return verb.equalsIgnoreCase("entered") ||
-                verb.equalsIgnoreCase("inputted") ||
-                verb.equalsIgnoreCase("saved") ||
-                verb.equalsIgnoreCase("added") ||
-                verb.equalsIgnoreCase("has");
-    }
 }

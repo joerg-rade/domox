@@ -2,8 +2,6 @@ package domox.dom.rules;
 
 import domox.dom.nlp.TypedDependencyPredicates;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -59,6 +57,7 @@ public class BasicAttributeCatalog {
         return added;
     }
 
+    //FIXME should be used in ATTRIBUTE related rules
     public boolean isBasicAttribute(String lemma) {
         return attributes.contains(lemma);
     }
