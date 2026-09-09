@@ -1,12 +1,12 @@
 package domox.dom.rqm;
 
 import domox.DomainModule;
+import domox.dom.AbstractEntity;
 import domox.dom.nlp.Sentence;
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
-import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,9 +21,7 @@ import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.annotation.Title;
 import org.apache.causeway.applib.annotation.Programmatic;
-import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Clob;
-import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,6 @@ import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
-@EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".Document")
 @DomainObject(bounding = Bounding.BOUNDED)
 @DomainObjectLayout(
@@ -41,21 +38,11 @@ import java.util.List;
         tableDecorator = TableDecorator.DatatablesNet.class,
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString
-public class Document implements Comparable<Document> {
+public class Document extends AbstractEntity implements Comparable<Document> {
 
     private static final Logger log = LoggerFactory.getLogger(Document.class);
     private static MimeType MIME_TYPE = null;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(nullable = false)
-    private Long id;
-
-    @Version
-    @Column(nullable = false)
-    private int version;
 
     @Title(prepend = "Object: ")
     @PropertyLayout(sequence = "1")
@@ -127,7 +114,7 @@ public class Document implements Comparable<Document> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Document other) {
-        return Long.compare(this.id, other.id);
+        return Long.compare(this.getId(), other.getId());
     }
     //endregion
 

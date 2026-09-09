@@ -1,9 +1,9 @@
 package domox.dom.rqm;
 
 import domox.DomainModule;
+import domox.dom.AbstractEntity;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
-import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,15 +14,12 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.annotation.TableDecorator;
-import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
-import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.sql.Timestamp;
 import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
-@EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".Corpus")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(
@@ -30,17 +27,7 @@ import java.util.List;
         tableDecorator = TableDecorator.DatatablesNet.class,
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-public class Corpus implements Comparable<Corpus> {
-
-    @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
-    @Column(nullable = false)
-    private Long id;
-
-    @Version
-    @Column(nullable = false)
-    private int version;
+public class Corpus extends AbstractEntity implements Comparable<Corpus> {
 
     @Column(nullable = true)
     @Getter
@@ -58,13 +45,13 @@ public class Corpus implements Comparable<Corpus> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Corpus other) {
-        return Long.compare(this.id, other.id);
+        return Long.compare(this.getId(), other.getId());
     }
 
     @Override
     public String toString() {
         return "Corpus{" +
-                "id=" + id +
+                "id=" + getId() +
                 ", title='" + title + '\'' +
                 '}';
     }

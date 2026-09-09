@@ -1,20 +1,35 @@
 package domox.dom.uml;
 
+import domox.dom.AbstractEntity;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.TypedDependencyRule;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Transient;
 import lombok.Data;
 import org.apache.causeway.applib.annotation.Programmatic;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Base class for all UML class-diagram candidate entities.
+ * <p>
+ * Holds the sentence / typed-dependency provenance of a candidate, and passes on
+ * the {@link AbstractEntity} {@code id}/{@code version} mapping to its concrete
+ * {@code @Entity} subclasses via the {@link MappedSuperclass} inheritance chain.
+ */
 @Data
-public abstract class Candidate {
+@MappedSuperclass
+public abstract class Candidate extends AbstractEntity {
 
+    @Transient
     private Sentence sentence;
+    @Transient
     private List<TypedDependency> typedDependencies = new ArrayList<>();
+    @Transient
     private List<TypedDependencyRule> matchingRules = new ArrayList<>();
+    @Transient
     private String result;
 
     /**

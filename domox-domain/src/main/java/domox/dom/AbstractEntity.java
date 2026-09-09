@@ -26,7 +26,8 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 public abstract class AbstractEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(name = "domox_seq", sequenceName = "domox.SEQ_GEN", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "domox_seq")
     @Column(nullable = false)
     @Programmatic
     @Getter
