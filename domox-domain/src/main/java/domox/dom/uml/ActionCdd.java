@@ -9,9 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -33,15 +31,10 @@ public class ActionCdd
         implements Comparable<ActionCdd> {
 
     public ActionCdd(String name, List<ParameterCdd> inputTypeList, String outputType) {
-        this.name = name;
+        this.setCandidateName(name);
         this.inputTypeList = inputTypeList;
         this.outputType = outputType;
     }
-
-    @Column(name = "name", nullable = false)
-    @Getter
-    @Setter
-    public String name;
 
     @Property
     @JoinColumn(nullable = false)
@@ -63,7 +56,7 @@ public class ActionCdd
 
     public String toPlantUmlString() {
         final String sep = ", ";
-        String s = name + "(";
+        String s = getCandidateName() + "(";
         for (ParameterCdd i : inputTypeList) {
             s += i.toPlantUmlString() + sep;
         }

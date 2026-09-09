@@ -8,7 +8,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.causeway.applib.annotation.Bounding;
@@ -29,15 +28,10 @@ public class AssociationCdd
         implements Comparable<AssociationCdd> {
 
     public AssociationCdd(String name, ClassCdd source, ClassCdd target) {
-        this.name = name;
+        this.setCandidateName(name);
         this.source = source;
         this.target = target;
     }
-
-    @Column(name = "name", nullable = false)
-    @Getter
-    @Setter
-    public String name;
 
     @Setter
     @Property
@@ -78,7 +72,7 @@ public class AssociationCdd
     public String toPlantUmlString() {
         final String arrow = AssociationType.ASSOCIATION.symbol;
         final String relation = quote(sourceCardinality) + arrow + quote(targetCardinality);
-        return source.getName() + relation + target.getName() + ": " + name;
+        return source.getCandidateName() + relation + target.getCandidateName() + ": " + getCandidateName();
     }
 
     private String quote(String s) {

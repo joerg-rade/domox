@@ -42,7 +42,7 @@ public class ClassCandidates {
     @ActionLayout(sequence = "3")
     public ClassCdd create(String candidateName) {
         final ClassCdd obj = factoryService.detachedEntity(ClassCdd.class);
-        obj.name = candidateName;
+        obj.setCandidateName(candidateName);
         repositoryService.persist(obj);
         return obj;
     }

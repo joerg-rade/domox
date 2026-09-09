@@ -52,7 +52,7 @@ public class PropertyCandidates {
     @ActionLayout(sequence = "3")
     public PropertyCdd create(String className, String propertyName, String type) {
         final PropertyCdd obj = factoryService.detachedEntity(PropertyCdd.class);
-        obj.name = propertyName;
+        obj.setCandidateName(propertyName);
         obj.type = type;
 
         // Retrieve the ClassCdd and set the relationship

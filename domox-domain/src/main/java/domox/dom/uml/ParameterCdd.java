@@ -31,19 +31,14 @@ public class ParameterCdd
         implements Comparable<ParameterCdd> {
 
     public ParameterCdd(String name, String type) {
-        this.name = name;
+        this.setCandidateName(name);
         this.type = type;
     }
-
-    @Column(name = "name", nullable = false)
-    @Getter
-    @Setter
-    public String name;
 
     @Getter
     @Setter
     @ManyToOne()
-    @JoinColumn(name = "actionId")
+    @JoinColumn(nullable = false)
     @Property()
     public ActionCdd actionCdd;
 
@@ -60,6 +55,6 @@ public class ParameterCdd
     }
 
     public String toPlantUmlString() {
-        return name + ": " + type;
+        return getCandidateName() + ": " + type;
     }
 }

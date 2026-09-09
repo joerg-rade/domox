@@ -5,7 +5,7 @@ import domox.dom.uml.ClassCdd
 import domox.dom.uml.PropertyCdd
 
 class JavaCode(val clazz: ClassCdd) : BaseCode() {
-    private var clazzName:String = clazz.name
+    private var clazzName:String = clazz.candidateName
     private var packageName: String = clazz.packageName
 
     init {
@@ -83,12 +83,12 @@ import org.jetbrains.annotations.NotNull;
 
     private fun build(p: PropertyCdd): String {
         var result = "@Getter$NL@Setter$NL@Property$NL"
-        result += "public ${p.type} ${p.name};$NL$NL"
+        result += "public ${p.type} ${p.candidateName};$NL$NL"
         return indent(result)
     }
 
     private fun build(a: ActionCdd): String {
-        val result = "public void ${a.name}() {$NL}$NL"
+        val result = "public void ${a.candidateName}() {$NL}$NL"
         return indent(result)
     }
 

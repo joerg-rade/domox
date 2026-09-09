@@ -121,7 +121,7 @@ public class RuleMatches {
 
         if ("ClassCdd".equals(candidateType)) {
             ClassCdd classCdd = classCandidates.findOrCreate(candidateName);
-            classCdd.setName(candidateName);
+            classCdd.setCandidateName(candidateName);
             return classCdd;
         } else if ("PropertyCdd".equals(candidateType)) {
             // The related candidate name should be the owning class name

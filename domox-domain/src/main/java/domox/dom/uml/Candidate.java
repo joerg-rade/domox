@@ -1,15 +1,14 @@
 package domox.dom.uml;
 
 import domox.dom.AbstractEntity;
-import domox.dom.nlp.Sentence;
-import domox.dom.nlp.TypedDependency;
-import domox.dom.rules.TypedDependencyRule;
+import domox.dom.rules.RuleMatch;
+import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Transient;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.causeway.applib.annotation.Programmatic;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,34 +22,29 @@ import java.util.List;
 @MappedSuperclass
 public abstract class Candidate extends AbstractEntity {
 
-    @Transient
-    private Sentence sentence;
-    @Transient
-    private List<TypedDependency> typedDependencies = new ArrayList<>();
-    @Transient
-    private List<TypedDependencyRule> matchingRules = new ArrayList<>();
-    @Transient
-    private String result;
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    private String candidateName;
 
-    /**
-     * Adds a typed dependency to this candidate.
-     * @param dependency The typed dependency to add.
-     */
-    @Programmatic
-    public void addTypedDependency(TypedDependency dependency) {
-        if (dependency != null && !typedDependencies.contains(dependency)) {
-            typedDependencies.add(dependency);
-        }
-    }
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    private String candidateType;
+
+    @Getter
+    @Setter
+    private List<RuleMatch> ruleMatches;
 
     /**
      * Adds a matching rule to this candidate.
-     * @param rule The rule that matched this candidate.
+     *
+     * @param match The rule match to add.
      */
     @Programmatic
-    public void addMatchingRule(TypedDependencyRule rule) {
-        if (rule != null && !matchingRules.contains(rule)) {
-            matchingRules.add(rule);
+    public void addMatchingRule(RuleMatch match) {
+        if (match != null && !ruleMatches.contains(match)) {
+            ruleMatches.add(match);
         }
     }
 }

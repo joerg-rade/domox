@@ -1,8 +1,6 @@
 package domox.dom.uml;
 
 import domox.DomainModule;
-import domox.dom.nlp.Sentence;
-import domox.dom.nlp.TypedDependency;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,32 +28,22 @@ public class PropertyCdd
     private Cardinality cardinality;
 
     public PropertyCdd(String propertyName, String type) {
-        this.name = propertyName;
+        this.setCandidateName(propertyName);
         this.type = type;
     }
-
-    public PropertyCdd(Sentence sentence, TypedDependency dependency) {
-        setSentence(sentence);
-        addTypedDependency(dependency);
-    }
-
-    @Column(name = "name", nullable = false)
-    @Getter
-    @Setter
-    public String name;
 
     @Property
     @JoinColumn(nullable = false) // this always points to the owning class
     @ManyToOne
     public ClassCdd classCdd;
 
-    @Setter
-    @Property
-    @Column(nullable = false)
     /**
      * Field to store the property type (e.g., "int", "String")
      * But not only primitives - class candidates from the scope of this analysis are to be set here as well
      */
+    @Setter
+    @Property
+    @Column(nullable = false)
     public String type;
 
     @Override
@@ -65,6 +53,6 @@ public class PropertyCdd
     }
 
     public String toPlantUmlString() {
-        return name + ": " + type;
+        return getCandidateName() + ": " + type;
     }
 }

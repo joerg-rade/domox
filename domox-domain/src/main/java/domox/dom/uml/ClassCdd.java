@@ -3,13 +3,11 @@ package domox.dom.uml;
 import domox.DomainModule;
 import generate.PumlCode;
 import jakarta.inject.Named;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.causeway.applib.annotation.Bounding;
@@ -21,7 +19,6 @@ import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
@@ -38,19 +35,14 @@ public class ClassCdd
             List<PropertyCdd> propertyList,
             List<ActionCdd> actionList,
             List<AssociationCdd> associationList) {
-        this.name = name;
+        this.setCandidateName(name);
         this.propertyList = propertyList;
         this.actionList = actionList;
         this.associationList = associationList;
     }
 
-    @Column(name = "name", nullable = false)
-    @Getter
-    @Setter
-    public String name;
-
     @Property
-    @JoinColumn
+    @JoinColumn(nullable = false)
     @ManyToOne()
     public DomainModel domainModel;
 
@@ -92,7 +84,7 @@ public class ClassCdd
     @Programmatic
     public String toPlantUmlString() {
         PumlCode code = new PumlCode();
-        code.addClass(name);
+        code.addClass(getCandidateName());
         code.add(" #" + classType.colorCode);
         code.addBegin();
         for (PropertyCdd p : propertyList) {

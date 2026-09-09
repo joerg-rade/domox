@@ -93,11 +93,6 @@ public class Document extends AbstractEntity implements Comparable<Document> {
 
     @PropertyLayout(sequence = "6")
     @ManyToMany(mappedBy = "documents", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "author_document",
-            schema = "domox",
-            joinColumns = @JoinColumn(name = "author_id"),
-            inverseJoinColumns = @JoinColumn(name = "document_id"))
     @Getter
     @Setter
     @ToString.Exclude
