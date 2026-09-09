@@ -2,39 +2,24 @@ package domox.dom.nlp;
 
 import com.deliveredtechnologies.rulebook.NameValueReferable;
 import domox.DomainModule;
+import domox.dom.AbstractEntity;
 import domox.dom.rules.RuleMatch;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
-import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.*;
 import org.apache.causeway.applib.annotation.*;
-import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
-import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.io.Serializable;
 import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
-@EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".TypedDependency")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "text-width")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
-public class TypedDependency implements Comparable<TypedDependency>, NameValueReferable, Serializable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(nullable = false)
-    @Programmatic
-    private Long id;
-
-    @Version
-    @Programmatic
-    @Column(nullable = false)
-    private int version;
+public class TypedDependency extends AbstractEntity implements Comparable<TypedDependency>, NameValueReferable, Serializable {
 
     @Column(nullable = false)
     @Property()
@@ -116,7 +101,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     //region > compareTo, toString
     @Override
     public int compareTo(final TypedDependency other) {
-        return Long.compare(this.id, other.id);
+        return Long.compare(this.getId(), other.getId());
     }
     //endregion
 
@@ -124,7 +109,7 @@ public class TypedDependency implements Comparable<TypedDependency>, NameValueRe
     @Override
     @Programmatic
     public String getName() {
-        return "TypedDependency_" + (id != null ? id : "new");
+        return "TypedDependency_" + (getId() != null ? getId() : "new");
     }
 
     @Override

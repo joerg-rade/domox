@@ -124,6 +124,7 @@ domox:
     system-output-verbs: display, output, retrieve, show, view, print, calculate, update, delete, search, modify, edit, remove, generate, prepare, send, get, execute, run, perform, start, stop, finish, complete
     # TDR29
     action-verbs: get, send, prepare, generate, calculate, compute, execute, run, perform, start, stop, finish, complete, contain, include, exclude
+    #FIXME TDR30/31 have no hits, because lemmas are used
     # TDR30 — past-tense forms of user-input verbs
     input-past-verbs: inputted, entered, filled, clicked, selected, added, recorded, processed, validated, chosen, picked, created, updated, edited, changed, modified, removed, deleted, discarded
     # TDR31 — past-tense forms of system-output verbs

@@ -2,16 +2,14 @@ package domox.dom.nlp;
 
 import domox.Constants;
 import domox.DomainModule;
+import domox.dom.AbstractEntity;
 import domox.dom.rqm.Document;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
-import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.*;
 import org.apache.causeway.applib.annotation.*;
-import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
-import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.persistence.jpa.applib.types.BlobJpaEmbeddable;
 
 import java.util.ArrayList;
@@ -19,7 +17,6 @@ import java.util.List;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA, name = "Sentence")
-@EntityListeners(CausewayEntityListener.class)
 @Named(DomainModule.NAMESPACE + ".Sentence")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(
@@ -27,9 +24,8 @@ import java.util.List;
         tableDecorator = TableDecorator.DatatablesNet.class,
         bookmarking = BookmarkPolicy.AS_ROOT)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @ToString(onlyExplicitlyIncluded = true)
-public class Sentence implements Comparable<Sentence> {
+public class Sentence extends AbstractEntity implements Comparable<Sentence> {
 
     @Title
     public String title() {
@@ -37,18 +33,6 @@ public class Sentence implements Comparable<Sentence> {
         int colonIndex = this.text.indexOf(':');
         return colonIndex >= 0 ? this.text.substring(0, colonIndex).strip() : this.text.strip();
     }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(nullable = false)
-    @Programmatic
-    @Getter
-    private Long id;
-
-    @Version
-    @Programmatic
-    @Column(nullable = false)
-    private int version;
 
     @Column(nullable = false, length = 2048)
     @Property()
@@ -101,7 +85,7 @@ public class Sentence implements Comparable<Sentence> {
     //region > compareTo, toString
     @Override
     public int compareTo(final Sentence other) {
-        return Long.compare(this.id, other.id);
+        return Long.compare(this.getId(), other.getId());
     }
     //endregion
 
