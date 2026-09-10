@@ -1,8 +1,8 @@
 package generate
 
-import domox.dom.uml.ActionCdd
-import domox.dom.uml.ClassCdd
-import domox.dom.uml.PropertyCdd
+import domox.dom.crc.ActionCdd
+import domox.dom.crc.ClassCdd
+import domox.dom.crc.PropertyCdd
 
 class JavaCode(val clazz: ClassCdd) : BaseCode() {
     private var clazzName:String = clazz.candidateName

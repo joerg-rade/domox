@@ -1,4 +1,4 @@
-package domox.dom.uml;
+package domox.dom.crc;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -2,6 +2,9 @@ package domox.dom;
 
 import domox.DomainModule;
 import domox.FileUtil;
+import domox.dom.crc.Candidate;
+import domox.dom.crc.DomainModel;
+import domox.dom.crc.DomainModels;
 import domox.dom.nlp.Sentence;
 import domox.dom.rqm.Author;
 import domox.dom.rqm.Document;
@@ -32,22 +35,29 @@ public class Analysis {
     private final Documents documents;
     private final RuleMatches ruleMatches;
     private final List<TypedDependencyRule> rules;
+    private final DomainModels domainModels;
 
     @Inject
     public Analysis(RepositoryService repositoryService,
                     Documents documents,
                     RuleMatches ruleMatches,
-                    List<TypedDependencyRule> rules) {
+                    List<TypedDependencyRule> rules,
+                    DomainModels domainModels) {
         this.repositoryService = repositoryService;
         this.documents = documents;
         this.ruleMatches = ruleMatches;
         this.rules = rules;
+        this.domainModels = domainModels;
     }
 
-    @Programmatic
+    @Action()
+    @ActionLayout(sequence = "6", cssClassFa = "rupee")
     public void analyzeDocument(
             @ParameterLayout(named = "Document") final Document document) {
         log.info("Starting analysis phase for document: {}", document.getTitle());
+
+        // Create a DomainModel to own all candidates created in this analysis
+        final DomainModel domainModel = domainModels.create();
 
         // Apply each TypedDependencyRule to each sentence
         for (Sentence sentence : document.getSentences()) {
@@ -55,6 +65,10 @@ public class Analysis {
                 rule.analyzeAndMatch(sentence);
             }
         }
+
+        // Phase 2: Create Candidate objects from all RuleMatches
+        final List<Candidate> candidates = ruleMatches.createCandidatesFrom(ruleMatches.listAll(), domainModel);
+        log.info("Created {} candidates from rule matches", candidates.size());
     }
 
     @Action()

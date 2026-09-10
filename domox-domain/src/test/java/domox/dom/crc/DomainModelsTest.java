@@ -1,4 +1,4 @@
-package domox.dom.uml;
+package domox.dom.crc;
 
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;

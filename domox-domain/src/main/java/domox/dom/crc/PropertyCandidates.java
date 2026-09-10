@@ -1,4 +1,4 @@
-package domox.dom.uml;
+package domox.dom.crc;
 
 import domox.DomainModule;
 import jakarta.annotation.Priority;
@@ -42,21 +42,27 @@ public class PropertyCandidates {
 
     @ActionLayout(sequence = "2")
     public PropertyCdd findByClassAndName(String className, String propertyName) {
-        ClassCdd classCdd = classCandidates.findByName(className);
+        ClassCdd classCdd = classCandidates.findByCandidateName(className);
         if (classCdd == null) {
             return null;
         }
-        return propertyCddRepository.findByClassCddAndName(classCdd, propertyName);
+        return propertyCddRepository.findByClassCddAndCandidateName(classCdd, propertyName);
     }
 
     @ActionLayout(sequence = "3")
     public PropertyCdd create(String className, String propertyName, String type) {
+        return create(className, propertyName, type, null);
+    }
+
+    @Programmatic
+    public PropertyCdd create(String className, String propertyName, String type, DomainModel domainModel) {
         final PropertyCdd obj = factoryService.detachedEntity(PropertyCdd.class);
         obj.setCandidateName(propertyName);
+        obj.setCandidateType("PropertyCdd");
         obj.type = type;
 
         // Retrieve the ClassCdd and set the relationship
-        ClassCdd classCdd = classCandidates.findOrCreate(className);
+        ClassCdd classCdd = classCandidates.findOrCreate(className, domainModel);
         obj.classCdd = classCdd;
 
         repositoryService.persist(obj);
@@ -65,11 +71,16 @@ public class PropertyCandidates {
 
     @Programmatic
     public PropertyCdd findOrCreate(final String className, final String propertyName, final String type) {
+        return findOrCreate(className, propertyName, type, null);
+    }
+
+    @Programmatic
+    public PropertyCdd findOrCreate(final String className, final String propertyName, final String type, DomainModel domainModel) {
         PropertyCdd candidate = findByClassAndName(className, propertyName);
         if (candidate == null) {
             // Ensure the ClassCdd exists
-            ClassCdd classCdd = classCandidates.findOrCreate(className);
-            candidate = create(className, propertyName, type);
+            ClassCdd classCdd = classCandidates.findOrCreate(className, domainModel);
+            candidate = create(className, propertyName, type, domainModel);
         } else {
             // Update the type if it has changed
             if (!type.equals(candidate.type)) {

@@ -1,11 +1,11 @@
 package generate;
 
-import domox.dom.uml.ActionCdd;
-import domox.dom.uml.AssociationCdd;
-import domox.dom.uml.ClassCdd;
-import domox.dom.uml.DomainModels;
-import domox.dom.uml.ParameterCdd;
-import domox.dom.uml.PropertyCdd;
+import domox.dom.crc.ActionCdd;
+import domox.dom.crc.AssociationCdd;
+import domox.dom.crc.ClassCdd;
+import domox.dom.crc.DomainModels;
+import domox.dom.crc.ParameterCdd;
+import domox.dom.crc.PropertyCdd;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

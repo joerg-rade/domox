@@ -18,9 +18,9 @@
  */
 package generate
 
-import domox.dom.uml.AssociationCdd
-import domox.dom.uml.ClassCdd
-import domox.dom.uml.DomainModel
+import domox.dom.crc.AssociationCdd
+import domox.dom.crc.ClassCdd
+import domox.dom.crc.DomainModel
 
 class ClassDiagram {
 

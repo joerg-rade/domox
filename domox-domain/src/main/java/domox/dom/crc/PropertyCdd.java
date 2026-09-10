@@ -1,4 +1,4 @@
-package domox.dom.uml;
+package domox.dom.crc;
 
 import domox.DomainModule;
 import jakarta.inject.Named;
@@ -7,11 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
@@ -21,35 +17,37 @@ import org.jetbrains.annotations.NotNull;
 
 @Entity
 @Table(schema = DomainModule.SCHEMA)
-@Named(DomainModule.NAMESPACE + ".ParameterCdd")
+@Named(DomainModule.NAMESPACE + ".PropertyCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A Parameter is the Type of an argument of an Action")
+@DomainObjectLayout(cssClassFa = "road", describedAs = "A Property is a Member of a Class")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @ToString(onlyExplicitlyIncluded = true)
-public class ParameterCdd
+public class PropertyCdd
         extends Candidate
-        implements Comparable<ParameterCdd> {
+        implements Comparable<PropertyCdd> {
+    private Cardinality cardinality;
 
-    public ParameterCdd(String name, String type) {
-        this.setCandidateName(name);
+    public PropertyCdd(String propertyName, String type) {
+        this.setCandidateName(propertyName);
         this.type = type;
     }
 
-    @Getter
-    @Setter
-    @ManyToOne()
-    @JoinColumn(nullable = false)
-    @Property()
-    public ActionCdd actionCdd;
+    @Property
+    @JoinColumn(nullable = false) // this always points to the owning class
+    @ManyToOne
+    public ClassCdd classCdd;
 
-    @Getter
+    /**
+     * Field to store the property type (e.g., "int", "String")
+     * But not only primitives - class candidates from the scope of this analysis are to be set here as well
+     */
     @Setter
     @Property
     @Column(nullable = false)
-    private String type;
+    public String type;
 
     @Override
-    public int compareTo(@NotNull ParameterCdd o) {
+    public int compareTo(@NotNull PropertyCdd o) {
         //FIXME
         return 0;
     }

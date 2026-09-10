@@ -1,0 +1,20 @@
+# Environment Setup Rules
+
+Whenever executing terminal commands that require Java, Maven, or SDKMAN binaries:
+1. Always source SDKMAN before running Maven or Java commands.
+2. Structure shell execution like this:
+   source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk env || true && mvn <command>
+3. Alternatively, if `.sdkmanrc` exists in the repository, instruct the shell to run:
+   source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk env
+
+# Shell Execution Formatting Rules
+
+When preparing terminal execution requests:
+1. NEVER chain multiple long commands on a single line using `&&`.
+2. Format chained commands using multiline line-continuations (`\`) with each sub-command on its own indented line.
+3. Keep shell commands concise and visually structured for easy review.
+
+Example preference:
+source "$HOME/.sdkman/bin/sdkman-init.sh" \
+  && sdk env \
+  && mvn clean install

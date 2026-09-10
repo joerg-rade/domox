@@ -1,0 +1,2 @@
+DROP SCHEMA domox CASCADE;
+CREATE SCHEMA domox;

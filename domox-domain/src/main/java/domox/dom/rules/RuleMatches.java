@@ -4,10 +4,11 @@ import domox.DomainModule;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
-import domox.dom.uml.Candidate;
-import domox.dom.uml.ClassCandidates;
-import domox.dom.uml.ClassCdd;
-import domox.dom.uml.PropertyCandidates;
+import domox.dom.crc.Candidate;
+import domox.dom.crc.ClassCandidates;
+import domox.dom.crc.ClassCdd;
+import domox.dom.crc.DomainModel;
+import domox.dom.crc.PropertyCandidates;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -24,7 +25,9 @@ import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @DomainService
 @Named(DomainModule.NAMESPACE + ".RuleMatches")
@@ -97,11 +100,54 @@ public class RuleMatches {
      */
     @Programmatic
     public List<Candidate> createCandidatesFromMatches() {
-        List<Candidate> candidates = new ArrayList<>();
-        List<RuleMatch> matches = ruleMatchRepository.findAll();
+        return createCandidatesFrom(ruleMatchRepository.findAll());
+    }
 
+    /**
+     * Phase 2: Creates actual Candidate objects from the given RuleMatch records.
+     * In the case of classes (entities), only one class with the same name is created.
+     *
+     * @param matches the RuleMatch records to process
+     * @return the created (or re-used) Candidate objects
+     */
+    @Programmatic
+    public List<Candidate> createCandidatesFrom(final List<RuleMatch> matches) {
+        List<Candidate> candidates = new ArrayList<>();
+        if (matches == null) {
+            return candidates;
+        }
+        final Set<String> createdClassNames = new HashSet<>();
         for (RuleMatch match : matches) {
-            Candidate candidate = createCandidateFromMatch(match);
+            if (match == null) {
+                continue;
+            }
+            // In the case of classes (entities), only one class with the same name is created
+            if ("ClassCdd".equals(match.getCandidateType()) && !createdClassNames.add(match.getCandidateName())) {
+                continue;
+            }
+            final Candidate candidate = createCandidateFromMatch(match);
+            if (candidate != null) {
+                candidates.add(candidate);
+            }
+        }
+        return candidates;
+    }
+@Programmatic
+    public List<Candidate> createCandidatesFrom(final List<RuleMatch> matches, final DomainModel domainModel) {
+        List<Candidate> candidates = new ArrayList<>();
+        if (matches == null) {
+            return candidates;
+        }
+        final Set<String> createdClassNames = new HashSet<>();
+        for (RuleMatch match : matches) {
+            if (match == null) {
+                continue;
+            }
+            // In the case of classes (entities), only one class with the same name is created
+            if ("ClassCdd".equals(match.getCandidateType()) && !createdClassNames.add(match.getCandidateName())) {
+                continue;
+            }
+            final Candidate candidate = createCandidateFromMatch(match, domainModel);
             if (candidate != null) {
                 candidates.add(candidate);
             }
@@ -115,19 +161,24 @@ public class RuleMatches {
      */
     @Programmatic
     Candidate createCandidateFromMatch(RuleMatch match) {
+        return createCandidateFromMatch(match, null);
+    }
+
+    @Programmatic
+    Candidate createCandidateFromMatch(RuleMatch match, DomainModel domainModel) {
         String candidateType = match.getCandidateType();
         String candidateName = match.getCandidateName();
         String relatedCandidateName = match.getRelatedCandidateName();
 
         if ("ClassCdd".equals(candidateType)) {
-            ClassCdd classCdd = classCandidates.findOrCreate(candidateName);
+            ClassCdd classCdd = classCandidates.findOrCreate(candidateName, domainModel);
             classCdd.setCandidateName(candidateName);
             return classCdd;
         } else if ("PropertyCdd".equals(candidateType)) {
             // The related candidate name should be the owning class name
             String className = relatedCandidateName != null ? relatedCandidateName : "Unknown";
             String type = inferType(candidateName);
-            return propertyCandidates.findOrCreate(className, candidateName, type);
+            return propertyCandidates.findOrCreate(className, candidateName, type, domainModel);
         }
         return null;
     }

@@ -1,4 +1,4 @@
-package domox.dom.uml;
+package domox.dom.crc;
 
 import domox.DomainModule;
 import jakarta.inject.Named;

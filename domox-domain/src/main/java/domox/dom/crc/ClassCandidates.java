@@ -1,4 +1,4 @@
-package domox.dom.uml;
+package domox.dom.crc;
 
 import domox.DomainModule;
 import jakarta.annotation.Priority;
@@ -35,23 +35,42 @@ public class ClassCandidates {
     }
 
     @ActionLayout(sequence = "2")
-    public ClassCdd findByName(String candidateName) {
-        return classCddRepository.findByName(candidateName);
+    public ClassCdd findByCandidateName(String candidateName) {
+        return classCddRepository.findByCandidateName(candidateName);
     }
 
     @ActionLayout(sequence = "3")
     public ClassCdd create(String candidateName) {
+        // Auto-create a DomainModel for UI convenience
+        final DomainModel domainModel = new DomainModel();
+        repositoryService.persist(domainModel);
+        return create(candidateName, domainModel);
+    }
+
+    @Programmatic
+    public ClassCdd create(String candidateName, DomainModel domainModel) {
         final ClassCdd obj = factoryService.detachedEntity(ClassCdd.class);
         obj.setCandidateName(candidateName);
+        obj.setCandidateType("ClassCdd");
+        obj.domainModel = domainModel;
         repositoryService.persist(obj);
         return obj;
     }
 
     @Programmatic
     public ClassCdd findOrCreate(final String candidateName) {
-        ClassCdd candidate = findByName(candidateName);
+        return findOrCreate(candidateName, null);
+    }
+
+    @Programmatic
+    public ClassCdd findOrCreate(final String candidateName, final DomainModel domainModel) {
+        ClassCdd candidate = findByCandidateName(candidateName);
         if (candidate == null) {
-            candidate = create(candidateName);
+            if (domainModel == null) {
+                candidate = create(candidateName);
+            } else {
+                candidate = create(candidateName, domainModel);
+            }
         }
         return candidate;
     }

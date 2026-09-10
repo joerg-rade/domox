@@ -1,4 +1,4 @@
-package domox.dom.uml;
+package domox.dom.crc;
 
 public enum ClassType {
     /**
