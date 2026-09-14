@@ -1,5 +1,7 @@
 package domox.dom.rules;
 
+import domox.dom.crc.ActionCandidates;
+import domox.dom.crc.ActionCdd;
 import domox.dom.crc.Candidate;
 import domox.dom.crc.ClassCdd;
 import domox.dom.crc.ClassCandidates;
@@ -44,6 +46,9 @@ class RuleMatchesTest {
     @Mock
     PropertyCandidates mockPropertyCandidates;
 
+    @Mock
+    ActionCandidates mockActionCandidates;
+
     @BeforeEach
     public void setUp() {
         classUnderTest = new RuleMatches(
@@ -52,7 +57,8 @@ class RuleMatchesTest {
                 mockRuleMatchRepository,
                 mockSentenceRepository,
                 mockClassCandidates,
-                mockPropertyCandidates);
+                mockPropertyCandidates,
+                mockActionCandidates);
     }
 
     @Test
@@ -75,6 +81,41 @@ class RuleMatchesTest {
         assertEquals(propertyCdd, result.get(1));
     }
 
+@Test
+    void createCandidatesFrom_createsActionCandidates() {
+        // given
+        final RuleMatch actionMatch = match("ActionCdd", "process", null, null);
+
+        final ActionCdd actionCdd = new ActionCdd();
+        when(mockActionCandidates.findOrCreate("process", null, null)).thenReturn(actionCdd);
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
+
+        // then
+        assertEquals(1, result.size());
+        assertEquals(actionCdd, result.getFirst());
+    }
+    @Test
+    void createCandidatesFrom_createsActionCandidates_withOwningClass() {
+        // given
+        final RuleMatch actionMatch = match("ActionCdd", "offer", "ClassCdd", "Offer");
+
+        final ClassCdd offerClassCdd = new ClassCdd();
+        final ActionCdd offerAction = new ActionCdd();
+        when(mockClassCandidates.findOrCreate("Offer", null)).thenReturn(offerClassCdd);
+        when(mockActionCandidates.findOrCreate("offer", offerClassCdd, null)).thenReturn(offerAction);
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
+
+        // then
+        assertEquals(1, result.size());
+        assertEquals(offerAction, result.getFirst());
+        verify(mockClassCandidates).findOrCreate("Offer", null);
+        verify(mockActionCandidates).findOrCreate("offer", offerClassCdd, null);
+    }
+
     @Test
     void createCandidatesFrom_deduplicatesClassesByName() {
         // given
@@ -89,7 +130,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(1, result.size());
-        assertEquals(classCdd, result.get(0));
+        assertEquals(classCdd, result.getFirst());
         // findOrCreate must only be called once for the duplicated class name
         verify(mockClassCandidates, times(1)).findOrCreate("Customer", null);
     }
@@ -101,7 +142,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates);
+        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates);
     }
 
     @Test
@@ -111,20 +152,20 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates);
+        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates);
     }
 
     @Test
     void createCandidatesFrom_skipsUnsupportedCandidateTypes() {
         // given
-        final RuleMatch unknown = match("ActionCdd", "doSomething", null, null);
+        final RuleMatch unknown = match("UnknownType", "doSomething", null, null);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(unknown));
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates);
+        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates);
     }
 
     @Test
@@ -139,7 +180,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(1, result.size());
-        assertEquals(classCdd, result.get(0));
+        assertEquals(classCdd, result.getFirst());
     }
 
     @Test
@@ -155,7 +196,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(1, result.size());
-        assertEquals(classCdd, result.get(0));
+        assertEquals(classCdd, result.getFirst());
     }
 
     // -- helper

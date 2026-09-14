@@ -2,10 +2,11 @@
 
 Whenever executing terminal commands that require Java, Maven, or SDKMAN binaries:
 1. Always source SDKMAN before running Maven or Java commands.
-2. Structure shell execution like this:
+2. Prefer this shell-execution scaffold that works whether or not `.sdkmanrc` exists:
+   ```shell
    source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk env || true && mvn <command>
-3. Alternatively, if `.sdkmanrc` exists in the repository, instruct the shell to run:
-   source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk env
+   ```
+   The `|| true` prevents failure when the repo does not have a `.sdkmanrc` file.
 
 # Shell Execution Formatting Rules
 
@@ -14,9 +15,9 @@ When preparing terminal execution requests:
 2. Format chained commands using multiline line-continuations (`\`) with each sub-command on its own indented line.
 3. Keep shell commands concise and visually structured for easy review.
 
-Example preference:
+Example preference (use line continuations for long command chains):
 source "$HOME/.sdkman/bin/sdkman-init.sh" \
-  && sdk env \
+  && sdk env || true \
   && mvn clean install
 
 # Terminal Command Guidelines
@@ -24,22 +25,29 @@ source "$HOME/.sdkman/bin/sdkman-init.sh" \
 ## Allowed Commands
 You are pre-approved to run the following commands automatically when needed:
 
-### Exact commands:
-- 'source "$HOME/.sdkman/bin/sdkman-init.sh"'
-- 'cd /home/jrade/projects/domox'
-- 'mvn test -pl domox-domain -Dtest='
+### Exact commands (first-token match):
+- 'source'
+- 'cd'
 - 'mvn'
-- 'mvn compile -pl domox-domain'
-- 'java -version'
+- 'java'
+- 'docker'
+- 'sed'
+- 'sdk'
 - 'which', 'find', 'ls', 'pwd', 'cat', 'echo', 'grep', 'tail', 'head', 'less', 'more', 'cp', 'mv', 'mkdir', 'rmdir'
 
-### Chained patterns (source + cd + mvn, with optional pipes):
-Any command formed by chaining commands with `&&`, `||`, `|`, and/or `2>&1` is also pre-approved, as long as each segment's first token (e.g. `source`, `cd`, `mvn`, `java`) matches the first token of a pre-approved exact command from the list above. Additional arguments and flags may follow. Piping through `grep`, `tail`, `head` for output filtering is included.
+### Chained patterns:
+Any command whose first whitespace-delimited token is one of the exact commands above is pre-approved, whether standalone or chained with `&&`, `||`, `;`, `|`, and/or `2>&1`. Piping through `grep`, `sed`, `tail`, `head` for output filtering or line-range extraction is included. Additional arguments and flags may follow.
 
-### Examples of pre-approved compound commands:
-- source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn test -pl domox-domain ...
-- source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn test ...
-- source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn test ... 2>&1 | grep ... | head -10
+### Examples of pre-approved commands (all variants):
+- source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn compile -pl domox-domain -q 2>&1
+- source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn compile -pl domox-domain 2>&1 | tail -15
+- source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn test -pl domox-domain 2>&1 | tail -60
+- grep -n "ActionCdd" /home/jrade/projects/domox/domox-domain/src/main/java/domox/dom/rules/RuleMatches.java
+- cat -n /home/jrade/projects/domox/domox-domain/src/test/java/domox/dom/rules/RuleMatchesTest.java | sed -n '83,100p'
+- cat -n /home/jrade/projects/domox/domox-domain/src/main/java/domox/dom/rules/RuleMatches.java | sed -n '100,218p'
+- docker exec domox-db psql -U postgres -d postgres -c "SELECT ..."
+- docker ps --format '{{.Names}} {{.Image}} {{.Status}}' 2>/dev/null | head -5
+- sdk current java 2>&1 | head -5
 
 ## Strictly Forbidden / Require Manual Confirmation
 DO NOT run these commands without explicit approval or if there is any doubt:

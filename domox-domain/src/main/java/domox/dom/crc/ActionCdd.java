@@ -10,6 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.causeway.applib.annotation.Collection;
 import org.apache.causeway.applib.annotation.DomainObject;
@@ -38,9 +39,9 @@ public class ActionCdd
     }
 
     @Property
-    @JoinColumn(nullable = false)
+    @JoinColumn
     @ManyToOne
-    private ClassCdd classCdd;
+    public ClassCdd classCdd;
 
     @OneToMany(mappedBy = "actionCdd", cascade = CascadeType.PERSIST)
     @Collection
@@ -48,6 +49,7 @@ public class ActionCdd
 
     @Property
     @Column(nullable = false)
+    @Setter
     private String outputType;
 
     @Override

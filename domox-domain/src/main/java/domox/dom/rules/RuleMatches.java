@@ -4,6 +4,7 @@ import domox.DomainModule;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
+import domox.dom.crc.ActionCandidates;
 import domox.dom.crc.Candidate;
 import domox.dom.crc.ClassCandidates;
 import domox.dom.crc.ClassCdd;
@@ -41,6 +42,7 @@ public class RuleMatches {
     private final SentenceRepository sentenceRepository;
     private final ClassCandidates classCandidates;
     private final PropertyCandidates propertyCandidates;
+    private final ActionCandidates actionCandidates;
 
     @Inject
     public RuleMatches(
@@ -49,13 +51,15 @@ public class RuleMatches {
             RuleMatchRepository ruleMatchRepository,
             SentenceRepository sentenceRepository,
             ClassCandidates classCandidates,
-            PropertyCandidates propertyCandidates) {
+            PropertyCandidates propertyCandidates,
+            ActionCandidates actionCandidates) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatchRepository = ruleMatchRepository;
         this.sentenceRepository = sentenceRepository;
         this.classCandidates = classCandidates;
         this.propertyCandidates = propertyCandidates;
+        this.actionCandidates = actionCandidates;
     }
 
     /**
@@ -196,6 +200,13 @@ public class RuleMatches {
             ClassCdd classCdd = classCandidates.findOrCreate(candidateName, domainModel);
             classCdd.setCandidateName(candidateName);
             return classCdd;
+        } else if ("ActionCdd".equals(candidateType)) {
+            // The related candidate name should be the owning class name
+            String className = relatedCandidateName != null ? relatedCandidateName : null;
+            ClassCdd classCdd = className != null
+                    ? classCandidates.findOrCreate(className, domainModel)
+                    : null;
+            return actionCandidates.findOrCreate(candidateName, classCdd, domainModel);
         } else if ("PropertyCdd".equals(candidateType)) {
             // The related candidate name should be the owning class name
             String className = relatedCandidateName != null ? relatedCandidateName : "Unknown";

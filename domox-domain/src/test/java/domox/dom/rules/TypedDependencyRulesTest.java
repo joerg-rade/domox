@@ -3,6 +3,7 @@ package domox.dom.rules;
 import com.deliveredtechnologies.rulebook.model.RuleBook;
 import com.deliveredtechnologies.rulebook.spring.SpringAwareRuleBookRunner;
 import domox.dom.nlp.*;
+import domox.dom.crc.ActionCandidates;
 import domox.dom.crc.ClassCandidates;
 import domox.dom.crc.PropertyCandidates;
 import org.apache.causeway.applib.services.factory.FactoryService;
@@ -93,6 +94,11 @@ public class TypedDependencyRulesTest {
         @Bean
         public PropertyCandidates propertyCandidates() {
             return Mockito.mock(PropertyCandidates.class);
+        }
+
+        @Bean
+        public ActionCandidates actionCandidates() {
+            return Mockito.mock(ActionCandidates.class);
         }
 
         @Bean
