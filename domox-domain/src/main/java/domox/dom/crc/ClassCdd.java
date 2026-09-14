@@ -53,11 +53,13 @@ public class ClassCdd
     @Getter
     @Setter
     //@Property
+    @Programmatic
     public ClassType classType = ClassType.PARTY_PLACE_THING;
 
     @Getter
     @Setter
     //@Property
+    @Programmatic
     public String packageName = "sample";
 
     @Getter

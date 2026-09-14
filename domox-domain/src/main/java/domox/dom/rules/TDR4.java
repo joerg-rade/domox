@@ -40,7 +40,7 @@ public class TDR4 extends TypedDependencyRule {
     @Then
     public void then() {
         if (previousTd != null && isCompound(previousTd)) {
-            result = "compound(" + currentTd.getB() + ") + Compound(" + currentTd.getA() + ")";
+            result = "compound(" + currentTd.getB() + ") + compound(" + currentTd.getA() + ")";
         } else {
             result = "dobj(" + currentTd.getB() + ")";
         }
