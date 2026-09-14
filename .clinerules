@@ -23,9 +23,23 @@ source "$HOME/.sdkman/bin/sdkman-init.sh" \
 
 ## Allowed Commands
 You are pre-approved to run the following commands automatically when needed:
-_ 'mvn'
-- 'java -version',
+
+### Exact commands:
+- 'source "$HOME/.sdkman/bin/sdkman-init.sh"'
+- 'cd /home/jrade/projects/domox'
+- 'mvn test -pl domox-domain -Dtest='
+- 'mvn'
+- 'mvn compile -pl domox-domain'
+- 'java -version'
 - 'which', 'find', 'ls', 'pwd', 'cat', 'echo', 'grep', 'tail', 'head', 'less', 'more', 'cp', 'mv', 'mkdir', 'rmdir'
+
+### Chained patterns (source + cd + mvn, with optional pipes):
+Any command formed by chaining the above exact commands with `&&`, `||`, `|`, and/or `2>&1` is also pre-approved, as long as each individual segment is itself a pre-approved command from the list above. Piping through `grep`, `tail`, `head` for output filtering is included.
+
+### Examples of pre-approved compound commands:
+- source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn test -pl domox-domain ...
+- source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn test ...
+- source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn test ... 2>&1 | grep ... | head -10
 
 ## Strictly Forbidden / Require Manual Confirmation
 DO NOT run these commands without explicit approval or if there is any doubt:

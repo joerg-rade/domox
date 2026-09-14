@@ -12,6 +12,12 @@ import static domox.dom.nlp.TypedDependencyPredicates.xcomp;
 @Rule(order = 37)
 public class TDR37 extends TypedDependencyRule {
 
+    private final NlpProperties nlpProperties;
+
+    public TDR37(NlpProperties nlpProperties) {
+        this.nlpProperties = nlpProperties;
+    }
+
     @Override
     @When
     public boolean when() {
@@ -21,7 +27,7 @@ public class TDR37 extends TypedDependencyRule {
         }
 
         // Spec: Dependencies = nsubj(A,B) OR xcomp(A,B)
-        //        if A in {continue, restart, go, repeat}
+        //        if A is a control-flow verb (configured via domox.nlp.control-flow-verbs)
         if (isNsubj(currentTd) || xcomp(currentTd)) {
             String a = currentTd.getA();
             return isControlFlowVerb(a);
@@ -43,7 +49,7 @@ public class TDR37 extends TypedDependencyRule {
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
-                    "System_Action",
+                    "ActionCdd",
                     capitalizeFirstLetter(a),
                     null,
                     null,
@@ -52,10 +58,7 @@ public class TDR37 extends TypedDependencyRule {
     }
 
     private boolean isControlFlowVerb(String verb) {
-        return verb.equalsIgnoreCase("continue") ||
-                verb.equalsIgnoreCase("restart") ||
-                verb.equalsIgnoreCase("go") ||
-                verb.equalsIgnoreCase("repeat");
+        return nlpProperties.getControlFlowVerbs().contains(verb.toLowerCase());
     }
 
 }

@@ -21,6 +21,7 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -51,31 +52,31 @@ public class ClassCdd
 
     @Getter
     @Setter
-    @Property
+    //@Property
     public ClassType classType = ClassType.PARTY_PLACE_THING;
 
     @Getter
     @Setter
-    @Property
+    //@Property
     public String packageName = "sample";
 
     @Getter
     @Setter
     @Collection
     @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)
-    public List<PropertyCdd> propertyList;
+    public List<PropertyCdd> propertyList = new ArrayList<>();
 
     @Getter
     @Setter
     @Collection
     @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)
-    public List<ActionCdd> actionList;
+    public List<ActionCdd> actionList = new ArrayList<>();
 
     @Getter
     @Setter
     @Collection
     @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)
-    public List<AssociationCdd> associationList;
+    public List<AssociationCdd> associationList = new ArrayList<>();
 
     @Override
     public int compareTo(@NotNull ClassCdd o) {

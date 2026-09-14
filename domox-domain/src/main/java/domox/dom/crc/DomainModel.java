@@ -28,7 +28,6 @@ import java.util.List;
 @Data
 public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> {
 
-    @JoinColumn
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     public List<ClassCdd> classList = new ArrayList<>();
 

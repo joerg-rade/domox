@@ -76,7 +76,7 @@ public class TDR35 extends TypedDependencyRule {
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
-                    "System_Actions",
+                    "ActionCdd",
                     capitalizeFirstLetter(keyword + (b != null ? b : "")),
                     null,
                     null,
@@ -85,7 +85,7 @@ public class TDR35 extends TypedDependencyRule {
                 ruleMatches.create(
                         currentTd,
                         getRuleName(),
-                        "System_Actions",
+                        "ActionCdd",
                         capitalizeFirstLetter(name),
                         null,
                         null,

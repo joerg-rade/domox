@@ -10,6 +10,7 @@ import lombok.*;
 import org.apache.causeway.applib.annotation.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -93,10 +94,9 @@ public class TypedDependency extends AbstractEntity implements Comparable<TypedD
     }
 
     @OneToMany(mappedBy = "typedDependency", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "typed_dependency_id")
     @Getter
     @Setter
-    private List<RuleMatch> ruleMatches;
+    private List<RuleMatch> ruleMatches = new ArrayList<>();
 
     //region > compareTo, toString
     @Override

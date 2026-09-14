@@ -4,10 +4,7 @@ import domox.DomainModule;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.apache.causeway.applib.annotation.ActionLayout;
-import org.apache.causeway.applib.annotation.DomainService;
-import org.apache.causeway.applib.annotation.PriorityPrecedence;
-import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
@@ -64,6 +61,9 @@ public class PropertyCandidates {
         // Retrieve the ClassCdd and set the relationship
         ClassCdd classCdd = classCandidates.findOrCreate(className, domainModel);
         obj.classCdd = classCdd;
+        if (classCdd != null) {
+            classCdd.propertyList.add(obj);
+        }
 
         repositoryService.persist(obj);
         return obj;
@@ -89,5 +89,14 @@ public class PropertyCandidates {
             }
         }
         return candidate;
+    }
+
+    @Action()
+    @ActionLayout(sequence = "4", cssClassFa = "trash")
+    public void deleteAll() {
+        var all = listAll();
+        for (PropertyCdd pc : all) {
+            repositoryService.remove(pc);
+        }
     }
 }

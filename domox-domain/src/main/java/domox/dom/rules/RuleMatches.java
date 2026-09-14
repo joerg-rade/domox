@@ -84,6 +84,9 @@ public class RuleMatches {
             String description) {
         final RuleMatch obj = factoryService.detachedEntity(RuleMatch.class);
         obj.setTypedDependency(typedDependency);
+        if (typedDependency != null) {
+            typedDependency.getRuleMatches().add(obj);
+        }
         obj.setRuleClassName(ruleClassName);
         obj.setCandidateType(candidateType);
         obj.setCandidateName(candidateName);

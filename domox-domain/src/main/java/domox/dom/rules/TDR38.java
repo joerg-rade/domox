@@ -70,7 +70,7 @@ public class TDR38 extends TypedDependencyRule {
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
-                    candidateType,
+                    "ActionCdd",
                     verb,
                     // Actor (subject/agent) when the dependency exposes one
                     actor != null ? "Actor" : null,
