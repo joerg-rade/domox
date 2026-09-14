@@ -18,7 +18,7 @@ import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "PackageCdd")
 @Named(DomainModule.NAMESPACE + ".PackageCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Package contains Classes")

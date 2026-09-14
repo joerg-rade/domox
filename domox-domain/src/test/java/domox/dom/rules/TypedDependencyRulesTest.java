@@ -53,47 +53,35 @@ public class TypedDependencyRulesTest {
         }
 
         /**
-         * Production {@code domox.nlp.*} configuration, mirrored from
-         * {@code domox-webapp/src/main/resources/application.yml}. The test context
-         * never loads that file, so without this bean every {@code NlpProperties}
-         * list stays empty and rules that consult it (TDR27/TDR28/TDR29/TDR30/TDR31/
-         * TDR32/TDR33/TDR34) can never fire.
+         * Minimal {@code NlpProperties} fixture — only the vocabulary entries
+         * needed by the rules exercised in this test class.
+         *
+         * <p>This is <em>not</em> a mirror of the production
+         * {@code domox.nlp.*} configuration
+         * ({@code domox-webapp/src/main/resources/application.yml}). Production
+         * config-binding is verified separately by the webapp module's
+         * {@code NlpConfigBindingTest}. Keeping only fixture values here
+         * eliminates the drift risk of duplicating the full production lists.</p>
+         *
+         * <p>Rules tested here that consult NlpProperties:</p>
+         * <ul>
+         *   <li>TDR27 — requires {@code "enter"} in {@code userInputVerbs}</li>
+         *   <li>TDR34 — requires {@code "invalid"} in {@code exceptionTerms}</li>
+         * </ul>
+         * All other vocabulary lists are set to empty to keep the fixture
+         * minimal; rules not exercised here see an empty list and simply
+         * produce no match, which is harmless in this test context.
          */
         @Bean
         public NlpProperties nlpProperties() {
             NlpProperties props = new NlpProperties();
-            props.setExceptionTerms(List.of(
-                    "error", "fail", "wrong", "invalid", "incorrect", "unable",
-                    "exception", "problem", "issue", "fault", "bug", "crash",
-                    "halt", "stop", "terminate"));
-            props.setUserInputVerbs(List.of(
-                    "input", "enter", "save", "fill", "click", "select", "add",
-                    "record", "store", "process", "validate", "choose", "pick",
-                    "create", "update", "edit", "change", "modify", "remove",
-                    "delete", "discard"));
-            props.setSystemOutputVerbs(List.of(
-                    "display", "output", "retrieve", "show", "view", "print",
-                    "calculate", "update", "delete", "search", "modify", "edit",
-                    "remove", "generate", "prepare", "send", "get", "execute",
-                    "run", "perform", "start", "stop", "finish", "complete"));
-            props.setActionVerbs(List.of(
-                    "get", "send", "prepare", "generate", "calculate", "compute",
-                    "execute", "run", "perform", "start", "stop", "finish",
-                    "complete", "contain", "include", "exclude"));
-            props.setInputPastVerbs(List.of(
-                    "inputted", "entered", "filled", "clicked", "selected", "added",
-                    "recorded", "processed", "validated", "chosen", "picked",
-                    "created", "updated", "edited", "changed", "modified", "removed",
-                    "deleted", "discarded"));
-            props.setOutputPastVerbs(List.of(
-                    "displayed", "outputted", "retrieved", "showed", "viewed",
-                    "printed", "calculated", "updated", "deleted", "searched",
-                    "modified", "edited", "removed", "generated", "prepared",
-                    "sent", "got", "executed", "ran", "performed", "started",
-                    "stopped", "finished", "completed"));
-            props.setReceiveVerbs(List.of(
-                    "receive", "accept", "get", "obtain", "acquire", "redeem",
-                    "collect", "capture", "fetch", "download"));
+            props.setExceptionTerms(List.of("invalid"));
+            props.setUserInputVerbs(List.of("enter"));
+            props.setSystemOutputVerbs(List.of());
+            props.setActionVerbs(List.of());
+            props.setInputPastVerbs(List.of());
+            props.setOutputPastVerbs(List.of());
+            props.setReceiveVerbs(List.of());
             return props;
         }
 

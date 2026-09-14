@@ -3,6 +3,7 @@ package domox.dom.crc;
 import domox.DomainModule;
 import domox.dom.AbstractEntity;
 import jakarta.inject.Named;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "DomainModel")
 @Named(DomainModule.NAMESPACE + ".DomainModel")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A DM. ...")
@@ -28,7 +29,7 @@ import java.util.List;
 public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> {
 
     @JoinColumn
-    @OneToMany(mappedBy = "domainModel")
+    @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     public List<ClassCdd> classList = new ArrayList<>();
 
     @Override

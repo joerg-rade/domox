@@ -13,7 +13,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "TypedDependency")
 @Named(DomainModule.NAMESPACE + ".TypedDependency")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "text-width")

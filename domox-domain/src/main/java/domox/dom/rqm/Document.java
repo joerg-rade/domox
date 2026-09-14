@@ -2,6 +2,7 @@ package domox.dom.rqm;
 
 import domox.DomainModule;
 import domox.dom.AbstractEntity;
+import domox.dom.crc.DomainModel;
 import domox.dom.nlp.Sentence;
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
@@ -30,7 +31,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "Document")
 @Named(DomainModule.NAMESPACE + ".Document")
 @DomainObject(bounding = Bounding.BOUNDED)
 @DomainObjectLayout(
@@ -117,5 +118,12 @@ public class Document extends AbstractEntity implements Comparable<Document> {
     @JoinColumn(name = "corpus_id")
     @Programmatic
     private Corpus corpus;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "domain_model_id")
+    @Getter
+    @Setter
+    @Programmatic
+    private DomainModel domainModel;
 
 }

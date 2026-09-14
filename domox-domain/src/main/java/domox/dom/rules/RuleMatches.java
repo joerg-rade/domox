@@ -25,9 +25,9 @@ import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @DomainService
 @Named(DomainModule.NAMESPACE + ".RuleMatches")
@@ -116,39 +116,58 @@ public class RuleMatches {
         if (matches == null) {
             return candidates;
         }
-        final Set<String> createdClassNames = new HashSet<>();
+        final Map<String, Candidate> createdClassCandidates = new HashMap<>();
         for (RuleMatch match : matches) {
             if (match == null) {
                 continue;
             }
-            // In the case of classes (entities), only one class with the same name is created
-            if ("ClassCdd".equals(match.getCandidateType()) && !createdClassNames.add(match.getCandidateName())) {
-                continue;
+            // For classes (entities), only one candidate per name is created;
+            // additional RuleMatches register on the existing candidate.
+            if ("ClassCdd".equals(match.getCandidateType())) {
+                final Candidate existing = createdClassCandidates.get(match.getCandidateName());
+                if (existing != null) {
+                    existing.addMatchingRule(match);
+                    continue;
+                }
             }
             final Candidate candidate = createCandidateFromMatch(match);
             if (candidate != null) {
+                candidate.addMatchingRule(match);
+                if (candidate instanceof ClassCdd) {
+                    createdClassCandidates.put(candidate.getCandidateName(), candidate);
+                }
                 candidates.add(candidate);
             }
         }
         return candidates;
     }
-@Programmatic
+
+    @Programmatic
     public List<Candidate> createCandidatesFrom(final List<RuleMatch> matches, final DomainModel domainModel) {
         List<Candidate> candidates = new ArrayList<>();
         if (matches == null) {
             return candidates;
         }
-        final Set<String> createdClassNames = new HashSet<>();
+        final Map<String, Candidate> createdClassCandidates = new HashMap<>();
         for (RuleMatch match : matches) {
             if (match == null) {
                 continue;
             }
-            // In the case of classes (entities), only one class with the same name is created
-            if ("ClassCdd".equals(match.getCandidateType()) && !createdClassNames.add(match.getCandidateName())) {
-                continue;
+            // For classes (entities), only one candidate per name is created;
+            // additional RuleMatches register on the existing candidate.
+            if ("ClassCdd".equals(match.getCandidateType())) {
+                final Candidate existing = createdClassCandidates.get(match.getCandidateName());
+                if (existing != null) {
+                    existing.addMatchingRule(match);
+                    continue;
+                }
             }
             final Candidate candidate = createCandidateFromMatch(match, domainModel);
             if (candidate != null) {
+                candidate.addMatchingRule(match);
+                if (candidate instanceof ClassCdd) {
+                    createdClassCandidates.put(candidate.getCandidateName(), candidate);
+                }
                 candidates.add(candidate);
             }
         }

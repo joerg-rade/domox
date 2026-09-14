@@ -12,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 public class NlpProperties {
+    private List<String> disabledRules = List.of();
     private List<String> basicAttributes = List.of();
     private List<String> auxiliaryVerbs = List.of();
     private List<String> modalVerbs = List.of();

@@ -24,6 +24,9 @@ public class TDR30 extends TypedDependencyRule {
     @Override
     @When
     public boolean when() {
+        if (!nlpProperties.getDisabledRules().contains("TDR30")) {
+            return false;
+        }
         if (currentTd == null || currentTd.getA() == null) {
             return false;
         }

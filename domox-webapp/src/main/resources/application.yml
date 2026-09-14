@@ -72,8 +72,8 @@ causeway:
   persistence:
     schema:
       auto-create-schemas: domox
-      create-schema-sql-template: "CREATE SCHEMA IF NOT EXISTS %S"
-      #create-schema-sql-template: "DROP SCHEMA IF EXISTS %S CASCADE; CREATE SCHEMA %S;"
+      #create-schema-sql-template: "CREATE SCHEMA IF NOT EXISTS %S"
+      create-schema-sql-template: "DROP SCHEMA IF EXISTS %S CASCADE; CREATE SCHEMA %S;"
 
 
 resteasy:
@@ -116,6 +116,7 @@ app:
 
 domox:
   nlp:
+    disabled-rules: TDR30, TDR31
     auxiliary-verbs: be, am, is, are, was, were, been, being, have, has, had, having, do, does, did, doing
     modal-verbs: can, could, may, might, shall, should, will, would, must
     # TDR27
@@ -123,16 +124,18 @@ domox:
     # TDR28
     system-output-verbs: display, output, retrieve, show, view, print, calculate, update, delete, search, modify, edit, remove, generate, prepare, send, get, execute, run, perform, start, stop, finish, complete
     # TDR29
-    action-verbs: get, send, prepare, generate, calculate, compute, execute, run, perform, start, stop, finish, complete, contain, include, exclude
+    action-verbs: get, send, prepare, generate, calculate, compute, execute, run, perform, start, stop, finish, complete, contain, exclude
     #FIXME TDR30/31 have no hits, because lemmas are used
     # TDR30 — past-tense forms of user-input verbs
-    input-past-verbs: inputted, entered, filled, clicked, selected, added, recorded, processed, validated, chosen, picked, created, updated, edited, changed, modified, removed, deleted, discarded
+    #input-past-verbs: inputted, entered, filled, clicked, selected, added, recorded, processed, validated, chosen, picked, created, updated, edited, changed, modified, removed, deleted, discarded
+    input-past-verbs:
     # TDR31 — past-tense forms of system-output verbs
-    output-past-verbs: displayed, outputted, retrieved, showed, viewed, printed, calculated, updated, deleted, searched, modified, edited, removed, generated, prepared, sent, got, executed, ran, performed, started, stopped, finished, completed
+    #output-past-verbs: displayed, outputted, retrieved, showed, viewed, printed, calculated, updated, deleted, searched, modified, edited, removed, generated, prepared, sent, got, executed, ran, performed, started, stopped, finished, completed
+    output-past-verbs:
     #TDR32
     # user-input-verbs, system-output-verbs,
     # TDR33
-    receive-verbs: receive, accept, get, obtain, acquire, redeem, collect, capture, fetch, download
+    receive-verbs: receive, accept, get, obtain, acquire, redeem, collect, fetch, download
     # TDR34
     exception-terms: error, fail, wrong, invalid, incorrect, unable, exception, problem, issue, fault, bug, crash, halt, stop, terminate
     # TDR37

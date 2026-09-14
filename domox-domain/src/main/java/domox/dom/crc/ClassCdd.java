@@ -4,16 +4,19 @@ import domox.DomainModule;
 import generate.PumlCode;
 import jakarta.inject.Named;
 import jakarta.persistence.Entity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Editing;
+import org.apache.causeway.applib.annotation.Collection;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "ClassCdd")
 @Named(DomainModule.NAMESPACE + ".ClassCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
@@ -46,24 +49,32 @@ public class ClassCdd
     @ManyToOne()
     public DomainModel domainModel;
 
+    @Getter
     @Setter
     @Property
     public ClassType classType = ClassType.PARTY_PLACE_THING;
 
+    @Getter
     @Setter
     @Property
     public String packageName = "sample";
 
-    @Property
-    @OneToMany(mappedBy = "classCdd")
+    @Getter
+    @Setter
+    @Collection
+    @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)
     public List<PropertyCdd> propertyList;
 
-    @Property
-    @OneToMany(mappedBy = "classCdd")
+    @Getter
+    @Setter
+    @Collection
+    @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)
     public List<ActionCdd> actionList;
 
-    @Property
-    @OneToMany(mappedBy = "classCdd")
+    @Getter
+    @Setter
+    @Collection
+    @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)
     public List<AssociationCdd> associationList;
 
     @Override

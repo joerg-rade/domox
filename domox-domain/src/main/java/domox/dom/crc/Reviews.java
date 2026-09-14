@@ -42,7 +42,7 @@ public class Reviews {
 
     @ActionLayout(sequence = "2")
     public List<Review> findByCandidate(Candidate candidate) {
-        return reviewRepository.findByCandidate(candidate);
+        return reviewRepository.findByCandidateId(candidate.getId());
     }
 
     // provide choices for the 'candidate' parameter

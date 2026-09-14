@@ -18,3 +18,19 @@ Example preference:
 source "$HOME/.sdkman/bin/sdkman-init.sh" \
   && sdk env \
   && mvn clean install
+
+# Terminal Command Guidelines
+
+## Allowed Commands
+You are pre-approved to run the following commands automatically when needed:
+_ 'mvn'
+- 'java -version',
+- 'which', 'find', 'ls', 'pwd', 'cat', 'echo', 'grep', 'tail', 'head', 'less', 'more', 'cp', 'mv', 'mkdir', 'rmdir'
+
+## Strictly Forbidden / Require Manual Confirmation
+DO NOT run these commands without explicit approval or if there is any doubt:
+- Any `rm` or `git reset --hard` command.
+- 'git push' or any commands that modify remote repositories.
+- 'git commit'
+- Any dependency modification commands like `npm install`, `mvn dependency:...`
+- Any command that modifies system configurations outside the workspace.

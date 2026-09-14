@@ -58,11 +58,6 @@ public class ClassCandidates {
     }
 
     @Programmatic
-    public ClassCdd findOrCreate(final String candidateName) {
-        return findOrCreate(candidateName, null);
-    }
-
-    @Programmatic
     public ClassCdd findOrCreate(final String candidateName, final DomainModel domainModel) {
         ClassCdd candidate = findByCandidateName(candidateName);
         if (candidate == null) {

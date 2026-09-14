@@ -11,7 +11,7 @@ import org.jspecify.annotations.NonNull;
 import java.sql.Timestamp;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "Review")
 @Named(DomainModule.NAMESPACE + ".Review")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(
@@ -47,7 +47,7 @@ public class Review extends AbstractEntity implements Comparable<Review> {
     @Setter
     private ReviewRationale rationale;
 
-    @Column(nullable = false)
+    @Column(name = "username", nullable = false)
     @Getter
     @Setter
     private String user;

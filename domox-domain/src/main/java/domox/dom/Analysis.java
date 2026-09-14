@@ -58,6 +58,7 @@ public class Analysis {
 
         // Create a DomainModel to own all candidates created in this analysis
         final DomainModel domainModel = domainModels.create();
+        document.setDomainModel(domainModel);
 
         // Apply each TypedDependencyRule to each sentence
         for (Sentence sentence : document.getSentences()) {

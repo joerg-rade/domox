@@ -11,6 +11,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.causeway.applib.annotation.Collection;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import org.apache.causeway.applib.annotation.Property;
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "ActionCdd")
 @Named(DomainModule.NAMESPACE + ".ActionCdd")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "bolt")
@@ -42,7 +43,7 @@ public class ActionCdd
     private ClassCdd classCdd;
 
     @OneToMany(mappedBy = "actionCdd", cascade = CascadeType.PERSIST)
-    @Property
+    @Collection
     public List<ParameterCdd> inputTypeList;
 
     @Property

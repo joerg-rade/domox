@@ -20,7 +20,7 @@ import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "ParameterCdd")
 @Named(DomainModule.NAMESPACE + ".ParameterCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Parameter is the Type of an argument of an Action")

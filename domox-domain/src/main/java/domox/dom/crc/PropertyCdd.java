@@ -16,7 +16,7 @@ import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "PropertyCdd")
 @Named(DomainModule.NAMESPACE + ".PropertyCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Property is a Member of a Class")

@@ -12,7 +12,7 @@ import org.apache.causeway.applib.annotation.DomainObjectLayout;
 import java.util.List;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "Author")
 @Named(DomainModule.NAMESPACE + ".Author")
 @DomainObject(bounding = Bounding.BOUNDED)
 @DomainObjectLayout(cssClassFa = "edit", describedAs = "An A. is the creator of a Document")

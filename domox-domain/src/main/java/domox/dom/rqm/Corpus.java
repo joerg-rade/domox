@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @Entity
-@Table(schema = DomainModule.SCHEMA)
+@Table(schema = DomainModule.SCHEMA, name = "Corpus")
 @Named(DomainModule.NAMESPACE + ".Corpus")
 @DomainObject(entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(
