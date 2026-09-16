@@ -137,7 +137,7 @@ Test File Status: Compiled without errors
 2. ✅ `testTDR2_AttributeExtraction()`
 3. ✅ `testTDR6_PossessiveRelationship()`
 4. ✅ `testTDR14_SubjectObjectRelationship()`
-5. ✅ `testTDR24_CardinalityFromAdjective()`
+5. ✅ `testTDR24_DescriptorFromAdjective()`
 6. ✅ `testTDR27_InputDataExtraction()`
 7. ✅ `testTDR34_ExceptionHandling()`
 8. ✅ `testAllRulesAreRegistered()`

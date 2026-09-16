@@ -18,7 +18,7 @@ public class TDR24 extends TypedDependencyRule {
         if (currentTd == null) {
             return false;
         }
-        // Spec: amod(E1, JJ) -> cardinalities.add(E1 ">" JJ)
+        // Spec: amod(E1, JJ) -> descriptor.add(E1, JJ)
         // E1 (governor) must be a noun entity, JJ (dependent) an adjective
         return amod(currentTd) && isNounA(currentTd) && isAdjectiveB(currentTd);
     }
@@ -26,20 +26,21 @@ public class TDR24 extends TypedDependencyRule {
     @Override
     @Then
     public void then() {
-        // cardinalities.add(E1 ">" JJ)
+        // descriptor.add(E1, JJ)
         String e1 = currentTd.getA();
         String jj = currentTd.getB();
-        result = "cardinalities.add(" + e1 + " > " + jj + ")";
+        result = "descriptor.add(" + e1 + ", " + jj + ")";
 
         // Phase 1: record the match; dependency and sentence come from the @Given fields
+        // The JJ (adjective) is a descriptor of entity E1, not a separate class
         if (ruleMatches != null && currentTd != null) {
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
                     "ClassCdd",
                     capitalizeFirstLetter(e1),
-                    "ClassCdd",
-                    capitalizeFirstLetter(jj),
+                    null,
+                    null,
                     result);
         }
     }

@@ -19,7 +19,7 @@ public class TDR25 extends TypedDependencyRule {
         if (currentTd == null) {
             return false;
         }
-        // Spec: nummod(E1, CD) -> cardinalities.add(E1 ">" CD)
+        // Spec: nummod(E1, CD) -> multiplicity.add(E1, CD)
         // E1 (governor) must be a noun entity
         return nummod(currentTd) && isNounA(currentTd);
     }
@@ -27,20 +27,21 @@ public class TDR25 extends TypedDependencyRule {
     @Override
     @Then
     public void then() {
-        // cardinalities.add(E1 ">" CD)
+        // multiplicity.add(E1, CD)
         String e1 = currentTd.getA();
         String cd = currentTd.getB();
-        result = "cardinalities.add(" + e1 + " > " + cd + ")";
+        result = "multiplicity.add(" + e1 + ", " + cd + ")";
 
         // Phase 1: record the match; dependency and sentence come from the @Given fields
+        // The CD (number) is a multiplicity value, not a separate class
         if (ruleMatches != null && currentTd != null) {
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
                     "ClassCdd",
                     capitalizeFirstLetter(e1),
-                    "ClassCdd",
-                    capitalizeFirstLetter(cd),
+                    null,
+                    null,
                     result);
         }
     }

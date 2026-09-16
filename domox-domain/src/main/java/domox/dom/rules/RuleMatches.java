@@ -5,6 +5,7 @@ import domox.dom.nlp.Sentence;
 import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.crc.ActionCandidates;
+import domox.dom.crc.AssociationCandidates;
 import domox.dom.crc.Candidate;
 import domox.dom.crc.ClassCandidates;
 import domox.dom.crc.ClassCdd;
@@ -43,6 +44,7 @@ public class RuleMatches {
     private final ClassCandidates classCandidates;
     private final PropertyCandidates propertyCandidates;
     private final ActionCandidates actionCandidates;
+    private final AssociationCandidates associationCandidates;
 
     @Inject
     public RuleMatches(
@@ -52,7 +54,8 @@ public class RuleMatches {
             SentenceRepository sentenceRepository,
             ClassCandidates classCandidates,
             PropertyCandidates propertyCandidates,
-            ActionCandidates actionCandidates) {
+            ActionCandidates actionCandidates,
+            AssociationCandidates associationCandidates) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatchRepository = ruleMatchRepository;
@@ -60,6 +63,7 @@ public class RuleMatches {
         this.classCandidates = classCandidates;
         this.propertyCandidates = propertyCandidates;
         this.actionCandidates = actionCandidates;
+        this.associationCandidates = associationCandidates;
     }
 
     /**
@@ -189,7 +193,6 @@ public class RuleMatches {
     Candidate createCandidateFromMatch(RuleMatch match) {
         return createCandidateFromMatch(match, null);
     }
-
     @Programmatic
     Candidate createCandidateFromMatch(RuleMatch match, DomainModel domainModel) {
         String candidateType = match.getCandidateType();
@@ -197,6 +200,15 @@ public class RuleMatches {
         String relatedCandidateName = match.getRelatedCandidateName();
 
         if ("ClassCdd".equals(candidateType)) {
+            if (relatedCandidateName != null) {
+                // Association between two ClassCdd entities (produced by TDR14–TDR23)
+                ClassCdd source = classCandidates.findOrCreate(candidateName, domainModel);
+                source.setCandidateName(candidateName);
+                ClassCdd target = classCandidates.findOrCreate(relatedCandidateName, domainModel);
+                target.setCandidateName(relatedCandidateName);
+                String assocName = candidateName + "_" + relatedCandidateName;
+                return associationCandidates.findOrCreate(assocName, source, target, domainModel);
+            }
             ClassCdd classCdd = classCandidates.findOrCreate(candidateName, domainModel);
             classCdd.setCandidateName(candidateName);
             return classCdd;

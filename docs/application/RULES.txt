@@ -119,7 +119,7 @@ then
                   Entity.add(B)
 
 Appendix A.2
-Rules to genrate relationships, carinalities and operations for flow
+Rules to generate relationships, cardinalities and operations for flow
 
 TDR14.
 if nsubj(Verb, E1) & dobj(Verb, E2)
@@ -167,22 +167,22 @@ if nmod:as(VB, E1) and dobj (VB, E2)
     relationship.add (E1 (VB) E2)
 
 Appendix A.3
-Rules to genrate carinalities.
+Rules to generate descriptors and multiplicities.
 TDR24.
 if dependency = amod( E1, JJ)
-cardinalities.add (E1 “>”JJ )
+ descriptor.add (E1, JJ )
 
 TDR25.
 if dependency = nummod( E1, CD)
-cardinalities.add (E1 “>” CD )
+ multiplicity.add (E1, CD )
 
 TDR26.
 if dependency = det( E1, DT)
  if (DT=”Each” OR ”All” OR ”some” OR ”Any” OR “Many” OR
 “Every” OR “multiple”)
-     cardinalities.add (E1 “>” N )
+     multiplicity.add (E1, N )
  if (DT= “a” OR “an”  )
-     cardinalities.add (E1 “>” 1)
+     multiplicity.add (E1, 1)
 
 TDR 27.
 if Dependencies= nsubj(A,B) OR nsubjpass(A,B) OR dobj (A,B) OR

@@ -107,7 +107,7 @@ facts.put("currentTd", (NameValueReferable) td);  // ✅ Valid cast
 - testTDR2_AttributeExtraction()
 - testTDR6_PossessiveRelationship()
 - testTDR14_SubjectObjectRelationship()
-- testTDR24_CardinalityFromAdjective()
+- testTDR24_DescriptorFromAdjective()
 - testTDR27_InputDataExtraction()
 - testTDR34_ExceptionHandling()
 

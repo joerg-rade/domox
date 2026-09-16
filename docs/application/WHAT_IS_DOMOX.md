@@ -63,7 +63,7 @@ The rules are organized into categories:
 |----------|-------|-------------------|
 | **Entity & Attribute** | TDR1-TDR13 | Classes (entities) and properties (attributes) from subjects, objects, compounds, possessives, etc. |
 | **Relationship** | TDR14-TDR23 | Associations between entities — who does what to whom |
-| **Cardinality** | TDR24-TDR26 | Multiplicity constraints ("multiple users" → `User > *`) |
+| **Descriptor & Multiplicity** | TDR24-TDR26 | Entity descriptors (TDR24) and multiplicity constraints (TDR25-TDR26) |
 | **Operation & Action** | TDR27-TDR37 | Input/output data flows, user actions, system actions, exceptions, control flow |
 | **Business Extension** | TDR38-TDR39 | Business-level actions and service concepts beyond CRUD verbs |
 

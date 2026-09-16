@@ -4,6 +4,7 @@ import com.deliveredtechnologies.rulebook.model.RuleBook;
 import com.deliveredtechnologies.rulebook.spring.SpringAwareRuleBookRunner;
 import domox.dom.nlp.*;
 import domox.dom.crc.ActionCandidates;
+import domox.dom.crc.AssociationCandidates;
 import domox.dom.crc.ClassCandidates;
 import domox.dom.crc.PropertyCandidates;
 import org.apache.causeway.applib.services.factory.FactoryService;
@@ -99,6 +100,11 @@ public class TypedDependencyRulesTest {
         @Bean
         public ActionCandidates actionCandidates() {
             return Mockito.mock(ActionCandidates.class);
+        }
+
+        @Bean
+        public AssociationCandidates associationCandidates() {
+            return Mockito.mock(AssociationCandidates.class);
         }
 
         @Bean
@@ -293,11 +299,11 @@ public class TypedDependencyRulesTest {
     }
 
     /**
-     * Test TDR24: Cardinality from adjective modifier
-     * amod(Entity, adjective) -> cardinality
+     * Test TDR24: Descriptor from adjective modifier
+     * amod(Entity, adjective) -> descriptor.add(Entity, adjective)
      */
     @Test
-    public void testTDR24_CardinalityFromAdjective() {
+    public void testTDR24_DescriptorFromAdjective() {
         Sentence sentence = new Sentence();
         addToken(0, "users", PartOfSpeechType.NN);
         addToken(1, "multiple", PartOfSpeechType.JJ);
@@ -311,7 +317,7 @@ public class TypedDependencyRulesTest {
         tdr24.previousTd = previousTd;
         tdr24.nextTd = nextTd;
 
-        assertTrue(tdr24.when(), "TDR24 should identify cardinality adjectives");
+        assertTrue(tdr24.when(), "TDR24 should identify descriptor adjectives");
 
         tdr24.then();
         assertNotNull(tdr24, "TDR24 bean should not be null");

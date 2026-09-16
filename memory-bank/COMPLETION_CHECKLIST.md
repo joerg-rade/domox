@@ -37,10 +37,10 @@
 - [x] TDR22.java - Purpose relationships (nsubj & nmod:for)
 - [x] TDR23.java - Role relationships (nmod:as & dobj)
 
-#### Cardinality Rules (3 Rules)
-- [x] TDR24.java - Adjective cardinality (amod)
-- [x] TDR25.java - Numeric cardinality (nummod)
-- [x] TDR26.java - Determiner cardinality (det with quantifier matching)
+#### Descriptor & Multiplicity Rules (3 Rules)
+- [x] TDR24.java - Adjective descriptor (amod)
+- [x] TDR25.java - Numeric multiplicity (nummod)
+- [x] TDR26.java - Determiner multiplicity (det with quantifier matching)
 
 #### Operation/Action Rules (11 Rules)
 - [x] TDR27.java - Input operations (enter, fill, select, etc.)
@@ -138,7 +138,7 @@
 - [x] TDR2 - Attribute extraction test
 - [x] TDR6 - Possessive relationship test
 - [x] TDR14 - Subject-object relationship test
-- [x] TDR24 - Cardinality extraction test
+- [x] TDR24 - Descriptor extraction test
 - [x] TDR27 - Input data extraction test
 - [x] TDR34 - Exception handling test
 - [x] Rule registration smoke test
@@ -267,7 +267,7 @@ Build Time: ~16 seconds
 
 ### Completeness
 - [x] All 37 rules specified in RULES.txt implemented
-- [x] All rule categories covered (Entity, Relationship, Cardinality, Operation)
+- [x] All rule categories covered (Entity, Relationship, Descriptor & Multiplicity, Operation)
 - [x] TypedDependency class enhanced with all required methods
 - [x] Spring bean registration configured correctly
 - [x] Test framework created and integrated

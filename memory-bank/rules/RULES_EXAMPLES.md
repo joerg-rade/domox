@@ -470,38 +470,47 @@ Output: relationship.add(admin (assign) role)
 
 ---
 
-## GROUP 3: CARDINALITY RULES (TDR24-TDR26)
+## GROUP 3: DESCRIPTOR & MULTIPLICITY RULES (TDR24-TDR26)
 
-### TDR24: Adjective Cardinality
+### TDR24: Adjective Descriptor
 **Rule**: `amod(E, JJ)`
 
 **Example 1**:
 ```
-Input:  amod(users, multiple)
+Input:  amod(service, veterinary)
 
-Output: cardinalities.add(users > multiple)
-        >> Users can be multiple (cardinality constraint)
+Output: descriptor.add(service, veterinary)
+        >> Service is categorized as veterinary
 ```
 
 **Example 2**:
 ```
-Input:  amod(departments, several)
+Input:  amod(store, online)
 
-Output: cardinalities.add(departments > several)
+Output: descriptor.add(store, online)
+        >> Store is an online store
 ```
 
-### TDR25: Numeric Cardinality
+**Example 3**:
+```
+Input:  amod(users, multiple)
+
+Output: descriptor.add(users, multiple)
+        >> Users are multiple (qualitative descriptor, not a numeric multiplicity)
+```
+
+### TDR25: Numeric Multiplicity
 **Rule**: `nummod(E, CD)`
 
 **Example 1**:
 ```
 Input:  nummod(roles, 5)
 
-Output: cardinalities.add(roles > 5)
+Output: multiplicity.add(roles, 5)
         >> Roles limited to 5
 ```
 
-### TDR26: Determiner Cardinality
+### TDR26: Determiner Multiplicity
 **Rule**: `det(E, DT)` with quantifier matching
 
 **Example 1**:
@@ -509,7 +518,7 @@ Output: cardinalities.add(roles > 5)
 Input:  det(pages, each)
         DT="each" (plural quantifier)
 
-Output: cardinalities.add(pages > N)
+Output: multiplicity.add(pages, N)
         >> Each page (unbounded plural)
 ```
 
@@ -518,7 +527,7 @@ Output: cardinalities.add(pages > N)
 Input:  det(document, an)
         DT="an" (singular)
 
-Output: cardinalities.add(document > 1)
+Output: multiplicity.add(document, 1)
         >> Exactly one document
 ```
 

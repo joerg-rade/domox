@@ -2,6 +2,8 @@ package domox.dom.rules;
 
 import domox.dom.crc.ActionCandidates;
 import domox.dom.crc.ActionCdd;
+import domox.dom.crc.AssociationCandidates;
+import domox.dom.crc.AssociationCdd;
 import domox.dom.crc.Candidate;
 import domox.dom.crc.ClassCdd;
 import domox.dom.crc.ClassCandidates;
@@ -49,6 +51,9 @@ class RuleMatchesTest {
     @Mock
     ActionCandidates mockActionCandidates;
 
+    @Mock
+    AssociationCandidates mockAssociationCandidates;
+
     @BeforeEach
     public void setUp() {
         classUnderTest = new RuleMatches(
@@ -58,7 +63,8 @@ class RuleMatchesTest {
                 mockSentenceRepository,
                 mockClassCandidates,
                 mockPropertyCandidates,
-                mockActionCandidates);
+                mockActionCandidates,
+                mockAssociationCandidates);
     }
 
     @Test
@@ -142,7 +148,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates);
+        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates, mockAssociationCandidates);
     }
 
     @Test
@@ -152,7 +158,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates);
+        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates, mockAssociationCandidates);
     }
 
     @Test
@@ -165,7 +171,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates);
+        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates, mockAssociationCandidates);
     }
 
     @Test

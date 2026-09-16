@@ -8,12 +8,21 @@ import domox.dom.nlp.TypedDependency;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static domox.dom.nlp.TypedDependencyPredicates.*;
 
 @RuleBean
 @Rule(order = 35)
 public class TDR35 extends TypedDependencyRule {
+
+    private static final Set<String> STOPWORDS = Set.of(
+            "be", "been", "being", "am", "is", "are", "was", "were",
+            "have", "has", "had",
+            "do", "does", "did",
+            "will", "would", "shall", "should", "can", "could", "may", "might", "must",
+            "able", "unable"
+    );
 
     @Override
     @When
@@ -60,7 +69,7 @@ public class TDR35 extends TypedDependencyRule {
                 if (skipAdvmod && advmod(td)) {
                     continue;
                 }
-                if (isBasicAttributeB(td)) {
+                if (isBasicAttributeB(td) && !isStopword(td.getB())) {
                     attributeNames.add(td.getB());
                     attributeActions.add("System_Actions.add(" + td.getB() + ")");
                 }
@@ -73,6 +82,9 @@ public class TDR35 extends TypedDependencyRule {
         }
 
         if (ruleMatches != null && currentTd != null) {
+            if (b != null && isStopword(b)) {
+                return;  // Skip — concatenation with an auxiliary/copular verb produces a meaningless candidate name (e.g. "Ifbe")
+            }
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
@@ -92,6 +104,10 @@ public class TDR35 extends TypedDependencyRule {
                         "System_Actions.add(" + name + ")");
             }
         }
+    }
+
+    private static boolean isStopword(String term) {
+        return term != null && STOPWORDS.contains(term.toLowerCase());
     }
 
     private boolean isIf(String term) {

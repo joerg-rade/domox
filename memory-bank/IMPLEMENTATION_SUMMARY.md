@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-Implemented a complete rule-based system for extracting domain models from natural language requirements using TypedDependency (TD) rules. The system processes Stanford CoreNLP dependency parse trees to extract entities, attributes, relationships, cardinalities, and operations.
+Implemented a complete rule-based system for extracting domain models from natural language requirements using TypedDependency (TD) rules. The system processes Stanford CoreNLP dependency parse trees to extract entities, attributes, relationships, descriptors and multiplicities, and operations.
 
 ### Key Achievements
 
@@ -72,21 +72,22 @@ Implemented a complete rule-based system for extracting domain models from natur
 - Composite relationship generation
 - Verb phrase elaboration
 
-### 2.3 TDR24-TDR26: Cardinality Rules (3 Rules)
+### 2.3 TDR24-TDR26: Descriptor & Multiplicity Rules (3 Rules)
 
-**Purpose**: Extract multiplicity and occurrence constraints
+**Purpose**: Extract entity descriptors (TDR24) and multiplicity/occurrence constraints (TDR25-TDR26)
 
-| Rule | Dependency | Condition | Cardinality |
-|------|------------|-----------|-------------|
-| TDR24 | amod(E,JJ) | - | E > JJ |
-| TDR25 | nummod(E,CD) | - | E > CD |
-| TDR26 | det(E,DT) | DT ∈ {Each,All,some,Any,Many,Every,multiple} | E > N |
-| TDR26 | det(E,DT) | DT ∈ {a,an} | E > 1 |
+| Rule | Dependency | Condition | Output |
+|------|------------|-----------|--------|
+| TDR24 | amod(E,JJ) | - | descriptor.add(E, JJ) |
+| TDR25 | nummod(E,CD) | - | multiplicity.add(E, CD) |
+| TDR26 | det(E,DT) | DT ∈ {Each,All,some,Any,Many,Every,multiple} | multiplicity.add(E, N) |
+| TDR26 | det(E,DT) | DT ∈ {a,an} | multiplicity.add(E, 1) |
 
 **Key Features**:
 - Quantifier detection
-- Numeric cardinality extraction
+- Numeric multiplicity extraction
 - Determiner-based constraints
+- Adjective-based entity descriptors
 
 ### 2.4 TDR27-TDR37: Operation/Action Rules (11 Rules)
 
@@ -198,7 +199,7 @@ if (runner.getResult().isPresent()) {
 - TDR2: Attribute extraction
 - TDR6: Possessive relationships
 - TDR14: Subject-object relationships
-- TDR24: Adjective-based cardinality
+- TDR24: Adjective-based descriptor
 - TDR27: Input data extraction
 - TDR34: Exception handling
 - Rule registration smoke test

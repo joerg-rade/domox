@@ -93,6 +93,7 @@ public class ClassCdd
     @Programmatic
     public void addAssociation(AssociationCdd association) {
         associationList.add(association);
+        association.setClassCdd(this);
     }
 
     @Programmatic

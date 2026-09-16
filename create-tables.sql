@@ -20,7 +20,6 @@ CREATE TABLE domox.ClassCdd_RuleMatch (ClassCdd_ID BIGINT NOT NULL, ruleMatches_
 CREATE TABLE domox.PackageCdd_RuleMatch (PackageCdd_ID BIGINT NOT NULL, ruleMatches_ID BIGINT NOT NULL, PRIMARY KEY (PackageCdd_ID, ruleMatches_ID))
 CREATE TABLE domox.ParameterCdd_RuleMatch (ParameterCdd_ID BIGINT NOT NULL, ruleMatches_ID BIGINT NOT NULL, PRIMARY KEY (ParameterCdd_ID, ruleMatches_ID))
 CREATE TABLE domox.PropertyCdd_RuleMatch (PropertyCdd_ID BIGINT NOT NULL, ruleMatches_ID BIGINT NOT NULL, PRIMARY KEY (PropertyCdd_ID, ruleMatches_ID))
-CREATE TABLE domox.SENTENCE_WORD (sentence_id BIGINT, WORDS VARCHAR(255), word_index INTEGER)
 CREATE TABLE domox.author_document (author_id BIGINT NOT NULL, document_id BIGINT NOT NULL, PRIMARY KEY (author_id, document_id))
 ALTER TABLE domox.ActionCdd ADD CONSTRAINT FK_ActionCdd_CLASSCDD_ID FOREIGN KEY (CLASSCDD_ID) REFERENCES domox.ClassCdd (ID)
 ALTER TABLE domox.AssociationCdd ADD CONSTRAINT FK_AssociationCdd_TARGET_ID FOREIGN KEY (TARGET_ID) REFERENCES domox.ClassCdd (ID)
@@ -34,7 +33,6 @@ ALTER TABLE domox.TypedDependency ADD CONSTRAINT FK_TypedDependency_sentence_id 
 ALTER TABLE domox.Document ADD CONSTRAINT FK_Document_corpus_id FOREIGN KEY (corpus_id) REFERENCES domox.Corpus (ID)
 ALTER TABLE domox.Document ADD CONSTRAINT FK_Document_domain_model_id FOREIGN KEY (domain_model_id) REFERENCES domox.DomainModel (ID)
 ALTER TABLE domox.RuleMatch ADD CONSTRAINT FK_RuleMatch_typed_dependency_id FOREIGN KEY (typed_dependency_id) REFERENCES domox.TypedDependency (ID)
-ALTER TABLE domox.SENTENCE_WORD ADD CONSTRAINT FK_SENTENCE_WORD_sentence_id FOREIGN KEY (sentence_id) REFERENCES domox.Sentence (ID)
 ALTER TABLE domox.author_document ADD CONSTRAINT FK_author_document_document_id FOREIGN KEY (document_id) REFERENCES domox.Document (ID)
 ALTER TABLE domox.author_document ADD CONSTRAINT FK_author_document_author_id FOREIGN KEY (author_id) REFERENCES domox.Author (ID)
 CREATE SEQUENCE domox.SEQ_GEN START WITH 1

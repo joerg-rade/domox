@@ -5,15 +5,11 @@ import domox.dom.AbstractEntity;
 import jakarta.inject.Named;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.causeway.applib.annotation.Bounding;
-import org.apache.causeway.applib.annotation.DomainObject;
-import org.apache.causeway.applib.annotation.DomainObjectLayout;
-import org.apache.causeway.applib.annotation.Editing;
+import org.apache.causeway.applib.annotation.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -27,6 +23,11 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> {
+
+    @Title
+    public String title() {
+        return "//TODO";
+    }
 
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     public List<ClassCdd> classList = new ArrayList<>();

@@ -19,7 +19,7 @@ public class TDR26 extends TypedDependencyRule {
         if (currentTd == null) {
             return false;
         }
-        // Spec: det(E1, DT) -> cardinalities.add based on the DT value
+        // Spec: det(E1, DT) -> multiplicity.add based on the DT value
         // E1 (governor) must be a noun entity and DT (dependent) one of
         // the determiners handled by this rule
         if (!det(currentTd) || !isNounA(currentTd) || currentTd.getB() == null) {
@@ -33,27 +33,28 @@ public class TDR26 extends TypedDependencyRule {
     @Then
     public void then() {
         // if (DT="Each" OR "All" OR "some" OR "Any" OR "Many" OR "Every" OR "multiple")
-        //    cardinalities.add(E1 ">" N)
+        //    multiplicity.add(E1, N)
         // if (DT= "a" OR "an")
-        //    cardinalities.add(E1 ">" 1)
+        //    multiplicity.add(E1, 1)
         String e1 = currentTd.getA();
         String dt = currentTd.getB().toLowerCase();
 
         if (isMultiplicityDeterminer(dt)) {
-            result = "cardinalities.add(" + e1 + " > N)";
+            result = "multiplicity.add(" + e1 + ", N)";
         } else {
-            result = "cardinalities.add(" + e1 + " > 1)";
+            result = "multiplicity.add(" + e1 + ", 1)";
         }
 
         // Phase 1: record the match; dependency and sentence come from the @Given fields
+        // The DT (determiner) indicates a multiplicity value, not a separate class
         if (ruleMatches != null && currentTd != null) {
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
                     "ClassCdd",
                     capitalizeFirstLetter(e1),
-                    "ClassCdd",
-                    capitalizeFirstLetter(dt),
+                    null,
+                    null,
                     result);
         }
     }

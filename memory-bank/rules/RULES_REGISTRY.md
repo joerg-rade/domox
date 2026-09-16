@@ -61,15 +61,15 @@ Extract relationships between entities and their actions.
 | TDR22 | nsubj(V,E1) & nmod:for(V,E2) | E1 (V for) E2 |
 | TDR23 | nmod:as(V,E1) & dobj(V,E2) | E1 (V) E2 |
 
-### Group 3: Cardinality Rules (TDR24-TDR26)
-Extract multiplicity constraints.
+### Group 3: Descriptor & Multiplicity Rules (TDR24-TDR26)
+Extract entity descriptors (TDR24) and multiplicity constraints (TDR25-TDR26).
 
 | Rule | Dependency | Condition | Output |
 |------|------------|-----------|--------|
-| TDR24 | amod(E,JJ) | - | E > JJ |
-| TDR25 | nummod(E,CD) | - | E > CD |
-| TDR26 | det(E,DT) | DT in {Each, All, some, Any, Many, Every, multiple} | E > N |
-| TDR26 | det(E,DT) | DT in {a, an} | E > 1 |
+| TDR24 | amod(E,JJ) | - | descriptor.add(E, JJ) |
+| TDR25 | nummod(E,CD) | - | multiplicity.add(E, CD) |
+| TDR26 | det(E,DT) | DT in {Each, All, some, Any, Many, Every, multiple} | multiplicity.add(E, N) |
+| TDR26 | det(E,DT) | DT in {a, an} | multiplicity.add(E, 1) |
 
 ### Group 4: Operation/Action Rules (TDR27-TDR37)
 Extract operations, user actions, system actions, and exceptions.

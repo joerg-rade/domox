@@ -72,8 +72,8 @@ causeway:
   persistence:
     schema:
       auto-create-schemas: domox
-      #create-schema-sql-template: "CREATE SCHEMA IF NOT EXISTS %S"
-      create-schema-sql-template: "DROP SCHEMA IF EXISTS %S CASCADE; CREATE SCHEMA %S;"
+      create-schema-sql-template: "CREATE SCHEMA IF NOT EXISTS %S"
+      #create-schema-sql-template: "DROP SCHEMA IF EXISTS %S CASCADE; CREATE SCHEMA %S;"
 
 
 resteasy:
@@ -137,7 +137,7 @@ domox:
     # TDR33
     receive-verbs: receive, accept, get, obtain, acquire, redeem, collect, fetch, download
     # TDR34
-    exception-terms: error, fail, wrong, invalid, incorrect, unable, exception, problem, issue, fault, bug, crash, halt, stop, terminate
+    exception-terms: error, fail, wrong, invalid, incorrect, unable, able, exception, problem, issue, fault, bug, crash, halt, stop, terminate
     # TDR37
     control-flow-verbs: continue, restart, go, repeat, cancel, exit, quit
     # TDR38
