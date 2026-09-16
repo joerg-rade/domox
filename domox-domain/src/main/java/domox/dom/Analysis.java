@@ -3,6 +3,9 @@ package domox.dom;
 import domox.DomainModule;
 import domox.FileUtil;
 import domox.dom.crc.Candidate;
+import domox.dom.crc.ClassArchetypeClassifier;
+import domox.dom.crc.ClassCdd;
+import domox.dom.crc.ClassType;
 import domox.dom.crc.DomainModel;
 import domox.dom.crc.DomainModels;
 import domox.dom.nlp.Sentence;
@@ -36,18 +39,21 @@ public class Analysis {
     private final RuleMatches ruleMatches;
     private final List<TypedDependencyRule> rules;
     private final DomainModels domainModels;
+    private final ClassArchetypeClassifier archetypeClassifier;
 
     @Inject
     public Analysis(RepositoryService repositoryService,
                     Documents documents,
                     RuleMatches ruleMatches,
                     List<TypedDependencyRule> rules,
-                    DomainModels domainModels) {
+                    DomainModels domainModels,
+                    ClassArchetypeClassifier archetypeClassifier) {
         this.repositoryService = repositoryService;
         this.documents = documents;
         this.ruleMatches = ruleMatches;
         this.rules = rules;
         this.domainModels = domainModels;
+        this.archetypeClassifier = archetypeClassifier;
     }
 
     @Action()
@@ -70,6 +76,15 @@ public class Analysis {
         // Phase 2: Create Candidate objects from all RuleMatches
         final List<Candidate> candidates = ruleMatches.createCandidatesFrom(ruleMatches.listAll(), domainModel);
         log.info("Created {} candidates from rule matches", candidates.size());
+
+        // Phase 2b: Archetype classification (Coad et al. 1999)
+        for (Candidate candidate : candidates) {
+            if (candidate instanceof ClassCdd classCdd) {
+                ClassType suggested = archetypeClassifier.suggestArchetype(classCdd);
+                classCdd.setClassType(suggested);
+                log.debug("Archetype classifier: {} → {}", classCdd.getCandidateName(), suggested);
+            }
+        }
     }
 
     @Action()

@@ -28,4 +28,14 @@ public class NlpProperties {
     private List<String> controlFlowTerms = List.of();
     private List<String> serviceNouns = List.of();
     private List<String> blockedVerbs = List.of();
+    private List<String> archetypeMomentIntervalKeywords = List.of();
+    private List<String> archetypeRoleKeywords = List.of();
+    private List<String> archetypeDescriptionKeywords = List.of();
+    private List<String> nounTypeGenericAttributes = List.of();
+    private List<String> nounTypeRoleNouns = List.of();
+    private List<String> nounTypeDomainEntities = List.of();
+    private List<String> nounTypeAbstractConcepts = List.of();
+    private List<String> nounTypeLocations = List.of();
+    private List<String> nounTypeTemporals = List.of();
+    private List<String> nounTypeCollections = List.of();
 }

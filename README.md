@@ -60,6 +60,30 @@ Information and Software Technology, vol. 135, p. 106558, Jul. 2021, doi: 10.101
 
 [5] PlantUML: https://plantuml.com/
 
+[6] P. Coad, E. Lefebvre, and J. De Luca, 
+*Java Modeling in Color with UML,* 
+Prentice Hall, 1999, ISBN 0-13-011510-X.
+
+[7] R. J. Abbott, 
+"Program design by informal English descriptions," 
+*Commun. ACM,* vol. 26, no. 11, pp. 882–894, Nov. 1983, doi: 10.1145/182.358441.
+
+[8] P. Coad and E. Yourdon, 
+*Object-Oriented Analysis,* 2nd ed. 
+Yourdon Press, 1991, ISBN 0-13-629981-4.
+
+[9] N. Kiyavitskaya, A. Krausova, and M. Avazyan,
+"Rule-based approach for automatic extraction of domain terms from natural language requirements,"
+in *Proc. CEUR Workshop*, vol. 2476, pp. 55–66, 2019.
+
+[10] L. Mich,
+"A use case driven requirements engineering method,"
+PhD Thesis, University of Trento, 2001.
+
+[11] H. Höhn,
+*Natural Language to Object-Oriented Analysis: A Grammar-Based Approach,*
+PhD Thesis, University of Koblenz-Landau, 2003.
+
 ## Diagrams
 ### Container Diagram
 ![Preview](./docs/application/c4_container.png)

@@ -1,5 +1,7 @@
 package domox.dom.nlp;
 
+import domox.dom.rules.NounType;
+
 import java.util.*;
 
 public final class TypedDependencyPredicates {
@@ -85,7 +87,68 @@ public final class TypedDependencyPredicates {
     public static boolean isBasicAttributeB(TypedDependency td) {
         return td.getB() != null && BASIC_ATTRIB.contains(td.getB());
     }
-    // end region
+    // endregion BASIC_ATTRIB
+
+    //region NOUN_TYPE (populated from config by NounTypeLexicon)
+    private static final Map<String, NounType> NOUN_TYPE_LEXICON = new HashMap<>();
+
+    public static void resetNounTypeLexicon() {
+        NOUN_TYPE_LEXICON.clear();
+    }
+
+    public static void registerNounType(String lemma, NounType type) {
+        if (lemma != null && type != null) {
+            NOUN_TYPE_LEXICON.put(lemma.toLowerCase(Locale.ROOT), type);
+        }
+    }
+
+    /**
+     * Returns the {@link NounType} of the dependent (B) lemma of the given
+     * typed dependency, or {@code null} if the lemma is not in the lexicon.
+     */
+    public static NounType nounTypeB(TypedDependency td) {
+        if (td == null || td.getB() == null) return null;
+        return NOUN_TYPE_LEXICON.get(td.getB().toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Returns the {@link NounType} of the governor (A) lemma of the given
+     * typed dependency, or {@code null} if the lemma is not in the lexicon.
+     */
+    public static NounType nounTypeA(TypedDependency td) {
+        if (td == null || td.getA() == null) return null;
+        return NOUN_TYPE_LEXICON.get(td.getA().toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Convenience: true iff the dependent (B) is a GENERIC_ATTRIBUTE.
+     */
+    public static boolean isGenericAttributeB(TypedDependency td) {
+        return nounTypeB(td) == NounType.GENERIC_ATTRIBUTE;
+    }
+
+    /**
+     * Convenience: true iff the dependent (B) is a ROLE_NOUN.
+     */
+    public static boolean isRoleNounB(TypedDependency td) {
+        return nounTypeB(td) == NounType.ROLE_NOUN;
+    }
+
+    /**
+     * Convenience: true iff the governor (A) is a ROLE_NOUN.
+     */
+    public static boolean isRoleNounA(TypedDependency td) {
+        return nounTypeA(td) == NounType.ROLE_NOUN;
+    }
+
+    /**
+     * Convenience: true iff the dependent (B) is a DOMAIN_ENTITY.
+     */
+    public static boolean isDomainEntityB(TypedDependency td) {
+        return nounTypeB(td) == NounType.DOMAIN_ENTITY;
+    }
+
+    // endregion NOUN_TYPE
 
     //region ACTION_VERBS & SERVICE_NOUNS (populated from config by ActionVocabularyCatalog)
     private static final Set<String> ACTION_VERBS = new HashSet<>();

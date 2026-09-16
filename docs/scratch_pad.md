@@ -55,6 +55,26 @@ ISBN 0-13-011510-X
 https://github.com/echebbi/standalone-xtext-example
 https://blogs.itemis.com/en/building-domain-specific-languages-with-xtext-and-xtend
 
+[5] R. J. Abbott (1983).
+"Program design by informal English descriptions,"
+Commun. ACM, vol. 26, no. 11, pp. 882–894, doi: 10.1145/182.358441.
+
+[6] P. Coad and E. Yourdon (1991).
+Object-Oriented Analysis, 2nd ed.
+Yourdon Press, ISBN 0-13-629981-4.
+
+[7] N. Kiyavitskaya, A. Krausova, and M. Avazyan (2019).
+"Rule-based approach for automatic extraction of domain terms from natural language requirements,"
+in Proc. CEUR Workshop, vol. 2476, pp. 55–66.
+
+[8] L. Mich (2001).
+"A use case driven requirements engineering method,"
+PhD Thesis, University of Trento.
+
+[9] H. Höhn (2003).
+Natural Language to Object-Oriented Analysis: A Grammar-Based Approach.
+PhD Thesis, University of Koblenz-Landau.
+
 
 #### Excerpt from [1]:
 Syntactic parsing (SP) is the key enabling NLP technology.

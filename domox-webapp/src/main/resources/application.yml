@@ -151,8 +151,54 @@ domox:
     basic-attributes: name, number, type, address, level, date, time,
                         id, code, status, description, title, label, value,
                         amount, quantity, size, color, email, phone, username,
-                        password, comment, note, version, category, priority, 
+                        password, comment, note, version, category, priority,
                         created-date, modified-date
+    # Archetype keyword lists (Coad 1999) used by ClassArchetypeClassifier
+    archetype-moment-interval-keywords: order, sale, purchase, rental, lease, booking, reservation,
+                                        appointment, transaction, payment, invoice, receipt, claim,
+                                        request, application, registration, subscription, shipment,
+                                        delivery, checkout, return, refund, session, log,
+                                        audit, history, event, activity, task, job, process
+    archetype-role-keywords: customer, client, buyer, seller, vendor, supplier,
+                             employee, employer, manager, supervisor, agent,
+                             member, subscriber, user, owner, tenant, landlord,
+                             patient, doctor, nurse, student, teacher, instructor,
+                             guest, host, participant, attendee, applicant,
+                             representative, delegate, trustee, beneficiary
+    archetype-description-keywords: catalog, category, type, kind, sort, class, group,
+                                    label, tag, status, state, phase, stage, grade,
+                                    model, make, brand, product, item, plan, tariff,
+                                    rate, price, fee, description, specification, template,
+                                    pattern, profile, configuration, setting, preference
+    # Noun-type lexicon (Höhn 2003) — structured classification used by NounTypeLexicon
+    # GENERIC_ATTRIBUTE — always treated as attributes, never entities
+    noun-type-generic-attributes: name, number, type, address, level, date, time,
+                                    id, code, status, description, title, label, value,
+                                    amount, quantity, size, color, email, phone, username,
+                                    password, comment, note, version, category, priority,
+                                    created-date, modified-date
+    # ROLE_NOUN — roles played by persons or things
+    noun-type-role-nouns: customer, user, client, buyer, seller, vendor, supplier,
+                            employee, employer, manager, supervisor, agent,
+                            member, subscriber, owner, tenant, landlord,
+                            patient, doctor, nurse, student, teacher,
+                            guest, host, participant, applicant, representative
+    # DOMAIN_ENTITY — core domain nouns (primary entity candidates)
+    noun-type-domain-entities: order, product, invoice, receipt, payment, shipment,
+                                delivery, booking, reservation, subscription,
+                                account, policy, claim, request, application
+    # ABSTRACT_CONCEPT — qualities, states, or measurements
+    noun-type-abstract-concepts: status, priority, level, state, phase, stage, grade,
+                                    rating, score, rank, degree, intensity, quality
+    # LOCATION — geographic or structural places
+    noun-type-locations: address, office, warehouse, store, branch, site, location,
+                            building, room, department, division, region, zone, area
+    # TEMPORAL — time-related nouns
+    noun-type-temporals: date, time, duration, timestamp, period, interval,
+                            deadline, schedule, calendar, year, month, week, day
+    # COLLECTION — collective nouns
+    noun-type-collections: list, set, group, collection, array, batch, queue,
+                            stack, registry, catalog, portfolio
   kroki:
     host: localhost
     port: 8001
