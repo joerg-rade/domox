@@ -38,8 +38,8 @@ Implemented a complete rule-based system for extracting domain models from natur
 | TDR7 | nmod:in with NN+NN | Both must be nouns | Entity.add(B), Attributes.add(A) |
 | TDR8 | nmod:to/for/from/as with NN | B must be noun | Entity.add(B) |
 | TDR9 | nmod:by/agent/with with NN | Branch on basic-attrib: Entity or Attribute | Entity/Attributes.add(B) |
-| TDR10 | nmod:poss with NN+NN or PREP | 2-way branch on noun/prep combinations | Entity/Attributes.add(...) |
-| TDR11 | amod with NN+JJ | Branch on basic-attrib of A | Attributes/Entity.add(...) |
+| TDR10 | nmod:poss with NN+NN, PREP or PRP$ | 3-way branch on noun/prep/pronoun combinations | Entity/Attributes.add(...) |
+| TDR11 | amod with NN+JJ/VBG | Branch on basic-attrib of A; possessed A becomes property of possessor | Attributes/Entity.add(...) |
 | TDR12 | compound with NN+NN | 4-way branching, context checks (!nsubj/!dobj) | Entity/Attributes.add(...) |
 | TDR13 | nmod:and/or with NN+NN | Branch on basic-attrib: Attributes or Entities | Attributes/Entity.add(A,B) |
 

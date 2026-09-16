@@ -162,6 +162,12 @@ public class TypedDependencyRulesTest {
     private TDR34 tdr34;
 
     @Autowired
+    private TDR10 tdr10;
+
+    @Autowired
+    private TDR11 tdr11;
+
+    @Autowired
     private RuleBook ruleBook;
 
     /**
@@ -186,9 +192,9 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR1_SubjectEntityExtraction() {
         Sentence sentence = new Sentence();
-        addToken(sentence, 0, "created", PartOfSpeechType.VB);
-        addToken(sentence, 1, "document", PartOfSpeechType.NN);
-        addToken(sentence, 2, "draft", PartOfSpeechType.NN);
+        addToken(0, "created", PartOfSpeechType.VB);
+        addToken(1, "document", PartOfSpeechType.NN);
+        addToken(2, "draft", PartOfSpeechType.NN);
 
         // nsubj(created, document): governor=0 (created), dependent=1 (document)
         TypedDependency td = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
@@ -217,8 +223,8 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR2_AttributeExtraction() {
         Sentence sentence = new Sentence();
-        addToken(sentence, 0, "created", PartOfSpeechType.VB);
-        addToken(sentence, 1, "name", PartOfSpeechType.NN);
+        addToken(0, "created", PartOfSpeechType.VB);
+        addToken(1, "name", PartOfSpeechType.NN);
 
         // nsubj(created, name): created=VB, name=NN (basic attribute)
         TypedDependency td = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
@@ -242,8 +248,8 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR6_PossessiveRelationship() {
         Sentence sentence = new Sentence();
-        addToken(sentence, 0, "name", PartOfSpeechType.NN);
-        addToken(sentence, 1, "document", PartOfSpeechType.NN);
+        addToken(0, "name", PartOfSpeechType.NN);
+        addToken(1, "document", PartOfSpeechType.NN);
 
         // nmod:of(name, document)
         TypedDependency td = createTypedDependency(sentence, TdType.NMOD_OF, 0, 1);
@@ -267,8 +273,8 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR14_SubjectObjectRelationship() {
         Sentence sentence = new Sentence();
-        addToken(sentence, 0, "creates", PartOfSpeechType.VB);
-        addToken(sentence, 1, "user", PartOfSpeechType.NN);
+        addToken(0, "creates", PartOfSpeechType.VB);
+        addToken(1, "user", PartOfSpeechType.NN);
 
         // nsubj(creates, user)
         TypedDependency currentTd = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
@@ -293,8 +299,8 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR24_CardinalityFromAdjective() {
         Sentence sentence = new Sentence();
-        addToken(sentence, 0, "users", PartOfSpeechType.NN);
-        addToken(sentence, 1, "multiple", PartOfSpeechType.JJ);
+        addToken(0, "users", PartOfSpeechType.NN);
+        addToken(1, "multiple", PartOfSpeechType.JJ);
 
         // amod(users, multiple)
         TypedDependency td = createTypedDependency(sentence, TdType.AMOD, 0, 1);
@@ -318,8 +324,8 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR27_InputDataExtraction() {
         Sentence sentence = new Sentence();
-        addToken(sentence, 0, "enter", PartOfSpeechType.VB);
-        addToken(sentence, 1, "name", PartOfSpeechType.NN);
+        addToken(0, "enter", PartOfSpeechType.VB);
+        addToken(1, "name", PartOfSpeechType.NN);
 
         // nsubj(enter, name) with object being an attribute
         TypedDependency td = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
@@ -343,8 +349,8 @@ public class TypedDependencyRulesTest {
     @Test
     public void testTDR34_ExceptionHandling() {
         Sentence sentence = new Sentence();
-        addToken(sentence, 0, "validation", PartOfSpeechType.NN);
-        addToken(sentence, 1, "invalid", PartOfSpeechType.JJ);
+        addToken(0, "validation", PartOfSpeechType.NN);
+        addToken(1, "invalid", PartOfSpeechType.JJ);
 
         // amod(validation, invalid)
         TypedDependency td = createTypedDependency(sentence, TdType.AMOD, 0, 1);
@@ -359,6 +365,139 @@ public class TypedDependencyRulesTest {
 
         tdr34.then();
         assertNotNull(tdr34, "TDR34 bean should not be null");
+    }
+
+    /**
+     * Test TDR10: possessive pronoun (PRP$) with no adjectival modifier.
+     */
+    @Test
+    public void testTDR10_PossessivePronoun_PropertyOnResolvedPossessor() {
+        Sentence sentence = new Sentence();
+        addToken(0, "train", PartOfSpeechType.VB);
+        addToken(1, "owners", PartOfSpeechType.NNS);
+        addToken(2, "their", PartOfSpeechType.PRP$);
+        addToken(3, "pets", PartOfSpeechType.NNS);
+        createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
+        TypedDependency td = createTypedDependency(sentence, TdType.NMOD_POSS, 3, 2);
+        tdr10.currentTd = td;
+        tdr10.previousTd = null;
+        tdr10.nextTd = null;
+        assertTrue(tdr10.when(), "TDR10 should fire for nmod:poss(pets, their)");
+        tdr10.then();
+        List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
+        RuleMatch propertyMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "PropertyCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(propertyMatch, "TDR10 should have created a PropertyCdd");
+        assertEquals("pets", propertyMatch.getCandidateName());
+        assertEquals("Owners", propertyMatch.getRelatedCandidateName(),
+                "Pronominal possessor should resolve to the nsubj entity");
+    }
+
+    /**
+     * Test TDR10: possessive pronoun (PRP$) with an adjectival modifier on the
+     * possessed noun.  "pet owners train their beloved pets" →
+     * nmod:poss(pets, their) with amod(pets, beloved).
+     * Rule fires: enriched PropertyCdd "beloved pets" on ClassCdd "Owners".
+     */
+    @Test
+    public void testTDR10_PossessivePronoun_EnrichedPropertyName() {
+        Sentence sentence = new Sentence();
+        addToken(0, "train", PartOfSpeechType.VB);
+        addToken(1, "owners", PartOfSpeechType.NNS);
+        addToken(2, "their", PartOfSpeechType.PRP$);
+        addToken(3, "beloved", PartOfSpeechType.VBG);
+        addToken(4, "pets", PartOfSpeechType.NNS);
+        createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
+        createTypedDependency(sentence, TdType.AMOD, 4, 3);
+        TypedDependency td = createTypedDependency(sentence, TdType.NMOD_POSS, 4, 2);
+        tdr10.currentTd = td;
+        tdr10.previousTd = null;
+        tdr10.nextTd = null;
+        assertTrue(tdr10.when(), "TDR10 should fire for nmod:poss(pets, their)");
+        tdr10.then();
+        List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
+        RuleMatch propertyMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "PropertyCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(propertyMatch, "TDR10 should have created a PropertyCdd");
+        assertEquals("beloved pets", propertyMatch.getCandidateName(),
+                "Property name should be enriched with the amod modifier");
+        assertEquals("Owners", propertyMatch.getRelatedCandidateName());
+    }
+
+    /**
+     * Test TDR11: amod with VBG modifier on a possessed noun.
+     * "owners love their beloved pets" → amod(pets, beloved) where beloved=VBG,
+     * with nmod:poss(pets, their) in the same sentence.
+     * Rule fires: PropertyCdd "beloved pets" on ClassCdd "Owners" (not a standalone entity).
+     */
+    @Test
+    public void testTDR11_AmodVBG_PossessedNoun_PropertyOnPossessor() {
+        Sentence sentence = new Sentence();
+        addToken(0, "owners", PartOfSpeechType.NNS);
+        addToken(1, "love", PartOfSpeechType.VBP);
+        addToken(2, "their", PartOfSpeechType.PRP$);
+        addToken(3, "beloved", PartOfSpeechType.VBG);
+        addToken(4, "pets", PartOfSpeechType.NNS);
+
+        // nsubj(love, owners) — the entity that resolves the pronoun "their"
+        createTypedDependency(sentence, TdType.NSUBJ, 1, 0);
+        // nmod:poss(pets, their) — possession link consumed by TDR11's then()
+        createTypedDependency(sentence, TdType.NMOD_POSS, 4, 2);
+        // amod(pets, beloved) — governor=4 (pets), dependent=3 (beloved VBG)
+        TypedDependency td = createTypedDependency(sentence, TdType.AMOD, 4, 3);
+
+        tdr11.currentTd = td;
+        tdr11.previousTd = null;
+        tdr11.nextTd = null;
+
+        assertTrue(tdr11.when(), "TDR11 should fire for amod(pets, beloved) with VBG modifier");
+        tdr11.then();
+
+        List<RuleMatch> matches = tdr11.ruleMatches.findByRuleClassName("TDR11");
+        RuleMatch propertyMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "PropertyCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(propertyMatch, "TDR11 should have created a PropertyCdd for the possessed noun");
+        assertEquals("beloved pets", propertyMatch.getCandidateName());
+        assertEquals("Owners", propertyMatch.getRelatedCandidateName());
+    }
+
+    /**
+     * Test TDR11 regression: amod without any possession still yields a ClassCdd.
+     * "the active order" → amod(order, active) with active=JJ.
+     */
+    @Test
+    public void testTDR11_Amod_NoPossession_StillEntity() {
+        Sentence sentence = new Sentence();
+        addToken(0, "active", PartOfSpeechType.JJ);
+        addToken(1, "order", PartOfSpeechType.NN);
+
+        // amod(order, active) — governor=1 (order), dependent=0 (active)
+        TypedDependency td = createTypedDependency(sentence, TdType.AMOD, 1, 0);
+
+        tdr11.currentTd = td;
+        tdr11.previousTd = null;
+        tdr11.nextTd = null;
+
+        assertTrue(tdr11.when(), "TDR11 should fire for amod(order, active)");
+        tdr11.then();
+
+        List<RuleMatch> matches = tdr11.ruleMatches.findByRuleClassName("TDR11");
+        RuleMatch entityMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "ClassCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(entityMatch, "TDR11 should have created a ClassCdd for a non-possessed noun");
+        assertEquals("Order", entityMatch.getCandidateName());
     }
 
     /**
@@ -394,7 +533,7 @@ public class TypedDependencyRulesTest {
     // Holds the text for each token index, used for governor/dependent glosses
     private final Map<Integer, String> tokenTexts = new HashMap<>();
 
-    private void addToken(Sentence sentence, int index, String text, PartOfSpeechType type) {
+    private void addToken(int index, String text, PartOfSpeechType type) {
         tokenTexts.put(index, text);
         tokenTypes.put(index, type);
     }

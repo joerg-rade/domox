@@ -220,7 +220,7 @@ Output: Attributes.add(name)
 ```
 
 ### TDR10: Possessive Relationship
-**Rule**: `nmod:poss(NN, NN or PREP)` with branching
+**Rule**: `nmod:poss(NN, NN or PREP or PRP$)` with branching
 
 **Example 1**:
 ```
@@ -241,8 +241,28 @@ Output: Attributes.add(property)
         >> Owner possesses property
 ```
 
+**Example 3 (PRP$ possessor)**:
+```
+Input:  nmod:poss(pets, their)  in "pet owners train their pets"
+        A=pets (NNS), B=their (PRP$)
+        Sentence also has nsubj(train, owners)
+
+Output: Attributes.add(pets)
+        >> PropertyCdd "pets" on resolved possessor ClassCdd "Owners"
+```
+
+**Example 4 (PRP$ + amod enrichment)**:
+```
+Input:  nmod:poss(pets, their)  in "pet owners train their beloved pets"
+        A=pets (NNS), B=their (PRP$)
+        Sentence also has amod(pets, beloved)
+
+Output: Attributes.add(beloved pets)
+        >> PropertyCdd "beloved pets" on ClassCdd "Owners"
+```
+
 ### TDR11: Adjective Modifier
-**Rule**: `amod(NN, JJ)` with basic-attrib branching
+**Rule**: `amod(NN, JJ or VBG)` with basic-attrib branching and possession cross-reference
 
 **Example 1**:
 ```
@@ -260,6 +280,16 @@ Input:  amod(document, encrypted)
 
 Output: Entity.add(document)
         >> Document is entity, can be encrypted
+```
+
+**Example 3 (VBG modifier + possession)**:
+```
+Input:  amod(pets, beloved)  in "owners love their beloved pets"
+        A=pets (NNS≠BasicAttrib), B=beloved (VBG)
+        Sentence also has nmod:poss(pets, their) and nsubj(love, owners)
+
+Output: Attributes.add(beloved pets)
+        >> PropertyCdd "beloved pets" on ClassCdd "Owners" (not a standalone entity)
 ```
 
 ### TDR12: Compound Words

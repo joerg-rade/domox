@@ -8,6 +8,7 @@ import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
+import java.util.Comparator;
 import java.util.List;
 
 @DomainService
@@ -34,7 +35,9 @@ public class PropertyCandidates {
 
     @ActionLayout(sequence = "1")
     public List<PropertyCdd> listAll() {
-        return repositoryService.allInstances(PropertyCdd.class);
+        return repositoryService.allInstances(PropertyCdd.class).stream()
+                .sorted(Comparator.comparingInt(Candidate::getRuleMatchCount).reversed())
+                .toList();
     }
 
     @ActionLayout(sequence = "2")
@@ -78,8 +81,6 @@ public class PropertyCandidates {
     public PropertyCdd findOrCreate(final String className, final String propertyName, final String type, DomainModel domainModel) {
         PropertyCdd candidate = findByClassAndName(className, propertyName);
         if (candidate == null) {
-            // Ensure the ClassCdd exists
-            ClassCdd classCdd = classCandidates.findOrCreate(className, domainModel);
             candidate = create(className, propertyName, type, domainModel);
         } else {
             // Update the type if it has changed

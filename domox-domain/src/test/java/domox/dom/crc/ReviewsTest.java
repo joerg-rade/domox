@@ -1,6 +1,7 @@
 package domox.dom.crc;
 
 import org.apache.causeway.applib.services.factory.FactoryService;
+import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.services.user.UserService;
 import org.junit.jupiter.api.BeforeEach;

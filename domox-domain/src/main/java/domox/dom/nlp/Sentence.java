@@ -40,14 +40,6 @@ public class Sentence extends AbstractEntity implements Comparable<Sentence> {
     @Setter
     private String text;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "SENTENCE_WORD",
-            schema = "domox",
-            joinColumns = @JoinColumn(name = "sentence_id"))
-    @OrderColumn(name = "word_index")
-    private List<String> words = new ArrayList<>();
-
     // region PDF
     @AttributeOverrides({
             @AttributeOverride(name = "name", column = @Column(name = "diagram_name")),
@@ -90,6 +82,7 @@ public class Sentence extends AbstractEntity implements Comparable<Sentence> {
     //endregion
 
     @OneToMany(mappedBy = "sentence", cascade = CascadeType.ALL)
+    @OrderBy("dependentIndex ASC")
     @Getter
     @Setter
     private List<TypedDependency> typedDependencies;
@@ -100,6 +93,8 @@ public class Sentence extends AbstractEntity implements Comparable<Sentence> {
             this.typedDependencies = new ArrayList<>();
         }
         this.typedDependencies.add(td);
+        this.typedDependencies.sort(
+                java.util.Comparator.comparingInt(TypedDependency::getDependentIndex));
     }
 
     @Programmatic

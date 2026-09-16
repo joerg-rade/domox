@@ -15,10 +15,8 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 @Rule(order = 28)
 public class TDR28 extends TypedDependencyRule {
 
-    private final NlpProperties nlpProperties;
-
     public TDR28(NlpProperties nlpProperties) {
-        this.nlpProperties = nlpProperties;
+        super(nlpProperties);
     }
 
     @Override

@@ -36,8 +36,8 @@ Extract domain entities (classes) and attributes (properties) from dependency pa
 | TDR7 | nmod:in | Noun-in-noun relationships | A,B=NN |
 | TDR8 | nmod:to/for/from/as | Prepositional noun relationships | B=NN |
 | TDR9 | nmod:by/agent/with | Agent noun relationships | B=NN, branch on basic-attrib |
-| TDR10 | nmod:poss | Possessive pronoun relationships | A,B condition branching |
-| TDR11 | amod | Adjective modifier relationships | A=NN, B=JJ, branch on basic-attrib |
+| TDR10 | nmod:poss | Possessive pronoun relationships | A,B condition branching (NN, PREP, PRP$) |
+| TDR11 | amod | Adjective modifier relationships | A=NN, B=JJ/VBG, branch on basic-attrib & possession |
 | TDR12 | compound | Compound word entities/attributes | A,B=NN, next≠nsubj/dobj, 4-way branching |
 | TDR13 | nmod:and/or | Conjunction relationships | A,B=NN, branch on basic-attrib |
 

@@ -11,7 +11,10 @@ import org.apache.causeway.applib.services.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 @DomainService
 @Named(DomainModule.NAMESPACE + ".Reviews")
@@ -88,5 +91,33 @@ public class Reviews {
         review.setUpdatedAt(Timestamp.from(Instant.now()));
         repositoryService.persist(review);
         return review;
+    }
+
+    // --- Workflow: next-unprocessed candidate ---
+
+    /**
+     * Finds the next candidate that has not yet been reviewed (approved or rejected),
+     * ordered by rule-match count descending (higher = more important).
+     *
+     * @return the next {@link Candidate} to review, or {@code null} if none remain
+     */
+    @Programmatic
+    public Candidate nextUnprocessed() {
+        Set<Long> processedIds = Set.copyOf(reviewRepository.findProcessedCandidateIds());
+
+        // Gather all concrete Candidate subclass instances
+        List<Candidate> allCandidates = new ArrayList<>();
+        allCandidates.addAll(repositoryService.allInstances(ClassCdd.class));
+        allCandidates.addAll(repositoryService.allInstances(PropertyCdd.class));
+        allCandidates.addAll(repositoryService.allInstances(ActionCdd.class));
+        allCandidates.addAll(repositoryService.allInstances(AssociationCdd.class));
+        allCandidates.addAll(repositoryService.allInstances(PackageCdd.class));
+        allCandidates.addAll(repositoryService.allInstances(ParameterCdd.class));
+
+        return allCandidates.stream()
+                .filter(c -> !processedIds.contains(c.getId()))     // not yet reviewed
+                .max(Comparator.comparingInt(Candidate::getRuleMatchCount) // highest match count first
+                        .thenComparingLong(Candidate::getId)) // tie-break by ID
+                .orElse(null);
     }
 }

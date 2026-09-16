@@ -8,6 +8,7 @@ import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
+import java.util.Comparator;
 import java.util.List;
 
 @DomainService
@@ -28,7 +29,9 @@ public class ActionCandidates {
 
     @ActionLayout(sequence = "1")
     public List<ActionCdd> listAll() {
-        return repositoryService.allInstances(ActionCdd.class);
+        return repositoryService.allInstances(ActionCdd.class).stream()
+                .sorted(Comparator.comparingInt(Candidate::getRuleMatchCount).reversed())
+                .toList();
     }
 
     @ActionLayout(sequence = "2")
@@ -38,7 +41,7 @@ public class ActionCandidates {
 
     @ActionLayout(sequence = "3")
     public ActionCdd create(String candidateName) {
-        return create(candidateName, (DomainModel) null);
+        return create(candidateName, null);
     }
 
     @Programmatic

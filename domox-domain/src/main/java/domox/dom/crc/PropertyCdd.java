@@ -25,6 +25,10 @@ import org.jetbrains.annotations.NotNull;
 public class PropertyCdd
         extends Candidate
         implements Comparable<PropertyCdd> {
+
+  //  @Getter
+  //  @Setter
+  //  @Property
     private Cardinality cardinality;
 
     public PropertyCdd(String propertyName, String type) {

@@ -43,7 +43,7 @@ public class ActionCdd
     @ManyToOne
     public ClassCdd classCdd;
 
-    @OneToMany(mappedBy = "actionCdd", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "actionCdd", cascade = CascadeType.ALL)
     @Collection
     public List<ParameterCdd> inputTypeList;
 
@@ -59,11 +59,11 @@ public class ActionCdd
 
     public String toPlantUmlString() {
         final String sep = ", ";
-        String s = getCandidateName() + "(";
+        StringBuilder s = new StringBuilder(getCandidateName() + "(");
         for (ParameterCdd i : inputTypeList) {
-            s += i.toPlantUmlString() + sep;
+            s.append(i.toPlantUmlString()).append(sep);
         }
-        s = s.replaceAll(sep + "$", ")");
+        s = new StringBuilder(s.toString().replaceAll(sep + "$", ")"));
         return s + ": " + outputType;
     }
 }

@@ -4,6 +4,8 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.PartOfSpeechType;
 
+import java.util.List;
+
 import static domox.dom.nlp.TypedDependencyPredicates.*;
 
 /**
@@ -52,6 +54,26 @@ public class TDR10 extends TypedDependencyRule {
                 ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
                         currentTd.getB(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getA()), result);
+            }
+        } else if (currentTd.getDependentPos() == PartOfSpeechType.PRP$) {
+            // else if A=Noun and B=PRP$ then
+            // Attributes.add(A) — A is possessed by the pronoun (e.g. "their pets")
+            // The possessor is resolved from the nearest nsubj entity in the sentence;
+            // property name is enriched with amod modifiers when present (e.g. "beloved pets").
+            String owningClass = resolvePronominalPossessor(currentTd.getSentence());
+            List<String> modifiers = modifierGlossesForGovernor(
+                    currentTd.getA(), currentTd.getSentence());
+            String propertyName = modifiers.isEmpty()
+                    ? currentTd.getA()
+                    : String.join(" ", modifiers) + " " + currentTd.getA();
+
+            result = "Attributes.add(" + propertyName + ")";
+
+            // Phase 1: persist the match — A is a property of the resolved possessor
+            if (ruleMatches != null && currentTd != null) {
+                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                        propertyName, "ClassCdd",
+                        owningClass, result);
             }
         }
     }
