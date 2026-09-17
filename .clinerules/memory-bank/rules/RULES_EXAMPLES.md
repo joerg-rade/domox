@@ -681,7 +681,133 @@ Output: System_Action.add(repeat 5)
 
 ---
 
-## COMPLETE WORKFLOW EXAMPLE
+## GROUP 6: GENERALIZATION EXTRACTION (TDR38-TDR40)
+Extract generalization (is-a) relationships between domain entities.
+
+### TDR38: Copula-Based Generalization ("X is a Y")
+**Rule**: `nsubj(ParentHead, ChildNoun)` + `cop(ParentHead, is/are)` + `det(ParentHead, a/an)`
+
+**Example 1: Simple copula pattern**
+```
+Input:  nsubj(animal, dog)
+        cop(animal, is)
+        det(animal, a)
+
+Output: generalization(dog --|> animal)
+        >> Domain has generalization: Dog --|> Animal
+        >> (creates AssociationCdd with AssociationType.GENERALIZATION)
+```
+
+**Example 2: Copula with other sentence elements**
+```
+Input:  nsubj(mammal, cat)
+        cop(mammal, is)
+        det(mammal, a)
+
+Output: generalization(cat --|> mammal)
+        >> Domain has generalization: Cat --|> Mammal
+```
+
+**Example 3: Plural / "are"**
+```
+Input:  nsubj(mammals, whales)
+        cop(mammals, are)
+        det(mammals, Ø)  # no det needed for plural
+
+Output: generalization(whales --|> mammals)
+        >> Domain has generalization: Whales --|> Mammals
+```
+
+**Non-example** (kind/type/sort — handled by TDR39):
+```
+Input:  nsubj(type, service)
+        cop(type, is)
+        det(type, a)
+        nmod:of(type, service)
+
+Output: No match — governor "type" is excluded from TDR38
+        (reserved for TDR39)
+```
+
+### TDR39: Kind-of/Type-of Generalization
+**Rule**: `nmod:of(TypeKindNoun, ParentNoun)` where TypeKindNoun contains "kind"/"type"/"sort"
+
+**Example 1: "is a type of"**
+```
+Input:  nsubj(type, service)
+        cop(type, is)
+        det(type, a)
+        nmod:of(type, service)
+
+Output: generalization(service --|> service)
+        >> Both entities have the same name — requires compound resolution
+        >> Ideal: A premium service is a type of service —>
+        >>  nsubj(type, service) — subject "premium service"
+        >>  nmod:of(type, service) — complement "service"
+        >>  Pending: compound resolution → PremiumService --|> Service
+```
+
+**Example 2: "is a kind of"**
+```
+Input:  nsubj(kind, suv)
+        cop(kind, is)
+        det(kind, a)
+        nmod:of(kind, car)
+
+Output: generalization(suv --|> car)
+        >> Domain has generalization: Suv --|> Car
+```
+
+**Example 3: "are types of"**
+```
+Input:  nsubj(types, sedan)
+        cop(types, are)
+        nmod:of(types, vehicle)
+
+Output: generalization(sedan --|> vehicle)
+        >> Domain has generalization: Sedan --|> Vehicle
+```
+
+### TDR40: Adjectival Classifier Generalization
+**Rule**: `amod(Noun, Adjective)` where adjective is a classifier (not evaluative/generic)
+
+**Example 1: "linked device"**
+```
+Input:  amod(device, linked)
+        A=device (NN), B=linked (JJ/VBG)
+        B is not in stop-adjectives
+
+Output: generalization(LinkedDevice --|> Device)
+        >> Domain has generalization: LinkedDevice --|> Device
+```
+
+**Example 2: "premium account"**
+```
+Input:  amod(account, premium)
+        A=account (NN), B=premium (JJ)
+
+Output: generalization(PremiumAccount --|> Account)
+        >> Domain has generalization: PremiumAccount --|> Account
+```
+
+**Non-example** (evaluative adjective "valid" — in stop list):
+```
+Input:  amod(input, valid)
+        A=input (NN), B=valid (JJ)
+        B is in stop-adjectives
+
+Output: No match — "valid" is evaluative/generic, handled by TDR11
+```
+
+**Non-example** (noun involved in copula relation — handled by TDR38/39):
+```
+Input:  amod(tree, large)
+        cop(tree, is) in same sentence
+
+Output: No match — noun "tree" is governed by cop, handled by TDR38
+```
+
+---
 
 **Sample Requirement**:
 ```

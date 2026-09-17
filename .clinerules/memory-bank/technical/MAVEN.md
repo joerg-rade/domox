@@ -40,10 +40,10 @@ domox/
 Version numbers and dependency management should be organized based on their scope of usage:
 
 **Properties Placement:**
-- **Root POM (`../../pom.xml`):** Properties used by **2 or more modules**
+- **Root POM (`../../../pom.xml`):** Properties used by **2 or more modules**
   - Examples: `kotlin.version`, `spring-boot.version`, `junit-jupiter.version`, `postgresql.version`
   - Shared infrastructure and testing frameworks
-- **Module POM (e.g., `../../domox-domain/pom.xml`):** Properties used by **only that module**
+- **Module POM (e.g., `../../../domox-domain/pom.xml`):** Properties used by **only that module**
   - Examples in domox-domain: `twelvemonkeys.version`, `batik-transcoder.version`
   - Module-specific visualization or processing libraries
 

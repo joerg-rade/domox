@@ -178,7 +178,71 @@ Expected: 37 files
 - Multiple conditional branches in single rules handle complex scenarios (3-way or 4-way branching)
 
 ## See Also
-- `../../docs/application/RULES.txt` - Original rule specifications
+- `../../../docs/application/RULES.txt` - Original rule specifications
 - `./MAVEN.md` - Maven configuration documentation
 - RuleBook Documentation: https://github.com/deliveredtechnologies/rulebook
 
+## Group 6: Generalization / Inheritance Rules — Literature Research (Proposed)
+
+The following patterns are **not yet implemented** in any TDR rule. They are documented here based on a literature review of the MODELS'16 Arora et al. paper, which in turn synthesizes the Yue et al. (2011) survey and Abbott (1983).
+
+### Primary Source: Arora et al., "Extracting Domain Models from Natural-Language Requirements" (MODELS'16)
+
+**Table 1 — Rule B5 (Generalization — explicit patterns):**
+| Trigger | Source | Example |
+|---------|--------|---------|
+| `"is a"` | Abbott [1], Chen [8], Coad & Yourdon [19] | `"A car is a vehicle."` → Car --|> Vehicle |
+| `"type of"` | Yue et al. survey [31] | `"Premium service is a type of service."` → PremiumService --|> Service |
+| `"kind of"` | Yue et al. survey [31] | `"SUV is a kind of car."` → SUV --|> Car |
+| `"may be"` | Arora et al. [1] | `"Service may be premium service or normal service."` → PremiumService --|> Service, NormalService --|> Service |
+
+**Rule D3 (Adjectival modifier — repurposed from attribute to generalization):**
+- *Original*: `amod(NP, ADJ)` → attribute (e.g., "the size is large" → attribute `size`)
+- *Repurposed by Arora*: Remove the leading adjective from an NP; the remaining noun becomes the parent concept, the full NP becomes the subclass.
+- *Example*: `"Linked Device"` → `amod(Device, Linked)` → Parent: `Device` (from NP minus adjective), Subclass: `Linked Device` (full NP)
+- *Caveat*: Attribute inference from adjectives is impractical without user intervention; generalization via D3 requires user to decide when an attribute is more suitable.
+
+**Key finding from Arora evaluation:**
+> "Generalizations are typically left tacit in NL requirements and are thus hard to identify automatically. The main rule targeted at generalizations is B5… This rule has limited usefulness when no conscious attempt has been made by the requirements authors to use the patterns in the rule."
+
+### Implemented Generalization Rules (Group 6)
+
+| Rule | TDR | Dependency Pattern | Literature | Conditions | Output |
+|------|-----|-------------------|------------|------------|--------|
+| Copula generalization | **TDR38** | `nsubj(ParentHead, ChildNoun)` + `cop(ParentHead, is/are)` + `det(ParentHead, a/an)` | Arora B5 | A=NN, B=NN; skip "kind"/"type"/"sort" (see TDR39) | `Child --|> Parent` |
+| Kind-of/Type-of generalization | **TDR39** | `nmod:of(TypeKindNoun, ParentNoun)` where TypeKindNoun contains "kind"/"type"/"sort" | Arora B5, Yue survey | B=NN; scan sentence for `nsubj(TypeKindNoun, ChildNoun)` | `Child --|> Parent` |
+| Adjectival classifier generalization | **TDR40** | `amod(Noun, Adjective)` where adjective is a classifier | Arora D3 | A=NN, B=JJ/VBG; exclude evaluative adjectives and copula nouns | `Adj+Noun --|> Noun` |
+
+### Implementation Details
+
+#### TDR38 — Copula-based generalization
+- **when()**: Accepts `nsubj(Governor, Dependent)` where both are nouns and the sentence contains both a `cop(Governor, beVerb)` and `det(Governor, a|an)`. Excludes governors that are "kind"/"type"/"sort" (reserved for TDR39).
+- **then()**: Creates a `GeneralizationCdd` RuleMatch with `candidateName=child` and `relatedCandidateName=parent`.
+
+#### TDR39 — Kind-of/Type-of generalization
+- **when()**: Accepts `nmod:of(Governor, Dependent)` where the governor lemma contains "kind"/"type"/"sort" and the dependent is a noun.
+- **then()**: Scans the sentence for `nsubj(Governor, ChildNoun)` to identify the subclass. Creates a `GeneralizationCdd` RuleMatch.
+
+#### TDR40 — Adjectival classifier generalization
+- **when()**: Accepts `amod(Noun, Adjective)` where the adjective is a classifier (not in a stop list and not evaluative), the noun is not in a copula relation (to avoid TDR38/39 overlap), and both POS types are valid.
+- **then()**: Creates a `GeneralizationCdd` RuleMatch with `candidateName=Adjective+Noun` (e.g. "LinkedDevice") and `relatedCandidateName=Noun` (e.g. "Device").
+
+#### Phase 2 Integration
+- `RuleMatches.createCandidateFromMatch()` handles `"GeneralizationCdd"` candidateType by creating both `ClassCdd` entities (child and parent) and an `AssociationCdd` with `AssociationType.GENERALIZATION`.
+- `AssociationCandidates.create()` and `findOrCreate()` now accept an optional `AssociationType` parameter.
+
+#### New Predicates Added
+The following predicates were added to `TypedDependencyPredicates`:
+- `cop(TypedDependency)` — checks for `TdType.COP`
+- `isBeVerbDependent(TypedDependency)` — checks if dependent is a form of "be"
+- `isIndefiniteArticleDependent(TypedDependency)` — checks if dependent is "a" or "an"
+- `isKindTypeOrSortDependent(TypedDependency)` — checks if dependent contains "kind"/"type"/"sort"
+- `isKindTypeOrSortGovernor(TypedDependency)` — checks if governor contains "kind"/"type"/"sort"
+
+### Next Steps
+1. ✅ Implement TDR38 (copula-based generalization)
+2. ✅ Implement TDR39 (kind-of/type-of generalization)
+3. ✅ Implement TDR40 (adjectival generalization)
+4. ✅ Update `ruleMatches.createCandidatesFrom()` to create generalization links
+5. ✅ Add integration tests for TDR38-TDR40 in TypedDependencyRulesTest
+6. ✅ Update RULES_EXAMPLES.md with before/after examples for the new rules

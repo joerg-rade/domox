@@ -1,7 +1,7 @@
 # JUnit 4 to JUnit 5 Conversion Summary
 
 **File**: `TypedDependencyRulesTest.java`
-**Location**: `domox-domain/src/test/java/domox/dom/rules/`
+**Location**: `../../domox-domain/src/test/java/domox/dom/rules`
 **Date**: 2026-05-16
 **Status**: ✅ COMPLETED & VERIFIED
 
