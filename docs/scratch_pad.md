@@ -1,3 +1,54 @@
+## Arora et al. 2016 — Generalization / Is-a Rules (MODELS'16)
+
+### B5 — Explicit Generalization (most authority)
+Patterns scanned in NL text:
+- `"is a"` / `"are a"` → X is a Y → Y --|> X
+- `"type of"` → X is a type of Y → Y --|> X
+- `"kind of"` → X is a kind of Y → Y --|> X
+- `"may be"` → X may be Y1 or Y2 → Y --|> Y1, Y --|> Y2
+
+**Limitation (Arora):** "Rarely triggered in industrial NL requirements; authors must consciously write these patterns."
+
+**Pipeline:** Rule-based → split the object clause by "or" → each alternative is a subclass.
+
+### D3 — Adjectival Generalization (repurposed)
+- Originally: `amod(NP, ADJ)` → attribute extraction (from Yue et al.)
+- Arora repurposed: Remove leading adjective → remaining noun = parent; full NP = subclass
+- Example: `amod(Device, Linked)` → Parent: Device, Subclass: Linked Device
+- Caveat: Attribute vs. generalization is a user choice (by design in Arora's tool)
+
+### Dependency Patterns for Generalization
+For copula "X is a Y":
+```
+nsubj(Y, X)         # X is the dependent (subclass), Y is the governor (parent)
+cop(Y, is)          # copula link
+det(Y, a/an)        # determiner — signals "X is a [class]"
+```
+
+For "X is a kind of Y":
+```
+nsubj(Y, X)         # X is a type of Y
+cop(Y, is)
+nmod:of(kind, Y)    # "of" phrase points to parent
+det(kind, a)
+```
+
+For "X may be A or B":
+```
+nsubj(Y, X)         # outer clause
+cop(Y, may)
+conj:or(Y, A)       # first alternative
+conj:or(Y, B)       # second alternative
+```
+
+### Literature Citations (from Arora Table 1 and References)
+- **Abbott (1983)** [1]: "is a" → class hierarchy
+- **Chen (1983)** [8]: "is a" → ER generalization
+- **Coad & Yourdon (1991)** [19]: "is a" → inheritance
+- **Yue et al. (2011)** [31]: survey of 20+ approaches; aggregation & generalization rules across 8+ papers
+
+### References
+Arora, C., Sabetzadeh, M., Briand, L., & Zimmer, F. (2016). "Extracting domain models from natural-language requirements: approach and industrial evaluation." In *MODELS'16: ACM/IEEE 19th International Conference on Model Driven Engineering Languages and Systems* (pp. 250–260). http://dx.doi.org/10.1145/2976767.2976769
 
 
 ![Preview](./docs/BigPicture.png)
@@ -113,6 +164,35 @@ A Domain Model has:
     * https://stackoverflow.com/questions/60718574/containerization-of-a-python-code-with-stanfordnlp-that-uses-gpu
     * https://github.com/NLPbox/stanford-corenlp-docker
 
+---
+## Implementation Status (Sep 17, 2026)
+
+### TDR38-TDR40: Generalization Rules — IMPLEMENTED ✅
+
+Implemented three new rules for detecting generalization (is-a) relationships:
+
+1. **TDR38** (copula-based): `nsubj(Parent, Child)` + `cop(Parent, be)` + `det(Parent, a/an)`
+   - Example: "A dog is an animal" → Dog --|> Animal
+   - Files: `TDR38.java` (new)
+
+2. **TDR39** (kind-of/type-of): `nmod:of(TypeKindNoun, Parent)` where TypeKindNoun ~ "kind"/"type"/"sort"
+   - Example: "SUV is a kind of car" → Suv --|> Car
+   - Scans sentence for `nsubj(TypeKindNoun, ChildNoun)` to find subclass
+   - Files: `TDR39.java` (new)
+
+3. **TDR40** (adjectival classifier): `amod(Noun, Adjective)` where adjective is a classifier
+   - Example: "linked device" → LinkedDevice --|> Device
+   - Excludes evaluative/generic adjectives (via stop list)
+   - Files: `TDR40.java` (new)
+
+### Supporting Changes
+- `TypedDependencyPredicates`: Added `cop()`, `isBeVerbDependent()`, `isIndefiniteArticleDependent()`, `isKindTypeOrSortDependent()`, `isKindTypeOrSortGovernor()` predicates
+- `AssociationCandidates.create()` and `findOrCreate()` now accept optional `AssociationType` parameter
+- `RuleMatches.createCandidateFromMatch()` handles `"GeneralizationCdd"` candidateType → creates `AssociationCdd` with `AssociationType.GENERALIZATION`
+- 7 new tests added to `TypedDependencyRulesTest.java` (all pass)
+- Documentation updated: `RULES_REGISTRY.md`, `RULES_EXAMPLES.md`, `scratch_pad.md`
+
+---
 #### Tools
 * Apache OpenNLP https://opennlp.apache.org/com/opennlp/opennlp_command_line_interface.htm
 * Apache UIMA

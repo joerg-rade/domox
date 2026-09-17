@@ -174,6 +174,15 @@ public class TypedDependencyRulesTest {
     private TDR11 tdr11;
 
     @Autowired
+    private TDR38 tdr38;
+
+    @Autowired
+    private TDR39 tdr39;
+
+    @Autowired
+    private TDR40 tdr40;
+
+    @Autowired
     private RuleBook ruleBook;
 
     /**
@@ -187,8 +196,21 @@ public class TypedDependencyRulesTest {
     void setUp() {
         TypedDependencyPredicates.resetBasicAttributes();
         TypedDependencyPredicates.resetActionVocabularies();
+        TypedDependencyPredicates.resetGeneralizationVocabularies();
         TypedDependencyPredicates.registerBasicAttributes(Set.of(
                 "name", "number", "type", "address", "level", "date", "time"));
+        // Seed generalization vocabularies (mirror what GeneralizationCatalog does at startup)
+        TypedDependencyPredicates.registerBeVerbs(Set.of(
+                "am", "is", "are", "was", "were", "be", "been", "being"));
+        TypedDependencyPredicates.registerIndefiniteArticles(Set.of("a", "an"));
+        TypedDependencyPredicates.registerKindTypeSortTerms(Set.of("kind", "type", "sort"));
+        TypedDependencyPredicates.registerStopAdjectives(Set.of(
+                "good", "bad", "new", "old", "big", "small", "large",
+                "high", "low", "fast", "slow", "simple", "complex",
+                "easy", "hard", "difficult", "important", "necessary",
+                "valid", "invalid", "active", "inactive", "enabled", "disabled",
+                "required", "optional", "available", "correct", "incorrect",
+                "true", "false", "first", "last", "next", "previous"));
     }
 
     /**
@@ -532,6 +554,173 @@ public class TypedDependencyRulesTest {
         assertNotNull(tdr24, "TDR24 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr27, "TDR27 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr34, "TDR34 bean should be discoverable through Spring component scanning");
+        assertNotNull(tdr38, "TDR38 bean should be discoverable through Spring component scanning");
+        assertNotNull(tdr39, "TDR39 bean should be discoverable through Spring component scanning");
+        assertNotNull(tdr40, "TDR40 bean should be discoverable through Spring component scanning");
+    }
+
+    // ======== TDR38 Tests: Copula-based generalization ("X is a Y") ========
+
+    @Test
+    public void testTDR38_SimpleCopula_IsA() {
+        Sentence sentence = new Sentence();
+        addToken(0, "dog", PartOfSpeechType.NN);
+        addToken(1, "is", PartOfSpeechType.VBZ);
+        addToken(2, "a", PartOfSpeechType.DT);
+        addToken(3, "animal", PartOfSpeechType.NN);
+
+        // nsubj(animal, dog) — the currentTd for TDR38
+        TypedDependency td = createTypedDependency(sentence, TdType.NSUBJ, 3, 0);
+        createTypedDependency(sentence, TdType.COP, 3, 1);   // cop(animal, is)
+        createTypedDependency(sentence, TdType.DET, 3, 2);   // det(animal, a)
+
+        tdr38.currentTd = td;
+        tdr38.previousTd = null;
+        tdr38.nextTd = null;
+
+        assertTrue(tdr38.when(), "TDR38 should fire for nsubj(animal, dog) with cop+det");
+        tdr38.then();
+
+        List<RuleMatch> matches = tdr38.ruleMatches.findByRuleClassName("TDR38");
+        RuleMatch genMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "GeneralizationCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(genMatch, "TDR38 should have created a GeneralizationCdd match");
+        assertEquals("Dog", genMatch.getCandidateName());
+        assertEquals("Animal", genMatch.getRelatedCandidateName());
+    }
+
+    @Test
+    public void testTDR38_DoesNotFire_WithoutCopula() {
+        Sentence sentence = new Sentence();
+        addToken(0, "dog", PartOfSpeechType.NN);
+        addToken(1, "animal", PartOfSpeechType.NN);
+
+        // nsubj(animal, dog) WITHOUT cop or det
+
+        tdr38.currentTd = createTypedDependency(sentence, TdType.NSUBJ, 1, 0);
+        tdr38.previousTd = null;
+        tdr38.nextTd = null;
+
+        assertFalse(tdr38.when(), "TDR38 should NOT fire without cop+det dependencies");
+    }
+
+    @Test
+    public void testTDR38_SkipsKindTypeSort() {
+        Sentence sentence = new Sentence();
+        addToken(0, "service", PartOfSpeechType.NN);
+        addToken(1, "is", PartOfSpeechType.VBZ);
+        addToken(2, "a", PartOfSpeechType.DT);
+        addToken(3, "type", PartOfSpeechType.NN);
+
+        // nsubj(type, service) — "type" is excluded from TDR38
+        TypedDependency td = createTypedDependency(sentence, TdType.NSUBJ, 3, 0);
+        createTypedDependency(sentence, TdType.COP, 3, 1);
+        createTypedDependency(sentence, TdType.DET, 3, 2);
+
+        tdr38.currentTd = td;
+        tdr38.previousTd = null;
+        tdr38.nextTd = null;
+
+        assertFalse(tdr38.when(), "TDR38 should NOT fire for 'type' governor — reserved for TDR39");
+    }
+
+    // ======== TDR39 Tests: Kind-of/Type-of generalization ========
+
+    @Test
+    public void testTDR39_KindOf() {
+        Sentence sentence = new Sentence();
+        addToken(0, "suv", PartOfSpeechType.NN);
+        addToken(1, "is", PartOfSpeechType.VBZ);
+        addToken(2, "a", PartOfSpeechType.DT);
+        addToken(3, "kind", PartOfSpeechType.NN);
+        addToken(4, "of", PartOfSpeechType.IN);
+        addToken(5, "car", PartOfSpeechType.NN);
+
+        // nsubj(kind, suv) — child identification
+        createTypedDependency(sentence, TdType.NSUBJ, 3, 0);
+        createTypedDependency(sentence, TdType.COP, 3, 1);
+        createTypedDependency(sentence, TdType.DET, 3, 2);
+        // nmod:of(kind, car) — currentTd for TDR39
+        TypedDependency td = createTypedDependency(sentence, TdType.NMOD_OF, 3, 5);
+
+        tdr39.currentTd = td;
+        tdr39.previousTd = null;
+        tdr39.nextTd = null;
+
+        assertTrue(tdr39.when(), "TDR39 should fire for nmod:of(kind, car)");
+        tdr39.then();
+
+        List<RuleMatch> matches = tdr39.ruleMatches.findByRuleClassName("TDR39");
+        RuleMatch genMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "GeneralizationCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(genMatch, "TDR39 should have created a GeneralizationCdd match");
+        assertEquals("Suv", genMatch.getCandidateName());
+        assertEquals("Car", genMatch.getRelatedCandidateName());
+    }
+
+    @Test
+    public void testTDR39_DoesNotFire_WithoutKindType() {
+        Sentence sentence = new Sentence();
+        addToken(0, "dog", PartOfSpeechType.NN);
+        addToken(1, "leash", PartOfSpeechType.NN);
+
+        // nmod:of(leash, dog) — "leash" is not kind/type/sort
+
+        tdr39.currentTd = createTypedDependency(sentence, TdType.NMOD_OF, 1, 0);
+        tdr39.previousTd = null;
+        tdr39.nextTd = null;
+
+        assertFalse(tdr39.when(), "TDR39 should NOT fire for non-kind/type governor");
+    }
+
+    // ======== TDR40 Tests: Adjectival classifier generalization ========
+
+    @Test
+    public void testTDR40_ClassifierAmod() {
+        Sentence sentence = new Sentence();
+        addToken(0, "linked", PartOfSpeechType.JJ);
+        addToken(1, "device", PartOfSpeechType.NN);
+
+        // amod(device, linked)
+        TypedDependency td = createTypedDependency(sentence, TdType.AMOD, 1, 0);
+
+        tdr40.currentTd = td;
+        tdr40.previousTd = null;
+        tdr40.nextTd = null;
+
+        assertTrue(tdr40.when(), "TDR40 should fire for amod(device, linked)");
+        tdr40.then();
+
+        List<RuleMatch> matches = tdr40.ruleMatches.findByRuleClassName("TDR40");
+        RuleMatch genMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "GeneralizationCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(genMatch, "TDR40 should have created a GeneralizationCdd match");
+        assertEquals("LinkedDevice", genMatch.getCandidateName());
+        assertEquals("Device", genMatch.getRelatedCandidateName());
+    }
+
+    @Test
+    public void testTDR40_DoesNotFire_ForEvaluativeAdjective() {
+        Sentence sentence = new Sentence();
+        addToken(0, "valid", PartOfSpeechType.JJ);
+        addToken(1, "input", PartOfSpeechType.NN);
+
+        // amod(input, valid) — "valid" is in the stop list
+
+        tdr40.currentTd = createTypedDependency(sentence, TdType.AMOD, 1, 0);
+        tdr40.previousTd = null;
+        tdr40.nextTd = null;
+
+        assertFalse(tdr40.when(), "TDR40 should NOT fire for evaluative adjective (valid)");
     }
 
     // Holds part-of-speech for each token index, aligned with the sentence's token list

@@ -331,6 +331,151 @@ public final class TypedDependencyPredicates {
         return tdType.contains("NEG") || tdType.contains("neg");
     }
 
+
+    public static boolean cop(TypedDependency td) {
+        return td.getType().equals(TdType.COP);
+    }
+
+
+    //region BE_VERBS (populated from config by GeneralizationCatalog)
+    private static final Set<String> BE_VERBS = new HashSet<>();
+
+    /**
+     * Reset the BE_VERBS set to empty (for testing purposes).
+     */
+    public static void resetBeVerbs() {
+        BE_VERBS.clear();
+    }
+
+    public static void registerBeVerbs(Collection<String> verbs) {
+        if (verbs != null) {
+            for (String verb : verbs) {
+                if (verb != null) {
+                    BE_VERBS.add(verb.toLowerCase(Locale.ROOT));
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns true if the dependent of this dependency is a form of the copular verb "be".
+     */
+    public static boolean isBeVerbDependent(TypedDependency td) {
+        String lemma = td.getB();
+        if (lemma == null) return false;
+        return BE_VERBS.contains(lemma.toLowerCase(java.util.Locale.ROOT));
+    }
+    // endregion
+
+    //region INDEFINITE_ARTICLES (populated from config by GeneralizationCatalog)
+    private static final Set<String> INDEFINITE_ARTICLES = new HashSet<>();
+
+    public static void resetIndefiniteArticles() {
+        INDEFINITE_ARTICLES.clear();
+    }
+
+    public static void registerIndefiniteArticles(Collection<String> articles) {
+        if (articles != null) {
+            for (String article : articles) {
+                if (article != null) {
+                    INDEFINITE_ARTICLES.add(article.toLowerCase(Locale.ROOT));
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns true if the dependent B of this dependency is an indefinite article ("a" or "an").
+     */
+    public static boolean isIndefiniteArticleDependent(TypedDependency td) {
+        String lemma = td.getB();
+        if (lemma == null) return false;
+        return INDEFINITE_ARTICLES.contains(lemma.toLowerCase(java.util.Locale.ROOT));
+    }
+    // endregion
+
+    //region KIND_TYPE_SORT_TERMS (populated from config by GeneralizationCatalog)
+    private static final Set<String> KIND_TYPE_SORT_TERMS = new HashSet<>();
+
+    public static void resetKindTypeSortTerms() {
+        KIND_TYPE_SORT_TERMS.clear();
+    }
+
+    public static void registerKindTypeSortTerms(Collection<String> terms) {
+        if (terms != null) {
+            for (String term : terms) {
+                if (term != null) {
+                    KIND_TYPE_SORT_TERMS.add(term.toLowerCase(Locale.ROOT));
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns true if the given string contains any registered kind/type/sort term.
+     */
+    public static boolean containsKindTypeOrSort(String lemma) {
+        if (lemma == null) return false;
+        String lower = lemma.toLowerCase(java.util.Locale.ROOT);
+        for (String term : KIND_TYPE_SORT_TERMS) {
+            if (lower.contains(term)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the dependent B of this dependency contains a kind/type/sort term.
+     */
+    public static boolean isKindTypeOrSortDependent(TypedDependency td) {
+        return containsKindTypeOrSort(td.getB());
+    }
+
+    /**
+     * Returns true if the governor A of this dependency contains a kind/type/sort term.
+     */
+    public static boolean isKindTypeOrSortGovernor(TypedDependency td) {
+        return containsKindTypeOrSort(td.getA());
+    }
+    // endregion
+
+    //region STOP_ADJECTIVES (populated from config by GeneralizationCatalog)
+    private static final Set<String> STOP_ADJECTIVES = new HashSet<>();
+
+    public static void resetStopAdjectives() {
+        STOP_ADJECTIVES.clear();
+    }
+
+    public static void registerStopAdjectives(Collection<String> adjectives) {
+        if (adjectives != null) {
+            for (String adj : adjectives) {
+                if (adj != null) {
+                    STOP_ADJECTIVES.add(adj.toLowerCase(Locale.ROOT));
+                }
+            }
+        }
+    }
+
+    /**
+     * Convenience reset for all generalization vocabularies (BE_VERBS, INDEFINITE_ARTICLES, KIND_TYPE_SORT_TERMS, STOP_ADJECTIVES).
+     */
+    public static void resetGeneralizationVocabularies() {
+        resetBeVerbs();
+        resetIndefiniteArticles();
+        resetKindTypeSortTerms();
+        resetStopAdjectives();
+    }
+
+    /**
+     * Returns true if the given adjective lemma is a stop adjective (evaluative/generic).
+     */
+    public static boolean isStopAdjective(String lemma) {
+        if (lemma == null) return false;
+        return STOP_ADJECTIVES.contains(lemma.toLowerCase(Locale.ROOT));
+    }
+    // endregion
+
     private TypedDependencyPredicates() {
     }
 

@@ -142,6 +142,18 @@ domox:
     control-flow-verbs: continue, restart, go, repeat, cancel, exit, quit
     # TDR38
     customer-actors: user, customer, owner, person, people, shopper, client, buyer, visitor, consumer, subscriber, member, guest
+    # TDR38 — be-verb forms used by the copula check (subset of auxiliary-verbs)
+    copula-be-verbs: am, is, are, was, were, be, been, being
+    indefinite-articles: a, an
+    # TDR38/TDR39 — terms indicating a generalization of kind
+    kind-type-sort-terms: kind, type, sort
+    # TDR40 — generic/evaluative adjectives that should NOT trigger adjectival generalization
+    generalization-stop-adjectives: good, bad, new, old, big, small, large,
+                                    high, low, fast, slow, simple, complex,
+                                    easy, hard, difficult, important, necessary,
+                                    valid, invalid, active, inactive, enabled, disabled,
+                                    required, optional, available, correct, incorrect,
+                                    true, false, first, last, next, previous
     # TDRxx
     control-flow-terms: next, previous, back, forward
     # TDR39 - generic service concepts (domain-specific service nouns are detected via negation)

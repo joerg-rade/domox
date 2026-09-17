@@ -6,6 +6,7 @@ import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.crc.ActionCandidates;
 import domox.dom.crc.AssociationCandidates;
+import domox.dom.crc.AssociationType;
 import domox.dom.crc.Candidate;
 import domox.dom.crc.ClassCandidates;
 import domox.dom.crc.ClassCdd;
@@ -212,11 +213,22 @@ public class RuleMatches {
             ClassCdd classCdd = classCandidates.findOrCreate(candidateName, domainModel);
             classCdd.setCandidateName(candidateName);
             return classCdd;
+        } else if ("GeneralizationCdd".equals(candidateType)) {
+            // Generalization (is-a) between two ClassCdd entities (produced by TDR38–TDR40)
+            // candidateName = child (subclass), relatedCandidateName = parent (superclass)
+            if (relatedCandidateName == null) {
+                return null;
+            }
+            ClassCdd child = classCandidates.findOrCreate(candidateName, domainModel);
+            child.setCandidateName(candidateName);
+            ClassCdd parent = classCandidates.findOrCreate(relatedCandidateName, domainModel);
+            parent.setCandidateName(relatedCandidateName);
+            String assocName = candidateName + "_" + relatedCandidateName;
+            return associationCandidates.findOrCreate(assocName, child, parent, domainModel, AssociationType.GENERALIZATION);
         } else if ("ActionCdd".equals(candidateType)) {
             // The related candidate name should be the owning class name
-            String className = relatedCandidateName != null ? relatedCandidateName : null;
-            ClassCdd classCdd = className != null
-                    ? classCandidates.findOrCreate(className, domainModel)
+            ClassCdd classCdd = (relatedCandidateName != null)
+                    ? classCandidates.findOrCreate(relatedCandidateName, domainModel)
                     : null;
             return actionCandidates.findOrCreate(candidateName, classCdd, domainModel);
         } else if ("PropertyCdd".equals(candidateType)) {

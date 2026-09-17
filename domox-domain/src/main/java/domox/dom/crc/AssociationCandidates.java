@@ -55,13 +55,21 @@ public class AssociationCandidates {
 
     @Programmatic
     public AssociationCdd create(String associationName, ClassCdd source, ClassCdd target, DomainModel domainModel) {
+        return create(associationName, source, target, domainModel, AssociationType.ASSOCIATION);
+    }
+
+
+    @Programmatic
+    public AssociationCdd create(
+            String associationName, ClassCdd source, ClassCdd target,
+            DomainModel domainModel, AssociationType type) {
         final AssociationCdd obj = factoryService.detachedEntity(AssociationCdd.class);
         obj.setCandidateName(associationName);
         obj.setCandidateType("AssociationCdd");
         obj.setClassCdd(source);
         obj.setSource(source);
         obj.setTarget(target);
-        obj.setType(AssociationType.ASSOCIATION);
+        obj.setType(type != null ? type : AssociationType.ASSOCIATION);
 
         source.addAssociation(obj);
         repositoryService.persist(obj);
@@ -74,9 +82,20 @@ public class AssociationCandidates {
             final ClassCdd source,
             final ClassCdd target,
             final DomainModel domainModel) {
+        return findOrCreate(associationName, source, target, domainModel, AssociationType.ASSOCIATION);
+    }
+
+
+    @Programmatic
+    public AssociationCdd findOrCreate(
+            final String associationName,
+            final ClassCdd source,
+            final ClassCdd target,
+            final DomainModel domainModel,
+            final AssociationType type) {
         AssociationCdd candidate = findByCandidateName(associationName);
         if (candidate == null) {
-            candidate = create(associationName, source, target, domainModel);
+            candidate = create(associationName, source, target, domainModel, type);
         }
         return candidate;
     }
