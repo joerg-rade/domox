@@ -281,7 +281,7 @@ public final class TypedDependencyPredicates {
 
 
     public static boolean nmodWith(TypedDependency td) {
-        return td.getType().equals(TdType.NMOD_WITH) || td.getType().equals(TdType.OBL_WIN);
+        return td.getType().equals(TdType.NMOD_WITH) || td.getType().equals(TdType.OBL_WITH);
     }
 
 

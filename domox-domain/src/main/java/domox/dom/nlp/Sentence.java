@@ -34,7 +34,7 @@ public class Sentence extends AbstractEntity implements Comparable<Sentence> {
         return colonIndex >= 0 ? this.text.substring(0, colonIndex).strip() : this.text.strip();
     }
 
-    @Column(nullable = false, length = 2048)
+    @Column(nullable = false, columnDefinition = "TEXT")
     @Property()
     @Getter
     @Setter
@@ -42,7 +42,7 @@ public class Sentence extends AbstractEntity implements Comparable<Sentence> {
 
     // region PDF
     @AttributeOverrides({
-            @AttributeOverride(name = "name", column = @Column(name = "diagram_name")),
+            @AttributeOverride(name = "name", column = @Column(name = "diagram_name", columnDefinition = "TEXT")),
             @AttributeOverride(name = "mimeType", column = @Column(name = "diagram_mimeType")),
             @AttributeOverride(name = "bytes", column = @Column(name = "diagram_bytes", columnDefinition = "BYTEA"))
     })

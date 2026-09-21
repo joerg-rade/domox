@@ -13,6 +13,7 @@ import domox.dom.rqm.Author;
 import domox.dom.rqm.Document;
 import domox.dom.rqm.Documents;
 import domox.dom.rules.RuleMatch;
+import domox.dom.rules.CandidateResolver;
 import domox.dom.rules.RuleMatches;
 import domox.dom.rules.TypedDependencyRule;
 import domox.nlp.DocumentTO;
@@ -40,6 +41,7 @@ public class Analysis {
     private final List<TypedDependencyRule> rules;
     private final DomainModels domainModels;
     private final ClassArchetypeClassifier archetypeClassifier;
+    private final CandidateResolver candidateResolver;
 
     @Inject
     public Analysis(RepositoryService repositoryService,
@@ -47,13 +49,15 @@ public class Analysis {
                     RuleMatches ruleMatches,
                     List<TypedDependencyRule> rules,
                     DomainModels domainModels,
-                    ClassArchetypeClassifier archetypeClassifier) {
+                    ClassArchetypeClassifier archetypeClassifier,
+                    CandidateResolver candidateResolver) {
         this.repositoryService = repositoryService;
         this.documents = documents;
         this.ruleMatches = ruleMatches;
         this.rules = rules;
         this.domainModels = domainModels;
         this.archetypeClassifier = archetypeClassifier;
+        this.candidateResolver = candidateResolver;
     }
 
     @Action()
@@ -85,13 +89,19 @@ public class Analysis {
                 log.debug("Archetype classifier: {} → {}", classCdd.getCandidateName(), suggested);
             }
         }
+
+        // Phase 2c: Late-binding resolution (Option C) — for ambiguous nouns
+        // that appear as entities but have attribute-like dependency evidence,
+        // create additional PropertyCdd candidates so the user can review both.
+        candidateResolver.resolve(domainModel);
     }
 
     @Action()
     @ActionLayout(sequence = "5", cssClassFa = "play")
     public List<RuleMatch> loadFileSample() {
         final String title = "Pet Shop Use Cases";
-        final String filename = "PetShop_UseCases.txt";
+        //final String filename = "PetShop_UseCases.txt";
+        final String filename = "UC01_SellingPetProducts.md";
         final String txtContent = new FileUtil().readFileFromResources(filename);
         final Clob content = new Clob("", "text/xml", txtContent);
         final Author author = new Author();

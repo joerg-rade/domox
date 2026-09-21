@@ -23,6 +23,7 @@ public enum PartOfSpeechType {
     NFP("NFP"),
     NN("NN"),
     NNP("NNP"),
+    NNPS("NNPS"),
     NNS("NNS"),
     /*    NP,
         PP,*/
@@ -33,14 +34,15 @@ public enum PartOfSpeechType {
     /*    SBAR,*/
     TO("TO"),
     VB("VB"),
-    /*    VBD,*/
+    VBD("VBD"),
     VBG("VBG"),
     VBN("VBN"),
     VBP("VBP"),
     VBZ("VBZ"),
     /*    VP,*/
     WDT("WDT"),
-    WRB("WRB");
+    WRB("WRB"),
+    NULL("");
 
     @Getter
     final String code;
@@ -52,18 +54,17 @@ public enum PartOfSpeechType {
     private static final Logger log = LoggerFactory.getLogger(PartOfSpeechType.class);
 
     public static PartOfSpeechType fromCode(String code) {
-        if (code == null || code.isEmpty()) {
+        if (code == null || code.isBlank()) {
             return null;
         }
+        final String trimmed = code.trim();
         for (PartOfSpeechType type : PartOfSpeechType.values()) {
-            if (type.getCode().equals(code)) {
+            if (type.getCode().equals(trimmed)) {
                 return type;
             }
         }
-        final String errMsg = "No enum constant found for code: " + code;
-        final IllegalArgumentException ex = new IllegalArgumentException(errMsg);
-        log.error(errMsg, ex);
-        throw ex;
+        log.warn("Unknown POS code '{}' — returning null", code);
+        return null;
     }
 
 }
