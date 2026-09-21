@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run domox-webapp (spring-boot:run)",
+            "type": "shell",
+            "command": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk env || true && mvn spring-boot:run -pl domox-webapp",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        }
+    ]
+}

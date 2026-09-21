@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-Application<domox-webapp>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "domox.webapp.Application",
+            "projectName": "domox-webapp",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
