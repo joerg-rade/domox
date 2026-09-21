@@ -2,18 +2,13 @@ package domox.dom;
 
 import domox.DomainModule;
 import domox.FileUtil;
-import domox.dom.crc.Candidate;
-import domox.dom.crc.ClassArchetypeClassifier;
-import domox.dom.crc.ClassCdd;
-import domox.dom.crc.ClassType;
-import domox.dom.crc.DomainModel;
-import domox.dom.crc.DomainModels;
+import domox.dom.crc.*;
 import domox.dom.nlp.Sentence;
 import domox.dom.rqm.Author;
 import domox.dom.rqm.Document;
 import domox.dom.rqm.Documents;
-import domox.dom.rules.RuleMatch;
 import domox.dom.rules.CandidateResolver;
+import domox.dom.rules.RuleMatch;
 import domox.dom.rules.RuleMatches;
 import domox.dom.rules.TypedDependencyRule;
 import domox.nlp.DocumentTO;
@@ -110,6 +105,12 @@ public class Analysis {
         final Document document = build(title, filename, content, authors);
         analyzeDocument(document);
         return ruleMatches.listAll();
+    }
+
+    @Action()
+    @ActionLayout(sequence = "6", cssClassFa = "trash")
+    public void deleteAllDocuments() {
+        documents.deleteAll();
     }
 
     private Document build(String title, String url, Clob content, List<Author> authors) {

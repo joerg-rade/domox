@@ -63,10 +63,13 @@ public class PropertyCandidates {
 
         // Retrieve the ClassCdd and set the relationship
         ClassCdd classCdd = classCandidates.findOrCreate(className, domainModel);
-        obj.classCdd = classCdd;
-        if (classCdd != null) {
-            classCdd.propertyList.add(obj);
+        if (classCdd == null) {
+            // Owner class is blocked (e.g., use-case meta noun) or otherwise unavailable;
+            // don't create an orphan property that would violate the FK constraint.
+            return null;
         }
+        obj.classCdd = classCdd;
+        classCdd.propertyList.add(obj);
 
         repositoryService.persist(obj);
         return obj;

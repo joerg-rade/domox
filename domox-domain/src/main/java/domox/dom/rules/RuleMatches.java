@@ -46,6 +46,7 @@ public class RuleMatches {
     private final PropertyCandidates propertyCandidates;
     private final ActionCandidates actionCandidates;
     private final AssociationCandidates associationCandidates;
+    private final NlpProperties nlpProperties;
 
     @Inject
     public RuleMatches(
@@ -56,7 +57,8 @@ public class RuleMatches {
             ClassCandidates classCandidates,
             PropertyCandidates propertyCandidates,
             ActionCandidates actionCandidates,
-            AssociationCandidates associationCandidates) {
+            AssociationCandidates associationCandidates,
+            NlpProperties nlpProperties) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatchRepository = ruleMatchRepository;
@@ -65,6 +67,7 @@ public class RuleMatches {
         this.propertyCandidates = propertyCandidates;
         this.actionCandidates = actionCandidates;
         this.associationCandidates = associationCandidates;
+        this.nlpProperties = nlpProperties;
     }
 
     /**
@@ -91,6 +94,14 @@ public class RuleMatches {
             String relatedCandidateType,
             String relatedCandidateName,
             String description) {
+        // Prevent persisting RuleMatch records for blocked use-case nouns
+        // (e.g. "Actor", "Condition", "System") so they never appear as candidate
+        // names, regardless of which TDR rule produced the match.
+        if (candidateName != null
+                && ("ClassCdd".equals(candidateType) || "GeneralizationCdd".equals(candidateType))
+                && isBlockedUseCaseNoun(candidateName)) {
+            return null;
+        }
         final RuleMatch obj = factoryService.detachedEntity(RuleMatch.class);
         obj.setTypedDependency(typedDependency);
         if (typedDependency != null) {
@@ -203,12 +214,18 @@ public class RuleMatches {
         if ("ClassCdd".equals(candidateType)) {
             if (relatedCandidateName != null) {
                 // Association between two ClassCdd entities (produced by TDR14–TDR23)
+                if (isBlockedUseCaseNoun(candidateName) || isBlockedUseCaseNoun(relatedCandidateName)) {
+                    return null;
+                }
                 ClassCdd source = classCandidates.findOrCreate(candidateName, domainModel);
                 source.setCandidateName(candidateName);
                 ClassCdd target = classCandidates.findOrCreate(relatedCandidateName, domainModel);
                 target.setCandidateName(relatedCandidateName);
                 String assocName = candidateName + "_" + relatedCandidateName;
                 return associationCandidates.findOrCreate(assocName, source, target, domainModel);
+            }
+            if (isBlockedUseCaseNoun(candidateName)) {
+                return null;
             }
             ClassCdd classCdd = classCandidates.findOrCreate(candidateName, domainModel);
             classCdd.setCandidateName(candidateName);
@@ -219,6 +236,9 @@ public class RuleMatches {
             if (relatedCandidateName == null) {
                 return null;
             }
+            if (isBlockedUseCaseNoun(candidateName) || isBlockedUseCaseNoun(relatedCandidateName)) {
+                return null;
+            }
             ClassCdd child = classCandidates.findOrCreate(candidateName, domainModel);
             child.setCandidateName(candidateName);
             ClassCdd parent = classCandidates.findOrCreate(relatedCandidateName, domainModel);
@@ -226,18 +246,54 @@ public class RuleMatches {
             String assocName = candidateName + "_" + relatedCandidateName;
             return associationCandidates.findOrCreate(assocName, child, parent, domainModel, AssociationType.GENERALIZATION);
         } else if ("ActionCdd".equals(candidateType)) {
-            // The related candidate name should be the owning class name
-            ClassCdd classCdd = (relatedCandidateName != null)
+            // The related candidate name should be the owning class name;
+            // a blocked use-case noun (e.g. "System") must not become the owner
+            ClassCdd classCdd = (relatedCandidateName != null && !isBlockedUseCaseNoun(relatedCandidateName))
                     ? classCandidates.findOrCreate(relatedCandidateName, domainModel)
                     : null;
             return actionCandidates.findOrCreate(candidateName, classCdd, domainModel);
         } else if ("PropertyCdd".equals(candidateType)) {
+// A blocked use-case noun as the owning class (e.g. "Condition") must not
+            // produce an orphan property; skip entirely.
+            if (relatedCandidateName != null && isBlockedUseCaseNoun(relatedCandidateName)) {
+                return null;
+            }
             // The related candidate name should be the owning class name
             String className = relatedCandidateName != null ? relatedCandidateName : "Unknown";
             String type = inferType(candidateName);
             return propertyCandidates.findOrCreate(className, candidateName, type, domainModel);
         }
         return null;
+    }
+
+    /**
+     * Returns {@code true} when {@code candidateName} is a use-case document
+     * meta-noun (template header, narrative scaffolding, or generic result term)
+     * that must never become a {@link ClassCdd} entity.
+     * <p>
+     * The blocked nouns are configured as singular lemmas under
+     * {@code domox.nlp.use-case-blocked-nouns}.  Candidate names are compared
+     * case-insensitively; a simple plural fallback is applied for nouns that
+     * reach Phase 2 without lemmatization.
+     */
+    @Programmatic
+    boolean isBlockedUseCaseNoun(String candidateName) {
+        if (candidateName == null) {
+            return false;
+        }
+        final List<String> blocked = nlpProperties.getUseCaseBlockedNouns();
+        if (blocked == null) {
+            return false;
+        }
+        String lower = candidateName.toLowerCase().trim();
+        if (blocked.contains(lower)) {
+            return true;
+        }
+        // Defensive fallback for un-lemmatized plurals ("Conditions" → "condition")
+        if (lower.endsWith("s") && !lower.endsWith("ss")) {
+            return blocked.contains(lower.substring(0, lower.length() - 1));
+        }
+        return false;
     }
 
     /**

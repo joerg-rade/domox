@@ -1,6 +1,7 @@
 package domox.dom.crc;
 
 import domox.DomainModule;
+import domox.dom.rules.NlpProperties;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -19,12 +20,14 @@ public class ClassCandidates {
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
     private final ClassCddRepository classCddRepository;
+    private final NlpProperties nlpProperties;
 
     @Inject
-    public ClassCandidates(RepositoryService repositoryService, FactoryService factoryService, ClassCddRepository classCddRepository) {
+    public ClassCandidates(RepositoryService repositoryService, FactoryService factoryService, ClassCddRepository classCddRepository, NlpProperties nlpProperties) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.classCddRepository = classCddRepository;
+        this.nlpProperties = nlpProperties;
     }
 
     @ActionLayout(sequence = "1")
@@ -62,6 +65,9 @@ public class ClassCandidates {
 
     @Programmatic
     public ClassCdd findOrCreate(final String candidateName, final DomainModel domainModel) {
+        if (isBlockedUseCaseNoun(candidateName)) {
+            return null;
+        }
         ClassCdd candidate = findByCandidateName(candidateName);
         if (candidate == null) {
             if (domainModel == null) {
@@ -71,6 +77,38 @@ public class ClassCandidates {
             }
         }
         return candidate;
+    }
+
+    /**
+     * Returns {@code true} when {@code candidateName} is a use-case document
+     * meta-noun (template header, narrative scaffolding, or generic result term)
+     * that must never become a {@link ClassCdd} entity.  This is the single
+     * choke point for {@code ClassCdd} creation, so blocked nouns cannot leak
+     * in through {@link PropertyCandidates} owner resolution either.
+     * <p>
+     * The blocked nouns are configured as singular lemmas under
+     * {@code domox.nlp.use-case-blocked-nouns}.  Candidate names are compared
+     * case-insensitively; a simple plural fallback is applied for nouns that
+     * reach Phase 2 without lemmatization.
+     */
+    @Programmatic
+    boolean isBlockedUseCaseNoun(String candidateName) {
+        if (candidateName == null) {
+            return false;
+        }
+        final List<String> blocked = nlpProperties.getUseCaseBlockedNouns();
+        if (blocked == null) {
+            return false;
+        }
+        String lower = candidateName.toLowerCase().trim();
+        if (blocked.contains(lower)) {
+            return true;
+        }
+        // Defensive fallback for un-lemmatized plurals ("Conditions" → "condition")
+        if (lower.endsWith("s") && !lower.endsWith("ss")) {
+            return blocked.contains(lower.substring(0, lower.length() - 1));
+        }
+        return false;
     }
 
     @Action()

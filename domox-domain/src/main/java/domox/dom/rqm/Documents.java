@@ -77,9 +77,11 @@ public class Documents {
         return sentenceList;
     }
 
-    @Action()
-    @ActionLayout(sequence = "6", cssClassFa = "trash")
-    public void delete(Document document) {
-        repositoryService.remove(document);
+    @Programmatic
+    public void deleteAll() {
+        var all = listAll();
+        for (Document d : all) {
+            repositoryService.remove(d);
+        }
     }
 }

@@ -119,11 +119,11 @@ domox:
     disabled-rules: TDR30, TDR31
     auxiliary-verbs: be, am, is, are, was, were, been, being, have, has, had, having, do, does, did, doing
     modal-verbs: can, could, may, might, shall, should, will, would, must
-    # TDR27
+    # TDR27 / WhiteList
     user-input-verbs: input, enter, save, fill, click, select, add, record, store, process, validate, choose, pick, create, update, edit, change, modify, remove, delete, discard
-    # TDR28
+    # TDR28 / WhiteList
     system-output-verbs: display, output, retrieve, show, view, print, calculate, update, delete, search, modify, edit, remove, generate, prepare, send, get, execute, run, perform, start, stop, finish, complete
-    # TDR29
+    # TDR29 / WhiteList
     action-verbs: get, send, prepare, generate, calculate, compute, execute, run, perform, start, stop, finish, complete, contain, exclude
     #FIXME TDR30/31 have no hits, because lemmas are used
     # TDR30 — past-tense forms of user-input verbs
@@ -134,17 +134,17 @@ domox:
     output-past-verbs:
     #TDR32
     # user-input-verbs, system-output-verbs,
-    # TDR33
+    # TDR33 / WhiteList
     receive-verbs: receive, accept, get, obtain, acquire, redeem, collect, fetch, download
     # TDR34
     exception-terms: error, fail, wrong, invalid, incorrect, unable, able, exception, problem, issue, fault, bug, crash, halt, stop, terminate
     # TDR37
-    control-flow-verbs: continue, restart, go, repeat, cancel, exit, quit
+    control-flow-verbs: continue, restart, go, repeat, cancel, exit, quit # WhiteList
     # TDR38
     customer-actors: user, customer, owner, person, people, shopper, client, buyer, visitor, consumer, subscriber, member, guest
     # TDR38 — be-verb forms used by the copula check (subset of auxiliary-verbs)
-    copula-be-verbs: am, is, are, was, were, be, been, being
-    indefinite-articles: a, an
+    copula-be-verbs: am, is, are, was, were, be, been, being # WhiteList
+    indefinite-articles: a, an # WhiteList
     # TDR38/TDR39 — terms indicating a generalization of kind
     kind-type-sort-terms: kind, type, sort
     # TDR40 — generic/evaluative adjectives that should NOT trigger adjectival generalization
@@ -156,10 +156,12 @@ domox:
                                     true, false, first, last, next, previous
     # TDRxx
     control-flow-terms: next, previous, back, forward
-    # TDR39 - generic service concepts (domain-specific service nouns are detected via negation)
+    # TDR39 / WhiteList - generic service concepts (domain-specific service nouns are detected via negation)
     service-nouns: service, product, booking, reservation, subscription, membership, shipment, delivery
     # TDR4/TDR5 — verbs whose direct-object nouns become attributes even when not basic
     blocked-verbs: entered, inputted, saved, added, has
+
+    # WhiteList
     basic-attributes: name, number, type, address, level, date, time,
                         id, code, status, description, title, label, value,
                         amount, quantity, size, color, email, phone, username,
@@ -211,6 +213,15 @@ domox:
     # COLLECTION — collective nouns
     noun-type-collections: list, set, group, collection, array, batch, queue,
                             stack, registry, catalog, portfolio
+    # Use-case document structure/meta nouns that must never become ClassCdd
+    # entities (template headers, narrative scaffolding, generic result terms).
+    # Singular lemmas — candidate names derive from CoreNLP lemmas.
+    use-case-blocked-nouns: requirement, flow, description, trigger, condition,
+        pre-condition, post-condition, precondition, postcondition, field,
+        exception, step, case, use-case, usecase, scenario, actor, system,
+        summary, overview, outcome, result, message, alternative, constraint,
+        assumption, rule, goal, feature, function, path, note
+
   kroki:
     host: localhost
     port: 8001

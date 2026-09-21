@@ -63,6 +63,28 @@ class NlpConfigBindingTest {
         assertFalse(props.getExceptionTerms().isEmpty());
     }
 
+    @Test
+    void useCaseBlockedNouns_containsStructuralUseCaseTerms_only() throws Exception {
+        var props = loadNlpProperties();
+
+        assertNotNull(props.getUseCaseBlockedNouns());
+        assertFalse(props.getUseCaseBlockedNouns().isEmpty());
+
+        // Structural/meta nouns of use-case documents that must never become classes
+        assertTrue(props.getUseCaseBlockedNouns().contains("requirement"));
+        assertTrue(props.getUseCaseBlockedNouns().contains("flow"));
+        assertTrue(props.getUseCaseBlockedNouns().contains("step"));
+        assertTrue(props.getUseCaseBlockedNouns().contains("condition"));
+
+        // Real domain nouns must NOT be blocked from becoming classes
+        assertFalse(props.getUseCaseBlockedNouns().contains("product"),
+                "'product' in use-case-blocked-nouns would prevent a real domain entity");
+        assertFalse(props.getUseCaseBlockedNouns().contains("order"),
+                "'order' in use-case-blocked-nouns would prevent a real domain entity");
+        assertFalse(props.getUseCaseBlockedNouns().contains("customer"),
+                "'customer' in use-case-blocked-nouns would prevent a real domain entity");
+    }
+
     // ----------------------------------------------------------------
 
     private static NlpProperties loadNlpProperties() throws Exception {

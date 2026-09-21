@@ -3,7 +3,6 @@ package domox.dom.rules;
 import domox.dom.crc.ActionCandidates;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.AssociationCandidates;
-import domox.dom.crc.AssociationCdd;
 import domox.dom.crc.Candidate;
 import domox.dom.crc.ClassCdd;
 import domox.dom.crc.ClassCandidates;
@@ -23,6 +22,9 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
+import static org.apache.causeway.commons.internal.assertions._Assert.assertFalse;
+import static org.apache.causeway.commons.internal.assertions._Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +56,9 @@ class RuleMatchesTest {
     @Mock
     AssociationCandidates mockAssociationCandidates;
 
+    @Mock
+    NlpProperties mockNlpProperties;
+
     @BeforeEach
     public void setUp() {
         classUnderTest = new RuleMatches(
@@ -64,7 +69,8 @@ class RuleMatchesTest {
                 mockClassCandidates,
                 mockPropertyCandidates,
                 mockActionCandidates,
-                mockAssociationCandidates);
+                mockAssociationCandidates,
+                mockNlpProperties);
     }
 
     @Test
@@ -205,6 +211,132 @@ class RuleMatchesTest {
         assertEquals(classCdd, result.getFirst());
     }
 
+    @Test
+    void createCandidatesFrom_skipsBlockedUseCaseNouns_forClassCandidates() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("flow", "step", "condition"));
+        final RuleMatch blockedClassMatch = match("ClassCdd", "Flow", null, null);
+        final RuleMatch normalClassMatch = match("ClassCdd", "Customer", null, null);
+
+        final ClassCdd customer = new ClassCdd();
+        when(mockClassCandidates.findOrCreate("Customer", null)).thenReturn(customer);
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Arrays.asList(blockedClassMatch, normalClassMatch));
+
+        // then
+        assertEquals(1, result.size());
+        assertEquals(customer, result.getFirst());
+        verify(mockClassCandidates, never()).findOrCreate("Flow", null);
+        verify(mockClassCandidates).findOrCreate("Customer", null);
+    }
+
+    @Test
+    void createCandidatesFrom_skipsAssociationWhenParticipantIsBlocked() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("condition"));
+        final RuleMatch assocMatch = match("ClassCdd", "Payment", "ClassCdd", "Condition");
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(assocMatch));
+
+        // then
+        assertEquals(0, result.size());
+        verifyNoInteractions(mockAssociationCandidates);
+        verify(mockClassCandidates, never()).findOrCreate("Payment", null);
+        verify(mockClassCandidates, never()).findOrCreate("Condition", null);
+    }
+
+    @Test
+    void createCandidatesFrom_blocksOwningClassForAction_whenOwnerIsBlocked() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("system"));
+        final RuleMatch actionMatch = match("ActionCdd", "validate", "ClassCdd", "System");
+
+        final ActionCdd action = new ActionCdd();
+        when(mockActionCandidates.findOrCreate("validate", null, null)).thenReturn(action);
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
+
+        // then
+        assertEquals(1, result.size());
+        assertEquals(action, result.getFirst());
+        verify(mockClassCandidates, never()).findOrCreate("System", null);
+        verify(mockActionCandidates).findOrCreate("validate", null, null);
+    }
+
+    @Test
+    void createCandidatesFrom_skipsGeneralizationWhenParticipantIsBlocked() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("result"));
+        final RuleMatch genMatch = match("GeneralizationCdd", "Result", null, "Parent");
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(genMatch));
+
+        // then
+        assertEquals(0, result.size());
+        verifyNoInteractions(mockAssociationCandidates);
+        verify(mockClassCandidates, never()).findOrCreate("Result", null);
+    }
+@Test
+    void createCandidatesFrom_skipsPropertyWhenOwnerClassIsBlocked() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("condition"));
+        final RuleMatch propMatch = match("PropertyCdd", "description", "ClassCdd", "Condition");
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(propMatch));
+
+        // then
+        assertEquals(0, result.size());
+        verify(mockPropertyCandidates, never()).findOrCreate(anyString(), anyString(), anyString(), any());
+    }
+
+    @Test
+    void isBlockedUseCaseNoun_matchesSingularLemmaCaseInsensitively() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("step", "condition"));
+
+        // expect
+        assertTrue(classUnderTest.isBlockedUseCaseNoun("Step"));
+        assertTrue(classUnderTest.isBlockedUseCaseNoun("CONDITION"));
+        assertFalse(classUnderTest.isBlockedUseCaseNoun("Customer"));
+        assertFalse(classUnderTest.isBlockedUseCaseNoun(null));
+    }
+
+@Test
+    void create_returnsNullForBlockedUseCaseNoun() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("actor"));
+        // ClassCdd with blocked name "Actor"
+        RuleMatch result = classUnderTest.create(null, "TDR11", "ClassCdd", "Actor", null, null, null);
+
+        // then
+        assertNull(result);
+        verifyNoInteractions(mockRepositoryService);
+    }
+
+    @Test
+    void create_persistsUnblockedClassMatch() {
+        // given
+        final RuleMatch persisted = new RuleMatch();
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("actor"));
+        when(mockFactoryService.detachedEntity(RuleMatch.class)).thenReturn(persisted);
+        // ClassCdd with non-blocked name "Customer"
+
+        // when
+        RuleMatch result = classUnderTest.create(null, "TDR11", "ClassCdd", "Customer", null, null, null);
+
+        // then — passes through the guard and returns the persisted match
+        assertNotNull(result);
+        assertSame(persisted, result);
+        assertEquals("Customer", result.getCandidateName());
+        assertEquals("ClassCdd", result.getCandidateType());
+        verify(mockFactoryService).detachedEntity(RuleMatch.class);
+        verify(mockRepositoryService).persist(persisted);
+    }
     // -- helper
 
     private static RuleMatch match(String candidateType, String candidateName, String relatedType, String relatedName) {
