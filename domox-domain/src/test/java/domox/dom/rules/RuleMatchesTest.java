@@ -337,6 +337,50 @@ class RuleMatchesTest {
         verify(mockFactoryService).detachedEntity(RuleMatch.class);
         verify(mockRepositoryService).persist(persisted);
     }
+@Test
+    void create_skipsPersistingWhenDuplicateSignatureExists() {
+        // given — an existing match already present for the same
+        // candidate name/type, rule class, description and related candidate.
+        final RuleMatch existing = new RuleMatch();
+        existing.setRuleClassName("TDR11");
+        existing.setCandidateType("PropertyCdd");
+        existing.setCandidateName("range");
+        existing.setRelatedCandidateType("ClassCdd");
+        existing.setRelatedCandidateName("ClassCdd");
+        existing.setDescription("Entity.add(range)");
+        when(mockRuleMatchRepository
+                .findByCandidateNameAndCandidateTypeAndRuleClassNameAndDescriptionAndRelatedCandidateNameAndRelatedCandidateType(
+                        "range", "PropertyCdd", "TDR11", "Entity.add(range)", "ClassCdd", "ClassCdd"))
+                .thenReturn(Collections.singletonList(existing));
+
+        // when — create the same signature again
+        final RuleMatch result = classUnderTest.create(
+                null, "TDR11", "PropertyCdd", "range", "ClassCdd", "ClassCdd", "Entity.add(range)");
+
+        // then — no second match is persisted; the existing one is returned
+        assertSame(existing, result);
+        verifyNoInteractions(mockFactoryService);
+        verify(mockRepositoryService, never()).persist(any());
+    }
+
+    @Test
+    void create_persistsWhenNoDuplicateExists() {
+        // given — repository reports no existing match with this signature
+        when(mockRuleMatchRepository
+                .findByCandidateNameAndCandidateTypeAndRuleClassNameAndDescriptionAndRelatedCandidateNameAndRelatedCandidateType(
+                        any(), any(), any(), any(), any(), any()))
+                .thenReturn(Collections.emptyList());
+        final RuleMatch persisted = new RuleMatch();
+        when(mockFactoryService.detachedEntity(RuleMatch.class)).thenReturn(persisted);
+
+        // when
+        final RuleMatch result = classUnderTest.create(
+                null, "TDR6", "PropertyCdd", "range", "ClassCdd", "ClassCdd", "Entity.add(range)");
+
+        // then — a fresh match is persisted and returned
+        assertSame(persisted, result);
+        verify(mockRepositoryService).persist(persisted);
+    }
     // -- helper
 
     private static RuleMatch match(String candidateType, String candidateName, String relatedType, String relatedName) {

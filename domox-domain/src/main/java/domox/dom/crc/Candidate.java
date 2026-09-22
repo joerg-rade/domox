@@ -22,6 +22,7 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Base class for all UML class-diagram candidate entities.
@@ -97,14 +98,90 @@ public abstract class Candidate extends AbstractEntity {
 
     /**
      * Adds a matching rule to this candidate.
+     * <p>
+     * The {@code ruleMatches} list is de-duplicated by the same candidate + rule
+     * signature used when {@code RuleMatches} persists matches ({@code ruleClassName},
+     * {@code candidateType}, {@code candidateName}, {@code relatedCandidateType},
+     * {@code relatedCandidateName}, {@code description}), so a candidate can never
+     * expose two equivalent matches — regardless of candidate type (ClassCdd,
+     * ActionCdd, PropertyCdd, AssociationCdd).  This also collapses duplicate M:N
+     * association rows left over from runs that predate RuleMatch de-duplication.
      *
      * @param match The rule match to add.
      */
     @Programmatic
     public void addMatchingRule(RuleMatch match) {
-        if (match != null && !ruleMatches.contains(match)) {
-            ruleMatches.add(match);
+        if (match == null) {
+            return;
         }
+        // First collapse any pre-existing signature-duplicates already attached to
+        // this candidate, then only append if no equivalent match is present.
+        deduplicateRuleMatches();
+        if (hasRuleMatchWithSameSignature(match)) {
+            return;
+        }
+        ruleMatches.add(match);
+    }
+
+    /**
+     * Removes any {@code RuleMatch} entries sharing the same candidate + rule
+     * signature (keeping the first occurrence), so the {@code ruleMatches} list
+     * holds no duplicates.  Signature match is defined exactly as in
+     * {@code RuleMatches.create(...)}.
+     */
+    @Programmatic
+    public void deduplicateRuleMatches() {
+        if (ruleMatches.size() < 2) {
+            return;
+        }
+        final List<RuleMatch> deduped = new ArrayList<>(ruleMatches.size());
+        for (final RuleMatch current : ruleMatches) {
+            boolean duplicate = false;
+            for (final RuleMatch kept : deduped) {
+                if (sameRuleMatchSignature(current, kept)) {
+                    duplicate = true;
+                    break;
+                }
+            }
+            if (!duplicate) {
+                deduped.add(current);
+            }
+        }
+        if (deduped.size() != ruleMatches.size()) {
+            ruleMatches.clear();
+            ruleMatches.addAll(deduped);
+        }
+    }
+
+    /**
+     * Returns whether any {@code RuleMatch} already attached to this candidate has
+     * the same candidate + rule signature as {@code match}.
+     */
+    private boolean hasRuleMatchWithSameSignature(RuleMatch match) {
+        for (final RuleMatch existing : ruleMatches) {
+            if (sameRuleMatchSignature(existing, match)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Two {@code RuleMatch} records are considered equivalent when all of
+     * {@code ruleClassName}, {@code candidateType}, {@code candidateName},
+     * {@code relatedCandidateType}, {@code relatedCandidateName} and
+     * {@code description} match — the same signature used by
+     * {@code RuleMatches.create(...)} to avoid persisting duplicates.
+     */
+    private boolean sameRuleMatchSignature(RuleMatch a, RuleMatch b) {
+        return a != null
+                && b != null
+                && Objects.equals(a.getRuleClassName(), b.getRuleClassName())
+                && Objects.equals(a.getCandidateType(), b.getCandidateType())
+                && Objects.equals(a.getCandidateName(), b.getCandidateName())
+                && Objects.equals(a.getRelatedCandidateType(), b.getRelatedCandidateType())
+                && Objects.equals(a.getRelatedCandidateName(), b.getRelatedCandidateName())
+                && Objects.equals(a.getDescription(), b.getDescription());
     }
 
     @Programmatic

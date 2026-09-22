@@ -43,6 +43,17 @@ public class ActionCdd
     @ManyToOne
     public ClassCdd classCdd;
 
+    /**
+     * Owning analysis run.  Unlike {@link #classCdd}, this is always set even
+     * for orphan candidates (e.g. actions whose owning class is a blocked
+     * use-case noun), so the whole analysis can be cascade-removed with its
+     * {@link DomainModel}.
+     */
+    @Property
+    @JoinColumn
+    @ManyToOne
+    public DomainModel domainModel;
+
     @OneToMany(mappedBy = "actionCdd", cascade = CascadeType.ALL)
     @Collection
     public List<ParameterCdd> inputTypeList;

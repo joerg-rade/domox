@@ -4,7 +4,6 @@ import domox.DomainModule;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.apache.causeway.applib.annotation.Action;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.DomainServiceLayout;
@@ -36,7 +35,8 @@ public class AssociationCandidates {
         this.associationCddRepository = associationCddRepository;
     }
 
-    @ActionLayout(sequence = "1")
+    // Internal helper (exposed in the UI via the "Candidates" menu service).
+    @Programmatic
     public List<AssociationCdd> listAll() {
         return repositoryService.allInstances(AssociationCdd.class).stream()
                 .sorted(Comparator.comparingInt(Candidate::getRuleMatchCount).reversed())
@@ -46,6 +46,14 @@ public class AssociationCandidates {
     @ActionLayout(sequence = "2")
     public AssociationCdd findByCandidateName(String candidateName) {
         return associationCddRepository.findByCandidateName(candidateName);
+    }
+
+    @Programmatic
+    public AssociationCdd findByCandidateName(String candidateName, DomainModel domainModel) {
+        if (domainModel == null) {
+            return findByCandidateName(candidateName);
+        }
+        return associationCddRepository.findByCandidateNameAndDomainModel(candidateName, domainModel);
     }
 
     @ActionLayout(sequence = "3")
@@ -67,11 +75,15 @@ public class AssociationCandidates {
         obj.setCandidateName(associationName);
         obj.setCandidateType("AssociationCdd");
         obj.setClassCdd(source);
+        obj.setDomainModel(domainModel);
         obj.setSource(source);
         obj.setTarget(target);
         obj.setType(type != null ? type : AssociationType.ASSOCIATION);
 
         source.addAssociation(obj);
+        if (domainModel != null) {
+            domainModel.associationList.add(obj);
+        }
         repositoryService.persist(obj);
         return obj;
     }
@@ -93,19 +105,11 @@ public class AssociationCandidates {
             final ClassCdd target,
             final DomainModel domainModel,
             final AssociationType type) {
-        AssociationCdd candidate = findByCandidateName(associationName);
+        AssociationCdd candidate = findByCandidateName(associationName, domainModel);
         if (candidate == null) {
             candidate = create(associationName, source, target, domainModel, type);
         }
         return candidate;
     }
 
-    @Action()
-    @ActionLayout(sequence = "4", cssClassFa = "trash")
-    public void deleteAll() {
-        var all = listAll();
-        for (AssociationCdd ac : all) {
-            repositoryService.remove(ac);
-        }
-    }
 }

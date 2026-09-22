@@ -11,4 +11,19 @@ public interface RuleMatchRepository extends JpaRepository<RuleMatch, Long> {
 
     List<RuleMatch> findByTypedDependency_Sentence(final Sentence sentence);
 
+    /**
+     * Returns RuleMatches sharing the same candidate + rule signature
+     * ({@code candidateName}, {@code candidateType}, {@code ruleClassName},
+     * {@code description}, {@code relatedCandidateName},
+     * {@code relatedCandidateType}).  Used to prevent persisting duplicate
+     * matches when the same TDR rule fires repeatedly for the same candidate.
+     */
+    List<RuleMatch> findByCandidateNameAndCandidateTypeAndRuleClassNameAndDescriptionAndRelatedCandidateNameAndRelatedCandidateType(
+            String candidateName,
+            String candidateType,
+            String ruleClassName,
+            String description,
+            String relatedCandidateName,
+            String relatedCandidateType);
+
 }

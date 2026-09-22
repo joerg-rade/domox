@@ -103,7 +103,7 @@ A class realizes an interface. This is procedural/architectural knowledge that r
 | "behaves as", "acts as" | *"User acts as Buyer"* (role-based) | `IMPLEMENTATION` |
 | *(most common)* **Manual assignment** in the UI | — | User sets via AssociationCdd editor |
 
-**Current status:** `IMPLEMENTATION` has an empty symbol `""` — would need a PlantUML representation (e.g., `..|>` or `..>`) before it can render in diagrams.
+**Current status:** `IMPLEMENTATION` now has a non-empty PlantUML symbol `..|>` (dotted realization) — `AssociationCdd.toPlantUmlString()` dispatches on `this.type`, so an implementation link renders as a dotted `..|>` arrow. Effective type defaults to `ASSOCIATION` if the field is `null`.
 
 ---
 

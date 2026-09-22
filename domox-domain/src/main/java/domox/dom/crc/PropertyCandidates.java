@@ -33,23 +33,29 @@ public class PropertyCandidates {
         this.classCandidates = classCandidates;
     }
 
-    @ActionLayout(sequence = "1")
+    // Internal helper (exposed in the UI via the "Candidates" menu service).
+    @Programmatic
     public List<PropertyCdd> listAll() {
         return repositoryService.allInstances(PropertyCdd.class).stream()
                 .sorted(Comparator.comparingInt(Candidate::getRuleMatchCount).reversed())
                 .toList();
     }
 
-    @ActionLayout(sequence = "2")
-    public PropertyCdd findByClassAndName(String className, String propertyName) {
-        ClassCdd classCdd = classCandidates.findByCandidateName(className);
+    /**
+     * Scoped lookup: resolves the owning {@link ClassCdd} within
+     * {@code domainModel} (falling back to the global lookup when it is
+     * {@code null}) and returns the property that belongs to it.
+     */
+    @Programmatic
+    public PropertyCdd findByClassAndName(String className, String propertyName, DomainModel domainModel) {
+        ClassCdd classCdd = classCandidates.findByCandidateName(className, domainModel);
         if (classCdd == null) {
             return null;
         }
         return propertyCddRepository.findByClassCddAndCandidateName(classCdd, propertyName);
     }
 
-    @ActionLayout(sequence = "3")
+    @Programmatic
     public PropertyCdd create(String className, String propertyName, String type) {
         return create(className, propertyName, type, null);
     }
@@ -69,7 +75,11 @@ public class PropertyCandidates {
             return null;
         }
         obj.classCdd = classCdd;
+        obj.domainModel = domainModel;
         classCdd.propertyList.add(obj);
+        if (domainModel != null) {
+            domainModel.propertyList.add(obj);
+        }
 
         repositoryService.persist(obj);
         return obj;
@@ -82,7 +92,7 @@ public class PropertyCandidates {
 
     @Programmatic
     public PropertyCdd findOrCreate(final String className, final String propertyName, final String type, DomainModel domainModel) {
-        PropertyCdd candidate = findByClassAndName(className, propertyName);
+        PropertyCdd candidate = findByClassAndName(className, propertyName, domainModel);
         if (candidate == null) {
             candidate = create(className, propertyName, type, domainModel);
         } else {
@@ -95,12 +105,4 @@ public class PropertyCandidates {
         return candidate;
     }
 
-    @Action()
-    @ActionLayout(sequence = "4", cssClassFa = "trash")
-    public void deleteAll() {
-        var all = listAll();
-        for (PropertyCdd pc : all) {
-            repositoryService.remove(pc);
-        }
-    }
 }

@@ -39,6 +39,16 @@ public class AssociationCdd
     @ManyToOne
     private ClassCdd classCdd;
 
+    /**
+     * Owning analysis run.  Always set during {@code analyzeDocument()} so the
+     * whole analysis can be cascade-removed with its {@link DomainModel}.
+     */
+    @Setter
+    @Property
+    @JoinColumn
+    @ManyToOne
+    private DomainModel domainModel;
+
     @Setter
     @Property
     @OneToOne
@@ -70,7 +80,8 @@ public class AssociationCdd
     }
 
     public String toPlantUmlString() {
-        final String arrow = AssociationType.ASSOCIATION.symbol;
+        final AssociationType effectiveType = type != null ? type : AssociationType.ASSOCIATION;
+        final String arrow = effectiveType.symbol;
         final String relation = quote(sourceCardinality) + arrow + quote(targetCardinality);
         return source.getCandidateName() + relation + target.getCandidateName() + ": " + getCandidateName();
     }

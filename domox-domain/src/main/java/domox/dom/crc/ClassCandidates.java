@@ -30,19 +30,33 @@ public class ClassCandidates {
         this.nlpProperties = nlpProperties;
     }
 
-    @ActionLayout(sequence = "1")
+    // Internal helper (exposed in the UI via the "Candidates" menu service).
+    @Programmatic
     public List<ClassCdd> listAll() {
         return repositoryService.allInstances(ClassCdd.class).stream()
                 .sorted(Comparator.comparingInt(Candidate::getRuleMatchCount).reversed())
                 .toList();
     }
 
-    @ActionLayout(sequence = "2")
+    @Programmatic
     public ClassCdd findByCandidateName(String candidateName) {
         return classCddRepository.findByCandidateName(candidateName);
     }
 
-    @ActionLayout(sequence = "3")
+    /**
+     * Scoped lookup: returns a {@link ClassCdd} named {@code candidateName} that
+     * belongs to {@code domainModel}.  Falls back to the global lookup when
+     * {@code domainModel} is {@code null} (UI convenience path).
+     */
+    @Programmatic
+    public ClassCdd findByCandidateName(String candidateName, DomainModel domainModel) {
+        if (domainModel == null) {
+            return findByCandidateName(candidateName);
+        }
+        return classCddRepository.findByCandidateNameAndDomainModel(candidateName, domainModel);
+    }
+
+    @Programmatic
     public ClassCdd create(String candidateName) {
         // Auto-create a DomainModel for UI convenience
         final DomainModel domainModel = new DomainModel();
@@ -68,7 +82,7 @@ public class ClassCandidates {
         if (isBlockedUseCaseNoun(candidateName)) {
             return null;
         }
-        ClassCdd candidate = findByCandidateName(candidateName);
+        ClassCdd candidate = findByCandidateName(candidateName, domainModel);
         if (candidate == null) {
             if (domainModel == null) {
                 candidate = create(candidateName);
@@ -111,12 +125,4 @@ public class ClassCandidates {
         return false;
     }
 
-    @Action()
-    @ActionLayout(sequence = "4", cssClassFa = "trash")
-    public void deleteAll() {
-        var all = listAll();
-        for (ClassCdd cc : all) {
-            repositoryService.remove(cc);
-        }
-    }
 }

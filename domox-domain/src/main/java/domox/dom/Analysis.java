@@ -55,9 +55,7 @@ public class Analysis {
         this.candidateResolver = candidateResolver;
     }
 
-    @Action()
-    @ActionLayout(sequence = "6", cssClassFa = "rupee")
-    public void analyzeDocument(
+    private void analyzeDocument(
             @ParameterLayout(named = "Document") final Document document) {
         log.info("Starting analysis phase for document: {}", document.getTitle());
 

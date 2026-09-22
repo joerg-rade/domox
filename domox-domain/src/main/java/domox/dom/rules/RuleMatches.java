@@ -102,6 +102,18 @@ public class RuleMatches {
                 && isBlockedUseCaseNoun(candidateName)) {
             return null;
         }
+        // Deduplicate: if a RuleMatch with the same candidate + rule signature
+        // (candidateName, candidateType, ruleClassName, description,
+        // relatedCandidateName, relatedCandidateType) already exists, do not
+        // persist another one — return the existing match instead.  This stops
+        // the same TDR rule firing repeatedly for the same candidate from
+        // producing duplicate rows in the UI.
+        final RuleMatch existing = findExistingMatch(
+                ruleClassName, candidateType, candidateName,
+                relatedCandidateType, relatedCandidateName, description);
+        if (existing != null) {
+            return existing;
+        }
         final RuleMatch obj = factoryService.detachedEntity(RuleMatch.class);
         obj.setTypedDependency(typedDependency);
         if (typedDependency != null) {
@@ -115,6 +127,31 @@ public class RuleMatches {
         obj.setDescription(description);
         repositoryService.persist(obj);
         return obj;
+    }
+
+    /**
+     * Returns an existing RuleMatch with the same candidate + rule signature
+     * as the incoming {@code create(...)} arguments, or {@code null} when none
+     * exists.  The signature comprises {@code ruleClassName}, {@code candidateType},
+     * {@code candidateName}, {@code relatedCandidateType},
+     * {@code relatedCandidateName}, and {@code description}.
+     */
+    @Programmatic
+    RuleMatch findExistingMatch(
+            String ruleClassName,
+            String candidateType,
+            String candidateName,
+            String relatedCandidateType,
+            String relatedCandidateName,
+            String description) {
+        final List<RuleMatch> matches = ruleMatchRepository
+                .findByCandidateNameAndCandidateTypeAndRuleClassNameAndDescriptionAndRelatedCandidateNameAndRelatedCandidateType(
+                        candidateName, candidateType, ruleClassName,
+                        description, relatedCandidateName, relatedCandidateType);
+        if (matches == null || matches.isEmpty()) {
+            return null;
+        }
+        return matches.getFirst();
     }
 
     /**

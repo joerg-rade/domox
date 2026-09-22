@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ActionCddRepository extends JpaRepository<ActionCdd, Long> {
 
     ActionCdd findByCandidateName(final String candidateName);
+
+    ActionCdd findByCandidateNameAndDomainModel(final String candidateName, final DomainModel domainModel);
 }

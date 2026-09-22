@@ -27,19 +27,20 @@ public class ActionCandidates {
         this.actionCddRepository = actionCddRepository;
     }
 
-    @ActionLayout(sequence = "1")
+    // Internal helper (exposed in the UI via the "Candidates" menu service).
+    @Programmatic
     public List<ActionCdd> listAll() {
         return repositoryService.allInstances(ActionCdd.class).stream()
                 .sorted(Comparator.comparingInt(Candidate::getRuleMatchCount).reversed())
                 .toList();
     }
 
-    @ActionLayout(sequence = "2")
+    @Programmatic
     public ActionCdd findByCandidateName(String candidateName) {
         return actionCddRepository.findByCandidateName(candidateName);
     }
 
-    @ActionLayout(sequence = "3")
+    @Programmatic
     public ActionCdd create(String candidateName) {
         return create(candidateName, null);
     }
@@ -56,11 +57,23 @@ public class ActionCandidates {
         obj.setCandidateType("ActionCdd");
         obj.setOutputType("void");
         obj.classCdd = classCdd;
+        obj.domainModel = domainModel;
         if (classCdd != null) {
             classCdd.actionList.add(obj);
         }
+        if (domainModel != null) {
+            domainModel.actionList.add(obj);
+        }
         repositoryService.persist(obj);
         return obj;
+    }
+
+    @Programmatic
+    public ActionCdd findByCandidateName(String candidateName, DomainModel domainModel) {
+        if (domainModel == null) {
+            return findByCandidateName(candidateName);
+        }
+        return actionCddRepository.findByCandidateNameAndDomainModel(candidateName, domainModel);
     }
 
     @Programmatic
@@ -75,19 +88,11 @@ public class ActionCandidates {
 
     @Programmatic
     public ActionCdd findOrCreate(final String candidateName, final ClassCdd classCdd, final DomainModel domainModel) {
-        ActionCdd candidate = findByCandidateName(candidateName);
+        ActionCdd candidate = findByCandidateName(candidateName, domainModel);
         if (candidate == null) {
             candidate = create(candidateName, classCdd, domainModel);
         }
         return candidate;
     }
 
-    @Action()
-    @ActionLayout(sequence = "4", cssClassFa = "trash")
-    public void deleteAll() {
-        var all = listAll();
-        for (ActionCdd ac : all) {
-            repositoryService.remove(ac);
-        }
-    }
 }

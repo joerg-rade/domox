@@ -42,6 +42,16 @@ public class PropertyCdd
     public ClassCdd classCdd;
 
     /**
+     * Owning analysis run.  Kept in parity with the other candidate types so a
+     * {@link DomainModel} can cascade-remove every candidate it produced (even
+     * ones whose owning {@link ClassCdd} lives in another model).
+     */
+    @Property
+    @JoinColumn
+    @ManyToOne
+    public DomainModel domainModel;
+
+    /**
      * Field to store the property type (e.g., "int", "String")
      * But not only primitives - class candidates from the scope of this analysis are to be set here as well
      */

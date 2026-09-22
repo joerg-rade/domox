@@ -8,7 +8,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.apache.causeway.applib.annotation.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +33,34 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
 
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     public List<ClassCdd> classList = new ArrayList<>();
+
+    /**
+     * Actions owned by this analysis run, including orphan actions with no
+     * owning {@link ClassCdd}.  Cascading from the {@link DomainModel} guarantees
+     * they are removed when the analysis (and its {@code Document}) is deleted.
+     */
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
+    public List<ActionCdd> actionList = new ArrayList<>();
+
+    /**
+     * Properties owned by this analysis run.  Cascading from the
+     * {@link DomainModel} guarantees they are removed with the analysis.
+     */
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
+    public List<PropertyCdd> propertyList = new ArrayList<>();
+
+    /**
+     * Associations owned by this analysis run.  Cascading from the
+     * {@link DomainModel} guarantees they are removed with the analysis.
+     */
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
+    public List<AssociationCdd> associationList = new ArrayList<>();
 
     @Override
     public int compareTo(@NotNull ClassCdd o) {

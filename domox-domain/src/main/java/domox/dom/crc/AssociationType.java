@@ -3,7 +3,7 @@ package domox.dom.crc;
 public enum AssociationType {
     ASSOCIATION("->"), //attribute
     GENERALIZATION("|>-"), // inheritance
-    IMPLEMENTATION(""), //REALIZATION
+    IMPLEMENTATION("..|>"), //REALIZATION
     DEPENDENCY(".>"),
     AGGREGATION("*->"),
     COMPOSITION("+->"); // existence
