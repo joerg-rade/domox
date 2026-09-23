@@ -168,6 +168,9 @@ public class TypedDependencyRulesTest {
     private TDR34 tdr34;
 
     @Autowired
+    private TDR35 tdr35;
+
+    @Autowired
     private TDR10 tdr10;
 
     @Autowired
@@ -175,6 +178,9 @@ public class TypedDependencyRulesTest {
 
     @Autowired
     private TDR38 tdr38;
+
+    @Autowired
+    private TDR36 tdr36;
 
     @Autowired
     private TDR39 tdr39;
@@ -554,9 +560,110 @@ public class TypedDependencyRulesTest {
         assertNotNull(tdr24, "TDR24 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr27, "TDR27 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr34, "TDR34 bean should be discoverable through Spring component scanning");
+        assertNotNull(tdr35, "TDR35 bean should be discoverable through Spring component scanning");
+        assertNotNull(tdr36, "TDR36 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr38, "TDR38 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr39, "TDR39 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr40, "TDR40 bean should be discoverable through Spring component scanning");
+    }
+
+    // ======== TDR36 Tests: Validation operations (nsubj with "validate") ========
+
+    @Test
+    public void testTDR36_ActionCddNamedAfterVerbNotSubject() {
+        Sentence sentence = new Sentence();
+        addToken(0, "validate", PartOfSpeechType.VB);
+        addToken(1, "system", PartOfSpeechType.NN);
+
+        // nsubj(validate, system): governor=0 (validate), dependent=1 (system)
+        TypedDependency td = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
+
+        tdr36.currentTd = td;
+        tdr36.previousTd = null;
+        tdr36.nextTd = null;
+
+        assertTrue(tdr36.when(), "TDR36 should fire for nsubj(validate, system)");
+        tdr36.then();
+
+        List<RuleMatch> matches = tdr36.ruleMatches.findByRuleClassName("TDR36");
+        RuleMatch match = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "ActionCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(match, "TDR36 should have created an ActionCdd match");
+        assertEquals("validate", match.getCandidateName(),
+                "TDR36 should name the ActionCdd after the verb, uncapitalized");
+        assertNotEquals("Validate", match.getCandidateName(),
+                "TDR36 action candidate names are verbs and must not be capitalized");
+        assertNotEquals("System", match.getCandidateName(),
+                "TDR36 must not name the ActionCdd after the subject");
+        assertEquals("System_Actions.add(System validate)", match.getDescription(),
+                "TDR36 description should capitalize the noun subject but leave the verb lowercase");
+    }
+
+    @Test
+    public void testTDR36_DoesNotFire_ForNonValidateVerb() {
+        Sentence sentence = new Sentence();
+        addToken(0, "process", PartOfSpeechType.VB);
+        addToken(1, "system", PartOfSpeechType.NN);
+
+        // nsubj(process, system): "process" is not "validate"
+
+        tdr36.currentTd = createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
+        tdr36.previousTd = null;
+        tdr36.nextTd = null;
+
+        assertFalse(tdr36.when(), "TDR36 should NOT fire for nsubj(process, system)");
+    }
+
+    // ======== TDR35 Tests: Conditional logic (advcl/mark with if/then/else) ========
+
+    @Test
+    public void testTDR35_ActionCddNamedAfterVerbNotKeywordSubject() {
+        Sentence sentence = new Sentence();
+        addToken(0, "notify", PartOfSpeechType.VB);
+        addToken(1, "restock", PartOfSpeechType.NN);
+
+        // advcl:if(notify, restock): governor=0 (notify, the verb), dependent=1 (restock, the condition)
+        TypedDependency td = createTypedDependency(sentence, TdType.ADVCL, 0, 1);
+
+        tdr35.currentTd = td;
+        tdr35.previousTd = null;
+        tdr35.nextTd = null;
+
+        assertTrue(tdr35.when(), "TDR35 should fire for advcl(notify, restock)");
+        tdr35.then();
+
+        List<RuleMatch> matches = tdr35.ruleMatches.findByRuleClassName("TDR35");
+        RuleMatch match = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "ActionCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(match, "TDR35 should have created an ActionCdd match");
+        assertEquals("notify", match.getCandidateName(),
+                "TDR35 should name the ActionCdd after the verb, uncapitalized");
+        assertNotEquals("Ifrestock", match.getCandidateName(),
+                "TDR35 must not concatenate the keyword with the condition");
+        assertNotEquals("Restock", match.getCandidateName(),
+                "TDR35 must not name the ActionCdd after the condition");
+        assertEquals("System_Actions.add(\"if\" + Restock + notify)", match.getDescription(),
+                "TDR35 description should capitalize the condition noun but leave the verb lowercase");
+    }
+
+    @Test
+    public void testTDR35_DoesNotFire_ForNonConditionalAdvmod() {
+        Sentence sentence = new Sentence();
+        addToken(0, "notify", PartOfSpeechType.VB);
+        addToken(1, "timely", PartOfSpeechType.RB);
+
+        // advmod(notify, timely): not if/then/else and no else sibling
+        tdr35.currentTd = createTypedDependency(sentence, TdType.ADVMOD, 0, 1);
+        tdr35.previousTd = null;
+        tdr35.nextTd = null;
+
+        assertFalse(tdr35.when(), "TDR35 should NOT fire for advmod(notify, timely)");
     }
 
     // ======== TDR38 Tests: Copula-based generalization ("X is a Y") ========

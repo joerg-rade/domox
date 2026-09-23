@@ -8,14 +8,7 @@ import jakarta.inject.Named;
 import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.*;
-import org.apache.causeway.applib.annotation.Action;
-import org.apache.causeway.applib.annotation.ActionLayout;
-import org.apache.causeway.applib.annotation.CollectionLayout;
-import org.apache.causeway.applib.annotation.MemberSupport;
-import org.apache.causeway.applib.annotation.Programmatic;
-import org.apache.causeway.applib.annotation.PropertyLayout;
-import org.apache.causeway.applib.annotation.Publishing;
-import org.apache.causeway.applib.annotation.SemanticsOf;
+import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
@@ -43,6 +36,11 @@ import java.util.Objects;
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Candidate extends AbstractEntity {
+
+    @Title
+    public String title() {
+        return getClass().getSimpleName() + ": " + candidateName;
+    }
 
     @Column(nullable = false)
     @Getter

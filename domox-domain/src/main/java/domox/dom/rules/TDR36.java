@@ -42,7 +42,9 @@ public class TDR36 extends TypedDependencyRule {
         String b = currentTd.getB();
 
         // System_Actions.add(B + A)
-        String action = "System_Actions.add(" + b + " " + a + ")";
+        // The action candidate is named after the verb (uncapitalized); the noun
+        // subject part of the rendered description is capitalized.
+        String action = "System_Actions.add(" + capitalizeFirstLetter(b) + " " + a + ")";
 
         // while (TD≠NULL): collect every basic-attribute B in the sentence
         List<String> attributeNames = new ArrayList<>();
@@ -67,7 +69,7 @@ public class TDR36 extends TypedDependencyRule {
                     currentTd,
                     getRuleName(),
                     "ActionCdd",
-                    capitalizeFirstLetter(b != null ? b : ""),
+                    a != null ? a : "",
                     null,
                     null,
                     action);

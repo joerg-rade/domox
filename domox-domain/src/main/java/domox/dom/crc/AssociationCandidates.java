@@ -4,7 +4,6 @@ import domox.DomainModule;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.DomainServiceLayout;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
@@ -43,7 +42,7 @@ public class AssociationCandidates {
                 .toList();
     }
 
-    @ActionLayout(sequence = "2")
+    @Programmatic
     public AssociationCdd findByCandidateName(String candidateName) {
         return associationCddRepository.findByCandidateName(candidateName);
     }
@@ -56,7 +55,7 @@ public class AssociationCandidates {
         return associationCddRepository.findByCandidateNameAndDomainModel(candidateName, domainModel);
     }
 
-    @ActionLayout(sequence = "3")
+    @Programmatic
     public AssociationCdd create(String associationName, ClassCdd source, ClassCdd target) {
         return create(associationName, source, target, null);
     }

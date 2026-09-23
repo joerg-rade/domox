@@ -60,7 +60,11 @@ public class TDR35 extends TypedDependencyRule {
 
         String a = currentTd.getA();
         String b = currentTd.getB();
-        String keywordAction = "System_Actions.add(\"" + keyword + "\" + " + (b != null ? b : "") + " + " + (a != null ? a : "") + ")";
+        // The keyword (if/then/else) is the marker word; B is the condition. Capitalize
+        // the condition noun for the description, but don't repeat the marker itself
+        // (e.g. mark(notify, if)) which would yield a redundant "if" + If.
+        String bPart = (b != null && !b.equalsIgnoreCase(keyword)) ? capitalizeFirstLetter(b) + " + " : "";
+        String keywordAction = "System_Actions.add(\"" + keyword + "\" + " + bPart + (a != null ? a : "") + ")";
 
         List<String> attributeNames = new ArrayList<>();
         List<String> attributeActions = new ArrayList<>();
@@ -82,14 +86,11 @@ public class TDR35 extends TypedDependencyRule {
         }
 
         if (ruleMatches != null && currentTd != null) {
-            if (b != null && isStopword(b)) {
-                return;  // Skip — concatenation with an auxiliary/copular verb produces a meaningless candidate name (e.g. "Ifbe")
-            }
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
                     "ActionCdd",
-                    capitalizeFirstLetter(keyword + (b != null ? b : "")),
+                    (a != null ? a : ""),
                     null,
                     null,
                     keywordAction);
