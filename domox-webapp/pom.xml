@@ -314,6 +314,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- MCP (Model Context Protocol) server: exposes @McpTool review tools to LLM clients -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>

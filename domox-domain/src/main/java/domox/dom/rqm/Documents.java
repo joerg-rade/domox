@@ -62,6 +62,21 @@ public class Documents {
         return answer;
     }
 
+    /**
+     * Returns whether a {@link Document} whose content equals {@code content} already exists.
+     * <p>
+     * Used to guard against re-analysing the same requirements text, which previously created a
+     * second {@code Document} + {@code DomainModel} and re-derived every {@code Candidate},
+     * duplicating the whole candidate set (e.g. running {@code loadFileSample()} twice).
+     */
+    @Programmatic
+    public boolean existsByContent(final String content) {
+        if (content == null) {
+            return false;
+        }
+        return listAll().stream().anyMatch(d -> content.equals(d.getContent()));
+    }
+
     @Programmatic
     public List<Sentence> createSentences(Document document, DocumentTO to) {
         final List<SentenceTO> toList = to.getSentences();

@@ -12,6 +12,9 @@
         <!-- Compiler versions -->
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <!-- Retain method parameter names so Spring AI @ToolParam params (and Causeway
+             action params) keep their declared names in schemas/reflection -->
+        <maven.compiler.parameters>true</maven.compiler.parameters>
 
         <!-- Framework versions -->
         <causeway.version>3.6.0</causeway.version>
@@ -19,6 +22,7 @@
         <spring-framework.version>6.2.18</spring-framework.version>
         <spring-core.version>6.2.18</spring-core.version>
         <spring-jdbc.version>6.2.18</spring-jdbc.version>
+        <spring-ai.version>1.1.8</spring-ai.version>
         <kotlin.version>2.2.0</kotlin.version>
 
         <!-- Dependency versions -->
@@ -197,6 +201,28 @@
     </build>
     <dependencyManagement>
         <dependencies>
+            <!-- Spring AI BOM: aligned model/MCP dependencies (Spring Boot 3.5.x compatible) -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Pin ANTLR4 runtime so Spring Data (4.13.0 via spring-data-jpa) and Spring AI
+                 (4.13.1) converge on a single version for the dependencyConvergence enforcer. -->
+            <dependency>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-runtime</artifactId>
+                <version>4.13.1</version>
+            </dependency>
+            <!-- Converge swagger-annotations-jakarta pulled via Spring AI (2.2.36 from mcp-annotations
+                 vs 2.2.38 from spring-ai-model) for the dependencyConvergence enforcer. -->
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>2.2.38</version>
+            </dependency>
             <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-stdlib</artifactId>

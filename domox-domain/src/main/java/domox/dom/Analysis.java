@@ -16,6 +16,7 @@ import domox.svc.DocumentAdapter;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ public class Analysis {
     private final DomainModels domainModels;
     private final ClassArchetypeClassifier archetypeClassifier;
     private final CandidateResolver candidateResolver;
+    private final MessageService messageService;
 
     @Inject
     public Analysis(RepositoryService repositoryService,
@@ -45,7 +47,8 @@ public class Analysis {
                     List<TypedDependencyRule> rules,
                     DomainModels domainModels,
                     ClassArchetypeClassifier archetypeClassifier,
-                    CandidateResolver candidateResolver) {
+                    CandidateResolver candidateResolver,
+                    MessageService messageService) {
         this.repositoryService = repositoryService;
         this.documents = documents;
         this.ruleMatches = ruleMatches;
@@ -53,6 +56,7 @@ public class Analysis {
         this.domainModels = domainModels;
         this.archetypeClassifier = archetypeClassifier;
         this.candidateResolver = candidateResolver;
+        this.messageService = messageService;
     }
 
     private void analyzeDocument(
@@ -96,6 +100,16 @@ public class Analysis {
         //final String filename = "PetShop_UseCases.txt";
         final String filename = "UC01_SellingPetProducts.md";
         final String txtContent = new FileUtil().readFileFromResources(filename);
+
+        // Guard against processing the same sample text more than once. Running
+        // loadFileSample() twice used to create a second Document + DomainModel and
+        // re-derive every Candidate, so the whole candidate set was duplicated (×2).
+        if (documents.existsByContent(txtContent)) {
+            log.info("Sample '{}' already analysed (duplicate content detected); skipping.", filename);
+            messageService.informUser("The sample " + filename + " has already been analysed. Skipping duplicate.");
+            return ruleMatches.listAll();
+        }
+
         final Clob content = new Clob("", "text/xml", txtContent);
         final Author author = new Author();
         final List<Author> authors = new ArrayList<>();

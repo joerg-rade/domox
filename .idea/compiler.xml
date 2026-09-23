@@ -9,7 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="domox-webapp" />
       </profile>
-      <profile name="Annotation profile for DoMoX Parent" enabled="true">
+      <profile name="Annotation profile for domox-adapter" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -17,8 +17,16 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
-        <module name="domox-domain" />
         <module name="domox-adapter" />
+      </profile>
+      <profile name="Annotation profile for DoMoX Parent" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+        </processorPath>
+        <module name="domox-domain" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -28,9 +36,10 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="domox-adapter" options="-parameters" />
-      <module name="domox-domain" options="-parameters" />
-      <module name="domox-webapp" options="-parameters" />
+      <module name="domox" options="-parameters" />
+      <module name="domox-adapter" options="-parameters -parameters" />
+      <module name="domox-domain" options="-parameters -parameters" />
+      <module name="domox-webapp" options="-parameters -parameters" />
       <module name="module-ksimple" options="-parameters -parameters" />
     </option>
   </component>

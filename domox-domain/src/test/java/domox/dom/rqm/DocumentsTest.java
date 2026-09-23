@@ -4,14 +4,21 @@ import domox.dom.nlp.Sentences;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class DocumentsTest {
 
     @Mock
@@ -69,5 +76,19 @@ class DocumentsTest {
         // then
         assertEquals(1, documents.listAll().size());
         assertEquals("Skinner", Arrays.stream(document.getAuthors().stream().toArray()).findFirst());
+    }
+
+    @Test
+    void existsByContent_detectsDocumentsWithMatchingContent() {
+        // given — an already-analysed document
+        final String text = "A pet shop can offer a wide range of pet products.";
+        final Document existing = new Document();
+        existing.setContent(text);
+        when(mockRepositoryService.allInstances(Document.class)).thenReturn(List.of(existing));
+
+        // expect — exact content match is detected, other/null content is not
+        assertTrue(documents.existsByContent(text));
+        assertFalse(documents.existsByContent("Some unrelated requirements text."));
+        assertFalse(documents.existsByContent(null));
     }
 }

@@ -101,6 +101,15 @@ spring:
   quartz:
     job-store-type: memory
 
+  ai:
+    mcp:
+      server:
+        name: domox-review-server
+        version: 0.1.0
+        # STREAMABLE transport streams tool results back over server-sent events (SSE)
+        # on the default /mcp endpoint. Alternatively use 'HTTP' for request/response JSON.
+        transport: STREAMABLE
+
 management:
   endpoint:
     health:
