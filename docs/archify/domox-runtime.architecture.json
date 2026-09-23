@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "DoMoX Runtime — NL Requirements to Domain Model",
+    "subtitle": "Rule-based NLP extraction, human review, and code/UML generation on Apache Causeway",
+    "output": "domox-runtime.html",
+    "visual_preset": "blueprint",
+    "quality_profile": "showcase",
+    "viewBox": [1140, 700],
+    "repository": {
+      "url": "https://github.com/joerg-rade/domox.git",
+      "provider": "github",
+      "revision": "57fb0fe8947fba9ac4e73a589de1d1de03bb925c",
+      "link_mode": "web"
+    },
+    "views": [
+      {
+        "id": "primary-path",
+        "label": "Primary analysis path",
+        "focus": ["user", "webui", "analyzer", "rqm", "rules", "candidates", "review", "codegen"],
+        "note": "Requirements text -> typed deps -> candidates -> reviewed model -> code/UML."
+      },
+      {
+        "id": "human-gate",
+        "label": "Human review gate",
+        "focus": ["candidates", "review", "codegen"],
+        "note": "Designers approve which candidates actually enter the DomainModel."
+      },
+      {
+        "id": "externals",
+        "label": "External services",
+        "focus": ["nlp", "kroki", "db"],
+        "note": "Docker-shipped CoreNLP, PostgreSQL and Kroki/PlantUML."
+      }
+    ]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "Analysts", "sublabel": "NL requirements", "pos": [8, 334], "size": [92, 60] },
+    { "id": "webui", "type": "frontend", "label": "Causeway Web UI", "sublabel": "Wicket viewer · REST", "pos": [125, 332], "size": [116, 64], "sources": [{ "path": "domox-webapp/src/main/java/domox/webapp/Application.java", "line": 1 }] },
+    { "id": "analyzer", "type": "backend", "label": "Orchestrator", "sublabel": "analyzeDocument", "pos": [266, 332], "size": [110, 64], "sources": [{ "path": "domox-domain/src/main/java/domox/dom/Analysis.java", "line": 60 }] },
+    { "id": "rqm", "type": "backend", "label": "Requirements Model", "sublabel": "RQm · Document", "pos": [401, 332], "size": [118, 64], "sources": [{ "path": "domox-domain/src/main/java/domox/dom/rqm/Document.java", "line": 43 }] },
+    { "id": "rules", "type": "backend", "label": "TDR Rule Engine", "sublabel": "TDR 1–40 · matches", "pos": [544, 330], "size": [120, 64], "sources": [{ "path": "domox-domain/src/main/java/domox/dom/rules/RuleMatches.java", "line": 77 }] },
+    { "id": "candidates", "type": "backend", "label": "Candidate Factory", "sublabel": "ClassCdd · PropertyCdd", "pos": [689, 330], "size": [120, 64], "sources": [{ "path": "domox-domain/src/main/java/domox/dom/crc/DomainModels.java", "line": 20 }] },
+    { "id": "review", "type": "backend", "label": "Review Gate", "sublabel": "reviewer approval", "pos": [834, 332], "size": [112, 64], "sources": [{ "path": "domox-domain/src/main/java/domox/dom/crc/Review.java", "line": 20 }] },
+    { "id": "codegen", "type": "backend", "label": "Code & UML Generator", "sublabel": "JavaCode · ClassDiagram", "pos": [971, 332], "size": [126, 64], "sources": [{ "path": "domox-domain/src/main/java/generate/JavaCode.kt", "line": 11 }] },
+    { "id": "nlp", "type": "external", "label": "Stanford CoreNLP", "sublabel": "POS · typed deps", "pos": [401, 120], "size": [118, 64], "sources": [{ "path": "domox-domain/src/main/java/domox/svc/DocumentAdapter.java", "line": 7 }] },
+    { "id": "kroki", "type": "external", "label": "Kroki / PlantUML", "sublabel": "class diagrams", "pos": [971, 120], "size": [126, 62], "sources": [{ "path": "docker-compose.yml", "line": 21 }] },
+    { "id": "db", "type": "database", "label": "PostgreSQL", "sublabel": "Causeway / JPA entities", "pos": [385, 560], "size": [150, 60], "sources": [{ "path": "docker-compose.yml", "line": 15 }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "domox-webapp · trusted runtime", "wraps": ["webui", "analyzer", "rqm", "rules", "candidates", "review", "codegen"], "pad": 14 },
+    { "kind": "security-group", "label": "trust boundary · reviewer gate", "wraps": ["review"], "pad": 12 },
+    { "kind": "region", "label": "Docker services · external", "wraps": ["nlp", "kroki"], "pad": 14 },
+    { "kind": "security-group", "label": "shared persistence", "wraps": ["db"], "pad": 14 }
+  ],
+  "connections": [
+    { "from": "user", "to": "webui", "variant": "emphasis" },
+    { "from": "webui", "to": "analyzer", "variant": "emphasis" },
+    { "from": "analyzer", "to": "rqm", "variant": "emphasis" },
+    { "from": "nlp", "to": "rqm", "label": "typed deps", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v" },
+    { "from": "rqm", "to": "rules", "variant": "emphasis" },
+    { "from": "rules", "to": "candidates", "variant": "emphasis" },
+    { "from": "candidates", "to": "review", "variant": "emphasis" },
+    { "from": "review", "to": "codegen", "variant": "emphasis" },
+    { "from": "codegen", "to": "kroki", "label": "render" },
+    { "from": "rqm", "to": "db", "label": "JPA", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "route": "orthogonal-v" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "TDR Rulebook · Phase 1",
+      "items": [
+        "40 rules (TDR1–40) scan Stanford typed dependencies of each sentence",
+        "RuleMatches.create() persists one RuleMatch per candidate hit",
+        "Guard: blocked use-case nouns (e.g. \"Actor\") return null, never persisted"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Candidate freezing · Phase 2",
+      "items": [
+        "createCandidatesFrom maps RuleMatch → ClassCdd / PropertyCdd / ActionCdd / AssociationCdd",
+        "Coad (1999) archetype classifier suggests a ClassType (e.g. Role, Moment-Interval)",
+        "CandidateResolver late-binds ambiguous nouns (Option C)"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Human-in-the-loop gate",
+      "items": [
+        "Review + ReviewRationale attach to each Candidate",
+        "ReviewStatus decides inclusion in the DomainModel",
+        "Only approved candidates reach code and UML generation"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "External services & trust",
+      "items": [
+        "Stanford CoreNLP (Docker) — REST NL text crosses into the runtime",
+        "PostgreSQL (Docker) — all entities persisted via Causeway/JPA",
+        "Kroki (Docker) — renders PlantUML to SVG/PNG for review"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Code & UML generation",
+      "items": [
+        "JavaCode.kt emits JPA/Causeway entity skeletons with Lombok",
+        "ClassDiagram + PumlCode emit PlantUML class diagrams",
+        "Generated code stays traceable to the DomainModel and requirements"
+      ]
+    }
+  ]
+}
