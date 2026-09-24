@@ -16,6 +16,7 @@ import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityList
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Base class for all UML class-diagram candidate entities.
@@ -36,6 +37,14 @@ import java.util.Objects;
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Candidate extends AbstractEntity {
+
+    @Inject
+    @Transient
+    private Reviews reviewsService;
+
+    @Inject
+    @Transient
+    private MessageService messageService;
 
     @Title
     public String title() {
@@ -61,18 +70,17 @@ public abstract class Candidate extends AbstractEntity {
     @CollectionLayout(sequence = "1")
     private List<RuleMatch> ruleMatches = new ArrayList<>();
 
-    @Inject
-    @Transient
-    private Reviews reviewsService;
-
-    @Inject
-    @Transient
-    private MessageService messageService;
-
-
     @PropertyLayout(sequence = "3")
     public int getRuleMatchCount() {
         return ruleMatches.size();
+    }
+
+    @PropertyLayout(sequence = "4")
+    public String getRuleNames() {
+        return ruleMatches.stream()
+                .map(RuleMatch::getRuleClassName)
+                .filter(name -> name != null)
+                .collect(Collectors.joining(", "));
     }
 
     @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, orphanRemoval = true)
