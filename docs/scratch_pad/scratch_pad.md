@@ -48,28 +48,17 @@ conj:or(Y, B)       # second alternative
 - **Yue et al. (2011)** [31]: survey of 20+ approaches; aggregation & generalization rules across 8+ papers
 
 ### References
-Arora, C., Sabetzadeh, M., Briand, L., & Zimmer, F. (2016). "Extracting domain models from natural-language requirements: approach and industrial evaluation." In *MODELS'16: ACM/IEEE 19th International Conference on Model Driven Engineering Languages and Systems* (pp. 250–260). http://dx.doi.org/10.1145/2976767.2976769
+Arora, C., Sabetzadeh, M., Briand, L., & Zimmer, F. (2016). "Extracting domain models from natural-language requirements: approach and industrial evaluation." In *MODELS'16: ACM/IEEE 19th International Conference on Model Driven Engineering Languages and Systems* (pp. 250–260). 
+http://dx.doi.org/10.1145/2976767.2976769
 
-
-![Preview](./docs/BigPicture.png)
-
-Domox allows the user to:
-* Import documents
-* Analyze requirements therein
-* Extract relations
-* Generate a Domain Model (UML)
-* Flag relations as irrelevant (i.e. exclude them from the Domain Model)
-* View the (plant)UML model and
-* Export it (for subsequent processing by other tools, e.g. Apache Causeway)
-* Allow to trace back from the Domain Model elements to requirements.
 
 Design follows the outline in [1]:
 
-![Preview](./docs/DomoxClassDiagram.png)
+![Preview](../application/c4_code.png)
 
 NLP Processing usually is as follows:
 
-![Preview](./docs/Pipeline.png)
+![Preview](../application/nlp_pipeline.png)
 
 
 ### Glossary
