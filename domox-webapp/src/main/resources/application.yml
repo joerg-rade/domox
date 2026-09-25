@@ -106,9 +106,11 @@ spring:
       server:
         name: domox-review-server
         version: 0.1.0
-        # STREAMABLE transport streams tool results back over server-sent events (SSE)
-        # on the default /mcp endpoint. Alternatively use 'HTTP' for request/response JSON.
-        transport: STREAMABLE
+        # Spring AI 1.1.8 selects the MCP HTTP transport via the 'protocol' key
+        # (spring.ai.mcp.server.protocol), NOT 'transport'. STREAMABLE streams tool
+        # results back over server-sent events (SSE) on the default /mcp endpoint.
+        # The alternatives are 'SSE' and the request/response 'STATELESS' protocol.
+        protocol: STREAMABLE
 
 management:
   endpoint:
