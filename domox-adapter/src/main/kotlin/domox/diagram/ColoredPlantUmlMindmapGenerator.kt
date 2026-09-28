@@ -1,11 +1,9 @@
 package domox.diagram
 
-import domox.nlp.ExtendedDependencyFactory
 import domox.nlp.ExtendedDependencyTO
-import domox.nlp.SentenceTO
 import kotlin.collections.sortedBy
 
-class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
+class ColoredPlantUmlMindmapGenerator(private val dependencies: List<ExtendedDependencyTO>) {
     private data class TreeNode(
         val index: Int,
         val word: String,
@@ -15,7 +13,6 @@ class ColoredPlantUmlMindmapGenerator(private val sentence: SentenceTO) {
     )
 
     fun generateMindmap(): String {
-        val dependencies = ExtendedDependencyFactory(sentence).getDependencies()
         val rootDep = dependencies.firstOrNull { it.governor == 0.toLong() }
             ?: return "@startmindmap\n* Error: No Root Found\n@endmindmap"
 

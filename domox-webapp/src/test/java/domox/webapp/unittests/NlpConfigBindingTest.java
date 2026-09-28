@@ -85,6 +85,19 @@ class NlpConfigBindingTest {
                 "'customer' in use-case-blocked-nouns would prevent a real domain entity");
     }
 
+    @Test
+    void synonymMarkers_areConfiguredForTDR41() throws Exception {
+        var props = loadNlpProperties();
+
+        assertNotNull(props.getSynonymMarkers());
+        assertFalse(props.getSynonymMarkers().isEmpty());
+
+        // The core defining-construction marker verbs TDR41 relies on
+        assertTrue(props.getSynonymMarkers().contains("known"));
+        assertTrue(props.getSynonymMarkers().contains("termed"));
+        assertTrue(props.getSynonymMarkers().contains("called"));
+    }
+
     // ----------------------------------------------------------------
 
     private static NlpProperties loadNlpProperties() throws Exception {

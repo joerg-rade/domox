@@ -9,12 +9,14 @@ class PartOfSpeechTypeTest {
 
     @Test
     void fromCode_resolvesAllKnownPennTreebankTags() {
+        assertEquals(PartOfSpeechType.FW, PartOfSpeechType.fromCode("FW"));
         assertEquals(PartOfSpeechType.LQUOTE, PartOfSpeechType.fromCode("``"));
         assertEquals(PartOfSpeechType.RQUOTE, PartOfSpeechType.fromCode("''"));
         assertEquals(PartOfSpeechType.SYM, PartOfSpeechType.fromCode("SYM"));
         assertEquals(PartOfSpeechType.LRB, PartOfSpeechType.fromCode("-LRB-"));
         assertEquals(PartOfSpeechType.RRB, PartOfSpeechType.fromCode("-RRB-"));
         assertEquals(PartOfSpeechType.RP, PartOfSpeechType.fromCode("RP"));
+        assertEquals(PartOfSpeechType.RBS, PartOfSpeechType.fromCode("RBS"));
         assertEquals(PartOfSpeechType.POS, PartOfSpeechType.fromCode("POS"));
     }
 

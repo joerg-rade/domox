@@ -31,3 +31,6 @@ hs_err_pid*
 /domox-webapp/target/classes/*.yml
 /domox-service/target/
 /domox-service/domox-service.iml
+/target/
+/domox-adapter/target/
+/domox-webapp/create-tables.sql

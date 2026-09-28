@@ -98,7 +98,8 @@ public class RuleMatches {
         // (e.g. "Actor", "Condition", "System") so they never appear as candidate
         // names, regardless of which TDR rule produced the match.
         if (candidateName != null
-                && ("ClassCdd".equals(candidateType) || "GeneralizationCdd".equals(candidateType))
+                && ("ClassCdd".equals(candidateType) || "GeneralizationCdd".equals(candidateType)
+                || "SynonymCdd".equals(candidateType))
                 && isBlockedUseCaseNoun(candidateName)) {
             return null;
         }
@@ -282,6 +283,21 @@ public class RuleMatches {
             parent.setCandidateName(relatedCandidateName);
             String assocName = candidateName + "_" + relatedCandidateName;
             return associationCandidates.findOrCreate(assocName, child, parent, domainModel, AssociationType.GENERALIZATION);
+        } else if ("SynonymCdd".equals(candidateType)) {
+            // Synonym (==) between two ClassCdd entities (produced by TDR41).
+            // candidateName = head term, relatedCandidateName = synonym partner term.
+            if (relatedCandidateName == null) {
+                return null;
+            }
+            if (isBlockedUseCaseNoun(candidateName) || isBlockedUseCaseNoun(relatedCandidateName)) {
+                return null;
+            }
+            ClassCdd head = classCandidates.findOrCreate(candidateName, domainModel);
+            head.setCandidateName(candidateName);
+            ClassCdd partner = classCandidates.findOrCreate(relatedCandidateName, domainModel);
+            partner.setCandidateName(relatedCandidateName);
+            String assocName = candidateName + "_" + relatedCandidateName;
+            return associationCandidates.findOrCreate(assocName, head, partner, domainModel, AssociationType.SYNONYM);
         } else if ("ActionCdd".equals(candidateType)) {
             // The related candidate name should be the owning class name;
             // a blocked use-case noun (e.g. "System") must not become the owner

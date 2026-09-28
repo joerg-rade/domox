@@ -1,7 +1,7 @@
-# TypedDependency Rules (TDR1-TDR37) - Complete Registry
+# TypedDependency Rules (TDR1-TDR41) - Complete Registry
 
 ## Overview
-The TypedDependency Rules (TDR) system is a rule-based framework for extracting domain models from natural language requirements using Stanford CoreNLP dependency parse trees. All 37 rules are implemented using the RuleBook framework with Spring integration (@RuleBean annotation).
+The TypedDependency Rules (TDR) system is a rule-based framework for extracting domain models from natural language requirements using Stanford CoreNLP dependency parse trees. All 41 rules are implemented using the RuleBook framework with Spring integration (@RuleBean annotation).
 
 ## Rule Registration & Autowiring
 
@@ -12,7 +12,7 @@ All rules are automatically registered as Spring beans through the `@RuleBean` a
 - **Framework**: RuleBook (Delivered Technologies)
 - **Integration**: Spring with @RuleBean annotation
 - **Package**: `domox.dom.rules`
-- **Rule Execution**: Sequential by order number (TDR1.order=1 through TDR37.order=37)
+- **Rule Execution**: Sequential by order number (TDR1.order=1 through TDR41.order=41)
 
 ### Automatic Bean Discovery
 Rules are discovered through Spring's component scanning:
@@ -239,6 +239,28 @@ The following predicates were added to `TypedDependencyPredicates`:
 - `isKindTypeOrSortDependent(TypedDependency)` — checks if dependent contains "kind"/"type"/"sort"
 - `isKindTypeOrSortGovernor(TypedDependency)` — checks if governor contains "kind"/"type"/"sort"
 
+### Implemented Synonym Rules (Group 7)
+
+| Rule | TDR | Dependency Pattern | Literature | Conditions | Output |
+|------|-----|-------------------|------------|------------|--------|
+| Appositive synonym | **TDR41** | `appos(Head, Alias)` | SYNONYMS.md §1 (Hearst lexico-syntactic) + §2 (POS-Matching) | A=NN, B=NN; lemmas differ | `Head == Alias` |
+| "known as" synonym | **TDR41** | `acl:relcl(Head, MarkerVerb)` where MarkerVerb ∈ synonym-markers; partner = noun object of MarkerVerb | SYNONYMS.md §1 ("X, also known as Y") | A=NN; marker verb configured | `Head == Y` |
+
+### Implementation Details
+
+#### TDR41 — Synonym identification
+- **then()**: Creates a `SynonymCdd` RuleMatch with `candidateName=head` and `relatedCandidateName=alias` (related type `SynonymPartner`).
+- Two triggers in the same rule:
+  1. **Apposition** — `appos(Head, Alias)` where both governor and dependent are nouns (POS-Matching rule) and the lemmas differ. This is the dependency-grammar counterpart of parenthetical / appositive name-equivalence.
+  2. **Defining relative clause** — `acl:relcl(Head, Marker)` / `acl(Head, Marker)` where the marker lemma is a configured synonym-marker verb (`known`, `termed`, `called`, `referred`, `named`, …). The partner Y is the noun object of the marker verb found elsewhere in the sentence (excluding the clause subject and the head itself).
+- **Vocabulary**: `domox.nlp.synonym-markers`, loaded into `TypedDependencyPredicates` by `SynonymCatalog` (`registerSynonymMarkers` / `isSynonymMarker`).
+- **New predicates added**: `appos(...)`, `acl(...)`, `aclRelcl(...)`, `isSynonymMarker(...)`.
+
+#### Phase 2 Integration
+- `RuleMatches.createCandidateFromMatch()` handles `"SynonymCdd"` candidateType by creating both `ClassCdd` entities (head and partner) and an `AssociationCdd` with `AssociationType.SYNONYM`.
+- `AssociationType.SYNONYM("==")` was added to represent semantic equivalence (distinct from `GENERALIZATION "|>-"`).
+- Blocked use-case nouns are filtered for synonym participants, matching the generalization guard.
+
 ### Next Steps
 1. ✅ Implement TDR38 (copula-based generalization)
 2. ✅ Implement TDR39 (kind-of/type-of generalization)
@@ -246,3 +268,7 @@ The following predicates were added to `TypedDependencyPredicates`:
 4. ✅ Update `ruleMatches.createCandidatesFrom()` to create generalization links
 5. ✅ Add integration tests for TDR38-TDR40 in TypedDependencyRulesTest
 6. ✅ Update RULES_EXAMPLES.md with before/after examples for the new rules
+7. ✅ Implement TDR41 (synonym identification — apposition & defining constructions)
+8. ✅ Add Phase-2 mapping for `SynonymCdd` → `AssociationCdd(SYNONYM)` + `AssociationType.SYNONYM`
+9. ✅ Add integration tests for TDR41 in TypedDependencyRulesTest and RuleMatchesTest
+10. ✅ Update RULES_EXAMPLES.md with before/after examples for the synonym rules

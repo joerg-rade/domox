@@ -3,6 +3,8 @@ package domox.dom.rules;
 import domox.dom.crc.ActionCandidates;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.AssociationCandidates;
+import domox.dom.crc.AssociationCdd;
+import domox.dom.crc.AssociationType;
 import domox.dom.crc.Candidate;
 import domox.dom.crc.ClassCdd;
 import domox.dom.crc.ClassCandidates;
@@ -274,6 +276,47 @@ class RuleMatchesTest {
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(genMatch));
+
+        // then
+        assertEquals(0, result.size());
+        verifyNoInteractions(mockAssociationCandidates);
+        verify(mockClassCandidates, never()).findOrCreate("Result", null);
+    }
+
+    @Test
+    void createCandidatesFrom_createsSynonymAssociation() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of());
+        final RuleMatch synMatch = match("SynonymCdd", "Store", "SynonymPartner", "Shop");
+
+        final ClassCdd store = new ClassCdd();
+        store.setCandidateName("Store");
+        final ClassCdd shop = new ClassCdd();
+        shop.setCandidateName("Shop");
+        final AssociationCdd assoc = new AssociationCdd();
+        when(mockClassCandidates.findOrCreate("Store", null)).thenReturn(store);
+        when(mockClassCandidates.findOrCreate("Shop", null)).thenReturn(shop);
+        when(mockAssociationCandidates.findOrCreate(
+                "Store_Shop", store, shop, null, AssociationType.SYNONYM)).thenReturn(assoc);
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(synMatch));
+
+        // then
+        assertEquals(1, result.size());
+        assertEquals(assoc, result.getFirst());
+        verify(mockAssociationCandidates).findOrCreate(
+                "Store_Shop", store, shop, null, AssociationType.SYNONYM);
+    }
+
+    @Test
+    void createCandidatesFrom_skipsSynonymWhenParticipantIsBlocked() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("result"));
+        final RuleMatch synMatch = match("SynonymCdd", "Result", "SynonymPartner", "Partner");
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(synMatch));
 
         // then
         assertEquals(0, result.size());

@@ -118,9 +118,6 @@ public class CandidateResolver {
                         PropertyCdd propertyCdd = propertyCandidates.findOrCreate(
                                 ownerClass, propName, type, domainModel);
                         if (propertyCdd != null) {
-                            log.info("Late-binding: created PropertyCdd '{}' for noun '{}' " +
-                                            "(owner '{}', type '{}')",
-                                    propName, noun, ownerClass, type);
                             for (RuleMatch match : ruleMatches) {
                                 propertyCdd.addMatchingRule(match);
                             }

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `AssociationType` enum (`domox.dom.crc.AssociationType`) defines six relationship types that mirror standard UML:
+The `AssociationType` enum (`domox.dom.crc.AssociationType`) defines seven relationship types that mirror standard UML:
 
 | Enum Value | Symbol | UML Name | Default? |
 |------------|--------|----------|----------|
@@ -12,8 +12,9 @@ The `AssociationType` enum (`domox.dom.crc.AssociationType`) defines six relatio
 | `COMPOSITION` | `+->` | Composition | — |
 | `DEPENDENCY` | `.>` | Dependency | — |
 | `IMPLEMENTATION` | `` | Realization | — |
+| `SYNONYM` | `==` | Semantic equivalence (TDR41) | — |
 
-Currently only `ASSOCIATION` and `GENERALIZATION` are actively assigned by rules (`GeneralizationCdd` → `GENERALIZATION`, all other TDR class-to-class matches → default `ASSOCIATION`). The four remaining types are declared but never assigned, losing semantic nuance that the natural-language patterns already contain.
+Currently `ASSOCIATION` (default), `GENERALIZATION` (`GeneralizationCdd` → subtype) and, since TDR41, `SYNONYM` (`SynonymCdd` → semantic-equivalence link) are actively assigned by rules. The remaining types are declared but rarely assigned, losing semantic nuance that the natural-language patterns already contain.
 
 ---
 
@@ -31,7 +32,23 @@ Linguistic pattern signals that one class is a subtype of another.
 
 ---
 
-## 2. ASSOCIATION — structural link, no ownership
+## 2. SYNONYM — semantic equivalence ("also known as")
+
+Linguistic pattern signals that two terms denote the same concept and should be
+treated as one another's synonyms rather than unrelated entities.
+
+| Rule | NL Pattern | Example | Semantics |
+|------|-----------|---------|-----------|
+| TDR41 | `appos(Head, Alias)` where both are nouns | *"the store, the shop"* → Store `==` Shop | Appositive equivalence |
+| TDR41 | `acl:relcl(Head, Marker)` where Marker ∈ synonym-markers | *"Acetaminophen, also known as paracetamol"* → Acetaminophen `==` Paracetamol | Defining "also known as" |
+
+**Mapped.** `createCandidateFromMatch()` passes `AssociationType.SYNONYM` for
+`"SynonymCdd"` candidate matches, creating two `ClassCdd` and one `AssociationCdd`
+of symbol `==`.
+
+---
+
+## 3. ASSOCIATION — structural link, no ownership
 
 Plain linguistic relatedness. Two classes participate in a sentence as subject/object or possessive descriptor, with no implication of subtyping, lifetime binding, or "uses" direction.
 

@@ -13,13 +13,18 @@ import jakarta.inject.Named;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @DomainService
 @Named(DomainModule.NAMESPACE + ".Sentences")
 @Priority(PriorityPrecedence.EARLY)
 public class Sentences {
+
+    private static final Logger log = LoggerFactory.getLogger(Sentences.class);
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
@@ -70,12 +75,48 @@ public class Sentences {
         return sb.toString().trim();
     }
 
+    /**
+     * Lazily renders the syntax diagram (Kroki → PDF) for a {@link Sentence} the first
+     * time its {@code diagram} is accessed, reconstructing the dependency list from the
+     * sentence's persisted {@link TypedDependency}s rather than re-running the NLP pipeline.
+     * <p>
+     * No-op when the sentence already has a diagram, has no typed dependencies, or the
+     * render fails (e.g. Kroki unavailable) — in which case the error is logged and the
+     * sentence is simply left without a diagram for this access.
+     */
     @Programmatic
-    public void initDiagram(SentenceTO sentenceTO, Sentence sentence) {
-        //TODO: pull Diagram building back in, in order to avoid duplication of Dependency+POS
-        final byte[] diagram = diagramBuilder.buildTypedDependencyDiagram(sentenceTO);
-        final String fileName = sentence.title() + ".pdf";
-        sentence.updateImageFromBytes(diagram, fileName);
+    public void ensureDiagram(final Sentence sentence) {
+        if (sentence == null || sentence.hasDiagram()) {
+            return;
+        }
+        final List<TypedDependency> typedDependencies = sentence.getTypedDependencies();
+        if (typedDependencies == null || typedDependencies.isEmpty()) {
+            return;
+        }
+        try {
+            final List<ExtendedDependencyTO> dependencies = typedDependencies.stream()
+                    .map(this::toExtendedDependency)
+                    .collect(Collectors.toList());
+            final byte[] diagram = diagramBuilder.buildTypedDependencyDiagram(dependencies);
+            final String fileName = sentence.title() + ".pdf";
+            sentence.updateImageFromBytes(diagram, fileName);
+        } catch (RuntimeException e) {
+            log.warn("Failed to build syntax diagram lazily for sentence #{}: {}",
+                    sentence.getId(), e.getMessage());
+        }
+    }
+
+    private ExtendedDependencyTO toExtendedDependency(final TypedDependency td) {
+        return new ExtendedDependencyTO(
+                td.getType().getCode(),
+                td.getGovernorIndex(),
+                td.getGovernorGloss(),
+                td.getGovernorPos() != null ? td.getGovernorPos().getCode() : "",
+                td.getGovernorLemma(),
+                td.getDependentIndex(),
+                td.getDependentGloss(),
+                td.getDependentPos() != null ? td.getDependentPos().getCode() : "",
+                td.getDependentLemma());
     }
 
     private void assignTypedDependencies(SentenceTO sentenceTO, Sentence sentence) {

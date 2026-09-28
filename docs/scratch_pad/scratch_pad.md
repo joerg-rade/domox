@@ -181,6 +181,27 @@ Implemented three new rules for detecting generalization (is-a) relationships:
 - 7 new tests added to `TypedDependencyRulesTest.java` (all pass)
 - Documentation updated: `RULES_REGISTRY.md`, `RULES_EXAMPLES.md`, `scratch_pad.md`
 
+### TDR41: Synonym Identification — IMPLEMENTED ✅
+
+Implemented a rule for detecting synonym (semantic-equivalence) relations, grounded
+in `.clinerules/memory-bank/SYNONYMS.md` (Hearst lexico-syntactic patterns + the
+POS-Matching heuristic).
+
+1. **Apposition** — `appos(Head, Alias)` where both governor and dependent are nouns:
+   - Example: "the store, the shop" → Store == Shop
+2. **Defining construction** — `acl:relcl(Head, Marker)` / `acl(Head, Marker)` where the
+   marker verb is in the configured `domox.nlp.synonym-markers`; the partner is the noun
+   object of that marker verb:
+   - Example: "Acetaminophen, also known as paracetamol" → Acetaminophen == Paracetamol
+
+### Supporting Changes
+- `TypedDependencyPredicates`: Added `appos()`, `acl()`, `aclRelcl()`, plus a `SYNONYM_MARKERS` region (`registerSynonymMarkers` / `isSynonymMarker`)
+- `SynonymCatalog` (new service): loads `domox.nlp.synonym-markers` into the predicates
+- `AssociationType`: added `SYNONYM("==")`
+- `NlpProperties`: added `synonymMarkers`; `application.yml`: added `synonym-markers`
+- `RuleMatches.createCandidateFromMatch()` handles `"SynonymCdd"` → creates two `ClassCdd` + `AssociationCdd` with `AssociationType.SYNONYM`
+- 5 new TDR41 tests in `TypedDependencyRulesTest.java`, 2 in `RuleMatchesTest.java`, 1 in `NlpConfigBindingTest.java` (all pass)
+
 ---
 #### Tools
 * Apache OpenNLP https://opennlp.apache.org/com/opennlp/opennlp_command_line_interface.htm

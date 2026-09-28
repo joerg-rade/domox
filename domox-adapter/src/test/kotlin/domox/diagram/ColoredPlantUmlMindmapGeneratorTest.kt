@@ -1,6 +1,7 @@
 package domox.diagram
 
 import domox.nlp.DocumentTO
+import domox.nlp.ExtendedDependencyFactory
 import domox.nlp.SentenceTO
 import domox.nlp.StanfordCoreNlpAPI
 import org.junit.jupiter.api.Assertions.*
@@ -43,7 +44,7 @@ class ColoredPlantUmlMindmapGeneratorTest {
         assertNotNull(sentence.enhancedPlusPlusDependencies)
 
         //when
-        val actualPuml = ColoredPlantUmlMindmapGenerator(sentence).generateMindmap()
+        val actualPuml = ColoredPlantUmlMindmapGenerator(ExtendedDependencyFactory(sentence).getDependencies()).generateMindmap()
         println(actualPuml)
         //then
         assertEquals(2, countOccurrencesOfIn("Pet", actualPuml))
@@ -81,7 +82,7 @@ class ColoredPlantUmlMindmapGeneratorTest {
         assertNotNull(sentence.enhancedPlusPlusDependencies)
 
         //when
-        val actualPuml = ColoredPlantUmlMindmapGenerator(sentence).generateMindmap()
+        val actualPuml = ColoredPlantUmlMindmapGenerator(ExtendedDependencyFactory(sentence).getDependencies()).generateMindmap()
         println(actualPuml)
         //then
         assertTrue(actualPuml.contains("paradigm"))
@@ -97,7 +98,7 @@ class ColoredPlantUmlMindmapGeneratorTest {
         assertNotNull(sentence.enhancedPlusPlusDependencies)
 
         //when
-        val actualPuml = ColoredPlantUmlMindmapGenerator(sentence).generateMindmap()
+        val actualPuml = ColoredPlantUmlMindmapGenerator(ExtendedDependencyFactory(sentence).getDependencies()).generateMindmap()
         println(actualPuml)
         //then
         assertTrue(actualPuml.contains("consequences"))
@@ -113,7 +114,7 @@ class ColoredPlantUmlMindmapGeneratorTest {
         assertNotNull(sentence.enhancedPlusPlusDependencies)
 
         //when
-        val actualPuml = ColoredPlantUmlMindmapGenerator(sentence).generateMindmap()
+        val actualPuml = ColoredPlantUmlMindmapGenerator(ExtendedDependencyFactory(sentence).getDependencies()).generateMindmap()
         println(actualPuml)
         //then
         assertTrue(actualPuml.contains("production"))

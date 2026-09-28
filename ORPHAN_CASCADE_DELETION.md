@@ -1,8 +1,40 @@
 # Analysis: Orphan Candidate entities on Document deletion
 
-After `Analysis.loadFileSample()` loads the PetShop use-case text, `analyzeDocument()` runs all TDR rules on every parsed sentence, producing `RuleMatch` records. These are then fed into `createCandidatesFrom()`, which uses `findOrCreate` to produce `Candidate` entities (`ClassCdd`, `ActionCdd`, `PropertyCdd`, `AssociationCdd`).
+After `Analysis.loadFileSample()` loads the PetShop use-case suite, `analyzeDocument()` runs all TDR rules on every parsed sentence, producing `RuleMatch` records. These are then fed into `createCandidatesFrom()`, which uses `findOrCreate` to produce `Candidate` entities (`ClassCdd`, `ActionCdd`, `PropertyCdd`, `AssociationCdd`).
 
-When the user later deletes the PetShop `Document` via `Documents.delete(document)`, the cascade chain in the JPA annotations **does** clean up most of the derived data:
+## Current design (final): a corpus owns one shared `DomainModel`
+
+Each `Corpus` owns exactly one `DomainModel` that **all** of its documents share, so the whole use-case suite writes into a single model and candidate names de-duplicate across documents.
+
+```
+Corpus
+  @OneToOne(cascade = ALL, orphanRemoval = true)   domain_model_id
+  → DomainModel
+      @OneToMany(cascade = ALL) mappedBy="domainModel"
+        → ClassCdd
+            → PropertyCdd / ActionCdd / AssociationCdd (mappedBy = "classCdd")
+        → PropertyCdd      (orphans, classCdd = null)
+        → ActionCdd        (orphans, classCdd = null)
+        → AssociationCdd   (orphans, classCdd = null)
+
+Document
+  @ManyToOne(cascade = {PERSIST, MERGE})   domain_model_id  → the shared model
+  @ManyToOne                                corpus_id         → owning Corpus
+```
+
+Key consequences of this design:
+
+- **No per-document model.** `Analysis.analyzeDocument()` reuses the corpus’s model (get‑or‑create) instead of creating a fresh one per document. Loading N documents used to accumulate N cumulative `DomainModel`s and re-materialise the entire global rule-match set into each one — every candidate name appeared exactly N times. With a single shared model (and `findOrCreate` scoped by `DomainModel`), there is now exactly one candidate per name across the whole suite.
+- **A `Document` no longer cascade-deletes the candidates.** Because `Document.domainModel` is `@ManyToOne` (not an orphan-removed `@OneToOne`), deleting a document does **not** remove the shared model. Candidate cleanup is the responsibility of the owning `Corpus`.
+- **`Analysis.deleteAllDocuments()` performs a full reset.** It drops the documents first (their `domain_model_id` FK points at the shared model), then clears each corpus’s model — orphan-removing every candidate `ClassCdd`/`PropertyCdd`/`ActionCdd`/`AssociationCdd`, including previously-orphaned rows — and finally purges any remaining `RuleMatch` records.
+
+The historical notes below (problem symptoms, why naive cascade-delete from `Document` was unsafe, and the intermediate per-run scoping step) are kept for context.
+
+---
+
+## Historical problem: orphan `Candidate` entities on `Document` deletion
+
+Originally each `Document` owned its own `DomainModel` with the cascade chain:
 
 ```
 Document (CascadeType.ALL, orphanRemoval = true)
@@ -13,9 +45,9 @@ Document (CascadeType.ALL, orphanRemoval = true)
       → AssociationCdd (mappedBy = "classCdd")
 ```
 
-However, some `Candidate` entities **survive** deletion because they are **outside any cascade path** from `Document`.
+However, some `Candidate` entities survived deletion because they were **outside any cascade path** from `Document`.
 
-## Which Candidates survive deletion
+## Which Candidates survived deletion
 
 | Candidate type | Why it survives |
 |---|---|
@@ -94,18 +126,19 @@ During `analyzeDocument()` the old `DomainModel` is orphan-removed when `documen
 | Old Candidate flushed & deleted → `findOrCreate` can't find it → creates a new one with a different ID → old `RuleMatch` M:M refs point to a deleted ID | FK violation on `Candidate_RuleMatch` |
 | Two documents share `"Customer"` → one deleted mid-session → `findOrCreate` for the other doesn't find it → creates a duplicate | Duplicate candidate names in the UI |
 
-## Conclusion & Implementation (Option B)
+## Conclusion & Implementation
 
-The data model's **global `findOrCreate` sharing pattern** made it unsafe to cascade-delete from `Document` to all `Candidate` entities. This was resolved with **Option B**: binding candidates to their analysis run and scoping lookups to it, so a `DomainModel` (and the whole `Document`) can be cascade-removed safely.
+The data model's **global `findOrCreate` sharing pattern** made it unsafe to cascade-delete from a `Document` to all `Candidate` entities. The problem was resolved in two steps:
 
-Implemented:
+**Step 1 (scoping).** Candidates were bound to their analysis run: `ActionCdd`, `PropertyCdd` and `AssociationCdd` gained a `domainModel` field (always set even when `classCdd` is `null`, e.g. TDR35 orphan actions whose owning class is a blocked use-case noun), `DomainModel` gained `@OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)` collections for `actionList`/`propertyList`/`associationList` in addition to `classList`, and the `findOrCreate`/`findByCandidateName`/`findByClassAndName` paths were scoped by `DomainModel` via new `findBy*AndDomainModel` queries (falling back to the global lookup only when `domainModel == null` for UI convenience paths). This eliminated cross-document candidate sharing and duplicate-name ambiguity, and guarantees `AssociationCdd.source`/`target` (non-cascade `@OneToOne` to `ClassCdd`) always live in the same analysis run.
 
-1. **`domainModel` field on `ActionCdd`, `PropertyCdd`, `AssociationCdd`** — each candidate now records its owning analysis run even when `classCdd` is `null` (e.g. TDR35 orphan actions whose owning class is a blocked use-case noun).
-2. **Extended `DomainModel` cascade** — `DomainModel` now has `@OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)` collections for `actionList`, `propertyList`, `associationList` in addition to `classList`. Because `Document.domainModel` is `@OneToOne(orphanRemoval = true)`, deleting/repacing a `Document` now cascade-removes **every** candidate it produced, including previously-orphaned `ActionCdd` rows. This also retroactively cleans up stale candidates on re-analysis (the old model is orphan-removed when `setDomainModel` runs).
-3. **Scoped `findOrCreate` lookups** — all candidate repositories gained `findBy*AndDomainModel` queries and the `findOrCreate`/`findByCandidateName`/`findByClassAndName` paths resolve within the given `DomainModel` (falling back to the global lookup when `domainModel == null` for UI convenience/single-arg paths). Candidates are now local to a single analysis run, eliminating cross-document sharing, `AssociationCdd` source/target FK violations on unrelated documents, and duplicate-name ambiguity.
+**Step 2 (ownership).** Candidate ownership moved from each `Document` to the owning `Corpus`. A `Corpus` now owns **one shared `DomainModel`** (`@OneToOne(cascade = ALL, orphanRemoval = true)`), and every `Document` points at that shared model via `@ManyToOne(cascade = {PERSIST, MERGE})`. `Analysis.analyzeDocument()` reuses the corpus’s model (get-or-create) instead of creating a fresh one per document. This is the crucial fix for the original bug: loading N documents no longer creates N cumulative models, so there is **exactly one candidate per name across the whole corpus** instead of each name appearing N times.
+
+Because a `Document` no longer owns the model, deleting a single document does **not** cascade-delete the candidate set — candidates are removed by clearing the corpus-owned model. `Analysis.deleteAllDocuments()` implements the full reset: it deletes the documents first (their `domain_model_id` FK points at the shared model), then clears each corpus’s model (orphan-removing every candidate `ClassCdd`/`PropertyCdd`/`ActionCdd`/`AssociationCdd`, including previously-orphaned rows), then purges any remaining `RuleMatch` records.
 
 Notes / residual caveats:
 
 - The convenience `create(String)` / single-arg `findOrCreate` paths (auto-create a `DomainModel`) leave it to the caller to attach a model, and those candidates keep a nullable `domainModel`. In the normal `analyzeDocument()` flow a `DomainModel` is always supplied.
 - `AssociationCdd.source`/`target` remain non-cascade `@OneToOne` to `ClassCdd`; scoping guarantees any source/target lives in the same analysis run, so a cascade-removed `DomainModel` never deletes a `ClassCdd` still referenced by an association owned by a different model.
 - The `Candidate_RuleMatch` M:M join-table and `Review` records are removed together with their owning `Candidate` by standard JPA handling of the owning `Candidate` side.
+- The change does **not** auto-clean pre-existing polluted data; the dev schema is EclipseLink-driven (`ddl-generation=create-tables`) and is dropped/recreated at startup. A regeneration test is provided by `CorpusCandidateDedupIntegTest`, which loads the full 15-document PetShop suite and asserts exactly one candidate per name.

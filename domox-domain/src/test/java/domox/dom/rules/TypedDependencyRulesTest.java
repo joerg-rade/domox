@@ -189,6 +189,9 @@ public class TypedDependencyRulesTest {
     private TDR40 tdr40;
 
     @Autowired
+    private TDR41 tdr41;
+
+    @Autowired
     private RuleBook ruleBook;
 
     /**
@@ -217,6 +220,10 @@ public class TypedDependencyRulesTest {
                 "valid", "invalid", "active", "inactive", "enabled", "disabled",
                 "required", "optional", "available", "correct", "incorrect",
                 "true", "false", "first", "last", "next", "previous"));
+        // Seed synonym vocabulary (mirror what SynonymCatalog does at startup)
+        TypedDependencyPredicates.resetSynonymMarkers();
+        TypedDependencyPredicates.registerSynonymMarkers(Set.of(
+                "known", "termed", "called", "referred", "named"));
     }
 
     /**
@@ -565,6 +572,7 @@ public class TypedDependencyRulesTest {
         assertNotNull(tdr38, "TDR38 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr39, "TDR39 bean should be discoverable through Spring component scanning");
         assertNotNull(tdr40, "TDR40 bean should be discoverable through Spring component scanning");
+        assertNotNull(tdr41, "TDR41 bean should be discoverable through Spring component scanning");
     }
 
     // ======== TDR36 Tests: Validation operations (nsubj with "validate") ========
@@ -828,6 +836,127 @@ public class TypedDependencyRulesTest {
         tdr40.nextTd = null;
 
         assertFalse(tdr40.when(), "TDR40 should NOT fire for evaluative adjective (valid)");
+    }
+
+    // ======== TDR41 Tests: Synonym identification ========
+
+    /**
+     * Appositive synonym: "the store, the shop" → appos(store, shop), both nouns
+     * (POS-Matching, SYNONYMS.md §2). Fires and records a SynonymCdd match.
+     */
+    @Test
+    public void testTDR41_Appositive_Synonym() {
+        Sentence sentence = new Sentence();
+        addToken(0, "store", PartOfSpeechType.NN);
+        addToken(1, "shop", PartOfSpeechType.NN);
+
+        // appos(store, shop)
+        TypedDependency td = createTypedDependency(sentence, TdType.APPOS, 0, 1);
+
+        tdr41.currentTd = td;
+        tdr41.previousTd = null;
+        tdr41.nextTd = null;
+
+        assertTrue(tdr41.when(), "TDR41 should fire for appos(store, shop) with two nouns");
+        tdr41.then();
+
+        List<RuleMatch> matches = tdr41.ruleMatches.findByRuleClassName("TDR41");
+        RuleMatch synMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "SynonymCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(synMatch, "TDR41 should have created a SynonymCdd match");
+        assertEquals("Store", synMatch.getCandidateName());
+        assertEquals("Shop", synMatch.getRelatedCandidateName());
+    }
+
+    /**
+     * Apposition must NOT fire when the dependent is NOT a noun (POS-Matching
+     * heuristic: synonyms must share the same part of speech).
+     */
+    @Test
+    public void testTDR41_Appos_DoesNotFire_WhenNotBothNouns() {
+        Sentence sentence = new Sentence();
+        addToken(0, "store", PartOfSpeechType.NN);
+        addToken(1, "online", PartOfSpeechType.JJ);
+
+        // appos(store, online) — dependent is an adjective
+        tdr41.currentTd = createTypedDependency(sentence, TdType.APPOS, 0, 1);
+        tdr41.previousTd = null;
+        tdr41.nextTd = null;
+
+        assertFalse(tdr41.when(), "TDR41 should NOT fire when the appositive is not a noun");
+    }
+
+    /**
+     * Apposition must NOT fire when head and alias are the same word.
+     */
+    @Test
+    public void testTDR41_Appos_DoesNotFire_WhenSameLemma() {
+        Sentence sentence = new Sentence();
+        addToken(0, "store", PartOfSpeechType.NN);
+        addToken(1, "store", PartOfSpeechType.NN);
+
+        tdr41.currentTd = createTypedDependency(sentence, TdType.APPOS, 0, 1);
+        tdr41.previousTd = null;
+        tdr41.nextTd = null;
+
+        assertFalse(tdr41.when(), "TDR41 should NOT fire for appos(store, store)");
+    }
+
+    /**
+     * Defining construction "X, also known as Y": acl:relcl(Acetaminophen, known) +
+     * obl:as(known, paracetamol). Fires and records the synonym pair.
+     */
+    @Test
+    public void testTDR41_AlsoKnownAs_Synonym() {
+        Sentence sentence = new Sentence();
+        addToken(0, "acetaminophen", PartOfSpeechType.NN);
+        addToken(1, "also", PartOfSpeechType.RB);
+        addToken(2, "known", PartOfSpeechType.VBN);
+        addToken(3, "as", PartOfSpeechType.IN);
+        addToken(4, "paracetamol", PartOfSpeechType.NN);
+
+        // acl:relcl(acetaminophen, known) — currentTd for TDR41
+        TypedDependency td = createTypedDependency(sentence, TdType.ACL_RELCL, 0, 2);
+        // obl:as(known, paracetamol) — the synonym partner
+        createTypedDependency(sentence, TdType.OBL_AS, 2, 4);
+
+        tdr41.currentTd = td;
+        tdr41.previousTd = null;
+        tdr41.nextTd = null;
+
+        assertTrue(tdr41.when(), "TDR41 should fire for acl:relcl with a synonym marker verb");
+        tdr41.then();
+
+        List<RuleMatch> matches = tdr41.ruleMatches.findByRuleClassName("TDR41");
+        RuleMatch synMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "SynonymCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(synMatch, "TDR41 should have created a SynonymCdd match");
+        assertEquals("Acetaminophen", synMatch.getCandidateName());
+        assertEquals("Paracetamol", synMatch.getRelatedCandidateName());
+    }
+
+    /**
+     * A defining relative clause whose marker verb is NOT in the configured
+     * synonym-marker vocabulary must NOT fire.
+     */
+    @Test
+    public void testTDR41_DoesNotFire_WhenMarkerNotConfigured() {
+        Sentence sentence = new Sentence();
+        addToken(0, "device", PartOfSpeechType.NN);
+        addToken(1, "described", PartOfSpeechType.VBN);
+
+        // acl:relcl(device, described) — "described" is not a synonym marker
+        tdr41.currentTd = createTypedDependency(sentence, TdType.ACL_RELCL, 0, 1);
+        tdr41.previousTd = null;
+        tdr41.nextTd = null;
+
+        assertFalse(tdr41.when(), "TDR41 should NOT fire for a marker verb not in the vocabulary");
     }
 
     // Holds part-of-speech for each token index, aligned with the sentence's token list

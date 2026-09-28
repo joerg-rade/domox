@@ -809,6 +809,57 @@ Output: No match — noun "tree" is governed by cop, handled by TDR38
 
 ---
 
+## GROUP 7: SYNONYM EXTRACTION (TDR41)
+Identify synonyms (semantic equivalence) between domain terms.
+
+### TDR41: Synonym Identification
+**Rule**: `appos(Head, Alias)` (both nouns) **or** `acl:relcl(Head, MarkerVerb)` where MarkerVerb is a synonym marker.
+
+**Example 1: Apposition ("the store, the shop")**
+```
+Input:  appos(store, shop)
+        A=store (NN), B=shop (NN)
+
+Output: synonym(Store == Shop)
+        >> Domain has synonyms: Store == Shop
+        >> (creates two ClassCdd and an AssociationCdd with AssociationType.SYNONYM)
+```
+
+**Example 2: "X, also known as Y" ("Acetaminophen, also known as paracetamol")**
+```
+Input:  acl:relcl(acetaminophen, known)
+        obl:as(known, paracetamol)
+
+Output: synonym(Acetaminophen == Paracetamol)
+        >> Domain has synonyms: Acetaminophen == Paracetamol
+```
+
+**Example 3: "X, referred to as Y"**
+```
+Input:  acl:relcl(customer, referred)
+        nmod:as(referred, client)
+
+Output: synonym(Customer == Client)
+        >> Domain has synonyms: Customer == Client
+```
+
+**Non-example** (POS mismatch — dependent is an adjective, SYNONYMS.md §2):
+```
+Input:  appos(store, online)
+        A=store (NN), B=online (JJ)
+
+Output: No match — appositive must be a noun (same POS category)
+```
+
+**Non-example** (marker verb not configured):
+```
+Input:  acl:relcl(device, described)   # "described" not in synonym-markers
+
+Output: No match — "described" is not a configured synonym marker
+```
+
+---
+
 **Sample Requirement**:
 ```
 "A user creates a new project with a name and description. 

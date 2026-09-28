@@ -4,6 +4,7 @@ import domox.Constants;
 import domox.DomainModule;
 import domox.dom.AbstractEntity;
 import domox.dom.rqm.Document;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
 import lombok.*;
@@ -49,11 +50,31 @@ public class Sentence extends AbstractEntity implements Comparable<Sentence> {
     @Embedded
     private BlobJpaEmbeddable diagram;
 
+    /**
+     * Injected {@link Sentences} service used to lazily build the {@code diagram} on first
+     * access instead of rendering it eagerly for every sentence during analysis.
+     */
+    @Inject
+    @Transient
+    private Sentences sentencesService;
+
     @PdfJsViewer
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(named = "Syntax Diagram", fieldSetId = "content", sequence = "1")
     public Blob getDiagram() {
+        if (diagram == null && sentencesService != null) {
+            sentencesService.ensureDiagram(this);
+        }
         return diagram != null ? BlobJpaEmbeddable.toBlob(diagram) : null;
+    }
+
+    /**
+     * Whether this sentence already holds a rendered syntax diagram ({@code false} until the
+     * first access triggers {@link #getDiagram()}). Used to avoid recursive/duplicate builds.
+     */
+    @Programmatic
+    public boolean hasDiagram() {
+        return diagram != null;
     }
 
     public void setDiagram(final Blob diagram) {

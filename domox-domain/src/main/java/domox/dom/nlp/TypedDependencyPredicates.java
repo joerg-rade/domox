@@ -290,6 +290,21 @@ public final class TypedDependencyPredicates {
     }
 
 
+    public static boolean appos(TypedDependency td) {
+        return td.getType().equals(TdType.APPOS);
+    }
+
+
+    public static boolean acl(TypedDependency td) {
+        return td.getType().equals(TdType.ACL);
+    }
+
+
+    public static boolean aclRelcl(TypedDependency td) {
+        return td.getType().equals(TdType.ACL_RELCL) || td.getType().equals(TdType.ACL);
+    }
+
+
     public static boolean nmodAnd(TypedDependency td) {
         return td.getType().equals(TdType.CONJ_AND);
     }
@@ -473,6 +488,41 @@ public final class TypedDependencyPredicates {
     public static boolean isStopAdjective(String lemma) {
         if (lemma == null) return false;
         return STOP_ADJECTIVES.contains(lemma.toLowerCase(Locale.ROOT));
+    }
+    // endregion
+
+    //region SYNONYM_MARKERS (populated from config by SynonymCatalog)
+    private static final Set<String> SYNONYM_MARKERS = new HashSet<>();
+
+    public static void resetSynonymMarkers() {
+        SYNONYM_MARKERS.clear();
+    }
+
+    public static void registerSynonymMarkers(Collection<String> markers) {
+        if (markers != null) {
+            for (String marker : markers) {
+                if (marker != null) {
+                    SYNONYM_MARKERS.add(marker.toLowerCase(Locale.ROOT));
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns true if the given lemma is a synonym-marker verb — the predicate
+     * of a defining construction such as "X, also known as Y", "X, termed Y",
+     * or "X, referred to as Y" (see SYNONYMS.md §1).
+     */
+    public static boolean isSynonymMarker(String lemma) {
+        if (lemma == null) return false;
+        return SYNONYM_MARKERS.contains(lemma.toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Convenience reset for all synonym vocabularies.
+     */
+    public static void resetSynonymVocabularies() {
+        resetSynonymMarkers();
     }
     // endregion
 

@@ -86,7 +86,6 @@ public class Documents {
             if (null != sentence) {
                 sentence.setDocument(document);
                 sentenceList.add(sentence);
-                sentences.initDiagram(st, sentence);
             }
         }
         return sentenceList;

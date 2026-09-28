@@ -43,4 +43,5 @@ public class NlpProperties {
     private List<String> nounTypeTemporals = List.of();
     private List<String> nounTypeCollections = List.of();
     private List<String> useCaseBlockedNouns = List.of();
+    private List<String> synonymMarkers = List.of();
 }

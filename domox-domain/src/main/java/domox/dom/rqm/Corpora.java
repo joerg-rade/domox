@@ -8,6 +8,7 @@ import org.apache.causeway.applib.services.repository.RepositoryService;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class Corpora {
     public Corpus create(String title) {
         final Corpus obj = factoryService.detachedEntity(Corpus.class);
         obj.setTitle(title);
+        obj.setAnalyzedAt(new Timestamp(System.currentTimeMillis()));
         repositoryService.persistAndFlush(obj);
         return obj;
     }

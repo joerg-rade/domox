@@ -6,7 +6,8 @@ public enum AssociationType {
     IMPLEMENTATION("..|>"), //REALIZATION
     DEPENDENCY(".>"),
     AGGREGATION("*->"),
-    COMPOSITION("+->"); // existence
+    COMPOSITION("+->"), // existence
+    SYNONYM("=="); // semantic equivalence (TDR41)
 
     final String symbol;
 

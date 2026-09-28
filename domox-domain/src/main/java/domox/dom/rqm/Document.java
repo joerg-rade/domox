@@ -117,9 +117,15 @@ public class Document extends AbstractEntity implements Comparable<Document> {
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "corpus_id")
     @Programmatic
+    @Getter
+    @Setter
     private Corpus corpus;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    // A corpus owns exactly one shared DomainModel; every document in the corpus
+    // points at it (ManyToOne) so candidate names across the whole use-case suite
+    // de-duplicate into that single model.  The model's lifecycle (cascade and
+    // orphan removal) is owned by the Corpus, not by individual documents.
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "domain_model_id")
     @Getter
     @Setter

@@ -234,6 +234,10 @@ domox:
         assumption, rule, goal, feature, function, path, note, UC, 
         end, mainflow, UseUC
         #**, #Case
+    # TDR41 — predicate verbs of defining constructions ("X, also known as Y")
+    # whose object noun is a synonym of the relative-clause head noun.
+    synonym-markers: known, termed, called, referred, named, aka, aliased,
+                     renamed, synonymous, denoted
   kroki:
     host: localhost
     port: 8001
