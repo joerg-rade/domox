@@ -1,7 +1,8 @@
 #
 # Recommend use for static configuration that does not change between environments.
 #
-# See also config/application.properties
+# Settings formerly in config/application.properties (Postgres datasource, Flyway/SQL-init,
+# schema template and EclipseLink DDL generation) have been consolidated here.
 #
 causeway:
 
@@ -72,9 +73,25 @@ causeway:
   persistence:
     schema:
       auto-create-schemas: domox
-      #create-schema-sql-template: "CREATE SCHEMA IF NOT EXISTS %S"
-      create-schema-sql-template: "DROP SCHEMA IF EXISTS %S CASCADE; CREATE SCHEMA %S;"
+      create-schema-sql-template: "CREATE SCHEMA IF NOT EXISTS %s"
 
+# ---- EclipseLink JPA DDL generation (consolidated from config/application.properties) ----
+# NOTE: `eclipselink.ddl-generation` is BOTH a scalar mode and the path prefix of
+#       `eclipselink.ddl-generation.output-mode`. YAML cannot hold a single nested
+#       `eclipselink:` map key that is simultaneously a scalar and a map, so these are kept
+#       as root-level dotted keys. Spring Boot's YAML loader preserves them as the exact
+#       flat property names EclipseLink reads (identical to the old .properties keys).
+#eclipselink.weaving=true
+eclipselink.deploy-on-startup: true
+eclipselink.ddl-generation: create-tables
+eclipselink.ddl-generation.output-mode: both
+eclipselink.create-ddl-jdbc-file-name: create-tables.sql
+eclipselink.application-location: "domox-webapp"
+eclipselink.jpa.upper-case-column-names: false
+eclipselink.table-schema: domox
+
+# uncomment to run during bootstrap
+#causeway.testing.fixtures.initial-script: domainapp.webapp.application.fixture.scenarios.DomainAppDemo
 
 resteasy:
   jaxrs:
@@ -90,7 +107,15 @@ spring:
     location: banner.txt
   main:
     web-application-type: SERVLET
+  flyway:
+    enabled: false
+  sql:
+    init:
+      platform: postgres
   datasource:
+    url: jdbc:postgresql:postgres
+    username: postgres
+    password: postgres
     driverClassName: org.postgresql.Driver
     # Exclude Spring Boot 4.0.0-M3 autoconfiguration classes that are incompatible with Spring Boot 3.5.13
     #  autoconfigure:

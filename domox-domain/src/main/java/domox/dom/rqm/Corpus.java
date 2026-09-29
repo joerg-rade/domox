@@ -38,6 +38,7 @@ public class Corpus extends AbstractEntity implements Comparable<Corpus> {
 
     @PropertyLayout(sequence = "1")
     @OneToMany(mappedBy = "corpus", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Getter
     private List<Document> documents;
 
     /**

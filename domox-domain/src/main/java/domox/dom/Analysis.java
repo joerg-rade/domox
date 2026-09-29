@@ -239,17 +239,27 @@ public class Analysis {
 
     @Action()
     @ActionLayout(sequence = "6", cssClassFa = "trash")
-    public void deleteAllDocuments() {
-        // The corpus now owns a single shared DomainModel, so removing the
-        // Documents no longer cascade-deletes the candidates.  Drop the
-        // documents first (their domain_model_id FK points at the shared model),
-        // then clear each corpus's model (orphan-removing every candidate),
-        // then purge any remaining rule matches.
-        documents.deleteAll();
-        for (final Corpus corpus : corpora.listAll()) {
-            corpus.setDomainModel(null);
+    public void deleteCorpus(
+            @ParameterLayout(named = "Corpus") final Corpus corpus) {
+        // Every document of a corpus points at its shared DomainModel via the
+        // domain_model_id FK, so removing the corpus no longer cascade-deletes the
+        // candidates on its own.  Drop the documents first (releasing their FK into
+        // the shared model), then clear the corpus's model — orphan-removing every
+        // candidate (ClassCdd/PropertyCdd/ActionCdd/AssociationCdd, including
+        // previously-orphaned rows) — then remove the now-empty corpus and finally
+        // purge any remaining rule-match records.
+        for (final Document document : corpus.getDocuments()) {
+            repositoryService.remove(document);
         }
+        corpus.setDomainModel(null);
+        repositoryService.remove(corpus);
         ruleMatches.deleteAll();
+    }
+
+    /** Selectable corpora offered as choices for {@link #deleteCorpus(Corpus)}. */
+    @MemberSupport
+    public List<Corpus> choices0DeleteCorpus() {
+        return repositoryService.allInstances(Corpus.class);
     }
 
     private Document build(String title, String url, Clob content, List<Author> authors) {

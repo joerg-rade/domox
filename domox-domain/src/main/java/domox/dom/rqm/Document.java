@@ -64,7 +64,6 @@ public class Document extends AbstractEntity implements Comparable<Document> {
     @Setter
     private String url;
 
-    //Column(nullable = false)
     @Embedded
     @Domain.Exclude
     private ClobJpaEmbeddable content;
