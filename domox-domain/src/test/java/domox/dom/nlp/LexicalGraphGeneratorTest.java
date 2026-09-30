@@ -1,5 +1,6 @@
 package domox.dom.nlp;
 
+import domox.dom.rules.RuleMatch;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -9,54 +10,95 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Verifies {@link LexicalGraphGenerator}: the PlantUML component graph is drawn
- * straight from persisted {@link TypedDependency} data (lemmas + POS + relation code),
- * filtering out non-content words and the ROOT pseudo-token.
+ * Verifies {@link LexicalGraphGenerator}: the Graphviz (DOT) lexical dependency graph
+ * is drawn straight from persisted {@link TypedDependency} data (lemmas + POS + relation
+ * code), filtering out non-content words and the ROOT pseudo-token.
  */
 class LexicalGraphGeneratorTest {
 
     private final LexicalGraphGenerator generator = new LexicalGraphGenerator();
 
     @Test
-    void producesPlantUmlComponentsAndEdgesFromTypedDependencies() {
-        final String puml = generator.generatePlantUmlGraph(sampleDependencies());
+    void producesGraphvizNodesAndEdgesFromTypedDependencies() {
+        final String dot = generator.generateGraphvizGraph(sampleDependencies());
 
-        // document framing (each append ends with a newline)
-        assertTrue(puml.startsWith("@startuml"));
-        assertTrue(puml.trim().endsWith("@enduml"));
-        assertTrue(puml.contains("skinparam componentStyle uml2"));
+        // document framing
+        assertTrue(dot.startsWith("digraph LexicalDependencyGraph {"));
+        assertTrue(dot.trim().endsWith("}"));
 
-        // component nodes use the lowercased lemma as alias and POS code as stereotype
-        assertTrue(puml.contains("component [artificial] as artificial <<JJ>>"));
-        assertTrue(puml.contains("component [intelligence] as intelligence <<NN>>"));
-        assertTrue(puml.contains("component [transform] as transform <<VBZ>>"));
+        // node declarations use the lowercased lemma and the POS code as a second label line,
+        // coloured by POS and unscaled (no rule matches -> width/height at base size)
+        assertTrue(dot.contains("intelligence [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("artificial [label=\"artificial\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("transform [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"));
 
         // directed relationships from the typed dependencies (governor -> dependent)
-        assertTrue(puml.contains("intelligence --> artificial : amod"));
-        assertTrue(puml.contains("transform --> intelligence : nsubj"));
-        assertTrue(puml.contains("technology --> modern : amod"));
-        assertTrue(puml.contains("transform --> technology : obj"));
+        assertTrue(dot.contains("intelligence -> artificial [label=\"amod\"];"));
+        assertTrue(dot.contains("transform -> intelligence [label=\"nsubj\"];"));
+        assertTrue(dot.contains("technology -> modern [label=\"amod\"];"));
+        assertTrue(dot.contains("transform -> technology [label=\"obj\"];"));
+    }
+
+    @Test
+    void disambiguatesNodesThatShareALemmaAcrossPosTags() {
+        // 'shop' appears both as a noun (NN) and a verb (VB) -> two distinct nodes
+        final List<TypedDependency> deps = new ArrayList<>();
+        deps.add(dep(TdType.OBL_AT, 1, "arrive", PartOfSpeechType.VBZ,
+                2, "shop", PartOfSpeechType.NN));
+        deps.add(dep(TdType.NSUBJ, 3, "shop", PartOfSpeechType.VB,
+                4, "customer", PartOfSpeechType.NN));
+
+        final String dot = generator.generateGraphvizGraph(deps);
+
+        assertTrue(dot.contains("shop_nn [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("shop_vb [label=\"shop\\n«VB»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("arrive -> shop_nn [label=\"obl:at\"];"));
+        assertTrue(dot.contains("shop_vb -> customer [label=\"nsubj\"];"));
+    }
+
+    @Test
+    void coloursNodesByPosAndScalesByRuleMatchCount() {
+        // nsubj(transform, intelligence) carries 3 rule-matches -> both endpoints get a count of 3
+        final List<TypedDependency> deps = new ArrayList<>();
+        final TypedDependency nsubj = dep(TdType.NSUBJ, 3, "transform", PartOfSpeechType.VBZ,
+                2, "intelligence", PartOfSpeechType.NN);
+        addRuleMatches(nsubj, 3);
+        deps.add(nsubj);
+        deps.add(dep(TdType.AMOD, 2, "intelligence", PartOfSpeechType.NN,
+                1, "artificial", PartOfSpeechType.JJ));
+        deps.add(dep(TdType.OBJ, 3, "transform", PartOfSpeechType.VBZ,
+                4, "technology", PartOfSpeechType.NN));
+        deps.add(dep(TdType.AMOD, 4, "technology", PartOfSpeechType.NN,
+                5, "modern", PartOfSpeechType.JJ));
+
+        final String dot = generator.generateGraphvizGraph(deps);
+
+        // maximum count (3, for transform and intelligence) maps to scale 4
+        assertTrue(dot.contains("transform [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=3.600, height=1.400];"));
+        assertTrue(dot.contains("intelligence [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=3.600, height=1.400];"));
+        // a count of 1 leaves the node at its base size (no enlargement)
+        assertTrue(dot.contains("modern [label=\"modern\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350];"));
     }
 
     @Test
     void filtersOutNonContentWordsAndRootPseudoToken() {
-        final String puml = generator.generatePlantUmlGraph(sampleDependencies());
+        final String dot = generator.generateGraphvizGraph(sampleDependencies());
 
         // 'the' (DT) is not a content word -> no node and no edge referencing it
-        assertFalse(puml.contains("as the <<DT>>"));
-        assertFalse(puml.contains("--> the"));
+        assertFalse(dot.contains("the\\n«DT»"));
+        assertFalse(dot.contains("-> the"));
 
         // the ROOT pseudo-token (index 0) has no governor lemma -> no root edge
-        assertFalse(puml.contains(": root"));
+        assertFalse(dot.contains("ROOT"));
     }
 
     @Test
     void emptyDependencyListYieldsBareDiagram() {
-        final String puml = generator.generatePlantUmlGraph(List.of());
+        final String dot = generator.generateGraphvizGraph(List.of());
 
-        assertTrue(puml.startsWith("@startuml"));
-        assertTrue(puml.trim().endsWith("@enduml"));
-        assertFalse(puml.contains("[intelligence]"));
+        assertTrue(dot.startsWith("digraph LexicalDependencyGraph {"));
+        assertTrue(dot.trim().endsWith("}"));
+        assertFalse(dot.contains("[label="), "empty list -> no node or edge labels");
     }
 
     /**
@@ -102,5 +144,12 @@ class LexicalGraphGeneratorTest {
         td.setDependentLemma(dependentLemma);
         td.setDependentPos(dependentPos);
         return td;
+    }
+
+    /** Attaches {@code count} bare rule-matches to {@code td} so scaling can be exercised. */
+    private static void addRuleMatches(final TypedDependency td, final int count) {
+        for (int i = 0; i < count; i++) {
+            td.getRuleMatches().add(new RuleMatch());
+        }
     }
 }

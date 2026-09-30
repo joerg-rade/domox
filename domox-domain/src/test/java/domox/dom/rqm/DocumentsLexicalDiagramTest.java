@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
  *       are both candidate words, and</li>
  *   <li>class candidates only count when their rule-match count is at least the threshold.</li>
  * </ul>
- * The PlantUML is generated straight from the persisted {@link TypedDependency}s — no
+ * The Graphviz (DOT) is generated straight from the persisted {@link TypedDependency}s — no
  * SentenceTO/TokenTO reconstruction is involved.
  */
 @ExtendWith(MockitoExtension.class)
@@ -96,15 +96,15 @@ class DocumentsLexicalDiagramTest {
 
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
-        final String puml = captor.getValue();
+        final String dot = captor.getValue();
 
-        assertTrue(puml.contains("component [customer] as customer <<NN>>"),
+        assertTrue(dot.contains("customer [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"),
                 "strong class word should be kept");
-        assertTrue(puml.contains("component [purchase] as purchase <<VBZ>>"),
+        assertTrue(dot.contains("purchase [label=\"purchase\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"),
                 "action candidate word should be kept");
-        assertFalse(puml.contains("component [currency]"),
+        assertFalse(dot.contains("currency [label="),
                 "weak class word should be dropped by threshold");
-        assertFalse(puml.contains("as the <<DT>>"),
+        assertFalse(dot.contains("the\\n«DT»"),
                 "non-candidate word should be dropped");
     }
 

@@ -157,8 +157,8 @@ public class Documents {
                 .filter(td -> isCandidateDependency(td, allowedLemmas))
                 .collect(Collectors.toList());
 
-        final String pumlCode = new LexicalGraphGenerator().generatePlantUmlGraph(dependencies);
-        final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(pumlCode);
+        final String dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies);
+        final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
         final String fileName = document.getTitle() + "-lexical.pdf";
         return new Blob(fileName, Constants.pdfMimeType, bytes);
     }
