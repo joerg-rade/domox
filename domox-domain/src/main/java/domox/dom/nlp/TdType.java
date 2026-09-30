@@ -5,6 +5,7 @@ import lombok.Getter;
 public enum TdType {
     ROOT("ROOT"),
     ACL("acl"),
+    ACL_AFTER("acl:after"),
     ACL_IN("acl:in"),
     ACL_TO("acl:to"),
     ACL_RELCL("acl:relcl"),

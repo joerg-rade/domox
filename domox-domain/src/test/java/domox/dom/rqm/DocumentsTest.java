@@ -1,6 +1,8 @@
 package domox.dom.rqm;
 
+import domox.diagram.DiagramBuilder;
 import domox.dom.nlp.Sentences;
+import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,12 +27,16 @@ class DocumentsTest {
     RepositoryService mockRepositoryService;
     @Mock
     Sentences sentences;
+    @Mock
+    DiagramBuilder mockDiagramBuilder;
+    @Mock
+    MessageService mockMessageService;
 
     // ClassUnderTest
     Documents documents;
     @BeforeEach
     public void setUp() {
-        documents = new Documents(mockRepositoryService, sentences);
+        documents = new Documents(mockRepositoryService, sentences, mockDiagramBuilder, mockMessageService);
     }
 
  //   @Test

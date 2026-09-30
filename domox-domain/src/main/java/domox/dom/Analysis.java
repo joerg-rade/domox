@@ -2,6 +2,7 @@ package domox.dom;
 
 import domox.DomainModule;
 import domox.FileUtil;
+import domox.TextFilter;
 import domox.dom.crc.*;
 import domox.dom.nlp.Sentence;
 import domox.dom.rqm.Author;
@@ -192,7 +193,8 @@ public class Analysis {
      *         content was already present and was skipped as a duplicate
      */
     private boolean loadIntoCorpus(final String filename, final Corpus corpus) {
-        final String txtContent = new FileUtil().readFileFromResources(filename);
+        final String mdContent = new FileUtil().readFileFromResources(filename);
+        final String txtContent = new TextFilter().stripMarkdownRegex(mdContent);
 
         // Guard against re-analysing a document that was already loaded. Running the
         // load actions twice previously created duplicate Documents + DomainModels and
@@ -243,17 +245,45 @@ public class Analysis {
             @ParameterLayout(named = "Corpus") final Corpus corpus) {
         // Every document of a corpus points at its shared DomainModel via the
         // domain_model_id FK, so removing the corpus no longer cascade-deletes the
-        // candidates on its own.  Drop the documents first (releasing their FK into
-        // the shared model), then clear the corpus's model — orphan-removing every
-        // candidate (ClassCdd/PropertyCdd/ActionCdd/AssociationCdd, including
-        // previously-orphaned rows) — then remove the now-empty corpus and finally
-        // purge any remaining rule-match records.
+        // candidates on its own.
+        //
+        // FIRST explicitly remove every candidate owned by the shared model,
+        // child-first (associations -> actions/properties -> classes).  The orphan
+        // rows (e.g. ActionCdd with classCdd = null) live only in the model's own
+        // collections; relying solely on the model's @OneToMany(cascade = ALL) to
+        // cascade-delete those lazy collections is unreliable — EclipseLink can
+        // issue the DELETE on the DomainModel before the still-referencing children
+        // are gone, tripping the DB FK constraints
+        // (e.g. FK_ActionCdd_DOMAINMODEL_ID).  Registering each candidate for
+        // removal explicitly — in child-before-parent order — guarantees the FK
+        // constraints cannot fire.
+        final DomainModel domainModel = corpus.getDomainModel();
+        if (domainModel != null) {
+            removeCandidates(domainModel.getAssociationList());
+            removeCandidates(domainModel.getActionList());
+            removeCandidates(domainModel.getPropertyList());
+            removeCandidates(domainModel.getClassList());
+            corpus.setDomainModel(null);
+        }
+        // Then drop this corpus's documents (releasing their FK into the shared
+        // model), remove the now-empty corpus, and finally purge any remaining
+        // rule-match records.
         for (final Document document : corpus.getDocuments()) {
             repositoryService.remove(document);
         }
-        corpus.setDomainModel(null);
         repositoryService.remove(corpus);
         ruleMatches.deleteAll();
+    }
+
+    /**
+     * Registers every element of {@code candidates} for removal with the
+     * {@link RepositoryService}, snapshotting the list first so the iteration is
+     * unaffected by EclipseLink clearing managed collections during the delete.
+     */
+    private void removeCandidates(final List<? extends Candidate> candidates) {
+        for (final Candidate candidate : new ArrayList<>(candidates)) {
+            repositoryService.remove(candidate);
+        }
     }
 
     /** Selectable corpora offered as choices for {@link #deleteCorpus(Corpus)}. */

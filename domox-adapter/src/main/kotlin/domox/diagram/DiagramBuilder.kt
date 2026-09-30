@@ -39,6 +39,20 @@ class DiagramBuilder @JvmOverloads constructor(
         return convertSvgToPdf(svgDiagram)
     }
 
+    /**
+     * Builds a document-wide lexical <em>component</em> diagram (PDF) from already
+     * generated PlantUML code.
+     *
+     * The PlantUML itself is produced by the domain module's
+     * `LexicalGraphGenerator`, which draws edges directly from the persisted
+     * `TypedDependency`s of a document's sentences — so the caller does not need to
+     * reconstruct `SentenceTO`s (or re-run the NLP pipeline).
+     */
+    fun buildLexicalGraphDiagram(pumlCode: String): ByteArray {
+        val svgDiagram = httpRequest.invokePlantUML(pumlCode)
+        return convertSvgToPdf(svgDiagram)
+    }
+
     private fun convertSvgToPdf(svgContent: String): ByteArray {
         try {
             val input = TranscoderInput(StringReader(svgContent))

@@ -59,16 +59,18 @@ public class TypedDependency extends AbstractEntity implements Comparable<TypedD
     @PropertyLayout(sequence = "2")
     private String dependentGloss;
 
+    @Column
     @Enumerated(EnumType.STRING)
     @Getter
     @Setter
-    @Programmatic
+    @PropertyLayout(sequence = "7")
     private PartOfSpeechType governorPos;
 
+    @Column
     @Enumerated(EnumType.STRING)
     @Getter
     @Setter
-    @Programmatic
+    @PropertyLayout(sequence = "8")
     private PartOfSpeechType dependentPos;
 
     @Column
