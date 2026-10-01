@@ -3,6 +3,7 @@ package domox.dom.rqm;
 import domox.Constants;
 import domox.DomainModule;
 import domox.diagram.DiagramBuilder;
+import domox.dom.UcResources;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.AssociationCdd;
 import domox.dom.crc.ClassCdd;
@@ -12,6 +13,8 @@ import domox.dom.nlp.LexicalGraphGenerator;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.Sentences;
 import domox.dom.nlp.TypedDependency;
+import domox.dom.rules.RuleMatch;
+import domox.dom.rules.RuleMatches;
 import domox.nlp.DocumentTO;
 import domox.nlp.SentenceTO;
 import jakarta.annotation.Priority;
@@ -22,6 +25,9 @@ import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.applib.value.Clob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -36,21 +42,42 @@ import java.util.stream.Collectors;
 @Priority(PriorityPrecedence.EARLY)
 public class Documents {
 
+    private static final Logger log = LoggerFactory.getLogger(Documents.class);
+
+    /** Default rule-match threshold used when lazily building a document's lexical diagram. */
+    private static final int DEFAULT_LEXICAL_THRESHOLD = 1;
+
     private final RepositoryService repositoryService;
     private final Sentences sentences;
     private final DiagramBuilder diagramBuilder;
     private final MessageService messageService;
+    private final RuleMatches ruleMatches;
 
     @Inject
     public Documents(RepositoryService repositoryService,
                      Sentences sentences,
                      DiagramBuilder diagramBuilder,
-                     MessageService messageService) {
+                     MessageService messageService,
+                     RuleMatches ruleMatches) {
         this.repositoryService = repositoryService;
         this.sentences = sentences;
         this.diagramBuilder = diagramBuilder;
         this.messageService = messageService;
+        this.ruleMatches = ruleMatches;
     }
+
+    /**
+     * Mutually-injected collaborator: {@link Corpora} constructor-injects {@code Documents}
+     * (its analyse pipeline creates {@link Document}s and {@link Sentence}s), while the
+     * {@code Documents} menu delegates its single- and batch-load actions
+     * ({@link #loadUcDocument(String)}, {@link #loadFileSample()}) to {@code Corpora}.
+     * Constructor injection would therefore be an unresolvable Spring cycle, so the
+     * dependency is field-injected and flagged {@code @Lazy}: Spring injects a proxy that
+     * resolves to the real {@code Corpora} bean only when an action invokes it at runtime.
+     */
+    @Lazy
+    @Inject
+    private Corpora corpora;
 
     @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
@@ -74,14 +101,83 @@ public class Documents {
 
     @ActionLayout(sequence = "3")
     @Action(semantics = SemanticsOf.SAFE)
-    public List<Document> findByTitle(final String title) {
+    public List<Document> findByFileName(
+            @ParameterLayout(named = "File Name") final String fileName) {
         List<Document> answer = new ArrayList<>();
         for (Document d : listAll()) {
-            if (d.getTitle().equals(title)) {
+            if (fileName != null && fileName.equals(d.getFileName())) {
                 answer.add(d);
             }
         }
         return answer;
+    }
+
+    /**
+     * Dropdown of every {@code UC*.md} use-case file available on the classpath, so the user
+     * can pick the source file and retrieve the {@link Document}(s) loaded from it.
+     */
+    @MemberSupport
+    public List<String> choices0FindByFileName() {
+        return UcResources.listUcFilenames();
+    }
+
+    /** Pre-selects the first {@code UC*.md} file. */
+    @MemberSupport
+    public String default0FindByFileName() {
+        final List<String> filenames = UcResources.listUcFilenames();
+        return filenames.isEmpty() ? null : filenames.get(0);
+    }
+
+    /**
+     * Loads a single selected {@code UC*.md} classpath document into the corpus and
+     * analyses it, running the full rule pipeline (match → candidate creation →
+     * archetype classification → late-binding resolution).
+     *
+     * <p>The selectable filenames are exposed to the UI via
+     * {@link #choices0LoadUcDocument()}, defaulting to the first file.</p>
+     *
+     * @param filename a {@code UC*.md} filename present in the classpath resources
+     */
+    @Action()
+    @ActionLayout(sequence = "5", cssClassFa = "file-import")
+    public List<RuleMatch> loadUcDocument(
+            @ParameterLayout(named = "UC Document") final String filename) {
+        if (corpora.loadUcDocument(filename)) {
+            log.info("Loaded UC document '{}'.", filename);
+        } else {
+            messageService.informUser("Document '" + filename + "' has already been analysed; skipping duplicate.");
+        }
+        return ruleMatches.listAll();
+    }
+
+    @MemberSupport
+    public List<String> choices0LoadUcDocument() {
+        return UcResources.listUcFilenames();
+    }
+
+    /** Pre-selects the first {@code UC*.md} document for {@link #loadUcDocument(String)}. */
+    @MemberSupport
+    public String default0LoadUcDocument() {
+        final List<String> filenames = UcResources.listUcFilenames();
+        return filenames.isEmpty() ? null : filenames.get(0);
+    }
+
+    /**
+     * Loads every {@code UC*.md} sample document into the corpus and runs the full analysis
+     * pipeline (match → candidate creation → archetype classification → late-binding
+     * resolution).
+     *
+     * <p>Batch counterpart to {@link #loadUcDocument(String)}. Re-running is safe: the
+     * duplicate-content guard inside {@link Corpora} skips already-analysed documents.</p>
+     */
+    @Action()
+    @ActionLayout(sequence = "6", cssClassFa = "play")
+    public List<RuleMatch> loadFileSample() {
+        final int loaded = corpora.loadSampleFiles();
+        if (loaded == 0) {
+            messageService.informUser("All sample documents have already been analysed. Skipping duplicates.");
+        }
+        return ruleMatches.listAll();
     }
 
     /**
@@ -145,9 +241,11 @@ public class Documents {
         }
         final DomainModel model = document.getDomainModel();
         if (model == null) {
-            messageService.warnUser("Document '" + document.getTitle() + "' has no domain model yet — run Analysis first.");
+            messageService.warnUser("Document '" + document.getTitle() + "' has no domain model yet — run the analysis first.");
             return null;
         }
+        log.debug("Rendering lexical diagram for use-case document #{} '{}' with class rule-match threshold {}",
+                document.getId(), document.getTitle(), threshold);
 
         final Set<String> allowedLemmas = candidateLemmas(model, threshold);
         final List<TypedDependency> dependencies = sentences.findByDocument(document).stream()
@@ -166,6 +264,53 @@ public class Documents {
     @MemberSupport
     public int default1RenderLexicalDiagram() {
         return 1;
+    }
+
+    /**
+     * Renders the document-wide <em>lexical dependency</em> diagram (Kroki → PDF) for a
+     * {@link Document} directly from its current persisted state.
+     * <p>
+     * The diagram is regenerated on <em>every</em> call — it is never cached — because its
+     * content reflects the current candidate set, which changes as candidates are reviewed,
+     * approved, or rejected.
+     *
+     * @param document the document whose sentences are to be diagrammed
+     * @return a freshly rendered PDF {@link Blob}, or {@code null} if the document is null, has no
+     *         domain model, or the render fails (e.g. Kroki unavailable)
+     */
+    @Programmatic
+    public Blob renderDiagram(final Document document) {
+        if (document == null || document.getDomainModel() == null) {
+            return null;
+        }
+        final long id = document.getId();
+        final String title = document.getTitle();
+        log.debug("Rendering lexical diagram for use-case document #{} '{}'", id, title);
+        String dotCode = null;
+        try {
+            final Set<String> allowedLemmas = candidateLemmas(document.getDomainModel(),
+                    DEFAULT_LEXICAL_THRESHOLD);
+            final List<TypedDependency> dependencies = sentences.findByDocument(document).stream()
+                    .flatMap(sentence -> sentence.getTypedDependencies() != null
+                            ? sentence.getTypedDependencies().stream()
+                            : java.util.stream.Stream.empty())
+                    .filter(td -> isCandidateDependency(td, allowedLemmas))
+                    .collect(Collectors.toList());
+            dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies);
+            final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
+            final String fileName = document.getTitle() + "-lexical.pdf";
+            return new Blob(fileName, Constants.pdfMimeType, bytes);
+        } catch (Exception e) {
+            // Catch Exception (not just RuntimeException): Fuel's HTTP errors (FuelError) are a checked
+            // Exception, so one unrenderable document must not tear down the whole list page.
+            log.warn("Failed to render lexical diagram for use-case document #{} '{}': {}",
+                    id, title, e.getMessage());
+            if (dotCode != null) {
+                log.debug("Lexical diagram DOT for use-case document #{} '{}':\n{}", id, title, dotCode);
+            }
+            log.debug("Failure rendering lexical diagram for use-case document #{} '{}'", id, title, e);
+            return null;
+        }
     }
 
     /**

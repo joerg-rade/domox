@@ -4,6 +4,7 @@ import domox.DomainModule;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
+import domox.dom.rqm.Document;
 import domox.dom.crc.ActionCandidates;
 import domox.dom.crc.AssociationCandidates;
 import domox.dom.crc.AssociationType;
@@ -366,6 +367,19 @@ public class RuleMatches {
             return "LocalDateTime";
         }
         return "String";
+    }
+
+    /**
+     * Returns the {@link RuleMatch} records produced for the given document —
+     * i.e. those whose typed dependency belongs to one of the document's
+     * sentences.  Scoping the Phase-2 read to the current document avoids
+     * re-scanning every match accumulated by the whole corpus on each analysis
+     * pass (the previous {@code listAll()} re-processed the full corpus set per
+     * document, making total load time quadratic in the document count).
+     */
+    @Programmatic
+    public List<RuleMatch> listAllForDocument(final Document document) {
+        return ruleMatchRepository.findByTypedDependency_SentenceIn(document.getSentences());
     }
 
     //Actions for UI

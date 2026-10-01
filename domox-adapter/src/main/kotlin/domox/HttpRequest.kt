@@ -75,6 +75,49 @@ class HttpRequest(
         return result.get()
     }
 
+    /**
+     * Renders a Graphviz/DOT diagram as SVG via Kroki's `/graphviz/svg` endpoint.
+     *
+     * Unlike [invokePlantUML] (which POSTs PlantUML source as a raw text body to
+     * `/plantuml/svg`), DOT source must be sent as the JSON
+     * `{"diagram_source": ..., "diagram_options": {...}}` payload that Kroki's POST
+     * API expects — the same format used by [domox.GraphvizUtils.generateDiagram].
+     *
+     * Uses the configured Kroki host/port unless explicit [host]/[port] are provided.
+     */
+    @JvmOverloads
+    fun invokeGraphviz(dotCode: String, host: String = "", port: Int = 0): String {
+        System.out.println("[invokeGraphviz] " + dotCode)
+        val krokiHost = if (host.isEmpty())
+            getSystemProperty("kroki.host", krokiProperties.host)
+        else host
+        val krokiPort = if (port == 0)
+            getSystemProperty("kroki.port", krokiProperties.port.toString()).toInt()
+        else port
+        val endpoint = "http://" + krokiHost + ":" + krokiPort + "/graphviz/svg"
+        val jsonPayload = "{\"diagram_source\": " + escapeJsonString(dotCode) +
+                ",\"diagram_options\": {\"layout\": \"dot\"}}"
+        val (request, response, result) = endpoint
+            .httpPost()
+            .set("Accept", Constants.svgMimeType)
+            .set("Content-Type", Constants.jsonMimeType)
+            .body(jsonPayload)
+            .responseString()
+        return result.get()
+    }
+
+    private fun escapeJsonString(input: String): String {
+        val escaped = input
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\u0008", "\\b")
+            .replace("\u000C", "\\f")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+        return "\"$escaped\""
+    }
+
     private fun getSystemProperty(key: String, defaultValue: String): String {
         return System.getProperty(key) ?: defaultValue
     }

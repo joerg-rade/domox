@@ -6,6 +6,7 @@ import domox.dom.crc.DomainModel;
 import domox.dom.nlp.Sentence;
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -18,11 +19,15 @@ import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.Domain;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.Optionality;
+import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.TableDecorator;
 import org.apache.causeway.applib.annotation.Title;
-import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.applib.value.Clob;
+import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +69,12 @@ public class Document extends AbstractEntity implements Comparable<Document> {
     @Setter
     private String url;
 
+    @PropertyLayout(sequence = "4", named = "File Name")
+    @Column
+    @Getter
+    @Setter
+    private String fileName;
+
     @Embedded
     @Domain.Exclude
     private ClobJpaEmbeddable content;
@@ -83,6 +94,27 @@ public class Document extends AbstractEntity implements Comparable<Document> {
             log.error(e.getMessage(), e);
         }
     }
+
+    // region Diagram
+    /**
+     * Injected {@link Documents} service used to render the document-wide lexical diagram on
+     * demand.
+     * <p>
+     * The diagram is deliberately <em>not</em> persisted: it is regenerated on every access
+     * because its content depends on the current candidate set, which changes as candidates are
+     * reviewed, approved, or rejected.
+     */
+    @Inject
+    @Transient
+    private Documents documentsService;
+
+    @PdfJsViewer
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(named = "Lexical Diagram", fieldSetId = "content", sequence = "1")
+    public Blob getDiagram() {
+        return documentsService != null ? documentsService.renderDiagram(this) : null;
+    }
+    // endregion Diagram
 
     @PropertyLayout(sequence = "5")
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL)

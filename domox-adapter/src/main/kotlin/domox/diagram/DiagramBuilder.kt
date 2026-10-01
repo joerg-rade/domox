@@ -41,15 +41,16 @@ class DiagramBuilder @JvmOverloads constructor(
 
     /**
      * Builds a document-wide lexical <em>component</em> diagram (PDF) from already
-     * generated PlantUML code.
+     * generated Graphviz DOT code.
      *
-     * The PlantUML itself is produced by the domain module's
-     * `LexicalGraphGenerator`, which draws edges directly from the persisted
-     * `TypedDependency`s of a document's sentences — so the caller does not need to
-     * reconstruct `SentenceTO`s (or re-run the NLP pipeline).
+     * The DOT itself is produced by the domain module's `LexicalGraphGenerator`, which
+     * draws edges directly from the persisted `TypedDependency`s of a document's
+     * sentences — so the caller does not need to reconstruct `SentenceTO`s (or re-run
+     * the NLP pipeline). Because the source is DOT (not PlantUML), it is rendered via
+     * Kroki's `/graphviz` endpoint.
      */
-    fun buildLexicalGraphDiagram(pumlCode: String): ByteArray {
-        val svgDiagram = httpRequest.invokePlantUML(pumlCode)
+    fun buildLexicalGraphDiagram(dotCode: String): ByteArray {
+        val svgDiagram = httpRequest.invokeGraphviz(dotCode)
         return convertSvgToPdf(svgDiagram)
     }
 

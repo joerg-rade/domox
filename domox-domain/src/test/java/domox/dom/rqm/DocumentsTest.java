@@ -2,6 +2,7 @@ package domox.dom.rqm;
 
 import domox.diagram.DiagramBuilder;
 import domox.dom.nlp.Sentences;
+import domox.dom.rules.RuleMatches;
 import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
@@ -31,12 +32,14 @@ class DocumentsTest {
     DiagramBuilder mockDiagramBuilder;
     @Mock
     MessageService mockMessageService;
+    @Mock
+    RuleMatches ruleMatches;
 
     // ClassUnderTest
     Documents documents;
     @BeforeEach
     public void setUp() {
-        documents = new Documents(mockRepositoryService, sentences, mockDiagramBuilder, mockMessageService);
+        documents = new Documents(mockRepositoryService, sentences, mockDiagramBuilder, mockMessageService, ruleMatches);
     }
 
  //   @Test

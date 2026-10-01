@@ -120,9 +120,13 @@ public class LexicalGraphGenerator {
             final String id = nodeId(lemma, pos, posByLemma.get(lemma).size() > 1);
             final int count = Math.max(matchCountByNode.getOrDefault(key(lemma, pos), MIN_MATCH_COUNT), MIN_MATCH_COUNT);
             final double scale = scaleFor(count, maxMatchCount);
-            dot.append("    ").append(id)
-                    .append(" [label=\"").append(nodeLabel(lemma, pos)).append("\"")
-                    .append(", fillcolor=\"").append(posColor(pos)).append("\"")
+            // IDs are always double-quoted so lemmas containing hyphens, digits, dots or DOT
+            // reserved keywords (e.g. 'node', 'edge', 'graph') can never produce unparseable DOT.
+            // Previously an unquoted id such as 'data-center' or the keyword 'node' made Graphviz/Kroki
+            // reject the graph with HTTP 400, which then tore down the whole list view.
+            dot.append("    ").append(dotQuoted(id))
+                    .append(" [label=").append(nodeLabel(lemma, pos))
+                    .append(", fillcolor=").append(dotQuoted(posColor(pos)))
                     .append(", width=").append(formatDouble(scale * NODE_BASE_WIDTH))
                     .append(", height=").append(formatDouble(scale * NODE_BASE_HEIGHT))
                     .append("];\n");
@@ -135,8 +139,8 @@ public class LexicalGraphGenerator {
             final String[] target = nodeByKey.get(edge[1]);
             final String sourceId = nodeId(source[0], source[1], posByLemma.get(source[0]).size() > 1);
             final String targetId = nodeId(target[0], target[1], posByLemma.get(target[0]).size() > 1);
-            dot.append("    ").append(sourceId).append(" -> ").append(targetId)
-                    .append(" [label=\"").append(edge[2]).append("\"];\n");
+            dot.append("    ").append(dotQuoted(sourceId)).append(" -> ").append(dotQuoted(targetId))
+                    .append(" [label=").append(dotQuoted(edge[2])).append("];\n");
         }
 
         dot.append("}\n");
@@ -173,9 +177,24 @@ public class LexicalGraphGenerator {
         return disambiguate && !pos.isEmpty() ? lemma + "_" + pos.toLowerCase(Locale.ROOT) : lemma;
     }
 
-    /** DOT node label: the lemma with its POS code as a second line in guillemets. */
+    /** DOT label literal for a node: the (escaped) lemma with its POS code as a second line in
+     *  guillemets. The literal {@code \n} line-break is deliberately left unescaped so Graphviz
+     *  renders a real line break, while the lemma/POS text itself is escaped for DOT string-literal
+     *  safety. {@code null} POS tags produce a bare single-line label. */
     private static String nodeLabel(final String lemma, final String pos) {
-        return pos.isEmpty() ? lemma : lemma + "\\n«" + pos + "»";
+        final String leaf = dotEscape(lemma);
+        final String tag = dotEscape(pos);
+        return "\"" + (tag.isEmpty() ? leaf : leaf + "\\n«" + tag + "»") + "\"";
+    }
+
+    /** A DOT double-quoted string/id literal with its content escaped for backslash and double-quote. */
+    private static String dotQuoted(final String raw) {
+        return "\"" + dotEscape(raw) + "\"";
+    }
+
+    /** Escapes backslashes and double-quotes so {@code raw} is safe inside a DOT quoted string/id. */
+    private static String dotEscape(final String raw) {
+        return raw == null ? "" : raw.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private static String lower(final String s) {

@@ -28,15 +28,15 @@ class LexicalGraphGeneratorTest {
 
         // node declarations use the lowercased lemma and the POS code as a second label line,
         // coloured by POS and unscaled (no rule matches -> width/height at base size)
-        assertTrue(dot.contains("intelligence [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"));
-        assertTrue(dot.contains("artificial [label=\"artificial\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350];"));
-        assertTrue(dot.contains("transform [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("\"artificial\" [label=\"artificial\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"));
 
         // directed relationships from the typed dependencies (governor -> dependent)
-        assertTrue(dot.contains("intelligence -> artificial [label=\"amod\"];"));
-        assertTrue(dot.contains("transform -> intelligence [label=\"nsubj\"];"));
-        assertTrue(dot.contains("technology -> modern [label=\"amod\"];"));
-        assertTrue(dot.contains("transform -> technology [label=\"obj\"];"));
+        assertTrue(dot.contains("\"intelligence\" -> \"artificial\" [label=\"amod\"];"));
+        assertTrue(dot.contains("\"transform\" -> \"intelligence\" [label=\"nsubj\"];"));
+        assertTrue(dot.contains("\"technology\" -> \"modern\" [label=\"amod\"];"));
+        assertTrue(dot.contains("\"transform\" -> \"technology\" [label=\"obj\"];"));
     }
 
     @Test
@@ -50,10 +50,10 @@ class LexicalGraphGeneratorTest {
 
         final String dot = generator.generateGraphvizGraph(deps);
 
-        assertTrue(dot.contains("shop_nn [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"));
-        assertTrue(dot.contains("shop_vb [label=\"shop\\n«VB»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"));
-        assertTrue(dot.contains("arrive -> shop_nn [label=\"obl:at\"];"));
-        assertTrue(dot.contains("shop_vb -> customer [label=\"nsubj\"];"));
+        assertTrue(dot.contains("\"shop_nn\" [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("\"shop_vb\" [label=\"shop\\n«VB»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("\"arrive\" -> \"shop_nn\" [label=\"obl:at\"];"));
+        assertTrue(dot.contains("\"shop_vb\" -> \"customer\" [label=\"nsubj\"];"));
     }
 
     @Test
@@ -74,10 +74,30 @@ class LexicalGraphGeneratorTest {
         final String dot = generator.generateGraphvizGraph(deps);
 
         // maximum count (3, for transform and intelligence) maps to scale 4
-        assertTrue(dot.contains("transform [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=3.600, height=1.400];"));
-        assertTrue(dot.contains("intelligence [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=3.600, height=1.400];"));
+        assertTrue(dot.contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=3.600, height=1.400];"));
+        assertTrue(dot.contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=3.600, height=1.400];"));
         // a count of 1 leaves the node at its base size (no enlargement)
-        assertTrue(dot.contains("modern [label=\"modern\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("\"modern\" [label=\"modern\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350];"));
+    }
+
+
+    @Test
+    void quotesAndEscapesNodeAndEdgeIdsForSpecialCharactersAndKeywords() {
+        // Hyphenated lemmas, a DOT keyword ('node') and a digit-leading id must survive as valid,
+        // quoted DOT ids. Previously these were emitted unquoted, so such a document's graph was
+        // rejected by Graphviz/Kroki with HTTP 400 and took the whole list view down.
+        final List<TypedDependency> deps = new ArrayList<>();
+        deps.add(dep(TdType.AMOD, 1, "data-center", PartOfSpeechType.NN,
+                2, "node", PartOfSpeechType.JJ));
+        deps.add(dep(TdType.NSUBJ, 3, "123abc", PartOfSpeechType.NNP,
+                4, "data-center", PartOfSpeechType.NN));
+
+        final String dot = generator.generateGraphvizGraph(deps);
+
+        assertTrue(dot.contains("\"data-center\" [label=\"data-center\\n«NN»\", fillcolor=\"#3498DB\""), dot);
+        assertTrue(dot.contains("\"data-center\" -> \"node\" [label=\"amod\"];"), dot);
+        assertTrue(dot.contains("\"123abc\" [label=\"123abc\\n«NNP»\", fillcolor=\"#2C3E50\""), dot);
+        assertTrue(dot.contains("\"123abc\" -> \"data-center\" [label=\"nsubj\"];"), dot);
     }
 
     @Test

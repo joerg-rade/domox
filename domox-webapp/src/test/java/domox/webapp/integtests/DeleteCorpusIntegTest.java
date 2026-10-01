@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.services.xactn.TransactionService;
 
-import domox.dom.Analysis;
+import domox.dom.rqm.Corpora;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.ActionCddRepository;
 import domox.dom.crc.AssociationCdd;
@@ -30,7 +30,7 @@ import domox.dom.crc.PropertyCddRepository;
 import domox.dom.rqm.Corpus;
 
 /**
- * Regression test for {@code Analysis.deleteCorpus(Corpus)}.
+ * Regression test for {@code Corpora.deleteCorpus(Corpus)}.
  * <p>
  * A {@code Corpus} owns one shared {@link DomainModel}.  When the corpus is
  * deleted the shared model must be destroyed together with every candidate it
@@ -43,7 +43,7 @@ import domox.dom.rqm.Corpus;
 @Transactional
 class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
 
-    @Inject private Analysis analysis;
+    @Inject private Corpora corpora;
     @Inject private DomainModels domainModels;
     @Inject private RepositoryService repositoryService;
     @Inject private TransactionService transactionService;
@@ -99,7 +99,7 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
         assertThat(associationCddRepository.findAll()).hasSize(1);
 
         // when: the corpus is deleted
-        wrap(analysis).deleteCorpus(corpus);
+        wrap(corpora).deleteCorpus(corpus);
         transactionService.flushTransaction();
 
         // then: every candidate of every type is gone (flush did not trip an FK)

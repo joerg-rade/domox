@@ -14,7 +14,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
-import domox.dom.Analysis;
+import domox.dom.rqm.Documents;
 import domox.dom.crc.ActionCddRepository;
 import domox.dom.crc.AssociationCddRepository;
 import domox.dom.crc.Candidate;
@@ -54,7 +54,7 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
     private static final String CORPUS_TITLE = "Pet Shop Use Cases";
 
     @Autowired
-    private Analysis analysis;
+    private Documents documents;
 
     @Autowired
     private CorpusRepository corpusRepository;
@@ -77,7 +77,7 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
     @Test
     void loadingWholeCorpus_producesExactlyOneCandidatePerName_intoOneSharedDomainModel() {
         // when: run the full analysis over every UC* document of the PetShop corpus
-        final List<RuleMatch> ruleMatches = wrap(analysis).loadFileSample();
+        final List<RuleMatch> ruleMatches = wrap(documents).loadFileSample();
 
         // then: analysis really produced matches and one document per corpus file (15)
         assertThat(ruleMatches).isNotEmpty();

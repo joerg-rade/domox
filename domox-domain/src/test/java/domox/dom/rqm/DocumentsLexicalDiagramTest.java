@@ -10,6 +10,7 @@ import domox.dom.nlp.Sentences;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
+import domox.dom.rules.RuleMatches;
 import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Blob;
@@ -51,12 +52,14 @@ class DocumentsLexicalDiagramTest {
     DiagramBuilder diagramBuilder;
     @Mock
     MessageService messageService;
+    @Mock
+    RuleMatches ruleMatches;
 
     Documents documents;
 
     @BeforeEach
     void setUp() {
-        documents = new Documents(mockRepositoryService, sentences, diagramBuilder, messageService);
+        documents = new Documents(mockRepositoryService, sentences, diagramBuilder, messageService, ruleMatches);
     }
 
     @Test

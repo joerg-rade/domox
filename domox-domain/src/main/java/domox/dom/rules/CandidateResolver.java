@@ -47,14 +47,11 @@ public class CandidateResolver {
     private PropertyCandidates propertyCandidates;
 
     @Inject
-    private ClassCandidates classCandidates;
-
-    @Inject
     private BasicAttributeCatalog basicAttributeCatalog;
 
     /**
-     * Post-processes all candidates for the given domain model, resolving
-     * ambiguous nouns that could be either entities or attributes.
+     * Post-processes the candidates produced by the current analysis pass,
+     * resolving ambiguous nouns that could be either entities or attributes.
      * <p>
      * This method:
      * <ol>
@@ -69,18 +66,28 @@ public class CandidateResolver {
      * </ol>
      *
      * @param domainModel the owning domain model for any newly created candidates
+     * @param candidates  the candidates created by the current analysis pass
+     *                    (this document's RuleMatches); only these classes are
+     *                    examined for attribute-like evidence
      */
     @Programmatic
-    public void resolve(DomainModel domainModel) {
-        // Collect all candidates scoped to this domain model
-        List<ClassCdd> allClasses = classCandidates.listAll().stream()
+    public void resolve(DomainModel domainModel, List<Candidate> candidates) {
+        // Collect only the candidates materialised by the current analysis pass.
+        // A class whose evidence did not change in this pass need not be re-scored
+        // (its rule matches are unchanged), so re-iterating the entire model on
+        // every document made total load time quadratic.  Existing properties are
+        // still indexed across the whole model so a noun already resolved to a
+        // PropertyCdd is never created twice.
+        List<ClassCdd> allClasses = candidates.stream()
+                .filter(c -> c instanceof ClassCdd)
+                .map(c -> (ClassCdd) c)
                 .filter(cc -> cc.domainModel == domainModel)
                 .toList();
         List<PropertyCdd> allProperties = propertyCandidates.listAll().stream()
                 .filter(pc -> pc.classCdd != null && pc.classCdd.domainModel == domainModel)
                 .toList();
 
-        log.info("Resolving {} class candidates and {} property candidates for domain model {}",
+        log.info("Resolving {} class candidates and {} property candidates for domain model {} (current analysis pass)",
                 allClasses.size(), allProperties.size(), domainModel);
 
         // Index existing properties by lowercased name
