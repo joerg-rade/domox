@@ -1,5 +1,6 @@
 package domox.dom.crc;
 
+import domox.dom.rules.RuleMatches;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,8 @@ class CandidatesTest {
     PropertyCandidates mockPropertyCandidates;
     @Mock
     AssociationCandidates mockAssociationCandidates;
+    @Mock
+    RuleMatches mockRuleMatches;
 
     private Candidates classUnderTest;
 
@@ -37,7 +40,8 @@ class CandidatesTest {
                 mockClassCandidates,
                 mockActionCandidates,
                 mockPropertyCandidates,
-                mockAssociationCandidates);
+                mockAssociationCandidates,
+                mockRuleMatches);
     }
 
     @Test
