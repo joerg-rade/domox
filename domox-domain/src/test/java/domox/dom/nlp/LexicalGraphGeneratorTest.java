@@ -40,6 +40,22 @@ class LexicalGraphGeneratorTest {
     }
 
     @Test
+    void usesDotLayoutThatKrokiCanRender() {
+        final String dot = generator.generateGraphvizGraph(sampleDependencies());
+
+        // `layout = dot` (hierarchical) is required: Kroki's Graphviz build cannot run
+        // force-directed `sfdp` (missing triangulation), so `layout = sfdp` would make the
+        // /graphviz endpoint return HTTP 400 and the whole PDF (Document.getDiagram()) fail.
+        // Assert on the graph-attribute block only (not the whole DOT), since explanatory
+        // comments legitimately mention `sfdp`.
+        final int graphStart = dot.indexOf("graph [");
+        final int graphEnd = dot.indexOf("];", graphStart);
+        final String graphBlock = dot.substring(graphStart, graphEnd);
+        assertTrue(graphBlock.contains("layout = dot"),
+                "generator's graph block must use the 'dot' engine for Kroki compatibility:\n" + graphBlock);
+    }
+
+    @Test
     void disambiguatesNodesThatShareALemmaAcrossPosTags() {
         // 'shop' appears both as a noun (NN) and a verb (VB) -> two distinct nodes
         final List<TypedDependency> deps = new ArrayList<>();

@@ -86,13 +86,15 @@ public class LexicalGraphGenerator {
 
         final StringBuilder dot = new StringBuilder();
         dot.append("digraph LexicalDependencyGraph {\n");
-        dot.append("    // Layout and style settings for maximum compactness\n");
+        dot.append("    // Layout and style settings for maximum compactness.\n");
+        dot.append("    //    `layout = dot` is used deliberately: `sfdp` (force-directed) is not\n");
+        dot.append("    //    supported by Kroki's Graphviz build (missing triangulation), so any\n");
+        dot.append("    //    DOT with `layout = sfdp` makes the /graphviz endpoint return HTTP 400\n");
+        dot.append("    //    and the whole diagram fails to render.\n");
         dot.append("    graph [\n");
-        dot.append("        layout = dot\n");
+        dot.append("        layout = neato\n");
         dot.append("        overlap = false\n");
-        dot.append("        K = 1.2\n");
-        dot.append("        sep = \"+25\"\n");
-        dot.append("        ranksep = \"2.0\"\n");
+        dot.append("        sep = \"+10\"\n");
         dot.append("    ];\n\n");
         dot.append("    node [\n");
         dot.append("        shape = box\n");

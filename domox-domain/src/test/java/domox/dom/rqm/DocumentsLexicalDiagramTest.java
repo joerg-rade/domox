@@ -1,6 +1,7 @@
 package domox.dom.rqm;
 
 import domox.diagram.DiagramBuilder;
+import domox.dom.AbstractEntity;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.ClassCdd;
 import domox.dom.crc.DomainModel;
@@ -32,11 +33,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Verifies {@link Documents#renderLexicalDiagram(Document, int)}:
+ * Verifies {@link Documents#renderDiagram(Document)}:
  * <ul>
  *   <li>typed dependencies are restricted to those whose governor and dependent lemma
  *       are both candidate words, and</li>
- *   <li>class candidates only count when their rule-match count is at least the threshold.</li>
+ *   <li>class candidates only count when their rule-match count is at least the
+ *       default lexical threshold.</li>
  * </ul>
  * The Graphviz (DOT) is generated straight from the persisted {@link TypedDependency}s — no
  * SentenceTO/TokenTO reconstruction is involved.
@@ -67,7 +69,7 @@ class DocumentsLexicalDiagramTest {
         // given — a domain model with a strong class, a weak class and an action candidate
         final DomainModel model = new DomainModel();
         final ClassCdd strongClass = classCandidate("Customer", 5);
-        final ClassCdd weakClass = classCandidate("Currency", 1); // below threshold 2
+        final ClassCdd weakClass = classCandidate("Currency", 0); // below the default threshold of 1
         model.classList.add(strongClass);
         model.classList.add(weakClass);
         final ActionCdd purchase = new ActionCdd();
@@ -77,21 +79,22 @@ class DocumentsLexicalDiagramTest {
         final Document document = new Document();
         document.setTitle("PetShop");
         document.setDomainModel(model);
+        assignId(document, 1001L); // renderDiagram logs the persisted id
 
         // a persisted sentence whose typed dependencies carry the lemma/POS data
         final Sentence sentence = new Sentence();
         sentence.addTypedDependency(dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
                 "customer", PartOfSpeechType.NN));   // both candidate words -> kept
         sentence.addTypedDependency(dep(TdType.AMOD, "customer", PartOfSpeechType.NN,
-                "currency", PartOfSpeechType.NN));   // weak class (< threshold) -> dropped
+                "currency", PartOfSpeechType.NN));   // weak class (0 matches < default 1) -> dropped
         sentence.addTypedDependency(dep(TdType.DET, "customer", PartOfSpeechType.NN,
                 "the", PartOfSpeechType.DT));        // no candidate -> dropped
         when(sentences.findByDocument(document)).thenReturn(List.of(sentence));
 
         when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
-        // when
-        final Blob result = documents.renderLexicalDiagram(document, 2);
+        // when — renderDiagram uses the fixed DEFAULT_LEXICAL_THRESHOLD (1)
+        final Blob result = documents.renderDiagram(document);
 
         // then — diagram built from the candidate-restricted dependencies
         assertNotNull(result);
@@ -101,14 +104,14 @@ class DocumentsLexicalDiagramTest {
         verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
-        assertTrue(dot.contains("customer [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"),
+        assertTrue(dot.contains("\"customer\" [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\""),
                 "strong class word should be kept");
-        assertTrue(dot.contains("purchase [label=\"purchase\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"),
+        assertTrue(dot.contains("\"purchase\" [label=\"purchase\\n«VBZ»\", fillcolor=\"#E74C3C\""),
                 "action candidate word should be kept");
-        assertFalse(dot.contains("currency [label="),
-                "weak class word should be dropped by threshold");
-        assertFalse(dot.contains("the\\n«DT»"),
-                "non-candidate word should be dropped");
+        assertFalse(dot.contains("currency"),
+                "weak class word should be dropped by the default threshold");
+        assertFalse(dot.contains("«DT»"),
+                "non-candidate word ('the', a determiner) should be dropped");
     }
 
     @Test
@@ -116,7 +119,7 @@ class DocumentsLexicalDiagramTest {
         final Document document = new Document();
         document.setTitle("Unanalysed");
 
-        final Blob result = documents.renderLexicalDiagram(document, 1);
+        final Blob result = documents.renderDiagram(document);
 
         assertNull(result, "no model -> no diagram");
     }
@@ -128,6 +131,20 @@ class DocumentsLexicalDiagramTest {
             cc.getRuleMatches().add(new RuleMatch());
         }
         return cc;
+    }
+
+    /**
+     * {@link AbstractEntity#getId()} is generated (no setter), so give a transient test
+     * entity a surrogate id — {@link Documents#renderDiagram(Document)} logs it.
+     */
+    private static void assignId(final Document document, final long id) {
+        try {
+            final java.lang.reflect.Field field = AbstractEntity.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(document, id);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Could not assign id " + id + " to transient Document", e);
+        }
     }
 
     private static TypedDependency dep(final TdType type,

@@ -35,6 +35,8 @@ services:
       - "5432:5432"
 
   kroki:
-    image: yuzutech/kroki
+    build:
+      context: ./docker/kroki
+      dockerfile: Dockerfile
     ports:
       - "8001:8000"

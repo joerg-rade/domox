@@ -70,7 +70,7 @@ public class Documents {
      * Mutually-injected collaborator: {@link Corpora} constructor-injects {@code Documents}
      * (its analyse pipeline creates {@link Document}s and {@link Sentence}s), while the
      * {@code Documents} menu delegates its single- and batch-load actions
-     * ({@link #loadUcDocument(String)}, {@link #loadFileSample()}) to {@code Corpora}.
+     * ({@link #loadUcDocument(String)}.
      * Constructor injection would therefore be an unresolvable Spring cycle, so the
      * dependency is field-injected and flagged {@code @Lazy}: Spring injects a proxy that
      * resolves to the real {@code Corpora} bean only when an action invokes it at runtime.
@@ -163,24 +163,6 @@ public class Documents {
     }
 
     /**
-     * Loads every {@code UC*.md} sample document into the corpus and runs the full analysis
-     * pipeline (match → candidate creation → archetype classification → late-binding
-     * resolution).
-     *
-     * <p>Batch counterpart to {@link #loadUcDocument(String)}. Re-running is safe: the
-     * duplicate-content guard inside {@link Corpora} skips already-analysed documents.</p>
-     */
-    @Action()
-    @ActionLayout(sequence = "6", cssClassFa = "play")
-    public List<RuleMatch> loadFileSample() {
-        final int loaded = corpora.loadSampleFiles();
-        if (loaded == 0) {
-            messageService.informUser("All sample documents have already been analysed. Skipping duplicates.");
-        }
-        return ruleMatches.listAll();
-    }
-
-    /**
      * Returns whether a {@link Document} whose content equals {@code content} already exists.
      * <p>
      * Used to guard against re-analysing the same requirements text, which previously created a
@@ -207,63 +189,6 @@ public class Documents {
             }
         }
         return sentenceList;
-    }
-
-    /**
-     * Renders a document-wide <em>lexical dependency</em> diagram (PDF) whose nodes are
-     * restricted to the words for which a {@link domox.dom.crc.Candidate} was created in
-     * the document's shared {@link DomainModel}.
-     * <p>
-     * Content words (nouns, verbs, adjectives) are only included when their lemma matches
-     * a created candidate.  Class candidates participate only if their
-     * {@link ClassCdd#getRuleMatchCount() rule-match count} is at least {@code threshold};
-     * action, property and association candidates are always eligible.  Edges are drawn
-     * directly from the persisted {@link TypedDependency}s of the document's sentences —
-     * a dependency participates only when <em>both</em> its governor and dependent lemma
-     * are candidate words — so no `SentenceTO`/`TokenTO` reconstruction is needed.
-     *
-     * @param document the document whose sentences are to be diagrammed
-     * @param threshold minimum rule-match count for {@link ClassCdd} candidates to be
-     *                  treated as an eligible word
-     * @return a PDF {@link Blob}, or {@code null} if the document has no domain model
-     */
-    @Action(semantics = SemanticsOf.SAFE)
-    @ActionLayout(
-            sequence = "4",
-            cssClassFa = "project-diagram",
-            describedAs = "Render a document-wide lexical dependency graph (PDF) restricted to candidate words")
-    public Blob renderLexicalDiagram(
-            @ParameterLayout(named = "Document") final Document document,
-            @ParameterLayout(named = "Class rule-match threshold") final int threshold) {
-        if (document == null) {
-            messageService.warnUser("Please choose a document to diagram.");
-            return null;
-        }
-        final DomainModel model = document.getDomainModel();
-        if (model == null) {
-            messageService.warnUser("Document '" + document.getTitle() + "' has no domain model yet — run the analysis first.");
-            return null;
-        }
-        log.debug("Rendering lexical diagram for use-case document #{} '{}' with class rule-match threshold {}",
-                document.getId(), document.getTitle(), threshold);
-
-        final Set<String> allowedLemmas = candidateLemmas(model, threshold);
-        final List<TypedDependency> dependencies = sentences.findByDocument(document).stream()
-                .flatMap(sentence -> sentence.getTypedDependencies() != null
-                        ? sentence.getTypedDependencies().stream()
-                        : java.util.stream.Stream.empty())
-                .filter(td -> isCandidateDependency(td, allowedLemmas))
-                .collect(Collectors.toList());
-
-        final String dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies);
-        final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
-        final String fileName = document.getTitle() + "-lexical.pdf";
-        return new Blob(fileName, Constants.pdfMimeType, bytes);
-    }
-
-    @MemberSupport
-    public int default1RenderLexicalDiagram() {
-        return 1;
     }
 
     /**

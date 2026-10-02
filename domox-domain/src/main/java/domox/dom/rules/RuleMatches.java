@@ -383,6 +383,7 @@ public class RuleMatches {
     }
 
     //Actions for UI
+    @ActionLayout(sequence = "1")
     public List<RuleMatch> listAll() {
         return ruleMatchRepository.findAll();
     }

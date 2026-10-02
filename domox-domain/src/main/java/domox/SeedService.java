@@ -1,6 +1,6 @@
 package domox;
 
-import domox.dom.rqm.Documents;
+import domox.dom.rqm.Corpora;
 import jakarta.inject.Inject;
 import org.apache.causeway.applib.events.metamodel.MetamodelEvent;
 import org.apache.causeway.applib.events.metamodel.MetamodelListener;
@@ -14,12 +14,12 @@ public class SeedService implements MetamodelListener {
     
     // ...existing code...
     private final InteractionService interactionService;
-    private final Documents documents;
+    private final Corpora corpora;
 
     @Inject
-    public SeedService(InteractionService interactionService, Documents documents) {
+    public SeedService(InteractionService interactionService, Corpora corpora) {
         this.interactionService = interactionService;
-        this.documents = documents;
+        this.corpora = corpora;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class SeedService implements MetamodelListener {
 
     public void execute() {
         log.info("DB seeding started");
-        interactionService.runAnonymous(documents::loadFileSample);
+        interactionService.runAnonymous(corpora::loadSampleFiles);
         log.info("DB seeding ended");
     }
 

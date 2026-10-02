@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bs:grid
+        xmlns:bs="https://causeway.apache.org/applib/layout/grid/bootstrap3"
+        xmlns:cpt="https://causeway.apache.org/applib/layout/component">
+
+    <!-- Top Header & Unassigned Actions -->
+    <bs:row>
+        <bs:col span="12" unreferencedActions="true">
+            <cpt:domainObject/>
+        </bs:col>
+    </bs:row>
+
+    <!-- Main Content Split -->
+    <bs:row>
+        <!-- Left Side: Domain Properties & Collections -->
+        <bs:col span="4">
+            <bs:row>
+                <bs:col span="12">
+                    <cpt:fieldSet name="General" id="general" unreferencedProperties="true">
+                        <cpt:property id="title"/>
+                        <cpt:property id="docVersion"/>
+                        <cpt:property id="url"/>
+                        <cpt:property id="fileName"/>
+                    </cpt:fieldSet>
+                </bs:col>
+            </bs:row>
+            <bs:row>
+                <bs:col span="12" unreferencedCollections="true">
+                    <cpt:collection id="sentences"/>
+                    <cpt:collection id="authors"/>
+                </bs:col>
+            </bs:row>
+        </bs:col>
+
+        <!-- Right Side: Tab Group with Lexical Diagram on First Tab -->
+        <bs:col span="8">
+            <bs:tabGroup>
+                <bs:tab name="Lexical Diagram">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet name="Lexical Diagram" id="content">
+                                <cpt:property id="diagram"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+            </bs:tabGroup>
+        </bs:col>
+    </bs:row>
+</bs:grid>

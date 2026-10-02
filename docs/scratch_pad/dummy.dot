@@ -1,11 +1,9 @@
 digraph LexicalDependencyGraph {
     // Layout and style settings for maximum compactness
     graph [
-layout = dot
+layout = neato
 overlap = false
-K = 1.2
-sep = "+25"
-ranksep = "2.0"
+sep = "+10"
 ];
 
 node [
