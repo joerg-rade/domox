@@ -41,25 +41,20 @@ causeway:
           mode: disabled
 
   viewer:
-    wicket:
+    common:
       application:
-        about: Simple App
+        about: DoMoX
         brand-logo-header: images/domox_logo_48.svg
-        css: css/application.css
         favicon-url: images/favicon.png
-        js: scripts/application.js
-        #menubars-layout-xml: menubars.layout.xml
         name: DoMoX
         version: ^project.version^
-
-
-        # https://stackoverflow.com/a/38983935/56880
 
       credit:
         - url: http://causeway.apache.org
           image: images/apache-causeway/logo-48x48.png
           name: Apache Causeway
 
+    wicket:
       themes:
         show-chooser: false
 
