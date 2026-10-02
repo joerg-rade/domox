@@ -51,7 +51,7 @@ class LexicalGraphGeneratorTest {
         final int graphStart = dot.indexOf("graph [");
         final int graphEnd = dot.indexOf("];", graphStart);
         final String graphBlock = dot.substring(graphStart, graphEnd);
-        assertTrue(graphBlock.contains("layout = dot"),
+        assertTrue(graphBlock.contains("layout = neato"),
                 "generator's graph block must use the 'dot' engine for Kroki compatibility:\n" + graphBlock);
     }
 

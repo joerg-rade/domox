@@ -14,7 +14,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
-import domox.dom.rqm.Documents;
 import domox.dom.crc.ActionCddRepository;
 import domox.dom.crc.AssociationCddRepository;
 import domox.dom.crc.Candidate;
@@ -22,10 +21,10 @@ import domox.dom.crc.ClassCddRepository;
 import domox.dom.crc.DomainModel;
 import domox.dom.crc.PropertyCdd;
 import domox.dom.crc.PropertyCddRepository;
+import domox.dom.rqm.Corpora;
 import domox.dom.rqm.Corpus;
 import domox.dom.rqm.CorpusRepository;
 import domox.dom.rqm.DocumentRepository;
-import domox.dom.rules.RuleMatch;
 
 /**
  * Focused regression test for the corpus-owned <em>shared</em> {@link DomainModel}.
@@ -54,7 +53,7 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
     private static final String CORPUS_TITLE = "Pet Shop Use Cases";
 
     @Autowired
-    private Documents documents;
+    private Corpora corpora;
 
     @Autowired
     private CorpusRepository corpusRepository;
@@ -77,10 +76,10 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
     @Test
     void loadingWholeCorpus_producesExactlyOneCandidatePerName_intoOneSharedDomainModel() {
         // when: run the full analysis over every UC* document of the PetShop corpus
-        final List<RuleMatch> ruleMatches = wrap(documents).loadFileSample();
+        final int loaded = wrap(corpora).loadSampleFiles();
 
         // then: analysis really produced matches and one document per corpus file (15)
-        assertThat(ruleMatches).isNotEmpty();
+        assertThat(loaded).as("all 15 UC* corpus files are newly loaded").isEqualTo(15);
         assertThat(documentRepository.count()).as("all 15 UC* corpus files are loaded").isEqualTo(15L);
 
         // the whole corpus owns exactly one shared DomainModel
