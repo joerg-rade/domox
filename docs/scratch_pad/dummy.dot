@@ -1,7 +1,7 @@
 digraph LexicalDependencyGraph {
     // Layout and style settings for maximum compactness
     graph [
-layout = sfdp
+layout = dot
 overlap = false
 K = 1.2
 sep = "+25"

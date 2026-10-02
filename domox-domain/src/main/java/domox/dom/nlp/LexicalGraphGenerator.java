@@ -88,7 +88,7 @@ public class LexicalGraphGenerator {
         dot.append("digraph LexicalDependencyGraph {\n");
         dot.append("    // Layout and style settings for maximum compactness\n");
         dot.append("    graph [\n");
-        dot.append("        layout = sfdp\n");
+        dot.append("        layout = dot\n");
         dot.append("        overlap = false\n");
         dot.append("        K = 1.2\n");
         dot.append("        sep = \"+25\"\n");
