@@ -1,6 +1,8 @@
 package domox.dom.crc;
 
 import domox.DomainModule;
+import domox.dom.rules.RuleMatch;
+import domox.dom.rules.RuleMatches;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -24,17 +26,20 @@ public class Candidates {
     private final ActionCandidates actionCandidates;
     private final PropertyCandidates propertyCandidates;
     private final AssociationCandidates associationCandidates;
+    private final RuleMatches ruleMatches;
 
     @Inject
     public Candidates(
             ClassCandidates classCandidates,
             ActionCandidates actionCandidates,
             PropertyCandidates propertyCandidates,
-            AssociationCandidates associationCandidates) {
+            AssociationCandidates associationCandidates,
+            RuleMatches ruleMatches) {
         this.classCandidates = classCandidates;
         this.actionCandidates = actionCandidates;
         this.propertyCandidates = propertyCandidates;
         this.associationCandidates = associationCandidates;
+        this.ruleMatches = ruleMatches;
     }
 
     @ActionLayout(sequence = "1", named = "List All Class Candidates")
@@ -55,6 +60,11 @@ public class Candidates {
     @ActionLayout(sequence = "4", named = "List All Association Candidates")
     public List<AssociationCdd> listAllAssociations() {
         return associationCandidates.listAll();
+    }
+
+    @ActionLayout(sequence = "4", named = "List All Synonyms")
+    public List<RuleMatch> listAllSynonyms() {
+        return ruleMatches.findByRuleClassName("TDR41");
     }
 
 }
