@@ -133,7 +133,7 @@ legend left
   | | | | <#F1C40F> numerals| CD |
   | | | | <#00C49F> coordinating conjunctions | CC |
   | | | | <#9B59B6> wh-determiners, adverbs, pronouns | WDT, WRB, WP, WP$, WRB |
-  | | | | <#2C3E50> proper nouns | NNP, NNPS |
+  | | | | <#85C1E9> proper nouns | NNP, NNPS |
   | <${'$'}question{scale=0.5}> | others | | <#AAB7B8> Others |  |
 endlegend
         """.trimIndent()
@@ -154,7 +154,7 @@ endlegend
         "CD" -> "#F1C40F"      // Yellow for numerals
         "CC" -> "#00C49F"          // Teal for coordinating conjunctions
         "WDT", "WP", "WP$", "WRB" -> "#9B59B6"          // Soft Purple for wh-determiners, adverbs, pronouns
-        "NNP", "NNPS" -> "#2C3E50"     // Deep Blue for proper nouns
+        "NNP", "NNPS" -> "#85C1E9"     //  Blue for proper nouns
         ",", ".", "!", "?", ";", ":" -> "#FFFFFF"  // White for punctuation
         else -> "#AAB7B8"          // Neutral gray for others
     }

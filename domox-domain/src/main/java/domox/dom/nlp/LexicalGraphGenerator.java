@@ -32,6 +32,9 @@ public class LexicalGraphGenerator {
     private static final double NODE_BASE_WIDTH = 0.9;
     private static final double NODE_BASE_HEIGHT = 0.35;
 
+    /** Base node font size (points), matched to the {@code fontsize = 10} default in the graph. */
+    private static final double NODE_BASE_FONTSIZE = 10.0;
+
     /** Rule-match count that maps to scale 1 (no enlargement). */
     private static final int MIN_MATCH_COUNT = 1;
     /** Rule-match count of the largest node maps to scale 4. */
@@ -112,7 +115,8 @@ public class LexicalGraphGenerator {
         // node per tag (e.g. item_nn vs item_nns) so the tags don't merge into one node;
         // a lemma that occurs with a single POS keeps a bare, readable id (e.g. customer).
         // Each node is filled with its POS color and enlarged according to rule-match count
-        // (count 1 -> scale 1, maximum count -> scale 4).
+        // (count 1 -> scale 1, maximum count -> scale 4); the font size is scaled by that same
+        // factor so large nodes carry proportionally larger labels.
         dot.append("    // Node Declarations\n");
         for (final String[] node : nodeByKey.values()) {
             final String lemma = node[0];
@@ -129,6 +133,7 @@ public class LexicalGraphGenerator {
                     .append(", fillcolor=").append(dotQuoted(posColor(pos)))
                     .append(", width=").append(formatDouble(scale * NODE_BASE_WIDTH))
                     .append(", height=").append(formatDouble(scale * NODE_BASE_HEIGHT))
+                    .append(", fontsize=").append(Math.round(scale * NODE_BASE_FONTSIZE))
                     .append("];\n");
         }
 
@@ -224,51 +229,20 @@ public class LexicalGraphGenerator {
      * {@code ColoredPlantUmlMindmapGenerator.getPosColor} so the two generators stay consistent.
      */
     private static String posColor(final String pos) {
-        switch (pos) {
-            case "NN":
-            case "NNS":
-                return "#3498DB";     // Blue for nouns
-            case "VB":
-            case "VBZ":
-            case "VBD":
-            case "VBG":
-            case "VBN":
-            case "VBP":
-                return "#E74C3C";     // Red for verbs
-            case "JJ":
-            case "JJR":
-            case "JJS":
-                return "#2ECC71";     // Green for adjectives
-            case "DT":
-                return "#F39C12";     // Orange for determiners
-            case "PRP":
-            case "PRP$":
-                return "#9B59B6";     // Purple for pronouns
-            case "IN":
-                return "#17A2B8";     // Teal for prepositions
-            case "RB":
-                return "#FFBB28";     // Amber for adverbs
-            case "CD":
-                return "#F1C40F";     // Yellow for numerals
-            case "CC":
-                return "#00C49F";     // Teal for coordinating conjunctions
-            case "WDT":
-            case "WP":
-            case "WP$":
-            case "WRB":
-                return "#9B59B6";     // Soft purple for wh-words
-            case "NNP":
-            case "NNPS":
-                return "#2C3E50";     // Deep blue for proper nouns
-            case ",":
-            case ".":
-            case "!":
-            case "?":
-            case ";":
-            case ":":
-                return "#FFFFFF";     // White for punctuation
-            default:
-                return "#AAB7B8";     // Neutral gray for others
-        }
+        return switch (pos) {
+            case "NN", "NNS" -> "#3498DB";     // Blue for nouns
+            case "VB", "VBZ", "VBD", "VBG", "VBN", "VBP" -> "#E74C3C";     // Red for verbs
+            case "JJ", "JJR", "JJS" -> "#2ECC71";     // Green for adjectives
+            case "DT" -> "#F39C12";     // Orange for determiners
+            case "PRP", "PRP$" -> "#9B59B6";     // Purple for pronouns
+            case "IN" -> "#17A2B8";     // Teal for prepositions
+            case "RB" -> "#FFBB28";     // Amber for adverbs
+            case "CD" -> "#F1C40F";     // Yellow for numerals
+            case "CC" -> "#00C49F";     // Teal for coordinating conjunctions
+            case "WDT", "WP", "WP$", "WRB" -> "#9B59B6";     // Soft purple for wh-words
+            case "NNP", "NNPS" -> "#85C1E9";     // Light blue for proper nouns
+            case ",", ".", "!", "?", ";", ":" -> "#FFFFFF";     // White for punctuation
+            default -> "#AAB7B8";     // Neutral gray for others
+        };
     }
 }

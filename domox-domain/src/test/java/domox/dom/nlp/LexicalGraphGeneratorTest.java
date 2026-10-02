@@ -27,10 +27,10 @@ class LexicalGraphGeneratorTest {
         assertTrue(dot.trim().endsWith("}"));
 
         // node declarations use the lowercased lemma and the POS code as a second label line,
-        // coloured by POS and unscaled (no rule matches -> width/height at base size)
-        assertTrue(dot.contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"));
-        assertTrue(dot.contains("\"artificial\" [label=\"artificial\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350];"));
-        assertTrue(dot.contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"));
+        // coloured by POS and unscaled (no rule matches -> width/height and font at base size)
+        assertTrue(dot.contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];"));
+        assertTrue(dot.contains("\"artificial\" [label=\"artificial\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350, fontsize=10];"));
+        assertTrue(dot.contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350, fontsize=10];"));
 
         // directed relationships from the typed dependencies (governor -> dependent)
         assertTrue(dot.contains("\"intelligence\" -> \"artificial\" [label=\"amod\"];"));
@@ -50,8 +50,8 @@ class LexicalGraphGeneratorTest {
 
         final String dot = generator.generateGraphvizGraph(deps);
 
-        assertTrue(dot.contains("\"shop_nn\" [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350];"));
-        assertTrue(dot.contains("\"shop_vb\" [label=\"shop\\n«VB»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("\"shop_nn\" [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];"));
+        assertTrue(dot.contains("\"shop_vb\" [label=\"shop\\n«VB»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350, fontsize=10];"));
         assertTrue(dot.contains("\"arrive\" -> \"shop_nn\" [label=\"obl:at\"];"));
         assertTrue(dot.contains("\"shop_vb\" -> \"customer\" [label=\"nsubj\"];"));
     }
@@ -73,11 +73,12 @@ class LexicalGraphGeneratorTest {
 
         final String dot = generator.generateGraphvizGraph(deps);
 
-        // maximum count (3, for transform and intelligence) maps to scale 4
-        assertTrue(dot.contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=3.600, height=1.400];"));
-        assertTrue(dot.contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=3.600, height=1.400];"));
+        // maximum count (3, for transform and intelligence) maps to scale 4, scaling both
+        // dimensions and the font size by the same factor
+        assertTrue(dot.contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=3.600, height=1.400, fontsize=40];"));
+        assertTrue(dot.contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=3.600, height=1.400, fontsize=40];"));
         // a count of 1 leaves the node at its base size (no enlargement)
-        assertTrue(dot.contains("\"modern\" [label=\"modern\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350];"));
+        assertTrue(dot.contains("\"modern\" [label=\"modern\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350, fontsize=10];"));
     }
 
 
@@ -96,7 +97,7 @@ class LexicalGraphGeneratorTest {
 
         assertTrue(dot.contains("\"data-center\" [label=\"data-center\\n«NN»\", fillcolor=\"#3498DB\""), dot);
         assertTrue(dot.contains("\"data-center\" -> \"node\" [label=\"amod\"];"), dot);
-        assertTrue(dot.contains("\"123abc\" [label=\"123abc\\n«NNP»\", fillcolor=\"#2C3E50\""), dot);
+        assertTrue(dot.contains("\"123abc\" [label=\"123abc\\n«NNP»\", fillcolor=\"#85C1E9\""), dot);
         assertTrue(dot.contains("\"123abc\" -> \"data-center\" [label=\"nsubj\"];"), dot);
     }
 
