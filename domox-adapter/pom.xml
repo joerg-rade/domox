@@ -64,6 +64,18 @@
     </dependencyManagement>
 
     <dependencies>
+        <!--
+            Route Apache JCL (commons-logging) traffic through SLF4J. Batik/FOP hard-code
+            `new SimpleLog(...)` in AbstractFOPTranscoder#getLogger; with spring-jcl that stub
+            is deprecated, prints a deprecation notice to stdout and drops FOP log output.
+            Declared FIRST so jcl-over-slf4j precedes the spring-jcl transitive dependency on
+            the classpath and its non-deprecated, SLF4J-backed SimpleLog is the one resolved.
+        -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>

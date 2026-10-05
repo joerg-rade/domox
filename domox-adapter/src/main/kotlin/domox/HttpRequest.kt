@@ -4,6 +4,8 @@ import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.fuel.json.responseJson
 import com.github.kittinunf.result.Result
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
@@ -14,13 +16,17 @@ class HttpRequest(
     private val krokiProperties: KrokiProperties = KrokiProperties(),
 ) {
 
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(HttpRequest::class.java)
+    }
+
     /*
     https://www.url-encode-decode.com/
     {"annotators":"tokenize, ssplit, pos, lemma, ner, parse, sentiment","outputFormat":"json"}
     %7B%22annotators%22%3A%22tokenize%2C+ssplit%2C+pos%2C+lemma%2C+ner%2C+parse%2C+sentiment%22%2C%22outputFormat%22%3A%22json%22%7D
      */
     fun invokeCoreNLP_Fuel(arg: String, parameters: String, host: String = Constants.coreNlpHost, port: Int = Constants.coreNlpPort): String {
-        System.out.println("[invokeCoreNLP] " + parameters)
+        logger.info("[invokeCoreNLP] $parameters")
         val query = listOf("properties" to parameters)
         val coreNlpUrl = Constants.coreNlpScheme + "://" + host + ":" + port
         Thread.sleep(10000)
@@ -46,7 +52,7 @@ class HttpRequest(
         when (result) {
             is Result.Failure -> {
                 val ex = result.getException()
-                println(ex)
+                logger.error("CoreNLP invocation failed", ex)
                 return ""
             }
             is Result.Success -> {
@@ -58,7 +64,7 @@ class HttpRequest(
 
     @JvmOverloads
     fun invokePlantUML(arg: String, host: String = "", port: Int = 0): String {
-        System.out.println("[invokePlantUML] " + arg)
+        logger.info("[invokePlantUML] $arg")
         val krokiHost = if (host.isEmpty())
             getSystemProperty("kroki.host", krokiProperties.host)
         else host
@@ -87,7 +93,7 @@ class HttpRequest(
      */
     @JvmOverloads
     fun invokeGraphviz(dotCode: String, host: String = "", port: Int = 0): String {
-        System.out.println("[invokeGraphviz] " + dotCode)
+        logger.debug("[invokeGraphviz] $dotCode")
         val krokiHost = if (host.isEmpty())
             getSystemProperty("kroki.host", krokiProperties.host)
         else host
@@ -123,7 +129,7 @@ class HttpRequest(
     }
 
     fun invokeAnonymous(url: String, arg: String): String {
-        System.out.println(arg)
+        logger.info("[invokeAnonymous] $arg")
         val (request, response, result) = url
             .httpPost()
             .body(arg)

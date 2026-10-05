@@ -26,7 +26,8 @@ import static org.mockito.Mockito.when;
 /**
  * Verifies {@link CandidateDiagrams#renderDiagram(Candidate)}:
  * <ul>
- *   <li>typed dependencies are drawn from the candidate's own {@link RuleMatch}es, and</li>
+ *   <li>typed dependencies are drawn from the candidate's own {@link RuleMatch}es (a one-hop
+ *       breadth-first expansion), and</li>
  *   <li>only dependencies whose governor and dependent lemma are <em>both</em> candidate words
  *       are kept — the candidate plus every related candidate looked up from the candidate
  *       lists.</li>
@@ -95,6 +96,49 @@ class CandidateDiagramsTest {
         assertTrue(dot.contains("\"currency\""), "related candidate 'currency' should be kept");
         assertFalse(dot.contains("\"catalog\""),
                 "content word that is not a candidate ('catalog') should be dropped");
+    }
+
+    @Test
+    void doesNotExpandToSecondLevelNeighbours() {
+        // given — "customer" connects to "purchase", and "purchase" connects to "order";
+        // "order" is two hops from "customer" and must NOT surface with MAX_HOP_DEPTH = 1.
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        customer.setCandidateType("ClassCdd");
+        customer.getRuleMatches().add(ruleMatchWith(dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
+                "customer", PartOfSpeechType.NN)));      // customer <-> purchase (direct)
+
+        final ActionCdd purchase = new ActionCdd();
+        purchase.setCandidateName("Purchase");
+        purchase.setCandidateType("ActionCdd");
+        purchase.getRuleMatches().add(ruleMatchWith(dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
+                "order", PartOfSpeechType.NN)));          // purchase <-> order (one hop further)
+        purchase.getRuleMatches().add(ruleMatchWith(dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
+                "receipt", PartOfSpeechType.NN)));        // 'receipt' not a candidate -> dropped
+
+        final ClassCdd order = new ClassCdd();
+        order.setCandidateName("Order");
+        order.setCandidateType("ClassCdd");
+
+        when(classCandidates.listAll()).thenReturn(List.of(customer, order));
+        when(actionCandidates.listAll()).thenReturn(List.of(purchase));
+        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+
+        // when
+        candidateDiagrams.renderDiagram(customer);
+
+        // then — only the direct neighbour "purchase" is drawn; second-level "order" is not,
+        // and neither is the non-candidate "receipt"
+        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
+        final String dot = captor.getValue();
+
+        assertTrue(dot.contains("\"customer\""), "the candidate itself should be kept");
+        assertTrue(dot.contains("\"purchase\""), "directly connected candidate 'purchase' should be kept");
+        assertFalse(dot.contains("\"order\""),
+                "second-level candidate 'order' should be dropped at MAX_HOP_DEPTH = 1");
+        assertFalse(dot.contains("\"receipt\""),
+                "content word that is not a candidate ('receipt') should be dropped at any depth");
     }
 
     @Test

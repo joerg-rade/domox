@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bs:grid
+        xmlns:bs="https://causeway.apache.org/applib/layout/grid/bootstrap3"
+        xmlns:cpt="https://causeway.apache.org/applib/layout/component">
+
+    <!-- Top Header & Unassigned Actions -->
+    <!--
+      Shared layout for every Candidate subclass (ClassCdd, ActionCdd, PropertyCdd,
+      AssociationCdd).  Causeway falls back from a concrete subclass to the inherited
+      layout, so only base-Candidate members are referenced explicitly here; the
+      subclass-specific properties/collections are absorbed by the unreferenced
+      properties/collections columns below.
+    -->
+    <bs:row>
+        <bs:col span="12" unreferencedActions="true">
+            <cpt:domainObject/>
+        </bs:col>
+    </bs:row>
+
+    <!-- Main Content Split -->
+    <bs:row>
+        <!-- Left Side: Domain Properties (base + subclass-specific) -->
+        <bs:col span="4">
+            <bs:row>
+                <bs:col span="12">
+                    <cpt:fieldSet name="General" id="general" unreferencedProperties="true">
+                        <cpt:property id="candidateName"/>
+                        <cpt:property id="candidateType"/>
+                    </cpt:fieldSet>
+                </bs:col>
+            </bs:row>
+        </bs:col>
+
+        <!-- Right Side: Tab Group — Dependency Diagram first, then one tab per collection.
+             The tab group itself is flagged unreferencedCollections, so any collection not
+             referenced explicitly (i.e. subclass-specific ones such as propertyList,
+             actionList, associationList, inputTypeList) is appended automatically, each as
+             its own tab.  This keeps the shared Candidate layout valid for every subclass
+             without hardcoding collection ids that a given subclass may not own. -->
+        <bs:col span="8">
+            <bs:tabGroup unreferencedCollections="true">
+                <bs:tab name="Dependency Diagram">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet name="Dependency Diagram" id="content">
+                                <cpt:property id="diagram"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+                <bs:tab name="Rule Matches">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:collection id="ruleMatches"/>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+                <bs:tab name="Reviews">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:collection id="reviews"/>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+            </bs:tabGroup>
+        </bs:col>
+    </bs:row>
+</bs:grid>
