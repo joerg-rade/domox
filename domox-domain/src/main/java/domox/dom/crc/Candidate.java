@@ -11,6 +11,8 @@ import lombok.*;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.services.message.MessageService;
+import org.apache.causeway.applib.value.Blob;
+import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
 import java.util.ArrayList;
@@ -45,6 +47,27 @@ public abstract class Candidate extends AbstractEntity {
     @Inject
     @Transient
     private MessageService messageService;
+
+    // region Diagram
+    /**
+     * Injected {@link CandidateDiagrams} service used to render the candidate-centric lexical
+     * diagram on demand.
+     * <p>
+     * The diagram is deliberately <em>not</em> persisted: it is regenerated on every access
+     * because its content depends on the current candidate set, which changes as candidates are
+     * reviewed, approved, or rejected.
+     */
+    @Inject
+    @Transient
+    private CandidateDiagrams candidateDiagramsService;
+
+    @PdfJsViewer
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(named = "Dependency Diagram", fieldSetId = "content", sequence = "6")
+    public Blob getDiagram() {
+        return candidateDiagramsService != null ? candidateDiagramsService.renderDiagram(this) : null;
+    }
+    // endregion Diagram
 
     @Title
     public String title() {
