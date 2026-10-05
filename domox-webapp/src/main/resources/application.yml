@@ -76,12 +76,22 @@ causeway:
 #       `eclipselink:` map key that is simultaneously a scalar and a map, so these are kept
 #       as root-level dotted keys. Spring Boot's YAML loader preserves them as the exact
 #       flat property names EclipseLink reads (identical to the old .properties keys).
-#eclipselink.weaving=true
+# Dynamic weaving must be OFF: Causeway entities are plain POJOs, and on Java 21 (no static
+# weaving, no -javaagent) EclipseLink's self-instrumentation at deploy blocks the startup.
+# Leave it disabled; enable JPA lazy-loading via static weaving + -javaagent if ever needed.
+eclipselink.weaving: false
 eclipselink.deploy-on-startup: true
 eclipselink.ddl-generation: create-tables
 eclipselink.ddl-generation.output-mode: both
-eclipselink.create-ddl-jdbc-file-name: create-tables.sql
-eclipselink.application-location: "domox-webapp"
+eclipselink.create-ddl-jdbc-file-name: domox-webapp/create-tables.sql
+# The app runs with the REPO ROOT as the working directory: the IDE "DoMoX" run config and
+# `mvn -pl domox-webapp spring-boot:run` both start in the repo root (verified at startup:
+# "started by jrade in /home/jrade/projects/domox"). EclipseLink resolves the DDL output file
+# relative to application-location, so "." points at the repo root and the file name is the
+# repo-relative path, landing the DDL output deterministically at domox-webapp/create-tables.sql.
+# (application-location ".." resolved one directory too high -> ../domox-webapp/... -> startup
+# failed with EclipseLink-7018 FileNotFound.)
+eclipselink.application-location: "."
 eclipselink.jpa.upper-case-column-names: false
 eclipselink.table-schema: domox
 

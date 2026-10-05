@@ -101,7 +101,7 @@ class CandidateDiagramsTest {
     @Test
     void doesNotExpandToSecondLevelNeighbours() {
         // given — "customer" connects to "purchase", and "purchase" connects to "order";
-        // "order" is two hops from "customer" and must NOT surface with MAX_HOP_DEPTH = 1.
+        // "order" is two hops from "customer" and must NOT surface at the default hop depth (1).
         final ClassCdd customer = new ClassCdd();
         customer.setCandidateName("Customer");
         customer.setCandidateType("ClassCdd");
@@ -136,7 +136,49 @@ class CandidateDiagramsTest {
         assertTrue(dot.contains("\"customer\""), "the candidate itself should be kept");
         assertTrue(dot.contains("\"purchase\""), "directly connected candidate 'purchase' should be kept");
         assertFalse(dot.contains("\"order\""),
-                "second-level candidate 'order' should be dropped at MAX_HOP_DEPTH = 1");
+                "second-level candidate 'order' should be dropped at the default hop depth (1)");
+        assertFalse(dot.contains("\"receipt\""),
+                "content word that is not a candidate ('receipt') should be dropped at any depth");
+    }
+
+    @Test
+    void rebuildsDeeperDiagramWhenHopDepthIsRaised() {
+        // given — "customer" -> "purchase" -> "order"; raising the attribute to 2 hops should
+        // pull the second-level neighbour "order" into the rebuilt diagram.
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        customer.setCandidateType("ClassCdd");
+        customer.setHopDepth(2); // change triggers a deeper rebuild
+        customer.getRuleMatches().add(ruleMatchWith(dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
+                "customer", PartOfSpeechType.NN)));      // customer <-> purchase (direct)
+
+        final ActionCdd purchase = new ActionCdd();
+        purchase.setCandidateName("Purchase");
+        purchase.setCandidateType("ActionCdd");
+        purchase.getRuleMatches().add(ruleMatchWith(dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
+                "order", PartOfSpeechType.NN)));          // purchase <-> order (one hop further)
+        purchase.getRuleMatches().add(ruleMatchWith(dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
+                "receipt", PartOfSpeechType.NN)));        // 'receipt' not a candidate -> dropped
+
+        final ClassCdd order = new ClassCdd();
+        order.setCandidateName("Order");
+        order.setCandidateType("ClassCdd");
+
+        when(classCandidates.listAll()).thenReturn(List.of(customer, order));
+        when(actionCandidates.listAll()).thenReturn(List.of(purchase));
+        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+
+        // when
+        candidateDiagrams.renderDiagram(customer);
+
+        // then — the second-level neighbour surfaces because the hop-depth attribute was raised,
+        // while the non-candidate "receipt" is still dropped
+        final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
+        final String dot = captor.getValue();
+
+        assertTrue(dot.contains("\"order\""),
+                "second-level candidate 'order' should surface once the hop depth is raised to 2");
         assertFalse(dot.contains("\"receipt\""),
                 "content word that is not a candidate ('receipt') should be dropped at any depth");
     }

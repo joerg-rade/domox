@@ -67,6 +67,41 @@ public abstract class Candidate extends AbstractEntity {
     public Blob getDiagram() {
         return candidateDiagramsService != null ? candidateDiagramsService.renderDiagram(this) : null;
     }
+
+    /**
+     * How many hops the candidate-centric lexical diagram reaches out from the candidate:
+     * {@code 1} (the default) draws the candidate plus every candidate directly connected to it.
+     * Larger values deepen the neighbourhood — e.g. {@code 2} additionally draws every candidate
+     * connected to those direct neighbours.
+     * <p>
+     * Changing this value triggers the {@link #getDiagram() dependency diagram} to be rebuilt at
+     * the new depth: the diagram is derived again on every access, so the next render reflects the
+     * updated hop depth.
+     */
+    @Column(nullable = false)
+    @PropertyLayout(
+            named = "Diagram Hop Depth",
+            describedAs = "How far the dependency diagram reaches out (in hops) from this candidate",
+            fieldSetId = "content",
+            sequence = "5")
+    private int hopDepth = 1;
+
+    public int getHopDepth() {
+        return hopDepth;
+    }
+
+    /**
+     * Sets the hop depth, clamped to a minimum of {@code 1}.  Because {@link #getDiagram()} is
+     * regenerated on every access, an actual change causes the dependency diagram to be rebuilt at
+     * the new depth on its next render.
+     */
+    public void setHopDepth(final int hopDepth) {
+        final int clamped = Math.max(1, hopDepth);
+        if (this.hopDepth != clamped) {
+            this.hopDepth = clamped;
+            // The dependency diagram is derived on access, so the next getDiagram() rebuilds it.
+        }
+    }
     // endregion Diagram
 
     @Title

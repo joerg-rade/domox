@@ -12,9 +12,11 @@ import jakarta.persistence.Table;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.Collection;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.Editing;
 import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.Publishing;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +26,7 @@ import java.util.List;
 @Entity
 @Table(schema = DomainModule.SCHEMA, name = "ActionCdd")
 @Named(DomainModule.NAMESPACE + ".ActionCdd")
-@DomainObject(entityChangePublishing = Publishing.ENABLED)
+@DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "bolt")
 @ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor

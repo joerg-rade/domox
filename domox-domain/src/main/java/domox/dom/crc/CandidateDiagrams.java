@@ -24,10 +24,10 @@ import java.util.*;
  * one candidate.
  * <p>
  * The diagram is built by a breadth-first expansion of the candidate-connection graph starting
- * from the candidate, one hop deep (see {@link #MAX_HOP_DEPTH}): from the candidate's own
- * {@link RuleMatch}es, only dependencies whose governor <em>and</em> dependent lemma both
- * correspond to a candidate word are kept.  The retained edges therefore draw the candidate
- * together with every candidate directly connected to it.
+ * from the candidate, {@link Candidate#getHopDepth()} hops deep (default {@code 1}): from the
+ * candidate's own {@link RuleMatch}es, only dependencies whose governor <em>and</em> dependent
+ * lemma both correspond to a candidate word are kept.  The retained edges therefore draw the
+ * candidate together with every candidate directly connected to it.
  * <p>
  * The diagram is regenerated on <em>every</em> call — it is never cached — because its content
  * reflects the current candidate set, which changes as candidates are reviewed, approved, or
@@ -39,14 +39,6 @@ import java.util.*;
 public class CandidateDiagrams {
 
     private static final Logger log = LoggerFactory.getLogger(CandidateDiagrams.class);
-
-    /**
-     * How many hops the candidate-centric graph reaches out from the candidate: {@code 1} draws
-     * the candidate plus every candidate directly connected to it.  (Larger values reach deeper
-     * neighbourhoods, e.g. {@code 2} additionally draws every candidate connected to those direct
-     * neighbours.)
-     */
-    private static final int MAX_HOP_DEPTH = 1;
 
     private final DiagramBuilder diagramBuilder;
     private final ClassCandidates classCandidates;
@@ -71,8 +63,8 @@ public class CandidateDiagrams {
     /**
      * Renders a freshly generated PDF {@link Blob} for the candidate-centric lexical dependency
      * graph of {@code candidate} — the candidate and every candidate directly connected to it
-     * (see {@link #MAX_HOP_DEPTH}) — or {@code null} when the candidate is {@code null} or the
-     * render fails (e.g. Kroki unavailable).
+     * (see {@link Candidate#getHopDepth()}) — or {@code null} when the candidate is
+     * {@code null} or the render fails (e.g. Kroki unavailable).
      */
     @Programmatic
     public Blob renderDiagram(final Candidate candidate) {
@@ -91,7 +83,7 @@ public class CandidateDiagrams {
             final Set<String> candidateLemmas = candidateLemmas(allCandidates);
             final Map<String, List<Candidate>> candidatesByLemma = candidatesByLemma(allCandidates);
             final List<TypedDependency> dependencies = collectDependencies(
-                    candidate, candidateLemmas, candidatesByLemma, MAX_HOP_DEPTH);
+                    candidate, candidateLemmas, candidatesByLemma, candidate.getHopDepth());
             dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies, allCandidates);
             final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
             final String fileName = candidate.getCandidateName() + "-diagram.pdf";
