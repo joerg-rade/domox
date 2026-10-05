@@ -19,6 +19,16 @@
         <!-- Framework versions -->
         <causeway.version>3.6.0</causeway.version>
         <spring-boot.version>3.5.16</spring-boot.version>
+        <!-- Spring Framework 6.2.19 is the HIGHEST OSS version on the 6.2.x line (verified
+             against Maven Central, 2026-09-24 metadata) and is the OSS fix for the June 2026
+             SpEL/request family (CVE-2026-41850/41851/41852/41848). The August 2026 batch
+             (CVE-2026-59282/59283 unbounded list growth, CVE-2026-47886 unbounded SpEL
+             exponentiation) is only fixed in 6.2.20, which is Enterprise-support-only;
+             not publishable to OSS Maven Central. The only fully-patched OSS line is
+             Spring Framework 7.0.9+, which requires Spring Boot 4.x (incompatible with
+             Boot 3.5.16 / Causeway 3.6.0); upgrading is out of scope for transitive-CVE
+             pinning and is tracked as an accepted risk. All spring-* artifacts are pinned
+             together at 6.2.19 to avoid version skew. -->
         <spring-framework.version>6.2.19</spring-framework.version>
         <spring-core.version>6.2.19</spring-core.version>
         <spring-jdbc.version>6.2.19</spring-jdbc.version>
@@ -800,9 +810,14 @@
                 <artifactId>spring-core</artifactId>
                 <version>${spring-core.version}</version>
             </dependency>
-            <!-- spring-beans / spring-context / spring-expression were left at the Boot BOM's
-                 6.2.17 while spring-core/web/jdbc are overridden; align the whole framework at
-                 6.2.19 (CVE-2026-59282/59283 family). -->
+            <!-- spring-beans / spring-context / spring-expression / spring-aop / spring-tx /
+                 spring-orm / spring-jcl were left at the Boot BOM's 6.2.17 while spring-core /
+                 web / jdbc were overridden; align the whole framework at 6.2.19. 6.2.19 is the
+                 OSS fix for the June 2026 SpEL/request-family CVEs (CVE-2026-41850/41851/41852/
+                 41848, affected 6.2.0-6.2.18). NOTE: the August 2026 batch (CVE-2026-59282/59283
+                 unbounded list growth, CVE-2026-47886 unbounded SpEL exponentiation) is only
+                 fixed in 6.2.20, which is Enterprise-support-only; 6.2.19 is the highest OSS
+                 6.2.x; that residual risk is documented in the properties block. -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
@@ -816,6 +831,51 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-expression</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-orm</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jcl</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aspects</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context-support</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-messaging</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-websocket</artifactId>
                 <version>${spring-framework.version}</version>
             </dependency>
             <dependency>
@@ -891,9 +951,11 @@
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
             </dependency>
-            <!-- Logback (test + runtime via spring-boot-starter-test / log4j2 config drives
-                 logback only in domox-webapp's fallback): 1.5.32 carries CVE-2026-19880 /
-                 13006 / 9828 / 10532. Explicit pins keep classic + core in lock-step. -->
+            <!-- Logback arrives only transitively via spring-boot-starter-logging (pulled in as a
+                 test dep through spring-boot-starter-test in domox-domain; domox-webapp excludes
+                 logback-classic from spring-boot-starter-web because it runs on Log4j2). The
+                 1.5.32 line carries CVE-2026-19880 / 13006 / 9828 / 10532; explicit pins keep
+                 logback-classic + logback-core in lock-step. -->
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
