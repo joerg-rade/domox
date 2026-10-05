@@ -86,8 +86,13 @@ class HttpRequest(
      *
      * Unlike [invokePlantUML] (which POSTs PlantUML source as a raw text body to
      * `/plantuml/svg`), DOT source must be sent as the JSON
-     * `{"diagram_source": ..., "diagram_options": {...}}` payload that Kroki's POST
-     * API expects — the same format used by [domox.GraphvizUtils.generateDiagram].
+     * `{"diagram_source": ...}` payload that Kroki's POST API expects — the same
+     * format used by [domox.GraphvizUtils.generateDiagram].
+     *
+     * No `diagram_options.layout` is sent here: Kroki honours the DOT source's own
+     * `layout` graph attribute over the request options, so a hard-coded engine here
+     * would be dead (and misleading) config — the caller's DOT is authoritative. DOT
+     * without a `layout` attribute falls back to Kroki's default engine (`dot`).
      *
      * Uses the configured Kroki host/port unless explicit [host]/[port] are provided.
      */
@@ -101,8 +106,7 @@ class HttpRequest(
             getSystemProperty("kroki.port", krokiProperties.port.toString()).toInt()
         else port
         val endpoint = "http://" + krokiHost + ":" + krokiPort + "/graphviz/svg"
-        val jsonPayload = "{\"diagram_source\": " + escapeJsonString(dotCode) +
-                ",\"diagram_options\": {\"layout\": \"dot\"}}"
+        val jsonPayload = "{\"diagram_source\": " + escapeJsonString(dotCode) + "}"
         val (request, response, result) = endpoint
             .httpPost()
             .set("Accept", Constants.svgMimeType)

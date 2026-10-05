@@ -64,6 +64,21 @@ public class LexicalGraphGenerator {
     /** Node border width (penwidth) for an approved candidate's emphasised (bold) border. */
     private static final double APPROVED_BORDER_PENWIDTH = 3.0;
 
+    // --- Diagram legend ---
+
+    /**
+     * The legend's colour rows: a swatch fill colour paired with a short node-type label and a
+     * description listing the POS tags that map to it (mirroring {@link #posColor(String)} so the
+     * legend stays in sync with the node colours).  Each row fills the swatch / name / description
+     * columns of the HTML-like legend table.
+     */
+    private static final String[][] LEGEND_COLOR_ROWS = {
+            {"#3498DB", "Noun", "Entities and objects («NN», «NNS»)"},
+            {"#85C1E9", "Proper noun", "Named entities («NNP», «NNPS»)"},
+            {"#E74C3C", "Verb", "Actions and predicates («VB», «VBZ»)"},
+            {"#2ECC71", "Adjective", "Descriptors and modifiers («JJ», «JJR», «JJS»)"}
+    };
+
     /**
      * @param dependencies the typed dependencies to draw; ROOT pseudo-token
      *                     dependencies (governor index 0) are skipped
@@ -82,6 +97,8 @@ public class LexicalGraphGenerator {
      *                     border, and a node whose lemma matches a candidate that is part of a
      *                     synonym (carries a {@code SynonymCdd} rule match) gets a dashed border.
      *                     The two styles combine when a candidate is both approved and a synonym member.
+     *                     Every diagram also carries a legend explaining the node colours, node size
+     *                     and border semantics.
      * @return Graphviz DOT source for a compact lexical dependency graph
      */
     public String generateGraphvizGraph(final Collection<TypedDependency> dependencies,
@@ -131,9 +148,9 @@ public class LexicalGraphGenerator {
         final StringBuilder dot = new StringBuilder();
         dot.append("digraph LexicalDependencyGraph {\n");
         dot.append("    // Layout and style settings for maximum compactness.\n");
-        dot.append("    //    `layout = dot` is used deliberately: `sfdp` (force-directed) is not\n");
-        dot.append("    //    supported by Kroki's Graphviz build (missing triangulation), so any\n");
-        dot.append("    //    DOT with `layout = sfdp` makes the /graphviz endpoint return HTTP 400\n");
+        dot.append("    //    `layout = neato` (force-directed) is used deliberately: Kroki's\n");
+        dot.append("    //    Graphviz build cannot run `sfdp` (missing triangulation), so any DOT\n");
+        dot.append("    //    declaring `layout = sfdp` makes the /graphviz endpoint return HTTP 400\n");
         dot.append("    //    and the whole diagram fails to render.\n");
         dot.append("    graph [\n");
         dot.append("        layout = neato\n");
@@ -206,8 +223,74 @@ public class LexicalGraphGenerator {
                     .append(" [label=").append(dotQuoted(edge[2])).append("];\n");
         }
 
+        appendLegend(dot);
+
         dot.append("}\n");
         return dot.toString();
+    }
+
+    /**
+     * Appends the diagram's legend as a single HTML-like table node (the node-type legend
+     * template): a bordered table with a header band and one row per visual rule, so the reader
+     * can decode the node fill colour per part of speech, the node size (proportional to the
+     * number of linked rules) and the border semantics (dashed = part of a synonym pair, bold =
+     * approved candidate, bold + dashed = approved synonym member).  Drawn as a {@code plain}
+     * node so the table renders inline; the node carries a pinned {@code pos} (the {@code !}
+     * suffix) so neato keeps it out of the force model and parks it at the diagram's lower-left
+     * corner.
+     */
+    private void appendLegend(final StringBuilder dot) {
+        dot.append("\n    // ==========================================\n");
+        dot.append("    // LEGEND (Table Layout using HTML-like node)\n");
+        dot.append("    // ==========================================\n");
+        dot.append("    Legend [\n");
+        dot.append("        shape = plain\n");
+        // The legend's corner placement is intentionally NOT expressed in DOT: neato (the engine
+        // actually used) can't park a node in a known corner — `rank = sink` is dot-only, and a
+        // pinned `pos` has no idea where the final bounding box is. The diagram renderer instead
+        // moves the legend to the lower-left corner while post-processing the rendered SVG.
+        dot.append("        label = <\n");
+        dot.append("            <table border=\"0\" cellborder=\"1\" cellspacing=\"0\" cellpadding=\"6\" bgcolor=\"#FFFFFF\">\n");
+        // Header band.
+        dot.append("                <tr>\n");
+        dot.append("                    <td colspan=\"3\" bgcolor=\"#E2E8F0\"><b><font point-size=\"11\" color=\"#1E293B\">Node Type Legend</font></b></td>\n");
+        dot.append("                </tr>\n");
+        // Node size semantics.
+        dot.append("                <tr>\n");
+        dot.append("                    <td bgcolor=\"#F8F9FA\" width=\"20\"></td>\n");
+        dot.append("                    <td><b>Node size</b></td>\n");
+        dot.append("                    <td><font color=\"#475569\">Proportional to linked-rule count (largest node = 4x base)</font></td>\n");
+        dot.append("                </tr>\n");
+        // Border semantics: a dashed example, a bold example and the combined case.
+        dot.append("                <tr>\n");
+        dot.append("                    <td bgcolor=\"#F8F9FA\" width=\"20\" style=\"dashed\"></td>\n");
+        dot.append("                    <td><b>Dashed border</b></td>\n");
+        dot.append("                    <td><font color=\"#475569\">Part of a synonym pair</font></td>\n");
+        dot.append("                </tr>\n");
+        dot.append("                <tr>\n");
+        dot.append("                    <td bgcolor=\"#F8F9FA\" width=\"20\" border=\"3\"></td>\n");
+        dot.append("                    <td><b>Bold border</b></td>\n");
+        dot.append("                    <td><font color=\"#475569\">Approved candidate</font></td>\n");
+        dot.append("                </tr>\n");
+        dot.append("                <tr>\n");
+        dot.append("                    <td bgcolor=\"#F8F9FA\" width=\"20\" border=\"3\" style=\"dashed\"></td>\n");
+        dot.append("                    <td><b>Bold + dashed</b></td>\n");
+        dot.append("                    <td><font color=\"#475569\">Approved synonym member</font></td>\n");
+        dot.append("                </tr>\n");
+        // Colour rows (a swatch per POS colour used by the graph).
+        dot.append("                <tr>\n");
+        dot.append("                    <td colspan=\"3\" bgcolor=\"#F1F5F9\"><font point-size=\"10\" color=\"#1E293B\">Node colours (fill) by part of speech</font></td>\n");
+        dot.append("                </tr>\n");
+        for (String[] row : LEGEND_COLOR_ROWS) {
+            dot.append("                <tr>\n");
+            dot.append("                    <td bgcolor=\"").append(row[0]).append("\" width=\"20\"></td>\n");
+            dot.append("                    <td><b>").append(row[1]).append("</b></td>\n");
+            dot.append("                    <td><font color=\"#475569\">").append(row[2]).append("</font></td>\n");
+            dot.append("                </tr>\n");
+        }
+        dot.append("            </table>\n");
+        dot.append("        >\n");
+        dot.append("    ];\n");
     }
 
     /**
