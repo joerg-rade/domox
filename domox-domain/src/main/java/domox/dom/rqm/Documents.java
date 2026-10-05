@@ -6,6 +6,7 @@ import domox.diagram.DiagramBuilder;
 import domox.dom.UcResources;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.AssociationCdd;
+import domox.dom.crc.Candidate;
 import domox.dom.crc.ClassCdd;
 import domox.dom.crc.DomainModel;
 import domox.dom.crc.PropertyCdd;
@@ -221,7 +222,8 @@ public class Documents {
                             : java.util.stream.Stream.empty())
                     .filter(td -> isCandidateDependency(td, allowedLemmas))
                     .collect(Collectors.toList());
-            dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies);
+            dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies,
+                    candidates(document.getDomainModel()));
             final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
             final String fileName = document.getTitle() + "-lexical.pdf";
             return new Blob(fileName, Constants.pdfMimeType, bytes);
@@ -262,6 +264,28 @@ public class Documents {
             model.associationList.stream().map(AssociationCdd::getCandidateName).forEach(a -> lemmas.add(lower(a)));
         }
         return lemmas;
+    }
+
+    /**
+     * The candidate snapshot of the analysis run — every candidate of every type owned by the
+     * model.  Passed to {@link LexicalGraphGenerator} so node borders can reflect approval status
+     * and synonym membership.
+     */
+    private List<Candidate> candidates(final DomainModel model) {
+        final List<Candidate> candidates = new ArrayList<>();
+        if (model.classList != null) {
+            candidates.addAll(model.classList);
+        }
+        if (model.actionList != null) {
+            candidates.addAll(model.actionList);
+        }
+        if (model.propertyList != null) {
+            candidates.addAll(model.propertyList);
+        }
+        if (model.associationList != null) {
+            candidates.addAll(model.associationList);
+        }
+        return candidates;
     }
 
     /**

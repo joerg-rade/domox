@@ -1,5 +1,8 @@
 package domox.dom.nlp;
 
+import domox.dom.crc.ClassCdd;
+import domox.dom.crc.Review;
+import domox.dom.crc.ReviewStatus;
 import domox.dom.rules.RuleMatch;
 import org.junit.jupiter.api.Test;
 
@@ -136,6 +139,104 @@ class LexicalGraphGeneratorTest {
         assertTrue(dot.startsWith("digraph LexicalDependencyGraph {"));
         assertTrue(dot.trim().endsWith("}"));
         assertFalse(dot.contains("[label="), "empty list -> no node or edge labels");
+    }
+
+    @Test
+    void approvedCandidateGetsBoldBorder() {
+        final String dot = generator.generateGraphvizGraph(
+                List.of(dep(TdType.NSUBJ, 1, "store", PartOfSpeechType.NN,
+                        2, "customer", PartOfSpeechType.NN)),
+                List.of(approvedClassCandidate("Store")));
+
+        // the approved term ('Store', matched case-insensitively) gets a bold border ...
+        assertTrue(dot.contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, penwidth=3.000];"), dot);
+        // ... while a node without an approved candidate keeps the plain declaration
+        assertTrue(dot.contains("\"customer\" [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];"), dot);
+        assertFalse(dot.contains("dashed"), "approved alone must not produce a dashed border:\n" + dot);
+    }
+
+    @Test
+    void rejectedCandidateDoesNotGetBoldBorder() {
+        final ClassCdd store = new ClassCdd();
+        store.setCandidateName("Store");
+        final Review review = new Review();
+        review.setStatus(ReviewStatus.REJECTED);
+        store.getReviews().add(review);
+
+        final String dot = generator.generateGraphvizGraph(
+                List.of(dep(TdType.NSUBJ, 1, "store", PartOfSpeechType.NN,
+                        2, "customer", PartOfSpeechType.NN)),
+                List.of(store));
+
+        assertTrue(dot.contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];"), dot);
+        assertFalse(dot.contains("penwidth"), "a REJECTED review must not emphasise the border:\n" + dot);
+    }
+
+    @Test
+    void synonymCandidateGetsDashedBorder() {
+        final String dot = generator.generateGraphvizGraph(
+                List.of(dep(TdType.NSUBJ, 1, "store", PartOfSpeechType.NN,
+                        2, "shop", PartOfSpeechType.NN)),
+                List.of(synonymClassCandidate("Shop", "Store")));
+
+        // both members of the synonym pair ('Shop' == 'Store') get a dashed border
+        assertTrue(dot.contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\"];"), dot);
+        assertTrue(dot.contains("\"shop\" [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\"];"), dot);
+        assertFalse(dot.contains("penwidth"), "synonym alone must not produce a bold border:\n" + dot);
+    }
+
+    @Test
+    void approvedSynonymCandidateCombinesBoldAndDashedBorders() {
+        final ClassCdd store = approvedClassCandidate("Store");
+        store.getRuleMatches().add(synonymMatch("Store", "Shop"));
+
+        final String dot = generator.generateGraphvizGraph(
+                List.of(dep(TdType.NSUBJ, 1, "store", PartOfSpeechType.NN,
+                        2, "shop", PartOfSpeechType.NN)),
+                List.of(store));
+
+        // an approved synonym member carries both the dashed style and the bold penwidth
+        assertTrue(dot.contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\", penwidth=3.000];"), dot);
+    }
+
+    @Test
+    void noCandidateSnapshotLeavesNodesUnstyled() {
+        final String plain = generator.generateGraphvizGraph(sampleDependencies());
+        assertFalse(plain.contains("penwidth"), "plain graph must not emit border emphasis:\n" + plain);
+        assertFalse(plain.contains("dashed"), "plain graph must not emit a dashed border style:\n" + plain);
+
+        final String withSnapshot = generator.generateGraphvizGraph(
+                sampleDependencies(), List.of(approvedClassCandidate("Intelligence")));
+        assertTrue(withSnapshot.contains("penwidth=3.000"), withSnapshot);
+    }
+
+    /** A class candidate whose reviews contain one APPROVED review. */
+    private static ClassCdd approvedClassCandidate(final String name) {
+        final ClassCdd candidate = new ClassCdd();
+        candidate.setCandidateName(name);
+        final Review review = new Review();
+        review.setStatus(ReviewStatus.APPROVED);
+        candidate.getReviews().add(review);
+        return candidate;
+    }
+
+    /**
+     * A class candidate carrying a {@code SynonymCdd} rule match naming {@code name} and its
+     * synonym partner {@code partner} (mirroring the TDR41 match attached to the synonym association).
+     */
+    private static ClassCdd synonymClassCandidate(final String name, final String partner) {
+        final ClassCdd candidate = new ClassCdd();
+        candidate.setCandidateName(name);
+        candidate.getRuleMatches().add(synonymMatch(name, partner));
+        return candidate;
+    }
+
+    private static RuleMatch synonymMatch(final String name, final String partner) {
+        final RuleMatch match = new RuleMatch();
+        match.setCandidateType("SynonymCdd");
+        match.setCandidateName(name);
+        match.setRelatedCandidateName(partner);
+        return match;
     }
 
     /**

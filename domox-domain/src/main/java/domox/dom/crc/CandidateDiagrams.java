@@ -92,7 +92,7 @@ public class CandidateDiagrams {
             final Map<String, List<Candidate>> candidatesByLemma = candidatesByLemma(allCandidates);
             final List<TypedDependency> dependencies = collectDependencies(
                     candidate, candidateLemmas, candidatesByLemma, MAX_HOP_DEPTH);
-            dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies);
+            dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies, allCandidates);
             final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
             final String fileName = candidate.getCandidateName() + "-diagram.pdf";
             return new Blob(fileName, Constants.pdfMimeType, bytes);
