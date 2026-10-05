@@ -7,7 +7,6 @@ import domox.dom.UcResources;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.AssociationCdd;
 import domox.dom.crc.Candidate;
-import domox.dom.crc.ClassCdd;
 import domox.dom.crc.DomainModel;
 import domox.dom.crc.PropertyCdd;
 import domox.dom.nlp.LexicalGraphGenerator;
