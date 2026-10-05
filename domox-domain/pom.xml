@@ -88,10 +88,6 @@
             <version>${causeway.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.causeway.domox</groupId>
-            <artifactId>domox-adapter</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.causeway.extensions</groupId>
             <artifactId>causeway-extensions-pdfjs-applib</artifactId>
         </dependency>
