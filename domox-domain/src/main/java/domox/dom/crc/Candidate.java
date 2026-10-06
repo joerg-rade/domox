@@ -40,6 +40,22 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Candidate extends AbstractEntity {
 
+    /**
+     * The concrete {@link Candidate} subclasses that participate in the review pipeline.
+     * <p>
+     * Single source of truth shared by {@code Reviews} (which iterates every type to find
+     * unprocessed candidates) and {@code CandidateEditingTest} (which asserts each subclass
+     * opts into inline editing).  When a new subclass is added it must be registered here —
+     * nowhere else — so the review pipeline and the guardrail test always see the same set.
+     */
+    public static final List<Class<? extends Candidate>> SUBCLASSES = List.of(
+            ClassCdd.class,
+            ActionCdd.class,
+            PropertyCdd.class,
+            AssociationCdd.class,
+            PackageCdd.class,
+            ParameterCdd.class);
+
     @Inject
     @Transient
     private Reviews reviewsService;
@@ -63,7 +79,7 @@ public abstract class Candidate extends AbstractEntity {
 
     @PdfJsViewer
     @Property(optionality = Optionality.OPTIONAL)
-    @PropertyLayout(named = "Dependency Diagram", fieldSetId = "content", sequence = "6")
+    @PropertyLayout(named = "Dependency Diagram", fieldSetId = "content", sequence = "2")
     public Blob getDiagram() {
         return candidateDiagramsService != null ? candidateDiagramsService.renderDiagram(this) : null;
     }
@@ -78,17 +94,14 @@ public abstract class Candidate extends AbstractEntity {
      * the new depth: the diagram is derived again on every access, so the next render reflects the
      * updated hop depth.
      */
+    @Getter
     @Column(nullable = false)
     @PropertyLayout(
             named = "Diagram Hop Depth",
             describedAs = "How far the dependency diagram reaches out (in hops) from this candidate",
             fieldSetId = "content",
-            sequence = "5")
+            sequence = "1")
     private int hopDepth = 1;
-
-    public int getHopDepth() {
-        return hopDepth;
-    }
 
     /**
      * Sets the hop depth, clamped to a minimum of {@code 1}.  Because {@link #getDiagram()} is
@@ -137,7 +150,7 @@ public abstract class Candidate extends AbstractEntity {
     public String getRuleNames() {
         return ruleMatches.stream()
                 .map(RuleMatch::getRuleClassName)
-                .filter(name -> name != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.joining(", "));
     }
 

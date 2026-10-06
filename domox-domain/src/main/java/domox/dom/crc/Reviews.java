@@ -27,13 +27,7 @@ public class Reviews {
      */
     public static final String AGENT_USER = "agent";
 
-    private static final List<Class<? extends Candidate>> CANDIDATE_SUBCLASSES = List.of(
-            ClassCdd.class,
-            PropertyCdd.class,
-            ActionCdd.class,
-            AssociationCdd.class,
-            PackageCdd.class,
-            ParameterCdd.class);
+    private static final List<Class<? extends Candidate>> CANDIDATE_SUBCLASSES = Candidate.SUBCLASSES;
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;

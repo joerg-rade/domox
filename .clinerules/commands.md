@@ -7,6 +7,8 @@ Whenever executing terminal commands that require Java, Maven, or SDKMAN binarie
    source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk env || true && mvn <command>
    ```
    The `|| true` prevents failure when the repo does not have a `.sdkmanrc` file.
+   Note: there is NO `.sdkmanrc` in this repo, so `sdk env` always falls back to the SDKMAN
+   default JDK — do not assume a pinned version.
 
 # Repo Map (navigation)
 
@@ -18,10 +20,15 @@ Before searching the codebase, jump straight to the right steer/doc for common t
 - **Persistence / schema / JPA field migration** (TABLE_PER_CLASS trap, `create-tables.sql`,
   drift check) → `memory-bank/technical/SCHEMA.md`
 - **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`
-- **Domain-modeling (CRC) extraction rules** → `crc_domain_modeling_guide`
+- **Domain-modeling (CRC) extraction rules** → `crc_domain_modeling_guide.md`
+- **Run the app & confirm boot** → start with a teed log so failures are debuggable:
+  `nohup mvn -pl domox-webapp spring-boot:run > /tmp/domox-boot.log 2>&1 &`, then
+  `tail -f /tmp/domox-boot.log`.  Liveness: `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/`
+  (expect 200); MCP endpoint: `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:8080/mcp`
+  (expect 200; 404 = the `spring.ai.mcp.server.protocol` key issue, see `mcp-review-pipeline.md`).
 
 Quick checks after an entity change: run `bash scripts/check-schema-drift.sh`, then
-`mvn -B -pl domox-domain test`.
+`mvn -B -pl domox-domain -am test`.
 
 # Shell Execution Formatting Rules
 

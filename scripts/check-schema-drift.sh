@@ -19,14 +19,26 @@
 # Usage:
 #   bash scripts/check-schema-drift.sh
 #
+#   Configurable via env vars (defaults match the local dev setup):
+#     DOMOX_DDL          path to the generated DDL     (default: domox-webapp/create-tables.sql)
+#     DOMOX_DB_CONTAINER docker container name         (default: domox-db)
+#     DOMOX_DB_SCHEMA    Postgres schema to compare    (default: domox)
+#     DOMOX_DB_USER      psql user                     (default: postgres)
+#
 # Depends on:
-#   - docker container "domox-db" running (postgres/postgres)
+#   - docker container with Postgres running (postgres/postgres)
 #   - domox-webapp/create-tables.sql regenerated (run the app once after entity changes)
+#
+# NOTE: this is a dev-DB guardrail, not a CI check.  It diffs against a GROWN database; against
+# a fresh/empty schema every table would be reported as missing columns.  In CI the equivalent
+# check would have to boot the app against a Postgres service so EclipseLink regenerates the
+# tables first.
 set -uo pipefail
 
-DDL="domox-webapp/create-tables.sql"
-CONTAINER="domox-db"
-SCHEMA="domox"
+DDL="${DOMOX_DDL:-domox-webapp/create-tables.sql}"
+CONTAINER="${DOMOX_DB_CONTAINER:-domox-db}"
+SCHEMA="${DOMOX_DB_SCHEMA:-domox}"
+PSQL_USER="${DOMOX_DB_USER:-postgres}"
 
 [ -f "$DDL" ] || { echo "ERROR: $DDL not found (run the app once to regenerate it)"; exit 2; }
 docker ps --format '{{.Names}}' | grep -qx "$CONTAINER" \
@@ -73,7 +85,7 @@ mapfile -t drift < <(
     [ -n "$cols" ] || continue          # skip tables with no columns (empty TABLE_PER_CLASS base)
 
     table_lc=$(echo "$table" | tr '[:upper:]' '[:lower:]')
-    live_cols=$(docker exec "$CONTAINER" psql -U postgres -d postgres -tA \
+    live_cols=$(docker exec "$CONTAINER" psql -U "$PSQL_USER" -d postgres -tA \
         -c "SELECT column_name FROM information_schema.columns WHERE table_schema='$SCHEMA' AND table_name='$table_lc'") \
       || { echo "ERROR: could not query columns for $table"; exit 2; }
 

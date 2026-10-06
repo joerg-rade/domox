@@ -1,9 +1,19 @@
-# Guardrail: run the unit-test suite on every push/PR so the repo is never shipped
-# un-linted.  The reflection test in domox-domain (CandidateEditingTest) is the check that
-# catches a Candidate subclass silently missing @DomainObject(editing = Editing.ENABLED).
+# Guardrail: keep the master build green on every push/PR.
 #
-# If a module's tests need special environment (a live DB, TestContainers on a runner, etc.),
-# scope the build to safe modules, e.g.:  mvn -B -pl domox-domain,domox-service test
+# Scope: domox-domain plus its upstream domox-adapter (the `-am` flag builds/tests both).
+# These modules' unit tests are pure JVM tests (153 in domox-domain) with NO external service
+# requirement — exactly what has been proven green locally.
+#
+# domox-webapp is intentionally NOT in this job: its `*Test.java` include five Testcontainers
+# integration tests (CorpusCandidateDedupIntegTest, DeleteCorpusIntegTest,
+# ReviewMcpToolsIntegTest, ValidateDomainModelIntegTest, Smoke_IntegTest) that boot the app
+# against a Postgres container.  Wire those into a separate Docker-capable job if you want
+# them gating CI.
+#
+# Schema drift: scripts/check-schema-drift.sh is a DEV-DB guardrail, not a CI check — it diffs
+# the grown local `domox-db` against the committed create-tables.sql, and against a fresh CI DB
+# every table would be reported missing.  Run it locally after entity changes:
+#   bash scripts/check-schema-drift.sh
 name: CI
 
 on:
@@ -32,5 +42,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
-      - name: Run unit tests
-        run: mvn -B -q test
+      # -am builds and tests upstream domox-adapter too; mirrors the locally-proven command.
+      - name: Run unit tests (domain + adapter)
+        run: mvn -B -q test -pl domox-domain -am
