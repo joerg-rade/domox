@@ -8,6 +8,21 @@ Whenever executing terminal commands that require Java, Maven, or SDKMAN binarie
    ```
    The `|| true` prevents failure when the repo does not have a `.sdkmanrc` file.
 
+# Repo Map (navigation)
+
+Before searching the codebase, jump straight to the right steer/doc for common tasks:
+
+- **Causeway annotations & conventions** (e.g. `@DomainObject(editing = Editing.ENABLED)`) →
+  `memory-bank/technical/CAUSEWAY.md`
+- **Module layout / build** → `memory-bank/technical/MAVEN.md`
+- **Persistence / schema / JPA field migration** (TABLE_PER_CLASS trap, `create-tables.sql`,
+  drift check) → `memory-bank/technical/SCHEMA.md`
+- **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`
+- **Domain-modeling (CRC) extraction rules** → `crc_domain_modeling_guide`
+
+Quick checks after an entity change: run `bash scripts/check-schema-drift.sh`, then
+`mvn -B -pl domox-domain test`.
+
 # Shell Execution Formatting Rules
 
 When preparing terminal execution requests:

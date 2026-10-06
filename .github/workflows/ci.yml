@@ -1,0 +1,36 @@
+# Guardrail: run the unit-test suite on every push/PR so the repo is never shipped
+# un-linted.  The reflection test in domox-domain (CandidateEditingTest) is the check that
+# catches a Candidate subclass silently missing @DomainObject(editing = Editing.ENABLED).
+#
+# If a module's tests need special environment (a live DB, TestContainers on a runner, etc.),
+# scope the build to safe modules, e.g.:  mvn -B -pl domox-domain,domox-service test
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Run unit tests
+        run: mvn -B -q test
