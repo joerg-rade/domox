@@ -67,7 +67,7 @@ public class ActionCdd
 
     @Override
     public int compareTo(@NotNull ActionCdd o) {
-        return 0; //FIXME
+        return Long.compare(this.getId(), o.getId());
     }
 
     public String toPlantUmlString() {

@@ -62,8 +62,7 @@ public class PropertyCdd
 
     @Override
     public int compareTo(@NotNull PropertyCdd o) {
-        //FIXME
-        return 0;
+        return Long.compare(this.getId(), o.getId());
     }
 
     public String toPlantUmlString() {

@@ -82,7 +82,7 @@ public class ClassCdd
 
     @Override
     public int compareTo(@NotNull ClassCdd o) {
-        return 0; //FIXME
+        return Long.compare(this.getId(), o.getId());
     }
 
     @Programmatic

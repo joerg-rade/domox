@@ -76,7 +76,7 @@ public class AssociationCdd
 
     @Override
     public int compareTo(@NotNull AssociationCdd o) {
-        return 0; //FIXME
+        return Long.compare(this.getId(), o.getId());
     }
 
     public String toPlantUmlString() {

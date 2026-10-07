@@ -50,8 +50,7 @@ public class ParameterCdd
 
     @Override
     public int compareTo(@NotNull ParameterCdd o) {
-        //FIXME
-        return 0;
+        return Long.compare(this.getId(), o.getId());
     }
 
     public String toPlantUmlString() {

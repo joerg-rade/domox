@@ -36,7 +36,6 @@ public class PackageCdd
 
     @Override
     public int compareTo(@NotNull PackageCdd o) {
-        //FIXME
-        return 0;
+        return Long.compare(this.getId(), o.getId());
     }
 }
