@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bs:grid
+        xmlns:bs="https://causeway.apache.org/applib/layout/grid/bootstrap3"
+        xmlns:cpt="https://causeway.apache.org/applib/layout/component">
+
+    <!-- Top Header & Unassigned Actions -->
+    <bs:row>
+        <bs:col span="12" unreferencedActions="true">
+            <cpt:domainObject/>
+        </bs:col>
+    </bs:row>
+
+    <!-- Main Content Split -->
+    <bs:row>
+        <!-- Left Side: General Properties & Candidates Collection.  Any property not
+             referenced explicitly (per-run hop depth controls live on the Diagram tab)
+             is absorbed by the unreferencedProperties field set; every candidate
+             collection is listed so the four per-type lists are the only ones rendered. -->
+        <bs:col span="4">
+            <bs:row>
+                <bs:col span="12">
+                    <cpt:fieldSet name="General" id="general" unreferencedProperties="true">
+                    </cpt:fieldSet>
+                </bs:col>
+            </bs:row>
+            <bs:row>
+                <bs:col span="12" unreferencedCollections="true">
+                    <cpt:collection id="classList"/>
+                    <cpt:collection id="actionList"/>
+                    <cpt:collection id="propertyList"/>
+                    <cpt:collection id="associationList"/>
+                </bs:col>
+            </bs:row>
+        </bs:col>
+
+        <!-- Right Side: Additional Tab on Position 1 — the hop-depth input sits above the
+             freshly generated lexical dependency diagram (PDF) on its own tab. -->
+        <bs:col span="8">
+            <bs:tabGroup>
+                <bs:tab name="Dependency Diagram">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet name="Dependency Diagram" id="content">
+                                <cpt:property id="hopDepth"/>
+                                <cpt:property id="diagram"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+            </bs:tabGroup>
+        </bs:col>
+    </bs:row>
+</bs:grid>

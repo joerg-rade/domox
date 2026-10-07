@@ -1,5 +1,36 @@
 ## **Apache Causeway 3.6.0 Annotations Best Practices**
 
+## **Metamodel member-type veto (boot-time validation)**
+
+Causeway introspects every JavaBean accessor on a `@DomainObject` / `@Entity` and treats each
+getter as a **property** unless it is suppressed or `@Programmatic`. If a getter's return type
+is a managed bean — an injected `@DomainService`, a view model, a mixin, or a vetoed type —
+metamodel validation fails at context startup with:
+
+> member with vetoed, mixin or managed element-type
+
+**Root-cause pattern (real bug, 2026-10):** Lombok `@Data` on the entity auto-generates
+`getXxx()` for an `@Inject @DomainService` collaborator field, so the service becomes a
+property and its (managed) element type is vetoed. The code compiles, all unit tests pass;
+only the metamodel validator catches it.
+
+**Fix pattern — suppress accessors and exclude from equality/toString:**
+```java
+@Transient
+@Inject
+@Getter(AccessLevel.NONE)
+@Setter(AccessLevel.NONE)
+@EqualsAndHashCode.Exclude
+@ToString.Exclude
+private DomainModelDiagrams domainModelDiagramsService;
+```
+
+**Guardrail:** `ValidateDomainModelIntegTest` (domox-webapp) runs `DomainModelValidator`; it is
+wired into CI. See `CODING_STANDARDS.md` §1.
+
+---
+
+
 ### **1. Domain Object Annotations**
 These annotations define how domain objects (entities, view models, and mixins) are exposed in the UI.
 

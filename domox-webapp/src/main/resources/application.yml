@@ -84,13 +84,13 @@ eclipselink.deploy-on-startup: true
 eclipselink.ddl-generation: create-tables
 eclipselink.ddl-generation.output-mode: both
 eclipselink.create-ddl-jdbc-file-name: domox-webapp/create-tables.sql
-# The app runs with the REPO ROOT as the working directory: the IDE "DoMoX" run config and
-# `mvn -pl domox-webapp spring-boot:run` both start in the repo root (verified at startup:
-# "started by jrade in /home/jrade/projects/domox"). EclipseLink resolves the DDL output file
-# relative to application-location, so "." points at the repo root and the file name is the
-# repo-relative path, landing the DDL output deterministically at domox-webapp/create-tables.sql.
-# (application-location ".." resolved one directory too high -> ../domox-webapp/... -> startup
-# failed with EclipseLink-7018 FileNotFound.)
+# WARNING — the DDL output path is CWD-relative. application-location "." + the repo-relative
+# file name only resolve when the JVM starts at the REPO ROOT. That is guaranteed for the IDE
+# "DoMoX" run config and for surefire (domox-webapp/pom.xml pins the forked JVM to the repo
+# root via <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>). For CLI
+# boots ALWAYS add -Dspring-boot.run.workingDirectory=<repo root>; starting from the module
+# dir dies at startup with EclipseLink-7018 FileNotFound. (application-location ".." likewise
+# resolves one directory too high -> ../domox-webapp/... -> the same EclipseLink-7018 failure.)
 eclipselink.application-location: "."
 eclipselink.jpa.upper-case-column-names: false
 eclipselink.table-schema: domox

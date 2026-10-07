@@ -92,6 +92,44 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
+            <!-- EclipseLink resolves eclipselink.create-ddl-jdbc-file-name
+                 (domox-webapp/create-tables.sql) relative to the WORKING DIRECTORY, so the
+                 forked surefire JVM must start at the REPO ROOT (the directory holding .mvn),
+                 not at the module basedir. Without this the *IntegTest classes fail at
+                 context startup with EclipseLink-7018 FileNotFound and the metamodel-veto
+                 guardrail (ValidateDomainModelIntegTest) never runs.
+                 The parent (causeway-app-starter-parent) already binds surefire executions
+                 (default-test, integ-test, bdd-specs) with their own configuration; per Maven
+                 merge semantics, execution-level settings win per element, so we must override
+                 per execution (a plugin-level <configuration> for an element the execution
+                 already declares would be silently ignored).
+                 reuseForks=false: each test class runs in a FRESH forked JVM. The *IntegTest
+                 classes use a per-class Testcontainers Postgres (@Container static) with
+                 distinct Spring contexts; several classes in one shared JVM leak class N's
+                 Hikari pool into class N+1, which then fails with
+                 "Connection to <old-port> refused" after Testcontainers stopped that
+                 container. One fork per class isolates them (each class then behaves exactly
+                 like its single-class IDE run). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <configuration>
+                            <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                            <reuseForks>false</reuseForks>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>integ-test</id>
+                        <configuration>
+                            <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                            <reuseForks>false</reuseForks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

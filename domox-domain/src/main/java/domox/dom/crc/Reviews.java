@@ -105,15 +105,34 @@ public class Reviews {
 
     /**
      * Finds the next candidate that has not yet been reviewed (approved or rejected),
-     * ordered by rule-match count descending (higher = more important).
+     * of any type.  Delegates to {@link #nextUnprocessedOfType(Class)} with no type
+     * restriction.
      *
      * @return the next {@link Candidate} to review, or {@code null} if none remain
      */
     @Programmatic
     public Candidate nextUnprocessed() {
+        return nextUnprocessedOfType(null);
+    }
+
+    /**
+     * Finds the next candidate that has not yet been reviewed (approved or rejected),
+     * ordered by rule-match count descending (higher = more important).
+     * <p>
+     * When {@code type} is non-null, only candidates of that concrete type are considered,
+     * so a reviewer working through one candidate type (e.g. all {@link ClassCdd}s) never
+     * jumps to a different type via the {@code approveAndGoToNext}/{@code rejectAndGoToNext}
+     * actions.
+     *
+     * @param type the concrete {@link Candidate} type to restrict to, or {@code null} for all types
+     * @return the next {@link Candidate} to review, or {@code null} if none remain
+     */
+    @Programmatic
+    public Candidate nextUnprocessedOfType(Class<? extends Candidate> type) {
         Set<Long> processedIds = Set.copyOf(reviewRepository.findProcessedCandidateIds());
 
         return findAll().stream()
+                .filter(c -> type == null || type.isInstance(c))     // restrict to type (or all)
                 .filter(c -> !processedIds.contains(c.getId()))     // not yet reviewed
                 .max(Comparator.comparingInt(Candidate::getRuleMatchCount) // highest match count first
                         .thenComparingLong(Candidate::getId)) // tie-break by ID

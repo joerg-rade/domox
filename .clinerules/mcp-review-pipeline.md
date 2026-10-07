@@ -59,8 +59,9 @@ ignored the unknown key → the streamable router function was never registered 
 
 **Diagnose when unsure** (confirms the exact property name/condition):
 ```
-# run app and read the autoconfig report:
-mvn -pl domox-webapp spring-boot:run -Dspring-boot.run.arguments=--debug
+# run app and read the autoconfig report (the -Dspring-boot.run.workingDirectory is required:
+# EclipseLink resolves the CWD-relative DDL path against the repo root — see commands.md):
+mvn -pl domox-webapp spring-boot:run -Dspring-boot.run.workingDirectory=/home/jrade/projects/domox -Dspring-boot.run.arguments=--debug
 # look in the conditions report for:
 #  McpServerStreamableHttpWebMvcAutoConfiguration ...
 #    did not match: @ConditionalOnProperty (spring.ai.mcp.server.protocol=STREAMABLE)

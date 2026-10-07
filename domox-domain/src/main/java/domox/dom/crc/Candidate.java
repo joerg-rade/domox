@@ -294,13 +294,13 @@ public abstract class Candidate extends AbstractEntity {
             sequence = "7",
             position = ActionLayout.Position.PANEL,
             cssClassFa = "check-circle",
-            describedAs = "Approve this candidate and go to the next unprocessed one")
+            describedAs = "Approve this candidate and go to the next unprocessed one of the same type")
     public Candidate approveAndGoToNext() {
         Review review = findOrCreatePendingReview();
         reviewsService.approve(review);
-        Candidate next = reviewsService.nextUnprocessed();
+        Candidate next = reviewsService.nextUnprocessedOfType(this.getClass());
         if (next == null) {
-            messageService.informUser("All candidates have been reviewed. Nothing left to review.");
+            messageService.informUser("All candidates of this type have been reviewed. Nothing left to review.");
         }
         return next; // Causeway will navigate to the returned entity (or stay if null)
     }
@@ -312,13 +312,13 @@ public abstract class Candidate extends AbstractEntity {
             sequence = "8",
             position = ActionLayout.Position.PANEL,
             cssClassFa = "times-circle",
-            describedAs = "Reject this candidate with a rationale and go to the next unprocessed one")
+            describedAs = "Reject this candidate with a rationale and go to the next unprocessed one of the same type")
     public Candidate rejectAndGoToNext(final ReviewRationale rationale) {
         Review review = findOrCreatePendingReview();
         reviewsService.reject(review, rationale);
-        Candidate next = reviewsService.nextUnprocessed();
+        Candidate next = reviewsService.nextUnprocessedOfType(this.getClass());
         if (next == null) {
-            messageService.informUser("All candidates have been reviewed. Nothing left to review.");
+            messageService.informUser("All candidates of this type have been reviewed. Nothing left to review.");
         }
         return next;
     }

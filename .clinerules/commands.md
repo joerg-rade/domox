@@ -21,14 +21,31 @@ Before searching the codebase, jump straight to the right steer/doc for common t
   drift check) → `memory-bank/technical/SCHEMA.md`
 - **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`
 - **Domain-modeling (CRC) extraction rules** → `crc_domain_modeling_guide.md`
-- **Run the app & confirm boot** → start with a teed log so failures are debuggable:
-  `nohup mvn -pl domox-webapp spring-boot:run > /tmp/domox-boot.log 2>&1 &`, then
-  `tail -f /tmp/domox-boot.log`.  Liveness: `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/`
+- **Run the app & confirm boot** → EclipseLink resolves `create-ddl-jdbc-file-name`
+  (`domox-webapp/create-tables.sql`) relative to the CWD, so the app MUST start with the REPO
+  ROOT as the working directory. From a bare shell pass
+  `-Dspring-boot.run.workingDirectory=/home/jrade/projects/domox` (the IDE "DoMoX" run config
+  already starts there); starting from the module dir dies at startup with EclipseLink-7018
+  FileNotFound. Recipe (teed log so failures are debuggable):
+  `nohup mvn -pl domox-webapp spring-boot:run -Dspring-boot.run.workingDirectory=/home/jrade/projects/domox > /tmp/domox-boot.log 2>&1 &`,
+  then `tail -f /tmp/domox-boot.log`.  Liveness:
+  `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/`
   (expect 200); MCP endpoint: `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:8080/mcp`
   (expect 200; 404 = the `spring.ai.mcp.server.protocol` key issue, see `mcp-review-pipeline.md`).
+- **Port / DB ownership caveat** → a dev instance may already own 8080: check
+  `curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/` and
+  `docker ps --format '{{.Names}} {{.Status}}'`. NEVER boot a second instance against the same
+  Postgres: the shared `domox.SEQ_GEN` sequence makes parallel boots fail with
+  `seq_gen already exists`. For a verification boot use a throwaway DB
+  (`docker run -d --name domox-db-verify -p 5433:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres:latest`)
+  plus a free port (`-Dspring-boot.run.arguments=--server.port=8082`), and tear it down after.
+- **Coding standards (review)** → `CODING_STANDARDS.md` (repo root), esp. the
+  no-`@Data`-on-entities rule and injected-service accessor suppression.
 
 Quick checks after an entity change: run `bash scripts/check-schema-drift.sh`, then
-`mvn -B -pl domox-domain -am test`.
+`mvn -B -pl domox-domain -am test`. Entity-member changes (new properties/actions) must also
+pass the metamodel guardrail:
+`mvn -B test -pl domox-webapp -Dtest=ValidateDomainModelIntegTest -am -Dsurefire.failIfNoSpecifiedTests=false`.
 
 # Shell Execution Formatting Rules
 

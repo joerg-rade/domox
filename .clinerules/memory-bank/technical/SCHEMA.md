@@ -10,6 +10,11 @@ runtime as `column X does not exist`.
 
 Regenerated DDL: `domox-webapp/create-tables.sql`.
 
+The DDL output path is **CWD-relative** (`eclipselink.application-location: "."`): the JVM must
+start at the REPO ROOT or startup dies with EclipseLink-7018 FileNotFound. Surefire is pinned to
+the repo root in `domox-webapp/pom.xml` (`<workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>`);
+CLI boots need `-Dspring-boot.run.workingDirectory=<repo root>`.
+
 ## TABLE_PER_CLASS inheritance (Candidate & friends)
 
 `Candidate` uses `TABLE_PER_CLASS`. Real rows live in the **per-type tables**, not the base:

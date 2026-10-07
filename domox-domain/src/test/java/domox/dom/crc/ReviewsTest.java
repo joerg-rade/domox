@@ -1,5 +1,7 @@
 package domox.dom.crc;
 
+import domox.dom.AbstractEntity;
+import domox.dom.rules.RuleMatch;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.services.user.UserService;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -219,5 +222,63 @@ class ReviewsTest {
 
         // when / then
         assertNull(classUnderTest.findByUniqueId(123L), "unknown id must yield null");
+    }
+
+    // --- Workflow: next-unprocessed candidate (type-restricted) ---
+
+    @Test
+    void testNextUnprocessedOfType_restrictsToGivenType() {
+        // given: a lower-priority ClassCdd and a higher-priority PropertyCdd; when restricted
+        // to ClassCdd the PropertyCdd must be ignored even though it would win the ordering
+        final ClassCdd processedClass = new ClassCdd("Customer", List.of(), List.of(), List.of());
+        setId(processedClass, 5L);
+        final ClassCdd unprocessedClass = new ClassCdd("Order", List.of(), List.of(), List.of());
+        setId(unprocessedClass, 20L);
+        final PropertyCdd highPriorityProperty = new PropertyCdd("total", "double");
+        highPriorityProperty.setRuleMatches(List.of(new RuleMatch(), new RuleMatch(), new RuleMatch()));
+        setId(highPriorityProperty, 30L);
+
+        when(mockReviewRepository.findProcessedCandidateIds()).thenReturn(List.of(5L));
+        when(mockRepositoryService.allInstances(any())).thenReturn(List.of());
+        when(mockRepositoryService.allInstances(ClassCdd.class)).thenReturn(List.of(processedClass, unprocessedClass));
+        when(mockRepositoryService.allInstances(PropertyCdd.class)).thenReturn(List.of(highPriorityProperty));
+
+        // when
+        final Candidate result = classUnderTest.nextUnprocessedOfType(ClassCdd.class);
+
+        // then: must pick the next ClassCdd, not the higher-priority PropertyCdd
+        assertEquals(unprocessedClass, result, "must choose the next ClassCdd, never a different type");
+    }
+
+    @Test
+    void testNextUnprocessed_considersAllTypes() {
+        // given: a lower-priority ClassCdd and a higher-priority PropertyCdd
+        final ClassCdd cls = new ClassCdd("Order", List.of(), List.of(), List.of());
+        setId(cls, 20L);
+        final PropertyCdd highPriorityProperty = new PropertyCdd("total", "double");
+        highPriorityProperty.setRuleMatches(List.of(new RuleMatch(), new RuleMatch()));
+        setId(highPriorityProperty, 30L);
+
+        when(mockReviewRepository.findProcessedCandidateIds()).thenReturn(List.of());
+        when(mockRepositoryService.allInstances(any())).thenReturn(List.of());
+        when(mockRepositoryService.allInstances(ClassCdd.class)).thenReturn(List.of(cls));
+        when(mockRepositoryService.allInstances(PropertyCdd.class)).thenReturn(List.of(highPriorityProperty));
+
+        // when (no type restriction, as used by the MCP pipeline)
+        final Candidate result = classUnderTest.nextUnprocessed();
+
+        // then: higher rule-match count across types must win
+        assertEquals(highPriorityProperty, result, "unrestricted lookup must consider every type");
+    }
+
+    /** Assigns the private JPA {@code id} field (normally set by the sequence generator). */
+    private static void setId(final Candidate candidate, final long id) {
+        try {
+            final Field field = AbstractEntity.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(candidate, id);
+        } catch (final Exception e) {
+            throw new RuntimeException("failed to set id on " + candidate, e);
+        }
     }
 }
