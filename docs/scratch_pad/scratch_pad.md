@@ -179,12 +179,12 @@ Implemented three new rules for detecting generalization (is-a) relationships:
 - `AssociationCandidates.create()` and `findOrCreate()` now accept optional `AssociationType` parameter
 - `RuleMatches.createCandidateFromMatch()` handles `"GeneralizationCdd"` candidateType → creates `AssociationCdd` with `AssociationType.GENERALIZATION`
 - 7 new tests added to `TypedDependencyRulesTest.java` (all pass)
-- Documentation updated: `RULES_REGISTRY.md`, `RULES_EXAMPLES.md`, `scratch_pad.md`
+- Documentation updated: `docs/scratch_pad/rules/RULES_REGISTRY.md`, `docs/scratch_pad/rules/RULES_EXAMPLES.md`, `scratch_pad.md`
 
 ### TDR41: Synonym Identification — IMPLEMENTED ✅
 
 Implemented a rule for detecting synonym (semantic-equivalence) relations, grounded
-in `.clinerules/memory-bank/SYNONYMS.md` (Hearst lexico-syntactic patterns + the
+in `docs/scratch_pad/SYNONYMS.md` (Hearst lexico-syntactic patterns + the
 POS-Matching heuristic).
 
 1. **Apposition** — `appos(Head, Alias)` where both governor and dependent are nouns:

@@ -15,10 +15,10 @@ Whenever executing terminal commands that require Java, Maven, or SDKMAN binarie
 Before searching the codebase, jump straight to the right steer/doc for common tasks:
 
 - **Causeway annotations & conventions** (e.g. `@DomainObject(editing = Editing.ENABLED)`) →
-  `memory-bank/technical/CAUSEWAY.md`
-- **Module layout / build** → `memory-bank/technical/MAVEN.md`
+  `.clinerules/memory-bank/technical/CAUSEWAY.md`
+- **Module layout / build** → `.clinerules/memory-bank/technical/MAVEN.md`
 - **Persistence / schema / JPA field migration** (TABLE_PER_CLASS trap, `create-tables.sql`,
-  drift check) → `memory-bank/technical/SCHEMA.md`
+  drift check) → `.clinerules/memory-bank/technical/SCHEMA.md`
 - **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`
 - **Domain-modeling (CRC) extraction rules** → `crc_domain_modeling_guide.md`
 - **Run the app & confirm boot** → EclipseLink resolves `create-ddl-jdbc-file-name`
@@ -41,11 +41,15 @@ Before searching the codebase, jump straight to the right steer/doc for common t
   plus a free port (`-Dspring-boot.run.arguments=--server.port=8082`), and tear it down after.
 - **Coding standards (review)** → `CODING_STANDARDS.md` (repo root), esp. the
   no-`@Data`-on-entities rule and injected-service accessor suppression.
+- **Reference / archive docs** (completed-milestone how-to's: `RULES_*`,
+  `COMPLETION_CHECKLIST.md`, `SYNONYMS.md`, implementation summaries) live in
+  `docs/scratch_pad/` — on-demand only; skim with `head` first, never a full read.
 
-Quick checks after an entity change: run `bash scripts/check-schema-drift.sh`, then
-`mvn -B -pl domox-domain -am test`. Entity-member changes (new properties/actions) must also
-pass the metamodel guardrail:
-`mvn -B test -pl domox-webapp -Dtest=ValidateDomainModelIntegTest -am -Dsurefire.failIfNoSpecifiedTests=false`.
+Quick checks after an entity change: run `bash scripts/check.sh` — bundles schema drift,
+domain unit tests, and the metamodel guardrail (the same checks CI runs in
+`.github/workflows/ci.yml`). For commit-time speed use `bash scripts/check.sh --quick`
+(drift only); it is also installed as the pre-commit hook via
+`bash scripts/install-git-hooks.sh`.
 
 # Shell Execution Formatting Rules
 
