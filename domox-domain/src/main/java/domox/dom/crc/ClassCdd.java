@@ -19,6 +19,7 @@ import org.apache.causeway.applib.annotation.Editing;
 import org.apache.causeway.applib.annotation.Collection;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
+import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -52,15 +53,32 @@ public class ClassCdd
 
     @Getter
     @Setter
-    //@Property
     @Programmatic
     public ClassType classType = ClassType.PARTY_PLACE_THING;
 
     @Getter
     @Setter
-    //@Property
     @Programmatic
     public String packageName = "sample";
+
+    /**
+     * The subdomain (business / functional area) this class candidate belongs to.
+     * <p>
+     * Set by the reviewer during the review workflow: as a {@code @ManyToOne} to the managed
+     * {@link SubDomain} reference, Causeway renders it as an inline-editable dropdown on the
+     * candidate's object page ({@code ClassCdd} opts into {@code editing = Editing.ENABLED}),
+     * letting the reviewer pick from the existing subdomains.
+     */
+    @Property
+    @ManyToOne
+    @JoinColumn(name = "subdomain_id")
+    @Getter
+    @Setter
+    @PropertyLayout(
+            named = "Sub-domain",
+            describedAs = "Sub-domain this class candidate belongs to (set during review)",
+            sequence = "2.1")
+    private SubDomain subDomain;
 
     @Getter
     @Setter
