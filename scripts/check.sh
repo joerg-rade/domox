@@ -48,7 +48,10 @@ fi
 # --- 2. Domain unit tests (domox-domain + upstream domox-adapter) ----------------------
 step "2/3  Unit tests (domox-domain + domox-adapter)"
 LOG=/tmp/domox-check-unit.log
-if mvn -B -pl domox-domain -am test >"$LOG" 2>&1; then
+# -Dmaven.build.cache.enabled=false: the maven-build-cache extension (.mvn/) restores cached
+# surefire executions and skips re-running them; a guardrail script's job is to actually run
+# the tests, so the cache must be explicitly disabled here.
+if mvn -B -pl domox-domain -am test -Dmaven.build.cache.enabled=false >"$LOG" 2>&1; then
   ok "unit tests passed"
 else
   bad "unit tests failed (log: $LOG — last lines: $(tail -5 "$LOG" | tr '\n' ' '))"
@@ -57,8 +60,11 @@ fi
 # --- 3. Metamodel guardrail (boot-time DomainModelValidator veto) ----------------------
 step "3/3  Metamodel guardrail (ValidateDomainModelIntegTest)"
 LOG=/tmp/domox-check-meta.log
+# Cache disabled for the same reason as step 2: -Dtest values are NOT part of the build-cache
+# key, so a cached entry from a different -Dtest run would restore and silently skip the
+# metamodel veto entirely.
 if mvn -B test -pl domox-webapp -Dtest=ValidateDomainModelIntegTest -am \
-  -Dsurefire.failIfNoSpecifiedTests=false >"$LOG" 2>&1; then
+  -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.build.cache.enabled=false >"$LOG" 2>&1; then
   ok "metamodel guardrail passed"
 else
   bad "metamodel guardrail failed (log: $LOG)"

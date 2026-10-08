@@ -1,6 +1,9 @@
 package domox.webapp.integtests.smoke;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import domox.webapp.integtests.ApplicationIntegTestAbstract;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -11,76 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class Smoke_IntegTest extends ApplicationIntegTestAbstract {
 
-    /*@Autowired
-    Authors authors;
-    @Inject
-    TransactionService transactionService;
-
+    /**
+     * Boot smoke — reaching this test means the full Spring context
+     * ({@code ApplicationIntegTestAbstract}'s {@code @SpringBootTest}) booted against the
+     * Testcontainers Postgres wired by {@link Initializer}. Without at least one
+     * runnable test method surefire never instantiates the class, so this guard keeps the
+     * class from being a silent no-op when named in CI's {@code -Dtest} list.
+     */
     @Test
-    void happy_case() {
-
-        // when
-        List<Author> all = wrap(authors).listAll();
-
-        // then
-        assertThat(all).isEmpty();
-
-
-        // when
-        final Author fred = wrap(authors).create("Fred");
-        transactionService.flushTransaction();
-
-        // then
-        all = wrap(authors).listAll();
-        assertThat(all).hasSize(1);
-        assertThat(all).contains(fred);
-
-
-        // when
-        final Author bill = wrap(authors).create("Bill");
-        transactionService.flushTransaction();
-
-        // then
-        all = wrap(authors).listAll();
-        assertThat(all).hasSize(2);
-        assertThat(all).contains(fred, bill);
-
-
-        // when
-//        wrap(fred).updateName("Freddy");
-        transactionService.flushTransaction();
-
-        // then
-        assertThat(wrap(fred).getLastName()).isEqualTo("Freddy");
-
-
-        // when
-//       wrap(fred).setNotes("These are some notes");
-        transactionService.flushTransaction();
-
-        // then
-//        assertThat(wrap(fred).getNotes()).isEqualTo("These are some notes");
-
-
-        // when
-        Assertions.assertThrows(InvalidException.class, () -> {
-  //          wrap(fred).updateName("New name !!!");
-            transactionService.flushTransaction();
-        }, "Exclamation mark is not allowed");
-
-        // then
-     //   assertThat(wrap(fred).getNotes()).isEqualTo("These are some notes");
-
-
-        // when
-//        wrap(fred).delete();
-        transactionService.flushTransaction();
-
-        // then
-        all = wrap(authors).listAll();
-        assertThat(all).hasSize(1);
+    void context_boots_and_db_container_is_up() {
+        assertThat(postgres.isRunning()).isTrue();
     }
-*/
 
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
         @Override

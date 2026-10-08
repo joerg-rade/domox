@@ -34,7 +34,10 @@ the accessor `@Programmatic` instead. Real persisted/gettable properties keep no
 **Guardrail:** `ValidateDomainModelIntegTest` (domox-webapp) runs the `DomainModelValidator`
 over the whole metamodel; it is wired into CI (`.github/workflows/ci.yml`,
 `integration-test` job). After touching entities, run it locally from the repo root:
-`mvn -B test -pl domox-webapp -Dtest=ValidateDomainModelIntegTest -am -Dsurefire.failIfNoSpecifiedTests=false`.
+`mvn -B test -pl domox-webapp -Dtest=ValidateDomainModelIntegTest -am -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.build.cache.enabled=false`.
+(The `-Dmaven.build.cache.enabled=false` is required locally: the maven-build-cache extension in
+`.mvn/` restores cached surefire executions, and since `-Dtest` values are not part of the cache
+key a stale entry would silently skip the guardrail. CI runs on a fresh checkout and is unaffected.)
 
 ## 2. Injected services are collaborators, not properties
 
