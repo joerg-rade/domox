@@ -74,7 +74,13 @@ jobs:
       # localhost:8999) and needs a fresh DB — run it locally with that container up.
       # surefire.failIfNoSpecifiedTests=false keeps the upstream modules (no matching test
       # classes) from failing the build.
+      # run must be a LITERAL block scalar (`|`), NOT a plain scalar with `\` continuations:
+      # YAML folds plain-scalar newlines into spaces, so "\ ⏎ -Dtest=..." becomes "\ -Dtest=..."
+      # on one line; the shell then treats "\ " as an escaped space and glues a leading space
+      # onto the token → Maven: "Unknown lifecycle phase ' -Dtest=...'". `|` preserves the
+      # newlines, so the backslash continuations work exactly as they do in a local shell.
       - name: Run webapp integration tests (CoreNLP-free)
-        run: mvn -B test -pl domox-webapp -am \
-          -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest \
-          -Dsurefire.failIfNoSpecifiedTests=false
+        run: |
+          mvn -B test -pl domox-webapp -am \
+            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest \
+            -Dsurefire.failIfNoSpecifiedTests=false
