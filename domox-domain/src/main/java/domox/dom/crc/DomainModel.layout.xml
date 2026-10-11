@@ -12,11 +12,42 @@
 
     <!-- Main Content Split -->
     <bs:row>
-        <!-- Left Side: General Properties & Candidates Collection.  Any property not
-             referenced explicitly (per-run hop depth controls live on the Diagram tab)
-             is absorbed by the unreferencedProperties field set; every candidate
-             collection is listed so the four per-type lists are the only ones rendered. -->
+        <!-- Left Side (1/3): Candidate collections in tabs, sorted by evidence strength. -->
         <bs:col span="4">
+            <bs:tabGroup unreferencedCollections="true">
+                <bs:tab name="Classes">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:collection id="classList"/>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+                <bs:tab name="Actions">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:collection id="actionList"/>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+                <bs:tab name="Properties">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:collection id="propertyList"/>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+                <bs:tab name="Associations">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:collection id="associationList"/>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+            </bs:tabGroup>
+        </bs:col>
+
+        <!-- Right Side (2/3): General Properties + Dependency Diagram, stacked vertically. -->
+        <bs:col span="8">
             <bs:row>
                 <bs:col span="12">
                     <cpt:fieldSet name="General" id="general" unreferencedProperties="true">
@@ -24,30 +55,13 @@
                 </bs:col>
             </bs:row>
             <bs:row>
-                <bs:col span="12" unreferencedCollections="true">
-                    <cpt:collection id="classList"/>
-                    <cpt:collection id="actionList"/>
-                    <cpt:collection id="propertyList"/>
-                    <cpt:collection id="associationList"/>
+                <bs:col span="12">
+                    <cpt:fieldSet name="Dependency Diagram" id="content">
+                        <cpt:property id="hopDepth"/>
+                        <cpt:property id="diagram"/>
+                    </cpt:fieldSet>
                 </bs:col>
             </bs:row>
-        </bs:col>
-
-        <!-- Right Side: Additional Tab on Position 1 — the hop-depth input sits above the
-             freshly generated lexical dependency diagram (PDF) on its own tab. -->
-        <bs:col span="8">
-            <bs:tabGroup>
-                <bs:tab name="Dependency Diagram">
-                    <bs:row>
-                        <bs:col span="12">
-                            <cpt:fieldSet name="Dependency Diagram" id="content">
-                                <cpt:property id="hopDepth"/>
-                                <cpt:property id="diagram"/>
-                            </cpt:fieldSet>
-                        </bs:col>
-                    </bs:row>
-                </bs:tab>
-            </bs:tabGroup>
         </bs:col>
     </bs:row>
 </bs:grid>

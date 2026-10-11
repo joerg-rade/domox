@@ -1,26 +1,18 @@
 #!/usr/bin/env bash
 #
-# Installs the DoMoX pre-commit hook: runs the FAST quick check (schema-drift guardrail),
-# which skips itself when the dev DB container is not running, so commits stay fast.
-# Idempotent: re-running replaces our own hook and refuses to clobber a foreign one.
+# [DEPRECATED] Pre-commit hook was removed. Schema drift, domain unit tests, and metamodel
+# guardrail are still runnable on demand via:
+#   bash scripts/check.sh            # full check (schema + tests + metamodel)
+#   bash scripts/check.sh --quick    # drift only
+#
+# This script is a no-op. It exists to prevent confusion for developers who previously
+# installed the hook — running it now prints a message and exits cleanly.
 set -uo pipefail
-cd "$(dirname "$0")/.."   # repo root
+cd "$(dirname "$0")/.."
 
 HOOK=".git/hooks/pre-commit"
-mkdir -p .git/hooks
-
-if [ -f "$HOOK" ] && ! head -2 "$HOOK" | grep -q 'DoMoX pre-commit'; then
-  echo "NOT INSTALLED: $HOOK already exists and was not written by this script."
-  echo "Re-run after replacing it, or add this line manually:"
-  echo "  bash scripts/check.sh --quick"
-  exit 1
+if [ -f "$HOOK" ] && head -2 "$HOOK" | grep -q 'DoMoX pre-commit'; then
+  rm "$HOOK"
+  echo "removed stale $HOOK (pre-commit hook was deprecated)"
 fi
-
-cat > "$HOOK" <<'EOF'
-#!/usr/bin/env bash
-# DoMoX pre-commit (installed by scripts/install-git-hooks.sh): fast schema-drift guardrail.
-# Skips itself when the 'domox-db' container is not running.
-bash scripts/check.sh --quick
-EOF
-chmod +x "$HOOK"
-echo "installed $HOOK"
+echo "Pre-commit hook is no longer used. Run 'bash scripts/check.sh' manually when needed."

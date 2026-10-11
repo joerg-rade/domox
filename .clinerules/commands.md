@@ -15,12 +15,12 @@ Whenever executing terminal commands that require Java, Maven, or SDKMAN binarie
 Before searching the codebase, jump straight to the right steer/doc for common tasks:
 
 - **Causeway annotations & conventions** (e.g. `@DomainObject(editing = Editing.ENABLED)`) →
-  `.clinerules/memory-bank/technical/CAUSEWAY.md`
-- **Module layout / build** → `.clinerules/memory-bank/technical/MAVEN.md`
+  `.clinerules/memory-bank/technical/CAUSEWAY.md` (full reference: `docs/causeway/causeway-annotations.md`)
+- **Module layout / build** → `.clinerules/memory-bank/technical/MAVEN.md` (full reference: `docs/maven/maven-best-practices.md`)
 - **Persistence / schema / JPA field migration** (TABLE_PER_CLASS trap, `create-tables.sql`,
   drift check) → `.clinerules/memory-bank/technical/SCHEMA.md`
 - **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`
-- **Domain-modeling (CRC) extraction rules** → `crc_domain_modeling_guide.md`
+- **Domain-modeling (CRC) extraction rules** → `.clinerules/crc_domain_modeling_guide.md` (full guide: `docs/domain-modeling/crc-guide.md`)
 - **Run the app & confirm boot** → EclipseLink resolves `create-ddl-jdbc-file-name`
   (`domox-webapp/create-tables.sql`) relative to the CWD, so the app MUST start with the REPO
   ROOT as the working directory. From a bare shell pass
@@ -47,9 +47,8 @@ Before searching the codebase, jump straight to the right steer/doc for common t
 
 Quick checks after an entity change: run `bash scripts/check.sh` — bundles schema drift,
 domain unit tests, and the metamodel guardrail (the same checks CI runs in
-`.github/workflows/ci.yml`). For commit-time speed use `bash scripts/check.sh --quick`
-(drift only); it is also installed as the pre-commit hook via
-`bash scripts/install-git-hooks.sh`.
+`.github/workflows/ci.yml`). For a faster check use `bash scripts/check.sh --quick`
+(drift only).
 
 # Shell Execution Formatting Rules
 

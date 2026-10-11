@@ -40,6 +40,7 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
     }
 
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
+    @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<ClassCdd> classList = new ArrayList<>();
 
     /**
@@ -50,6 +51,7 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
+    @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<ActionCdd> actionList = new ArrayList<>();
 
     /**
@@ -59,6 +61,7 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
+    @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<PropertyCdd> propertyList = new ArrayList<>();
 
     /**
@@ -68,6 +71,7 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
+    @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<AssociationCdd> associationList = new ArrayList<>();
 
     // region > diagram
