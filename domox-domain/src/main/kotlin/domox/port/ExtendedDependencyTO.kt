@@ -1,4 +1,4 @@
-package domox.nlp
+package domox.port
 
 data class ExtendedDependencyTO(
     val dep: String = "",

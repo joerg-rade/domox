@@ -14,8 +14,8 @@ import domox.dom.nlp.Sentence;
 import domox.dom.rules.RuleMatches;
 import domox.dom.rules.CandidateResolver;
 import domox.dom.rules.TypedDependencyRule;
-import domox.nlp.DocumentTO;
-import domox.svc.DocumentAdapter;
+import domox.port.DocumentTO;
+import domox.port.NlpPort;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
@@ -51,6 +51,7 @@ public class Corpora {
     private final DomainModels domainModels;
     private final ClassArchetypeClassifier archetypeClassifier;
     private final CandidateResolver candidateResolver;
+    private final NlpPort nlpPort;
 
     @Inject
     public Corpora(RepositoryService repositoryService,
@@ -60,7 +61,8 @@ public class Corpora {
                    List<TypedDependencyRule> rules,
                    DomainModels domainModels,
                    ClassArchetypeClassifier archetypeClassifier,
-                   CandidateResolver candidateResolver) {
+                   CandidateResolver candidateResolver,
+                   NlpPort nlpPort) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatches = ruleMatches;
@@ -69,6 +71,7 @@ public class Corpora {
         this.domainModels = domainModels;
         this.archetypeClassifier = archetypeClassifier;
         this.candidateResolver = candidateResolver;
+        this.nlpPort = nlpPort;
     }
 
     @ActionLayout(sequence = "1")
@@ -299,7 +302,7 @@ public class Corpora {
     private Document build(String title, String url, Clob content, List<Author> authors) {
         final Document document = documents.create(title, url, content, authors);
         final String rawText = document.getContent();
-        final DocumentTO documentTO = new DocumentAdapter().parseTextAndAmend(rawText);
+        final DocumentTO documentTO = nlpPort.parse(rawText);
         repositoryService.persistAndFlush(document);
         List<Sentence> sentences = documents.createSentences(document, documentTO);
         document.setSentences(sentences);

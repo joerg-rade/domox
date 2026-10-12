@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package domox.diagram
+package domox.adapter.diagram
 
-import domox.nlp.BasicDependencyTO
-import domox.nlp.SentenceTO
-import domox.nlp.TokenTO
+import domox.port.BasicDependencyTO
+import domox.port.SentenceTO
+import domox.port.TokenTO
 import org.stringtemplate.v4.ST
 
 /**

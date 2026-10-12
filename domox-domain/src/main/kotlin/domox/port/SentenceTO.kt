@@ -1,4 +1,4 @@
-package domox.nlp
+package domox.port
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 

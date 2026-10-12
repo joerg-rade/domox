@@ -1,9 +1,9 @@
-package domox.diagram
+package domox.adapter.diagram
 
-import domox.nlp.DocumentTO
-import domox.nlp.ExtendedDependencyFactory
-import domox.nlp.SentenceTO
-import domox.nlp.StanfordCoreNlpAPI
+import domox.port.DocumentTO
+import domox.port.ExtendedDependencyFactory
+import domox.port.SentenceTO
+import domox.adapter.nlp.StanfordCoreNlpAPI
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer

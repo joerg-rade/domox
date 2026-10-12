@@ -1,7 +1,7 @@
 package domox.dom.crc;
 
-import domox.diagram.DiagramBuilder;
 import domox.dom.nlp.PartOfSpeechType;
+import domox.port.DiagramPort;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
@@ -38,13 +38,13 @@ import static org.mockito.Mockito.when;
 class DomainModelDiagramsTest {
 
     @Mock
-    DiagramBuilder diagramBuilder;
+    DiagramPort diagramPort;
 
     DomainModelDiagrams domainModelDiagrams;
 
     @BeforeEach
     void setUp() {
-        domainModelDiagrams = new DomainModelDiagrams(diagramBuilder);
+        domainModelDiagrams = new DomainModelDiagrams(diagramPort);
     }
 
     @Test
@@ -66,7 +66,7 @@ class DomainModelDiagramsTest {
         model.classList.add(order);
         model.classList.add(catalog);
 
-        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+        when(diagramPort.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
         // when
         final Blob result = domainModelDiagrams.renderDiagram(model);
@@ -76,7 +76,7 @@ class DomainModelDiagramsTest {
         assertTrue(result.getMimeType().toString().contains("application/pdf"));
 
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
+        verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
         assertTrue(dot.contains("\"customer\""), "approved seed 'customer' should be kept");
@@ -103,12 +103,12 @@ class DomainModelDiagramsTest {
         model.classList.add(b);
         model.classList.add(c);
 
-        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+        when(diagramPort.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
         // when — first render at the default hop depth of 1
         domainModelDiagrams.renderDiagram(model);
         ArgumentCaptor<String> depth1Captor = ArgumentCaptor.forClass(String.class);
-        verify(diagramBuilder).buildLexicalGraphDiagram(depth1Captor.capture());
+        verify(diagramPort).buildLexicalGraphDiagram(depth1Captor.capture());
         final String depth1 = depth1Captor.getValue();
         assertTrue(depth1.contains("\"a\""), "approved seed 'a' should be kept");
         assertTrue(depth1.contains("\"b\""), "first-hop neighbour 'b' should be drawn at depth 1");
@@ -119,7 +119,7 @@ class DomainModelDiagramsTest {
         domainModelDiagrams.renderDiagram(model);
         // a fresh captor (not the one reused above) so it only captures this render's DOT
         final ArgumentCaptor<String> depth2Captor = ArgumentCaptor.forClass(String.class);
-        verify(diagramBuilder, times(2)).buildLexicalGraphDiagram(depth2Captor.capture());
+        verify(diagramPort, times(2)).buildLexicalGraphDiagram(depth2Captor.capture());
         final String depth2 = depth2Captor.getValue();
         assertTrue(depth2.contains("\"c\""), "second-hop neighbour 'c' should be drawn at depth 2");
     }
@@ -156,14 +156,14 @@ class DomainModelDiagramsTest {
                 dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ, "order", PartOfSpeechType.NN), true);
         model.classList.add(customer);
 
-        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+        when(diagramPort.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
         // when
         final Blob result = domainModelDiagrams.renderDiagram(model);
 
         // then — generation still succeeds (the DOT is a legend-only graph) and yields a PDF blob
         assertNotNull(result, "a degenerate single-approved model should still yield a diagram blob");
-        verify(diagramBuilder).buildLexicalGraphDiagram(anyString());
+        verify(diagramPort).buildLexicalGraphDiagram(anyString());
     }
 
     /** Builds a candidate with the given name and an optional typed dependency, attaching an

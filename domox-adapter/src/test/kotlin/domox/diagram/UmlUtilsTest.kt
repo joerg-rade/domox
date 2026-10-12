@@ -1,4 +1,4 @@
-package domox.diagram
+package domox.adapter.diagram
 
 import domox.UmlUtils
 import org.junit.jupiter.api.Assertions.*

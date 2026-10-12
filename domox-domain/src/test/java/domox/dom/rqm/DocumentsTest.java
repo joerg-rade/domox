@@ -1,6 +1,6 @@
 package domox.dom.rqm;
 
-import domox.diagram.DiagramBuilder;
+import domox.port.DiagramPort;
 import domox.dom.nlp.Sentences;
 import domox.dom.rules.RuleMatches;
 import org.apache.causeway.applib.services.message.MessageService;
@@ -29,7 +29,7 @@ class DocumentsTest {
     @Mock
     Sentences sentences;
     @Mock
-    DiagramBuilder mockDiagramBuilder;
+    DiagramPort mockDiagramPort;
     @Mock
     MessageService mockMessageService;
     @Mock
@@ -39,7 +39,7 @@ class DocumentsTest {
     Documents documents;
     @BeforeEach
     public void setUp() {
-        documents = new Documents(mockRepositoryService, sentences, mockDiagramBuilder, mockMessageService, ruleMatches);
+        documents = new Documents(mockRepositoryService, sentences, mockDiagramPort, mockMessageService, ruleMatches);
     }
 
  //   @Test

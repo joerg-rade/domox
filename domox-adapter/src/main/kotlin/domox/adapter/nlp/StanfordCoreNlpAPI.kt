@@ -1,6 +1,7 @@
-package domox.nlp
+package domox.adapter.nlp
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import domox.port.DocumentTO
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request

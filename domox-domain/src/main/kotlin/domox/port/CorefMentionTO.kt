@@ -1,4 +1,4 @@
-package domox.nlp
+package domox.port
 
 data class CorefMentionTO(
     val number: String? = null,
@@ -14,4 +14,3 @@ data class CorefMentionTO(
     val type: String? = null,
     val headIndex: Int = 0
 )
-

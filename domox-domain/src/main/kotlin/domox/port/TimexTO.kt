@@ -1,4 +1,4 @@
-package domox.nlp
+package domox.port
 
 data class TimexTO(
     val altValue: String = "",

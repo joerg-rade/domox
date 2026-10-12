@@ -1,8 +1,6 @@
 package domox.dom.rqm;
 
-import domox.Constants;
 import domox.DomainModule;
-import domox.diagram.DiagramBuilder;
 import domox.dom.UcResources;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.AssociationCdd;
@@ -15,8 +13,10 @@ import domox.dom.nlp.Sentences;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
 import domox.dom.rules.RuleMatches;
-import domox.nlp.DocumentTO;
-import domox.nlp.SentenceTO;
+import domox.port.DiagramPort;
+import domox.port.DocumentTO;
+import domox.port.DomainConstants;
+import domox.port.SentenceTO;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -49,19 +49,19 @@ public class Documents {
 
     private final RepositoryService repositoryService;
     private final Sentences sentences;
-    private final DiagramBuilder diagramBuilder;
+    private final DiagramPort diagramPort;
     private final MessageService messageService;
     private final RuleMatches ruleMatches;
 
     @Inject
     public Documents(RepositoryService repositoryService,
                      Sentences sentences,
-                     DiagramBuilder diagramBuilder,
+                     DiagramPort diagramPort,
                      MessageService messageService,
                      RuleMatches ruleMatches) {
         this.repositoryService = repositoryService;
         this.sentences = sentences;
-        this.diagramBuilder = diagramBuilder;
+        this.diagramPort = diagramPort;
         this.messageService = messageService;
         this.ruleMatches = ruleMatches;
     }
@@ -223,9 +223,9 @@ public class Documents {
                     .collect(Collectors.toList());
             dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies,
                     candidates(document.getDomainModel()));
-            final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
+            final byte[] bytes = diagramPort.buildLexicalGraphDiagram(dotCode);
             final String fileName = document.getTitle() + "-lexical.pdf";
-            return new Blob(fileName, Constants.pdfMimeType, bytes);
+            return new Blob(fileName, DomainConstants.PDF_MIME_TYPE, bytes);
         } catch (Exception e) {
             // Catch Exception (not just RuntimeException): Fuel's HTTP errors (FuelError) are a checked
             // Exception, so one unrenderable document must not tear down the whole list page.

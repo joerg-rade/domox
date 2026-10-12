@@ -1,9 +1,9 @@
-package domox.diagram
+package domox.adapter.diagram
 
 import domox.HttpRequest
-import domox.nlp.ExtendedDependencyFactory
-import domox.nlp.ExtendedDependencyTO
-import domox.nlp.SentenceTO
+import domox.port.ExtendedDependencyFactory
+import domox.port.ExtendedDependencyTO
+import domox.port.SentenceTO
 import org.apache.batik.transcoder.TranscoderInput
 import org.apache.batik.transcoder.TranscoderOutput
 import org.apache.fop.svg.PDFTranscoder

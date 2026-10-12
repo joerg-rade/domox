@@ -1,4 +1,4 @@
-package domox.nlp
+package domox.adapter.nlp
 
 import domox.HttpRequest
 import org.junit.jupiter.api.Assertions.assertNotEquals

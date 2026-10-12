@@ -1,4 +1,4 @@
-package domox.diagram
+package domox.adapter.diagram
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

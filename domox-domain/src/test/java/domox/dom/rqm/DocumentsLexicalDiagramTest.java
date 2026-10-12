@@ -1,6 +1,6 @@
 package domox.dom.rqm;
 
-import domox.diagram.DiagramBuilder;
+import domox.port.DiagramPort;
 import domox.dom.AbstractEntity;
 import domox.dom.crc.ActionCdd;
 import domox.dom.crc.ClassCdd;
@@ -51,7 +51,7 @@ class DocumentsLexicalDiagramTest {
     @Mock
     Sentences sentences;
     @Mock
-    DiagramBuilder diagramBuilder;
+    DiagramPort diagramPort;
     @Mock
     MessageService messageService;
     @Mock
@@ -61,7 +61,7 @@ class DocumentsLexicalDiagramTest {
 
     @BeforeEach
     void setUp() {
-        documents = new Documents(mockRepositoryService, sentences, diagramBuilder, messageService, ruleMatches);
+        documents = new Documents(mockRepositoryService, sentences, diagramPort, messageService, ruleMatches);
     }
 
     @Test
@@ -91,7 +91,7 @@ class DocumentsLexicalDiagramTest {
                 "the", PartOfSpeechType.DT));        // no candidate -> dropped
         when(sentences.findByDocument(document)).thenReturn(List.of(sentence));
 
-        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+        when(diagramPort.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
         // when — renderDiagram uses the fixed DEFAULT_LEXICAL_THRESHOLD (1)
         final Blob result = documents.renderDiagram(document);
@@ -101,7 +101,7 @@ class DocumentsLexicalDiagramTest {
         assertTrue(result.getMimeType().toString().contains("application/pdf"));
 
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
+        verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
         assertTrue(dot.contains("\"customer\" [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\""),

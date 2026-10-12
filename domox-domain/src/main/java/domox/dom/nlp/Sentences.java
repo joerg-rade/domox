@@ -1,12 +1,12 @@
 package domox.dom.nlp;
 
 import domox.DomainModule;
-import domox.diagram.DiagramBuilder;
 import domox.dom.rqm.Document;
-import domox.nlp.ExtendedDependencyFactory;
-import domox.nlp.ExtendedDependencyTO;
-import domox.nlp.SentenceTO;
-import domox.nlp.TokenTO;
+import domox.port.DiagramPort;
+import domox.port.ExtendedDependencyFactory;
+import domox.port.ExtendedDependencyTO;
+import domox.port.SentenceTO;
+import domox.port.TokenTO;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -29,18 +29,18 @@ public class Sentences {
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
     private final SentenceRepository sentenceRepository;
-    private final DiagramBuilder diagramBuilder;
+    private final DiagramPort diagramPort;
 
     @Inject
     public Sentences(
             RepositoryService repositoryService,
             FactoryService factoryService,
             SentenceRepository sentenceRepository,
-            DiagramBuilder diagramBuilder) {
+            DiagramPort diagramPort) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.sentenceRepository = sentenceRepository;
-        this.diagramBuilder = diagramBuilder;
+        this.diagramPort = diagramPort;
     }
 
     @ActionLayout(sequence = "1")
@@ -97,7 +97,7 @@ public class Sentences {
             final List<ExtendedDependencyTO> dependencies = typedDependencies.stream()
                     .map(this::toExtendedDependency)
                     .collect(Collectors.toList());
-            final byte[] diagram = diagramBuilder.buildTypedDependencyDiagram(dependencies);
+            final byte[] diagram = diagramPort.buildTypedDependencyDiagram(dependencies);
             final String fileName = sentence.title() + ".pdf";
             sentence.updateImageFromBytes(diagram, fileName);
         } catch (RuntimeException e) {

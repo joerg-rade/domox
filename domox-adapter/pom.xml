@@ -86,6 +86,12 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
+        <!-- Domain module: provides port interfaces and domain types -->
+        <dependency>
+            <groupId>org.apache.causeway.domox</groupId>
+            <artifactId>domox-domain</artifactId>
+        </dependency>
+
         <!-- HTTP Invocation -->
         <dependency>
             <groupId>com.github.kittinunf.fuel</groupId>

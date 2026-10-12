@@ -1,4 +1,4 @@
-package domox.nlp
+package domox.port
 
 data class BasicDependencyTO(
     val dep: String = "",

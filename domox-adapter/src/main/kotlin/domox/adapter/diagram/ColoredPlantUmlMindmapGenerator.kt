@@ -1,6 +1,6 @@
-package domox.diagram
+package domox.adapter.diagram
 
-import domox.nlp.ExtendedDependencyTO
+import domox.port.ExtendedDependencyTO
 import kotlin.collections.sortedBy
 
 class ColoredPlantUmlMindmapGenerator(private val dependencies: List<ExtendedDependencyTO>) {

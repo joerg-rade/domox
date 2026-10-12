@@ -82,5 +82,5 @@ jobs:
       - name: Run webapp integration tests (CoreNLP-free)
         run: |
           mvn -B test -pl domox-webapp -am \
-            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest \
+            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest,HexagonalPortWiringIntegTest \
             -Dsurefire.failIfNoSpecifiedTests=false

@@ -1,8 +1,8 @@
 package domox.dom.crc;
 
-import domox.Constants;
 import domox.DomainModule;
-import domox.diagram.DiagramBuilder;
+import domox.port.DiagramPort;
+import domox.port.DomainConstants;
 import domox.dom.nlp.LexicalGraphGenerator;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
@@ -40,7 +40,7 @@ public class CandidateDiagrams {
 
     private static final Logger log = LoggerFactory.getLogger(CandidateDiagrams.class);
 
-    private final DiagramBuilder diagramBuilder;
+    private final DiagramPort diagramPort;
     private final ClassCandidates classCandidates;
     private final ActionCandidates actionCandidates;
     private final PropertyCandidates propertyCandidates;
@@ -48,12 +48,12 @@ public class CandidateDiagrams {
 
     @Inject
     public CandidateDiagrams(
-            DiagramBuilder diagramBuilder,
+            DiagramPort diagramPort,
             ClassCandidates classCandidates,
             ActionCandidates actionCandidates,
             PropertyCandidates propertyCandidates,
             AssociationCandidates associationCandidates) {
-        this.diagramBuilder = diagramBuilder;
+        this.diagramPort = diagramPort;
         this.classCandidates = classCandidates;
         this.actionCandidates = actionCandidates;
         this.propertyCandidates = propertyCandidates;
@@ -85,9 +85,9 @@ public class CandidateDiagrams {
             final List<TypedDependency> dependencies = collectDependencies(
                     candidate, candidateLemmas, candidatesByLemma, candidate.getHopDepth());
             dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies, allCandidates);
-            final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
+            final byte[] bytes = diagramPort.buildLexicalGraphDiagram(dotCode);
             final String fileName = candidate.getCandidateName() + "-diagram.pdf";
-            return new Blob(fileName, Constants.pdfMimeType, bytes);
+            return new Blob(fileName, DomainConstants.PDF_MIME_TYPE, bytes);
         } catch (Exception e) {
             log.warn("Failed to render candidate diagram for candidate #{} '{}': {}",
                     id, name, e.getMessage());

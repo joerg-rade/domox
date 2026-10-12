@@ -138,6 +138,10 @@
             <groupId>org.apache.causeway.domox</groupId>
             <artifactId>domox-domain</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.causeway.domox</groupId>
+            <artifactId>domox-adapter</artifactId>
+        </dependency>
         <!-- causeway -->
         <dependency>
             <groupId>org.apache.causeway.mavendeps</groupId>

@@ -1,7 +1,7 @@
 package domox.dom.nlp;
 
-import domox.Constants;
 import domox.DomainModule;
+import domox.port.DomainConstants;
 import domox.dom.AbstractEntity;
 import domox.dom.rqm.Document;
 import jakarta.inject.Inject;
@@ -83,7 +83,7 @@ public class Sentence extends AbstractEntity implements Comparable<Sentence> {
 
     @Programmatic
     public void updateImageFromBytes(byte[] bytes, String filename) {
-        final Blob blob = new Blob(filename, Constants.pdfMimeType, bytes);
+        final Blob blob = new Blob(filename, DomainConstants.PDF_MIME_TYPE, bytes);
         setDiagram(blob);
     }
     // endregion PDF

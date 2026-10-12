@@ -1,7 +1,7 @@
 package domox.dom.crc;
 
-import domox.diagram.DiagramBuilder;
 import domox.dom.nlp.PartOfSpeechType;
+import domox.port.DiagramPort;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 class CandidateDiagramsTest {
 
     @Mock
-    DiagramBuilder diagramBuilder;
+    DiagramPort diagramPort;
     @Mock
     ClassCandidates classCandidates;
     @Mock
@@ -54,7 +54,7 @@ class CandidateDiagramsTest {
     @BeforeEach
     void setUp() {
         candidateDiagrams = new CandidateDiagrams(
-                diagramBuilder, classCandidates, actionCandidates, propertyCandidates, associationCandidates);
+                diagramPort, classCandidates, actionCandidates, propertyCandidates, associationCandidates);
     }
 
     @Test
@@ -78,7 +78,7 @@ class CandidateDiagramsTest {
         when(propertyCandidates.listAll()).thenReturn(List.of(currency));
         when(classCandidates.listAll()).thenReturn(List.of(customer));
 
-        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+        when(diagramPort.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
         // when
         final Blob result = candidateDiagrams.renderDiagram(customer);
@@ -88,7 +88,7 @@ class CandidateDiagramsTest {
         assertTrue(result.getMimeType().toString().contains("application/pdf"));
 
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
+        verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
         assertTrue(dot.contains("\"customer\""), "the candidate itself should be kept");
@@ -122,7 +122,7 @@ class CandidateDiagramsTest {
 
         when(classCandidates.listAll()).thenReturn(List.of(customer, order));
         when(actionCandidates.listAll()).thenReturn(List.of(purchase));
-        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+        when(diagramPort.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
         // when
         candidateDiagrams.renderDiagram(customer);
@@ -130,7 +130,7 @@ class CandidateDiagramsTest {
         // then — only the direct neighbour "purchase" is drawn; second-level "order" is not,
         // and neither is the non-candidate "receipt"
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
+        verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
         assertTrue(dot.contains("\"customer\""), "the candidate itself should be kept");
@@ -166,7 +166,7 @@ class CandidateDiagramsTest {
 
         when(classCandidates.listAll()).thenReturn(List.of(customer, order));
         when(actionCandidates.listAll()).thenReturn(List.of(purchase));
-        when(diagramBuilder.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
+        when(diagramPort.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
         // when
         candidateDiagrams.renderDiagram(customer);
@@ -174,7 +174,7 @@ class CandidateDiagramsTest {
         // then — the second-level neighbour surfaces because the hop-depth attribute was raised,
         // while the non-candidate "receipt" is still dropped
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(diagramBuilder).buildLexicalGraphDiagram(captor.capture());
+        verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
         assertTrue(dot.contains("\"order\""),

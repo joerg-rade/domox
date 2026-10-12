@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package domox.diagram
+package domox.adapter.diagram
 
 import java.awt.Color
 

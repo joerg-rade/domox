@@ -67,6 +67,7 @@
         <asciidoctorj-api.version>3.0.0</asciidoctorj-api.version>
         <commons-collections4.version>4.5.0</commons-collections4.version>
         <commons-compress.version>1.28.0</commons-compress.version>
+        <rulebook.version>0.12</rulebook.version>
         <result.version>3.1.0</result.version>
         <resteasy-core.version>7.0.0.Final</resteasy-core.version>
         <!-- Apache Tomcat (transitive via spring-boot-starter-tomcat in domox-webapp).
@@ -275,6 +276,17 @@
                 <groupId>org.apache.causeway.domox</groupId>
                 <artifactId>domox-webapp</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <!-- RuleBook rule engine -->
+            <dependency>
+                <groupId>com.deliveredtechnologies</groupId>
+                <artifactId>rulebook-core</artifactId>
+                <version>${rulebook.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.deliveredtechnologies</groupId>
+                <artifactId>rulebook-spring</artifactId>
+                <version>${rulebook.version}</version>
             </dependency>
             <!-- Causeway-->
             <dependency>

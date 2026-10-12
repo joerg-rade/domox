@@ -1,4 +1,4 @@
-package domox.nlp
+package domox.adapter.nlp
 
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test

@@ -1,4 +1,4 @@
-package domox.nlp
+package domox.adapter.nlp
 
 class SampleText {
 

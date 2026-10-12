@@ -1,8 +1,8 @@
 package domox.dom.crc;
 
-import domox.Constants;
 import domox.DomainModule;
-import domox.diagram.DiagramBuilder;
+import domox.port.DiagramPort;
+import domox.port.DomainConstants;
 import domox.dom.nlp.LexicalGraphGenerator;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
@@ -51,11 +51,11 @@ public class DomainModelDiagrams {
 
     private static final Logger log = LoggerFactory.getLogger(DomainModelDiagrams.class);
 
-    private final DiagramBuilder diagramBuilder;
+    private final DiagramPort diagramPort;
 
     @Inject
-    public DomainModelDiagrams(final DiagramBuilder diagramBuilder) {
-        this.diagramBuilder = diagramBuilder;
+    public DomainModelDiagrams(final DiagramPort diagramPort) {
+        this.diagramPort = diagramPort;
     }
 
     /**
@@ -96,9 +96,9 @@ public class DomainModelDiagrams {
             // Style the node borders from the approved subset: the approved seeds (and any
             // approved candidate reached during expansion) are drawn with a bold border.
             dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies, approved);
-            final byte[] bytes = diagramBuilder.buildLexicalGraphDiagram(dotCode);
+            final byte[] bytes = diagramPort.buildLexicalGraphDiagram(dotCode);
             final String fileName = "DomainModel-" + id + "-diagram.pdf";
-            return new Blob(fileName, Constants.pdfMimeType, bytes);
+            return new Blob(fileName, DomainConstants.PDF_MIME_TYPE, bytes);
         } catch (Exception e) {
             log.warn("Failed to render domain-model diagram for analysis #{}: {}", id, e.getMessage());
             if (dotCode != null) {
