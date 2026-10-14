@@ -215,6 +215,14 @@
             <artifactId>causeway-extensions-pdfjs-wicket-ui</artifactId>
         </dependency>
 
+        <!-- @D3Graph rendering (D3PanelComponentFactory); pulls in
+             d3-metamodel (D3GraphFacetFactory) and d3-wicket-integration
+             (D3Panel + d3-integration.mjs) transitively. -->
+        <dependency>
+            <groupId>org.apache.causeway.extensions</groupId>
+            <artifactId>causeway-extensions-d3-wicket-ui</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.causeway.extensions</groupId>
             <artifactId>causeway-extensions-secman-encryption-spring</artifactId>

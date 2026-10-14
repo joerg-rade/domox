@@ -7,6 +7,7 @@ import org.apache.causeway.core.config.CausewayModuleCoreConfig;
 import org.apache.causeway.core.config.presets.CausewayPresets;
 import org.apache.causeway.core.runtimeservices.CausewayModuleCoreRuntimeServices;
 import org.apache.causeway.extensions.cors.impl.CausewayModuleExtCors;
+import org.apache.causeway.extensions.d3.wkt.ui.CausewayModuleExtD3WicketUi;
 import org.apache.causeway.extensions.pdfjs.wkt.ui.CausewayModuleExtPdfjsWicketUi;
 import org.apache.causeway.persistence.jpa.eclipselink.CausewayModulePersistenceJpaEclipselink;
 import org.apache.causeway.security.bypass.CausewayModuleSecurityBypass;
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.PropertySources;
 
         CausewayModuleCoreConfig.class,
         CausewayModuleExtCors.class,
+        CausewayModuleExtD3WicketUi.class,
         CausewayModuleExtPdfjsWicketUi.class,
         CausewayModuleViewerWicketViewer.class,
         CausewayModuleTestingFixturesApplib.class,
