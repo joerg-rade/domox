@@ -9,10 +9,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import domox.webapp.integtests.ApplicationIntegTestAbstract;
@@ -26,7 +22,6 @@ import domox.webapp.mcp.ReviewMcpTools;
  * The {@code @McpTool}-annotated methods on {@link ReviewMcpTools} are auto-scanned and
  * exposed on the {@code /mcp} endpoint by {@code McpServerAnnotationScannerAutoConfiguration}.
  */
-@ContextConfiguration(initializers = ReviewMcpToolsIntegTest.Initializer.class)
 @Transactional
 class ReviewMcpToolsIntegTest extends ApplicationIntegTestAbstract {
 
@@ -70,16 +65,4 @@ class ReviewMcpToolsIntegTest extends ApplicationIntegTestAbstract {
                 .hasMessageContaining("No candidate found with id 999999");
     }
 
-    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext context) {
-            if (ApplicationIntegTestAbstract.postgres != null && ApplicationIntegTestAbstract.postgres.isRunning()) {
-                TestPropertyValues.of(
-                        "spring.datasource.url=" + ApplicationIntegTestAbstract.postgres.getJdbcUrl(),
-                        "spring.datasource.username=" + ApplicationIntegTestAbstract.postgres.getUsername(),
-                        "spring.datasource.password=" + ApplicationIntegTestAbstract.postgres.getPassword()
-                ).applyTo(context.getEnvironment());
-            }
-        }
     }
-}

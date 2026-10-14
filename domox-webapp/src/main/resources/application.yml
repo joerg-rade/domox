@@ -51,7 +51,7 @@ causeway:
 
       credit:
         - url: http://causeway.apache.org
-          image: images/apache-causeway/logo-48x48.png
+          image: images/apache-causeway/logo-65x48.png
           name: Apache Causeway
 
     wicket:
@@ -63,7 +63,8 @@ causeway:
 
       bookmarked-pages:
         show-chooser: false
-        show-drop-down-on-footer: true
+    restfulobjects:
+      base-path: "/restful"
 
   persistence:
     schema:
@@ -112,21 +113,23 @@ spring:
     location: banner.txt
   main:
     web-application-type: SERVLET
+    # Multiple Boot 4.x modularized jars (spring-boot-jdbc, spring-boot-health, etc.)
+    # are pulled in by Causeway 4.0.0-SNAPSHOT dependencies and define overlapping beans
+    # with spring-boot-autoconfigure:3.5.16 (e.g. pingHealthContributor,
+    # hikariPoolDataSourceMetadataProvider, reactiveHealthContributorRegistry).
+    # The Boot 4.x variants are what Causeway expects, so allow overriding.
+    allow-bean-definition-overriding: true
   flyway:
     enabled: false
   sql:
     init:
       platform: postgres
+
   datasource:
     url: jdbc:postgresql:postgres
     username: postgres
     password: postgres
     driverClassName: org.postgresql.Driver
-    # Exclude Spring Boot 4.0.0-M3 autoconfiguration classes that are incompatible with Spring Boot 3.5.13
-    #  autoconfigure:
-    #   exclude:
-    #      - org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorsSupplier
-    #     - org.springframework.boot.actuate.autoconfigure.tracing.TracingAutoConfiguration
 
   quartz:
     job-store-type: memory

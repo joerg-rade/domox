@@ -17,21 +17,16 @@
         <maven.compiler.parameters>true</maven.compiler.parameters>
 
         <!-- Framework versions -->
-        <causeway.version>3.6.0</causeway.version>
-        <spring-boot.version>3.5.16</spring-boot.version>
-        <!-- Spring Framework 6.2.19 is the HIGHEST OSS version on the 6.2.x line (verified
-             against Maven Central, 2026-09-24 metadata) and is the OSS fix for the June 2026
-             SpEL/request family (CVE-2026-41850/41851/41852/41848). The August 2026 batch
-             (CVE-2026-59282/59283 unbounded list growth, CVE-2026-47886 unbounded SpEL
-             exponentiation) is only fixed in 6.2.20, which is Enterprise-support-only;
-             not publishable to OSS Maven Central. The only fully-patched OSS line is
-             Spring Framework 7.0.9+, which requires Spring Boot 4.x (incompatible with
-             Boot 3.5.16 / Causeway 3.6.0); upgrading is out of scope for transitive-CVE
-             pinning and is tracked as an accepted risk. All spring-* artifacts are pinned
-             together at 6.2.19 to avoid version skew. -->
-        <spring-framework.version>6.2.19</spring-framework.version>
-        <spring-core.version>6.2.19</spring-core.version>
-        <spring-jdbc.version>6.2.19</spring-jdbc.version>
+        <causeway.version>4.0.0-SNAPSHOT</causeway.version>
+        <!-- Spring Boot 4.2.0-M1: the version Causeway 4.0.0-SNAPSHOT is compiled against.
+             All spring-boot-* artifacts resolve at this version via the BOM import below
+             (spring-boot-dependencies) and the explicit management entries that follow. -->
+        <spring-boot.version>4.2.0-M1</spring-boot.version>
+        <!-- Spring Framework 7.1.0-M1 (the version managed by the Spring Boot 4.2.0-M1 BOM).
+             All spring-* artifacts are pinned together at 7.1.0-M1 to avoid version skew. -->
+        <spring-framework.version>7.1.0-M1</spring-framework.version>
+        <spring-core.version>7.1.0-M1</spring-core.version>
+        <spring-jdbc.version>7.1.0-M1</spring-jdbc.version>
         <spring-ai.version>1.1.8</spring-ai.version>
         <kotlin.version>2.2.0</kotlin.version>
 
@@ -52,9 +47,12 @@
         <assertj-core.version>3.27.7</assertj-core.version>
         <approvaltests.version>23.0.0</approvaltests.version>
         <guava.version>33.1.0-jre</guava.version>
-        <junit-jupiter.version>5.11.0</junit-jupiter.version>
-        <junit-platform.version>1.11.0</junit-platform.version>
+        <junit-jupiter.version>6.1.3</junit-jupiter.version>
+        <junit-platform.version>6.1.3</junit-platform.version>
         <testcontainers.version>2.0.5</testcontainers.version>
+        <!-- Testcontainers modules (junit-jupiter, postgresql) are still on 1.x while the
+             core artifact jumped to 2.x — pin separately to match Maven Central releases. -->
+        <testcontainers-modules.version>1.21.4</testcontainers-modules.version>
 
         <!-- Library versions -->
         <json.version>20250107</json.version>
@@ -71,17 +69,16 @@
         <result.version>3.1.0</result.version>
         <resteasy-core.version>7.0.0.Final</resteasy-core.version>
         <!-- Apache Tomcat (transitive via spring-boot-starter-tomcat in domox-webapp).
-             CVE-2025-24813 (critical RCE / path traversal) affects 10.1.0-M1..10.1.34;
-             fixed in 10.1.35. 10.1.53 keeps tomcat-embed-core in step with the other embed
-             artifacts (websocket / el) that the Spring Boot BOM already resolves to 10.1.53. -->
-        <tomcat-embed-core.version>10.1.53</tomcat-embed-core.version>
+             Boot 4.2.0-M1 manages Tomcat 11.0.24; this pin keeps tomcat-embed-core in step
+             with the other embed artifacts (websocket / el) the Boot BOM resolves. -->
+        <tomcat-embed-core.version>11.0.24</tomcat-embed-core.version>
         <!-- Apache Log4j 2.x (transitive, active logging backend via
              spring-boot-starter-log4j2 -> log4j-slf4j2-impl). CVE-2026-34480 (XmlLayout
              fails to strip XML-1.0-forbidden chars) affects log4j-core up to 2.25.3,
              fixed in 2.26.0; CVE-2026-49844 (MapMessage.asJson() non-finite floats)
              affects log4j-api up to 2.26.0, fixed in 2.26.1. -->
         <log4j2.version>2.26.1</log4j2.version>
-        <!-- Jackson aligned at the latest 2.21.x patch. The Boot 3.5.x BOM pulls 2.21.2
+        <!-- Jackson aligned at the latest 2.21.x patch. The Boot 4.2.0-M1 BOM pulls 2.21.5
              (databind carries CVE-2026-54512/54513 PolymorphicTypeValidator + JsonView
              bypasses, fixed in 2.21.3); the root previously pinned jackson-core to 2.18.6,
              exposing the older core line. Managing jackson-bom at 2.21.7 keeps core/databind
@@ -90,7 +87,13 @@
         <!-- jackson-annotations dropped patch releases at 2.20 (its 2.21 line is version
              "2.21" only); jackson-core/databind keep full patch versions. -->
         <jackson-annotations.version>2.21</jackson-annotations.version>
-        <spring-data.version>3.5.13</spring-data.version>
+        <!-- Spring Data: Boot 4.2.0-M1 imports the 2026.1.0-M1 spring-data-bom, which manages
+             spring-data-jpa / spring-data-commons at 4.2.0-M1 (the Spring Framework 7.x line). -->
+        <spring-data.version>4.2.0-M1</spring-data.version>
+        <!-- spring-web: aligned at the Spring Framework version managed by the Boot 4.2.0-M1
+             BOM (7.1.0-M1), which includes OpenTelemetryServerRequestObservationConvention
+             referenced by CausewayModuleCoreWebapp (compiled against Spring 7.x / Boot 4.x). -->
+        <spring-web.version>7.1.0-M1</spring-web.version>
         <jsoup.version>1.23.2</jsoup.version>
         <logback.version>1.5.38</logback.version>
         <commons-lang3.version>3.21.0</commons-lang3.version>
@@ -106,7 +109,7 @@
     <parent>
         <groupId>org.apache.causeway.app</groupId>
         <artifactId>causeway-app-starter-parent</artifactId>
-        <version>3.6.0</version>
+        <version>4.0.0-SNAPSHOT</version>
         <relativePath/>
     </parent>
 
@@ -173,7 +176,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.2.5</version>
+                    <version>3.5.0</version>
                     <configuration>
                         <argLine>-Xmx2048m -XX:+EnableDynamicAgentLoading</argLine>
                         <includes>
@@ -190,6 +193,11 @@
                             <groupId>org.junit.jupiter</groupId>
                             <artifactId>junit-jupiter-engine</artifactId>
                             <version>${junit-jupiter.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.junit.platform</groupId>
+                            <artifactId>junit-platform-launcher</artifactId>
+                            <version>${junit-platform.version}</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -234,13 +242,70 @@
     </build>
     <dependencyManagement>
         <dependencies>
-            <!-- Spring AI BOM: aligned model/MCP dependencies (Spring Boot 3.5.x compatible) -->
+            <!-- Spring AI BOM: aligned model/MCP dependencies (Spring Boot 4.2.x compatible) -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
                 <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Spring Boot BOM: imported at 4.2.0-M1, the version Causeway 4.0.0-SNAPSHOT is
+                 compiled against, so ALL spring-boot-* artifacts resolve at the same version. -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Explicitly pin spring-boot-* artifacts that the Causeway parent manages at
+                 4.2.0-M1 but the project's BOM import does not cover (parent direct entries
+                 override BOM imports in Maven's precedence). -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-logging</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-tomcat</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-test</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-test-autoconfigure</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-actuator</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-websocket</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-json</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
             <!-- Pin ANTLR4 runtime so Spring Data (4.13.0 via spring-data-jpa) and Spring AI
                  (4.13.1) converge on a single version for the dependencyConvergence enforcer. -->
@@ -259,6 +324,11 @@
             <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-stdlib</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-test</artifactId>
                 <version>${kotlin.version}</version>
             </dependency>
             <!-- this project's own modules -->
@@ -413,8 +483,26 @@
                 <groupId>org.apache.causeway.extensions</groupId>
                 <artifactId>causeway-extensions-pdfjs-applib</artifactId>
                 <version>${causeway.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-pdfjs-wicket-ui</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-pdfjs-wicket-integration</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-pdfjs-metamodel</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.valuetypes</groupId>
+                <artifactId>causeway-valuetypes-asciidoc-builder</artifactId>
+                <version>${causeway.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.causeway.extensions</groupId>
@@ -789,7 +877,7 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers</artifactId>
-                <version>2.0.5</version>
+                <version>${testcontainers.version}</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
@@ -797,6 +885,18 @@
                         <artifactId>junit</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${testcontainers-modules.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${testcontainers-modules.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -822,14 +922,9 @@
                 <artifactId>spring-core</artifactId>
                 <version>${spring-core.version}</version>
             </dependency>
-            <!-- spring-beans / spring-context / spring-expression / spring-aop / spring-tx /
-                 spring-orm / spring-jcl were left at the Boot BOM's 6.2.17 while spring-core /
-                 web / jdbc were overridden; align the whole framework at 6.2.19. 6.2.19 is the
-                 OSS fix for the June 2026 SpEL/request-family CVEs (CVE-2026-41850/41851/41852/
-                 41848, affected 6.2.0-6.2.18). NOTE: the August 2026 batch (CVE-2026-59282/59283
-                 unbounded list growth, CVE-2026-47886 unbounded SpEL exponentiation) is only
-                 fixed in 6.2.20, which is Enterprise-support-only; 6.2.19 is the highest OSS
-                 6.2.x; that residual risk is documented in the properties block. -->
+            <!-- All spring-* artifacts (core / beans / context / expression / aop / tx /
+                 orm / jcl / web / jdbc) are aligned at the Spring Framework version managed
+                 by the Boot 4.2.0-M1 BOM (7.1.0-M1) to avoid cross-line mixing. -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
@@ -918,7 +1013,7 @@
                 <artifactId>log4j-jul</artifactId>
                 <version>${log4j2.version}</version>
             </dependency>
-            <!-- Jackson aligned at the latest 2.21.x patch. The Boot 3.5.x BOM pulls 2.21.2
+            <!-- Jackson aligned at the latest 2.21.x patch. The Boot 4.2.0-M1 BOM pulls 2.21.5
                  (databind carries CVE-2026-54512/54513 PolymorphicTypeValidator + JsonView
                  bypasses, fixed in 2.21.3). Direct overrides (not a BOM import, which the
                  parent's Boot BOM wins over in Maven) pin core/databind to 2.21.7 and
@@ -938,14 +1033,15 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>${jackson-annotations.version}</version>
             </dependency>
+            <!-- spring-web: aligned with spring-framework at 7.1.0-M1 (see properties block). -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
-                <version>${spring-framework.version}</version>
+                <version>${spring-web.version}</version>
             </dependency>
-            <!-- Spring Data (transitive via causeway-persistence-jpa-applib): boots BOM 3.5.x
-                 manages 3.5.10; pin the latest patched 3.5.13 to clear CVE-2026-47834 and
-                 the CVE-2026-41695 family on spring-data-jpa / spring-data-commons. -->
+            <!-- Spring Data (transitive via causeway-persistence-jpa-applib): Boot 4.2.0-M1
+                 manages spring-data-jpa / spring-data-commons at 4.2.0-M1 via the
+                 2026.1.0-M1 spring-data-bom (see properties block). -->
             <dependency>
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-jpa</artifactId>
@@ -990,8 +1086,8 @@
                 <artifactId>joda-time</artifactId>
                 <version>${joda-time.version}</version>
             </dependency>
-            <!-- Override Spring Boot components pulled in by Causeway
-                 to use Spring Boot 3.5.16 for compatibility -->
+            <!-- Explicitly pin spring-boot-* artifacts (needed because Causeway parent manages
+                 some at different Boot versions; the property is now 4.2.0-M1). -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-actuator</artifactId>
@@ -1032,7 +1128,7 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
-        <repository>
+        <!--repository>
             <id>Apache Nexus snapshots</id>
             <name>Apache Nexus snapshots</name>
             <url>https://repository.apache.org/content/repositories/snapshots/</url>
@@ -1043,8 +1139,8 @@
             <releases>
                 <enabled>false</enabled>
             </releases>
-        </repository>
-         <repository>
+        </repository-->
+         <!--repository>
             <id>Sonatype OSS snapshots</id>
             <name>Sonatype OSS snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
@@ -1055,8 +1151,27 @@
             <releases>
                 <enabled>false</enabled>
             </releases>
+        </repository-->
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <modules>
         <module>domox-adapter</module>

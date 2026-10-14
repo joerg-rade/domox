@@ -132,6 +132,11 @@
       <option name="url" value="https://repository.int.kn/repository/maven/" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="spring-milestones" />
+      <option name="name" value="Spring Milestones" />
+      <option name="url" value="https://repo.spring.io/milestone" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="Apache Repository" />
       <option name="name" value="Apache Repository" />
       <option name="url" value="http://repository.apache.org" />

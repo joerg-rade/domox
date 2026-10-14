@@ -4,7 +4,7 @@ import domox.dom.rqm.Corpora;
 import jakarta.inject.Inject;
 import org.apache.causeway.applib.events.metamodel.MetamodelEvent;
 import org.apache.causeway.applib.events.metamodel.MetamodelListener;
-import org.apache.causeway.applib.services.iactnlayer.InteractionService;
+import org.apache.causeway.applib.services.iactn.InteractionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

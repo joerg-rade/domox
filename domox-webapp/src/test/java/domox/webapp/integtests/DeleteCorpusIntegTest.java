@@ -6,10 +6,6 @@ import java.sql.Timestamp;
 
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.apache.causeway.applib.services.repository.RepositoryService;
@@ -39,7 +35,6 @@ import domox.dom.rqm.Corpus;
  * constraints that point back at the {@code DomainModel} (such as
  * {@code FK_ActionCdd_DOMAINMODEL_ID}) at flush time.
  */
-@ContextConfiguration(initializers = DeleteCorpusIntegTest.Initializer.class)
 @Transactional
 class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
 
@@ -127,16 +122,4 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
         return a;
     }
 
-    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(final ConfigurableApplicationContext context) {
-            if (ApplicationIntegTestAbstract.postgres != null && ApplicationIntegTestAbstract.postgres.isRunning()) {
-                TestPropertyValues.of(
-                        "spring.datasource.url=" + ApplicationIntegTestAbstract.postgres.getJdbcUrl(),
-                        "spring.datasource.username=" + ApplicationIntegTestAbstract.postgres.getUsername(),
-                        "spring.datasource.password=" + ApplicationIntegTestAbstract.postgres.getPassword()
-                ).applyTo(context.getEnvironment());
-            }
-        }
     }
-}

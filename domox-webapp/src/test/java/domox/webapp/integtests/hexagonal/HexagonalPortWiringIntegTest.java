@@ -13,10 +13,6 @@ import domox.port.NlpPort;
 import domox.webapp.integtests.ApplicationIntegTestAbstract;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -31,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
  * explicitly (it used to arrive transitively). Booting the full context here is the
  * real-world check — a missing or mis-wired port aborts the context before any test body runs.
  */
-@ContextConfiguration(initializers = HexagonalPortWiringIntegTest.Initializer.class)
 @Transactional
 class HexagonalPortWiringIntegTest extends ApplicationIntegTestAbstract {
 
@@ -74,17 +69,4 @@ class HexagonalPortWiringIntegTest extends ApplicationIntegTestAbstract {
         assertThat(corpora).isNotNull();
     }
 
-    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext context) {
-            if (ApplicationIntegTestAbstract.postgres != null && ApplicationIntegTestAbstract.postgres.isRunning()) {
-                TestPropertyValues.of(
-                        "spring.datasource.url=" + ApplicationIntegTestAbstract.postgres.getJdbcUrl(),
-                        "spring.datasource.username=" + ApplicationIntegTestAbstract.postgres.getUsername(),
-                        "spring.datasource.password=" + ApplicationIntegTestAbstract.postgres.getPassword()
-                ).applyTo(context.getEnvironment());
-            }
-        }
     }
-
-}

@@ -73,7 +73,7 @@ class DomainModelDiagramsTest {
 
         // then — a PDF containing the approved seeds and the neighbour connected through them
         assertNotNull(result);
-        assertTrue(result.getMimeType().toString().contains("application/pdf"));
+        assertTrue(result.mimeType().toString().contains("application/pdf"));
 
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
