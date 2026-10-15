@@ -234,7 +234,7 @@ DoMoX uses Apache Causeway 4.0.0-M1. Repository configuration is centralized in 
 <repositories>
   <repository>
     <id>apache-releases</id>
-    <url>https://repository.apache.org/content/repositories/releases/</url>
+    <url>https://repo.maven.apache.org/content/repositories/releases/</url>
     <releases><enabled>true</enabled></releases>
     <snapshots><enabled>false</enabled></snapshots>
   </repository>

@@ -4,23 +4,13 @@ import domox.DomainModule;
 import domox.dom.AbstractEntity;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import jakarta.persistence.*;
+import lombok.*;
 import org.apache.causeway.applib.annotation.*;
-import org.apache.causeway.applib.value.Blob;
-import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
+import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +21,16 @@ import java.util.List;
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A DM. ...")
 @NoArgsConstructor
-@Data
 public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> {
+
+    private static final Logger log = LoggerFactory.getLogger(DomainModel.class);
 
     @Title
     public String title() {
         return "//TODO";
     }
 
+    @Getter
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<ClassCdd> classList = new ArrayList<>();
@@ -50,6 +42,7 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
      */
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Getter
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<ActionCdd> actionList = new ArrayList<>();
@@ -60,6 +53,7 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
      */
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Getter
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<PropertyCdd> propertyList = new ArrayList<>();
@@ -70,42 +64,44 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
      */
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Getter
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<AssociationCdd> associationList = new ArrayList<>();
 
     // region > diagram
 
-    /**
-     * Injected {@link DomainModelDiagrams} service used to render the model-wide lexical diagram
-     * on demand.
-     * <p>
-     * The diagram is deliberately <em>not</em> persisted: it is regenerated on every access
-     * because its content depends on the current candidate set, which changes as candidates are
-     * reviewed, approved, or rejected.
-     * <p>
-     * Accessors are suppressed ({@code @Getter(AccessLevel.NONE)} etc.) so Lombok {@code @Data}
-     * does not expose this managed-bean service as a Causeway property — an entity member whose
-     * element-type is a {@code @DomainService} is vetoed by the metamodel.
-     */
     @Transient
     @Inject
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private DomainModelDiagrams domainModelDiagramsService;
+    private DomainModelDiagramsD3 domainModelDiagramsServiceD3;
 
-    /**
-     * A freshly generated PDF of the lexical dependency graph seeded from this analysis run's
-     * approved candidates, expanded {@link #getHopDepth()} hops deep.  The diagram is derived on
-     * every access and never persisted, so it always reflects the current candidate set.
-     */
-    @PdfJsViewer
+    @D3Graph
     @Property(optionality = Optionality.OPTIONAL)
-    @PropertyLayout(named = "Dependency Diagram", fieldSetId = "content", sequence = "2")
-    public Blob getDiagram() {
-        return domainModelDiagramsService != null ? domainModelDiagramsService.renderDiagram(this) : null;
+    @PropertyLayout(named = "Dependency Diagram / D3", fieldSetId = "content", sequence = "2.1")
+    public String getDiagram() {
+        final long id = getId() != null ? getId() : -1L;
+        if (domainModelDiagramsServiceD3 == null) {
+            log.warn("DomainModel #{}: domainModelDiagramsServiceD3 is NOT injected — returning empty diagram", id);
+            return "{\"nodes\":[],\"links\":[]}";
+        }
+        log.debug("DomainModel #{}: classList={}, actionList={}, propertyList={}, associationList={}, hopDepth={}",
+                id,
+                classList != null ? classList.size() : -1,
+                actionList != null ? actionList.size() : -1,
+                propertyList != null ? propertyList.size() : -1,
+                associationList != null ? associationList.size() : -1,
+                hopDepth);
+        String result = domainModelDiagramsServiceD3.renderDiagram(this);
+        if (result == null) {
+            log.warn("DomainModel #{}: domainModelDiagramsServiceD3.renderDiagram() returned null — no diagram produced", id);
+        } else {
+            log.debug("DomainModel #{}: diagram produced ({} chars)", id, result.length());
+        }
+        return result != null ? result : "{\"nodes\":[],\"links\":[]}";
     }
 
     /**

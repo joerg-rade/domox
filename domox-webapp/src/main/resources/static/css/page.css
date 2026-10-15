@@ -25,3 +25,5 @@ th, td {
     margin: 8px auto;
     padding: 12px;
 }
+.d3GraphPanel { min-height: 400px; width: 100%; }
+.d3GraphCanvas { min-height: 400px; }

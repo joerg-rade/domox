@@ -1,5 +1,6 @@
 package domox;
 
+import org.apache.causeway.extensions.d3.applib.CausewayModuleExtD3Applib;
 import org.apache.causeway.extensions.pdfjs.applib.CausewayModuleExtPdfjsApplib;
 import org.apache.causeway.persistence.jpa.applib.CausewayModulePersistenceJpaApplib;
 import org.apache.causeway.testing.fixtures.applib.modules.ModuleWithFixtures;
@@ -12,6 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Configuration
 @Import({
         CausewayModuleExtPdfjsApplib.class,
+        CausewayModuleExtD3Applib.class,
         CausewayModulePersistenceJpaApplib.class,
 })
 @ComponentScan

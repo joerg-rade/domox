@@ -39,6 +39,11 @@
         <maven-cucumber-reporting.version>4.11.2</maven-cucumber-reporting.version>
         <archunit.version>1.3.0</archunit.version>
         <osgi.version>8.0.0</osgi.version>
+        <!-- d3-hierarchy: pin transitive webjar version. d3:7.9.0 declares
+             d3-hierarchy with range [3.0.0,4.0.0-0), which Maven resolves to 3.0.1,
+             but 3.0.1 is absent from Maven Central (404). Pin to 3.1.2 which is
+             the latest available and fully cached. -->
+        <d3-hierarchy.version>3.1.2</d3-hierarchy.version>
 
         <!-- Plugin versions -->
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
@@ -499,6 +504,35 @@
                 <artifactId>causeway-extensions-pdfjs-metamodel</artifactId>
                 <version>${causeway.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-d3</artifactId>
+                <version>${causeway.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-d3-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-d3-wicket-ui</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-d3-wicket-integration</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.extensions</groupId>
+                <artifactId>causeway-extensions-d3-metamodel</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.causeway.valuetypes</groupId>
                 <artifactId>causeway-valuetypes-asciidoc-builder</artifactId>
@@ -1086,6 +1120,15 @@
                 <artifactId>joda-time</artifactId>
                 <version>${joda-time.version}</version>
             </dependency>
+            <!-- d3-hierarchy: pin transitive webjar version. d3:7.9.0 declares
+                 d3-hierarchy with range [3.0.0,4.0.0-0), which Maven resolves to 3.0.1,
+                 but 3.0.1 is absent from Maven Central (404) and repository.apache.org is
+                 unreachable. Pin to 3.1.2 (fully cached locally and on Maven Central). -->
+            <dependency>
+                <groupId>org.webjars.npm</groupId>
+                <artifactId>d3-hierarchy</artifactId>
+                <version>${d3-hierarchy.version}</version>
+            </dependency>
             <!-- Explicitly pin spring-boot-* artifacts (needed because Causeway parent manages
                  some at different Boot versions; the property is now 4.2.0-M1). -->
             <dependency>
@@ -1120,7 +1163,7 @@
         <repository>
             <id>apache-releases</id>
             <name>Apache Releases</name>
-            <url>https://repository.apache.org/content/repositories/releases/</url>
+            <url>https://repo.maven.apache.org/content/repositories/releases/</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -1128,30 +1171,6 @@
                 <enabled>true</enabled>
             </releases>
         </repository>
-        <!--repository>
-            <id>Apache Nexus snapshots</id>
-            <name>Apache Nexus snapshots</name>
-            <url>https://repository.apache.org/content/repositories/snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository-->
-         <!--repository>
-            <id>Sonatype OSS snapshots</id>
-            <name>Sonatype OSS snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository-->
         <repository>
             <id>spring-milestones</id>
             <name>Spring Milestones</name>

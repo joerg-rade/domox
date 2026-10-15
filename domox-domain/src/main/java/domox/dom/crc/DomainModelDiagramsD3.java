@@ -1,36 +1,24 @@
 package domox.dom.crc;
 
 import domox.DomainModule;
-import domox.port.DiagramPort;
-import domox.port.DomainConstants;
-import domox.dom.nlp.LexicalGraphGenerator;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
-import org.apache.causeway.applib.value.Blob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Renders a {@link DomainModel}-wide <em>lexical dependency</em> summary diagram (Kroki → PDF)
- * seeded from the model's <em>approved</em> candidates, comparable to the per-candidate
+ * Renders a {@link DomainModel}-wide <em>lexical dependency</em> summary as a D3 force-directed
+ * graph JSON seeded from the model's <em>approved</em> candidates, comparable to the per-candidate
  * {@link CandidateDiagrams#renderDiagram(Candidate)} but scoped to the whole analysis run.
  * <p>
- * The diagram is built by a breadth-first expansion of the candidate-connection graph starting
+ * The graph is built by a breadth-first expansion of the candidate-connection graph starting
  * from every approved candidate of the model (a candidate is approved when it carries at least
  * one {@link Review} whose status is {@link ReviewStatus#APPROVED}), up to
  * {@link DomainModel#getHopDepth()} hops deep (default {@code 1}).  Seeding from the approved set
@@ -40,71 +28,100 @@ import java.util.Set;
  * correspond to a candidate word are kept, so the retained edges draw the approved candidates
  * together with every candidate directly (or, at higher depths, transitively) connected to them.
  * <p>
- * The diagram is regenerated on <em>every</em> call — it is never cached — because its content
- * reflects the current candidate set and their reviews, both of which change as candidates are
- * reviewed, approved, or rejected.
+ * The result is a {@link String} containing a JSON object with {@code nodes} (each with an
+ * {@code id}) and {@code links} (each with a {@code source} and {@code target}) in the format
+ * expected by the Causeway D3 extension.  The diagram is regenerated on <em>every</em> call —
+ * it is never cached — because its content reflects the current candidate set and their reviews,
+ * both of which change as candidates are reviewed, approved, or rejected.
  */
-@Named(DomainModule.NAMESPACE + ".DomainModelDiagrams")
+@Named(DomainModule.NAMESPACE + ".DomainModelDiagramsD3")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
-public class DomainModelDiagrams {
+public class DomainModelDiagramsD3 {
 
-    private static final Logger log = LoggerFactory.getLogger(DomainModelDiagrams.class);
+    private static final Logger log = LoggerFactory.getLogger(DomainModelDiagramsD3.class);
 
-    private final DiagramPort diagramPort;
-
-    @Inject
-    public DomainModelDiagrams(final DiagramPort diagramPort) {
-        this.diagramPort = diagramPort;
-    }
-
-    /**
-     * Renders a freshly generated PDF {@link Blob} for the lexical dependency graph seeded from
-     * the {@link DomainModel}'s approved candidates, expanded {@link DomainModel#getHopDepth()}
-     * hops deep, or {@code null} when the model is {@code null}, holds no candidates, holds no
-     * approved candidates, or the render fails (e.g. Kroki unavailable).
-     *
-     * @param model the analysis run whose approved-candidate neighbourhood is to be diagrammed
-     */
     @Programmatic
-    public Blob renderDiagram(final DomainModel model) {
+    public String renderDiagram(final DomainModel model) {
         if (model == null) {
             return null;
         }
         final long id = model.getId() != null ? model.getId() : -1L;
-        log.debug("Rendering domain-model diagram for analysis #{}", id);
-        String dotCode = null;
+        log.debug("Rendering domain-model D3 diagram for analysis #{}", id);
         try {
-            // Snapshot the model's candidates once per render: the lemma whitelist, the per-lemma
-            // candidate lookups and the approved-seed set are all derived from the same view, so
-            // the graph is built against a consistent candidate set.
             final List<Candidate> allCandidates = candidatesOf(model);
             if (allCandidates.isEmpty()) {
-                log.debug("Domain model #{} has no candidates — nothing to diagram", id);
+                log.warn("Domain model #{} has no candidates on its lists — nothing to diagram", id);
                 return null;
             }
+            log.debug("Domain model #{}: {} total candidates", id, allCandidates.size());
             final List<Candidate> approved = approvedCandidates(allCandidates);
             if (approved.isEmpty()) {
-                log.debug("Domain model #{} has no approved candidates — nothing to diagram", id);
+                log.warn("Domain model #{}: {} candidates found but NONE are approved (no Review with APPROVED status) — nothing to diagram",
+                        id, allCandidates.size());
                 return null;
             }
+            log.debug("Domain model #{}: {} approved candidates", id, approved.size());
             final Set<String> candidateLemmas = candidateLemmas(allCandidates);
             final Map<String, List<Candidate>> candidatesByLemma = candidatesByLemma(allCandidates);
             final List<TypedDependency> dependencies = collectDependencies(
                     approved, candidateLemmas, candidatesByLemma, model.getHopDepth());
 
-            // Style the node borders from the approved subset: the approved seeds (and any
-            // approved candidate reached during expansion) are drawn with a bold border.
-            dotCode = new LexicalGraphGenerator().generateGraphvizGraph(dependencies, approved);
-            final byte[] bytes = diagramPort.buildLexicalGraphDiagram(dotCode);
-            final String fileName = "DomainModel-" + id + "-diagram.pdf";
-            return new Blob(fileName, DomainConstants.PDF_MIME_TYPE, bytes);
-        } catch (Exception e) {
-            log.warn("Failed to render domain-model diagram for analysis #{}: {}", id, e.getMessage());
-            if (dotCode != null) {
-                log.debug("Domain-model diagram DOT for analysis #{}:\n{}", id, dotCode);
+            // Every lemma that becomes a node: approved seeds plus endpoints of the collected
+            // dependencies (the BFS expansion ensures both sides are candidate words).
+            final Set<String> nodeLemmas = new HashSet<>();
+            for (final Candidate a : approved) {
+                nodeLemmas.add(lower(a.getCandidateName()));
             }
-            log.debug("Failure rendering domain-model diagram for analysis #{}", id, e);
+            for (final TypedDependency td : dependencies) {
+                nodeLemmas.add(lower(td.getGovernorLemma()));
+                nodeLemmas.add(lower(td.getDependentLemma()));
+            }
+
+            // Map each lemma back to the first candidate's original display name (proper casing).
+            final Map<String, String> displayName = new HashMap<>();
+            for (final String lemma : nodeLemmas) {
+                final List<Candidate> cs = candidatesByLemma.get(lemma);
+                displayName.put(lemma, cs != null && !cs.isEmpty() ? cs.getFirst().getCandidateName() : lemma);
+            }
+
+            // Build {"nodes": [{"id":"..."},...], "links":[{"source":"...","target":"..."},...]}
+            final StringBuilder json = new StringBuilder();
+            json.append('{');
+            json.append("\"nodes\":[");
+            boolean first = true;
+            for (final String lemma : nodeLemmas) {
+                if (!first) {
+                    json.append(',');
+                }
+                json.append("{\"id\":\"");
+                json.append(escapeJson(displayName.get(lemma)));
+                json.append("\"}");
+                first = false;
+            }
+            json.append("],");
+            json.append("\"links\":[");
+            first = true;
+            for (final TypedDependency td : dependencies) {
+                if (!first) {
+                    json.append(',');
+                }
+                json.append("{\"source\":\"");
+                json.append(escapeJson(displayName.get(lower(td.getGovernorLemma()))));
+                json.append("\",\"target\":\"");
+                json.append(escapeJson(displayName.get(lower(td.getDependentLemma()))));
+                json.append("\"}");
+                first = false;
+            }
+            json.append("]");
+            json.append('}');
+
+            final String result = json.toString();
+            log.debug("D3 JSON for analysis #{}: {}", id, result);
+            return result;
+        } catch (Exception e) {
+            log.warn("Failed to render domain-model D3 diagram for analysis #{}: {}", id, e.getMessage());
+            log.debug("Failure rendering domain-model D3 diagram for analysis #{}", id, e);
             return null;
         }
     }
@@ -137,7 +154,7 @@ public class DomainModelDiagrams {
      */
     private static List<Candidate> approvedCandidates(final List<Candidate> candidates) {
         return candidates.stream()
-                .filter(DomainModelDiagrams::isApproved)
+                .filter(DomainModelDiagramsD3::isApproved)
                 .toList();
     }
 
@@ -235,5 +252,35 @@ public class DomainModelDiagrams {
 
     private static String lower(final String s) {
         return s == null ? "" : s.toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Minimal JSON string escaping: backslash, double-quote, and control characters.
+     */
+    private static String escapeJson(final String s) {
+        if (s == null || s.isEmpty()) {
+            return "";
+        }
+        final StringBuilder out = new StringBuilder(s.length() + 8);
+        for (int i = 0; i < s.length(); i++) {
+            final char c = s.charAt(i);
+            switch (c) {
+                case '\\' -> out.append("\\\\");
+                case '"' ->  out.append("\\\"");
+                case '\b' -> out.append("\\b");
+                case '\f' -> out.append("\\f");
+                case '\n' -> out.append("\\n");
+                case '\r' -> out.append("\\r");
+                case '\t' -> out.append("\\t");
+                default -> {
+                    if (c < 0x20) {
+                        out.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        out.append(c);
+                    }
+                }
+            }
+        }
+        return out.toString();
     }
 }
