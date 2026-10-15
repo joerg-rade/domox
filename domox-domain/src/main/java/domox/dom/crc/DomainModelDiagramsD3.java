@@ -28,11 +28,23 @@ import java.util.*;
  * correspond to a candidate word are kept, so the retained edges draw the approved candidates
  * together with every candidate directly (or, at higher depths, transitively) connected to them.
  * <p>
- * The result is a {@link String} containing a JSON object with {@code nodes} (each with an
- * {@code id}) and {@code links} (each with a {@code source} and {@code target}) in the format
- * expected by the Causeway D3 extension.  The diagram is regenerated on <em>every</em> call —
- * it is never cached — because its content reflects the current candidate set and their reviews,
- * both of which change as candidates are reviewed, approved, or rejected.
+ * The result is a {@link String} containing a JSON object with the following structure:
+ * <pre>{@code {
+ *   "nodes": [
+ *     {"id":"store","name":"Store","pos":"NN","color":"#3498DB",
+ *      "r":12,"approved":true,"synonym":false}
+ *   ],
+ *   "links": [
+ *     {"source":"store","target":"customer","label":"nsubj"}
+ *   ],
+ *   "legend": [
+ *     {"color":"#3498DB","label":"Noun","description":"Entities and objects"},
+ *     ...
+ *   ]
+ * }}</pre>
+ * The diagram is regenerated on <em>every</em> call — it is never cached — because its content
+ * reflects the current candidate set and their reviews, both of which change as candidates are
+ * reviewed, approved, or rejected.
  */
 @Named(DomainModule.NAMESPACE + ".DomainModelDiagramsD3")
 @DomainService
@@ -40,6 +52,17 @@ import java.util.*;
 public class DomainModelDiagramsD3 {
 
     private static final Logger log = LoggerFactory.getLogger(DomainModelDiagramsD3.class);
+/** Base node radius (px) enlarged proportionally to rule-match count. */
+    private static final double NODE_BASE_RADIUS = 8.0;
+
+    /** Rule-match count that maps to scale 1 (no enlargement). */
+    private static final int MIN_MATCH_COUNT = 1;
+
+    /** Rule-match count of the largest node maps to scale 4. */
+    private static final double MAX_SCALE = 4.0;
+
+    /** Candidate-type marker for synonym rule match (TDR41). */
+    private static final String SYNONYM_CANDIDATE_TYPE = "SynonymCdd";
 
     @Programmatic
     public String renderDiagram(final DomainModel model) {
@@ -67,53 +90,54 @@ public class DomainModelDiagramsD3 {
             final List<TypedDependency> dependencies = collectDependencies(
                     approved, candidateLemmas, candidatesByLemma, model.getHopDepth());
 
-            // Every lemma that becomes a node: approved seeds plus endpoints of the collected
-            // dependencies (the BFS expansion ensures both sides are candidate words).
-            final Set<String> nodeLemmas = new HashSet<>();
+            // Build per-lemma metadata: POS tags and rule-match counts.
+            final Map<String, Set<String>> posByLemma = new LinkedHashMap<>();
+            final Map<String, Integer> countByLemma = new HashMap<>();
+            for (final TypedDependency td : dependencies) {
+                if (td == null) continue;
+                accumulatePos(posByLemma, lower(td.getGovernorLemma()), td.getGovernorPos());
+                accumulatePos(posByLemma, lower(td.getDependentLemma()), td.getDependentPos());
+                final int matches = td.getRuleMatches() != null ? td.getRuleMatches().size() : 0;
+                countByLemma.merge(lower(td.getGovernorLemma()), matches, Integer::sum);
+                countByLemma.merge(lower(td.getDependentLemma()), matches, Integer::sum);
+            }
+
+            // Every lemma that becomes a node: approved seeds plus endpoints of dependencies.
+            final Set<String> nodeLemmas = new LinkedHashSet<>();
             for (final Candidate a : approved) {
                 nodeLemmas.add(lower(a.getCandidateName()));
             }
             for (final TypedDependency td : dependencies) {
+                if (td == null) continue;
                 nodeLemmas.add(lower(td.getGovernorLemma()));
                 nodeLemmas.add(lower(td.getDependentLemma()));
             }
 
-            // Map each lemma back to the first candidate's original display name (proper casing).
+            // Approved and synonym lemma sets for border styling.
+            final Set<String> approvedLemmas = approvedLemmasSet(allCandidates);
+            final Set<String> synonymLemmas = synonymLemmasSet(allCandidates);
+
+            // Maximum count for scaling.
+            final int maxCount = countByLemma.values().stream()
+                    .mapToInt(Integer::intValue).max().orElse(MIN_MATCH_COUNT);
+
+            // Map each lemma to its display name (original casing).
             final Map<String, String> displayName = new HashMap<>();
             for (final String lemma : nodeLemmas) {
                 final List<Candidate> cs = candidatesByLemma.get(lemma);
-                displayName.put(lemma, cs != null && !cs.isEmpty() ? cs.getFirst().getCandidateName() : lemma);
+                displayName.put(lemma, cs != null && !cs.isEmpty()
+                        ? cs.getFirst().getCandidateName() : lemma);
             }
 
-            // Build {"nodes": [{"id":"..."},...], "links":[{"source":"...","target":"..."},...]}
+            // Build enriched JSON: nodes, links, legend.
             final StringBuilder json = new StringBuilder();
             json.append('{');
-            json.append("\"nodes\":[");
-            boolean first = true;
-            for (final String lemma : nodeLemmas) {
-                if (!first) {
-                    json.append(',');
-                }
-                json.append("{\"id\":\"");
-                json.append(escapeJson(displayName.get(lemma)));
-                json.append("\"}");
-                first = false;
-            }
-            json.append("],");
-            json.append("\"links\":[");
-            first = true;
-            for (final TypedDependency td : dependencies) {
-                if (!first) {
-                    json.append(',');
-                }
-                json.append("{\"source\":\"");
-                json.append(escapeJson(displayName.get(lower(td.getGovernorLemma()))));
-                json.append("\",\"target\":\"");
-                json.append(escapeJson(displayName.get(lower(td.getDependentLemma()))));
-                json.append("\"}");
-                first = false;
-            }
-            json.append("]");
+            appendNodes(json, nodeLemmas, posByLemma, countByLemma, maxCount,
+                    approvedLemmas, synonymLemmas, displayName);
+            json.append(',');
+            appendLinks(json, dependencies, displayName);
+            json.append(',');
+            appendLegend(json);
             json.append('}');
 
             final String result = json.toString();
@@ -124,6 +148,160 @@ public class DomainModelDiagramsD3 {
             log.debug("Failure rendering domain-model D3 diagram for analysis #{}", id, e);
             return null;
         }
+    }
+
+    // ============ JSON generation helpers ============
+
+    /**
+     * Appends the {@code "nodes"} array. Each node: id, name, pos, color, r, approved, synonym.
+     */
+    private static void appendNodes(final StringBuilder json,
+                                    final Set<String> nodeLemmas,
+                                    final Map<String, Set<String>> posByLemma,
+                                    final Map<String, Integer> countByLemma,
+                                    final int maxCount,
+                                    final Set<String> approvedLemmas,
+                                    final Set<String> synonymLemmas,
+                                    final Map<String, String> displayName) {
+        json.append("\"nodes\":[");
+        boolean first = true;
+        for (final String lemma : nodeLemmas) {
+            if (!first) json.append(',');
+            final String pos = firstPos(posByLemma.get(lemma));
+            final int count = countByLemma.getOrDefault(lemma, MIN_MATCH_COUNT);
+            final double scale = scaleFor(count, maxCount);
+            final int radius = (int) Math.round(scale * NODE_BASE_RADIUS);
+            final boolean approved = approvedLemmas.contains(lemma);
+            final boolean synonym = synonymLemmas.contains(lemma);
+            json.append('{');
+            json.append("\"id\":\"").append(escapeJson(lemma)).append('"');
+            json.append(",\"name\":\"").append(escapeJson(displayName.getOrDefault(lemma, lemma))).append('"');
+            json.append(",\"pos\":\"").append(escapeJson(pos)).append('"');
+            json.append(",\"color\":\"").append(posColor(pos)).append('"');
+            json.append(",\"r\":").append(radius);
+            json.append(",\"approved\":").append(approved);
+            json.append(",\"synonym\":").append(synonym);
+            json.append('}');
+            first = false;
+        }
+        json.append(']');
+    }
+
+    /**
+     * Appends the {@code "links"} array. Each link: source, target, optional label (TdType code).
+     */
+    private static void appendLinks(final StringBuilder json,
+                                    final List<TypedDependency> dependencies,
+                                    final Map<String, String> displayName) {
+        json.append("\"links\":[");
+        boolean first = true;
+        for (final TypedDependency td : dependencies) {
+            if (!first) json.append(',');
+            final String src = lower(td.getGovernorLemma());
+            final String tgt = lower(td.getDependentLemma());
+            json.append('{');
+            json.append("\"source\":\"").append(escapeJson(src)).append('"');
+            json.append(",\"target\":\"").append(escapeJson(tgt)).append('"');
+            if (td.getType() != null) {
+                json.append(",\"label\":\"").append(escapeJson(td.getType().getCode())).append('"');
+            }
+            json.append('}');
+            first = false;
+        }
+        json.append(']');
+    }
+
+    /**
+     * Appends the {@code "legend"} array: colour swatches for each POS-based fill colour used.
+     */
+    private static void appendLegend(final StringBuilder json) {
+        json.append("\"legend\":[");
+        json.append("{\"color\":\"#3498DB\",\"label\":\"Noun\",\"description\":\"Entities and objects (NN, NNS)\"},");
+        json.append("{\"color\":\"#85C1E9\",\"label\":\"Proper noun\",\"description\":\"Named entities (NNP, NNPS)\"},");
+        json.append("{\"color\":\"#E74C3C\",\"label\":\"Verb\",\"description\":\"Actions and predicates (VB, VBZ)\"},");
+        json.append("{\"color\":\"#2ECC71\",\"label\":\"Adjective\",\"description\":\"Descriptors and modifiers (JJ, JJR, JJS)\"},");
+        json.append("{\"color\":\"#F39C12\",\"label\":\"Determiner\",\"description\":\"Articles and determiners (DT)\"},");
+        json.append("{\"color\":\"#9B59B6\",\"label\":\"Pronoun\",\"description\":\"Pronouns (PRP, PRP$)\"},");
+        json.append("{\"color\":\"#17A2B8\",\"label\":\"Preposition\",\"description\":\"Prepositions (IN)\"},");
+        json.append("{\"color\":\"#FFBB28\",\"label\":\"Adverb\",\"description\":\"Adverbs (RB)\"},");
+        json.append("{\"color\":\"#AAB7B8\",\"label\":\"Other\",\"description\":\"Other parts of speech\"}");
+        json.append(']');
+    }
+
+    // ============ Lemma metadata helpers ============
+
+    /** Records a PartOfSpeechType code for a lemma, skipping null. */
+    private static void accumulatePos(final Map<String, Set<String>> posByLemma,
+                                       final String lemma,
+                                       final domox.dom.nlp.PartOfSpeechType pos) {
+        if (pos == null) return;
+        final String code = pos.getCode();
+        if (code != null && !code.isEmpty()) {
+            posByLemma.computeIfAbsent(lemma, k -> new LinkedHashSet<>()).add(code);
+        }
+    }
+
+    /** Returns the first POS code from the set, or empty string if null/empty. */
+    private static String firstPos(final Set<String> posSet) {
+        if (posSet == null || posSet.isEmpty()) return "";
+        return posSet.iterator().next();
+    }
+
+    /** Lower-cased lemmas of approved candidates (bold border in D3). */
+    private static Set<String> approvedLemmasSet(final List<Candidate> candidates) {
+        final Set<String> lemmas = new HashSet<>();
+        for (final Candidate c : candidates) {
+            if (c != null && c.getReviews() != null
+                    && c.getReviews().stream().anyMatch(r -> r != null && r.getStatus() == ReviewStatus.APPROVED)) {
+                lemmas.add(lower(c.getCandidateName()));
+            }
+        }
+        return lemmas;
+    }
+
+    /** Lower-cased lemmas that participate in a SynonymCdd rule match (dashed border in D3). */
+    private static Set<String> synonymLemmasSet(final List<Candidate> candidates) {
+        final Set<String> lemmas = new HashSet<>();
+        for (final Candidate c : candidates) {
+            if (c == null || c.getRuleMatches() == null) continue;
+            for (final RuleMatch m : c.getRuleMatches()) {
+                if (m != null && SYNONYM_CANDIDATE_TYPE.equals(m.getCandidateType())) {
+                    lemmas.add(lower(m.getCandidateName()));
+                    lemmas.add(lower(m.getRelatedCandidateName()));
+                }
+            }
+        }
+        return lemmas;
+    }
+
+    // ============ Node sizing and colour ============
+
+    /** Linear scale: count 1 → 1.0, maxCount → MAX_SCALE. Clamped below 1. */
+    private static double scaleFor(final int count, final int maxCount) {
+        if (maxCount <= MIN_MATCH_COUNT) return 1.0;
+        final int n = Math.max(count, MIN_MATCH_COUNT);
+        return 1.0 + (MAX_SCALE - 1.0) * (n - MIN_MATCH_COUNT) / (maxCount - MIN_MATCH_COUNT);
+    }
+
+    /**
+     * Penn POS code → fill colour. Mirrors {@code LexicalGraphGenerator.posColor}.
+     */
+    private static String posColor(final String pos) {
+        return switch (pos) {
+            case "NN", "NNS" -> "#3498DB";
+            case "VB", "VBZ", "VBD", "VBG", "VBN", "VBP" -> "#E74C3C";
+            case "JJ", "JJR", "JJS" -> "#2ECC71";
+            case "DT" -> "#F39C12";
+            case "PRP", "PRP$" -> "#9B59B6";
+            case "IN" -> "#17A2B8";
+            case "RB" -> "#FFBB28";
+            case "CD" -> "#F1C40F";
+            case "CC" -> "#00C49F";
+            case "WDT", "WP", "WP$", "WRB" -> "#9B59B6";
+            case "NNP", "NNPS" -> "#85C1E9";
+            case ",", ".", "!", "?", ";", ":" -> "#FFFFFF";
+            default -> "#AAB7B8";
+        };
     }
 
     /**
