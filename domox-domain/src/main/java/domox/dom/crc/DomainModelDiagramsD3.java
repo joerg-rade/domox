@@ -162,9 +162,15 @@ public class DomainModelDiagramsD3 {
             appendNodes(json, nodeLemmas, posByLemma, countByLemma, maxCount,
                     approvedLemmas, displayName, subdomainByLemma);
             json.append(',');
-            appendLinks(json, dependencies, displayName);
+            appendLinks(json, dependencies);
             json.append(',');
-            appendLegend(json);
+            final Set<String> usedPosCodes = new HashSet<>();
+            for (final Set<String> posSet : posByLemma.values()) {
+                if (posSet != null) {
+                    usedPosCodes.addAll(posSet);
+                }
+            }
+            appendLegend(json, usedPosCodes);
             json.append('}');
 
             final String result = json.toString();
@@ -220,8 +226,7 @@ public class DomainModelDiagramsD3 {
      * Appends the {@code "links"} array. Each link: source, target, optional label (TdType code).
      */
     private static void appendLinks(final StringBuilder json,
-                                    final List<TypedDependency> dependencies,
-                                    final Map<String, String> displayName) {
+                                    final List<TypedDependency> dependencies) {
         json.append("\"links\":[");
         boolean first = true;
         for (final TypedDependency td : dependencies) {
@@ -241,21 +246,87 @@ public class DomainModelDiagramsD3 {
     }
 
     /**
-     * Appends the {@code "legend"} array: colour swatches for each POS-based fill colour used.
+     * Appends the {@code "legend"} array: colour swatches for each POS-based fill colour that
+     * actually appears in the diagram nodes, plus a catch-all "Other" entry when there are used
+     * POS codes that do not match any specific category.
+     *
+     * @param json         the JSON buffer being built
+     * @param usedPosCodes the set of POS codes that appear in at least one diagram node
      */
-    private static void appendLegend(final StringBuilder json) {
+    private static void appendLegend(final StringBuilder json, final Set<String> usedPosCodes) {
         json.append("\"legend\":[");
-        json.append("{\"color\":\"#3498DB\",\"label\":\"Noun\",\"description\":\"Entities and objects (NN, NNS)\"},");
-        json.append("{\"color\":\"#85C1E9\",\"label\":\"Proper noun\",\"description\":\"Named entities (NNP, NNPS)\"},");
-        json.append("{\"color\":\"#E74C3C\",\"label\":\"Verb\",\"description\":\"Actions and predicates (VB, VBZ)\"},");
-        json.append("{\"color\":\"#2ECC71\",\"label\":\"Adjective\",\"description\":\"Descriptors and modifiers (JJ, JJR, JJS)\"},");
-        json.append("{\"color\":\"#F39C12\",\"label\":\"Determiner\",\"description\":\"Articles and determiners (DT)\"},");
-        json.append("{\"color\":\"#9B59B6\",\"label\":\"Pronoun\",\"description\":\"Pronouns (PRP, PRP$)\"},");
-        json.append("{\"color\":\"#17A2B8\",\"label\":\"Preposition\",\"description\":\"Prepositions (IN)\"},");
-        json.append("{\"color\":\"#FFBB28\",\"label\":\"Adverb\",\"description\":\"Adverbs (RB)\"},");
-        json.append("{\"color\":\"#AAB7B8\",\"label\":\"Other\",\"description\":\"Other parts of speech\"}");
+        boolean first = true;
+        for (final LegendEntry entry : LEGEND_ENTRIES) {
+            // "Other" entry is shown only when there are POS codes not matched by any specific category.
+            if (entry.posCodes.isEmpty()) {
+                if (hasOtherPos(usedPosCodes)) {
+                    appendLegendEntry(json, entry, first);
+                    first = false;
+                }
+                continue;
+            }
+            if (hasAny(usedPosCodes, entry.posCodes)) {
+                appendLegendEntry(json, entry, first);
+                first = false;
+            }
+        }
         json.append(']');
     }
+
+    /** True when at least one {@code usedPosCodes} element is not covered by any specific legend entry. */
+    private static boolean hasOtherPos(final Set<String> usedPosCodes) {
+        final Set<String> covered = new HashSet<>();
+        for (final LegendEntry e : LEGEND_ENTRIES) {
+            if (!e.posCodes.isEmpty()) {
+                covered.addAll(e.posCodes);
+            }
+        }
+        for (final String code : usedPosCodes) {
+            if (!covered.contains(code)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** True when the intersection of {@code used} and {@code candidates} is non-empty. */
+    private static boolean hasAny(final Set<String> used, final Set<String> candidates) {
+        for (final String c : candidates) {
+            if (used.contains(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Appends a single JSON legend entry object, preceded by a comma when not the first entry. */
+    private static void appendLegendEntry(final StringBuilder json, final LegendEntry entry, final boolean first) {
+        if (!first) {
+            json.append(',');
+        }
+        json.append("{\"color\":\"").append(entry.color).append('"')
+                .append(",\"label\":\"").append(entry.label).append('"')
+                .append(",\"description\":\"").append(entry.description).append("\"}");
+    }
+
+    /** A single legend row: fill colour, short label, description, and the POS codes that map to it. */
+    private record LegendEntry(String color, String label, String description, Set<String> posCodes) {}
+
+    /**
+     * All possible legend entries, ordered by semantic category.  The first matching entry wins.
+     * The POS codes here must stay in sync with {@link #posColor(String)}.
+     */
+    private static final List<LegendEntry> LEGEND_ENTRIES = List.of(
+            new LegendEntry("#3498DB", "Noun", "Entities and objects (NN, NNS)", Set.of("NN", "NNS")),
+            new LegendEntry("#85C1E9", "Proper noun", "Named entities (NNP, NNPS)", Set.of("NNP", "NNPS")),
+            new LegendEntry("#E74C3C", "Verb", "Actions and predicates (VB, VBZ)", Set.of("VB", "VBZ", "VBD", "VBG", "VBN", "VBP")),
+            new LegendEntry("#2ECC71", "Adjective", "Descriptors and modifiers (JJ, JJR, JJS)", Set.of("JJ", "JJR", "JJS")),
+            new LegendEntry("#F39C12", "Determiner", "Articles and determiners (DT)", Set.of("DT")),
+            new LegendEntry("#9B59B6", "Pronoun", "Pronouns (PRP, PRP$)", Set.of("PRP", "PRP$", "WDT", "WP", "WP$", "WRB")),
+            new LegendEntry("#17A2B8", "Preposition", "Prepositions (IN)", Set.of("IN")),
+            new LegendEntry("#FFBB28", "Adverb", "Adverbs (RB)", Set.of("RB")),
+            new LegendEntry("#AAB7B8", "Other", "Other parts of speech", Set.of())
+    );
 
     // ============ Lemma metadata helpers ============
 
@@ -359,8 +430,7 @@ public class DomainModelDiagramsD3 {
     }
 
     /**
-     * Every candidate owned by the model, in a single snapshot.  Mirrors the per-type candidate
-     * aggregation performed by {@link domox.dom.rqm.Documents#candidates(DomainModel)}.
+     * Every candidate owned by the model, in a single snapshot.  Mirrors the per-type candidate.
      */
     private static List<Candidate> candidatesOf(final DomainModel model) {
         final List<Candidate> all = new ArrayList<>();

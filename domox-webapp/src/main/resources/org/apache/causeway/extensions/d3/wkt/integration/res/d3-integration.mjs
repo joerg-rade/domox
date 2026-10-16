@@ -277,15 +277,28 @@
 
             // ---- Legend ----
             if (legend.length > 0) {
+                // Legend layout:
+                //   title baseline at y=18
+                //   rowY = 35 + i*28  (first swatch top at y=35, pitch 28)
+                //   swatch height = 14 → last swatch bottom = 21 + 28n
+                //   bottom padding = 10 → box height = 31 + 28n
                 var legendGroup = svg.append('g')
                     .attr('class', 'd3-legend')
                     .attr('transform', function () {
-                        return 'translate(20, ' + (height - 40 - legend.length * 28) + ')';
+                        return 'translate(20, ' + (height - 61 - legend.length * 28) + ')';
                     });
+                // Compute the widest row text to size the background box.
+                var maxTextWidth = 240;
+                legend.forEach(function (item) {
+                    var text = (item.label || '') + ' \u2014 ' + (item.description || '');
+                    // Approximate width: ~5.6 px per character at font-size 10
+                    var w = 8 + 20 + text.length * 5.6 + 8;
+                    if (w > maxTextWidth) maxTextWidth = w;
+                });
                 legendGroup.append('rect')
-                    .attr('width', 240)
-                    .attr('height', legend.length * 28 + 10)
-                    .attr('fill', 'rgba(255, 255, 255, 0.92)')
+                    .attr('width', maxTextWidth)
+                    .attr('height', legend.length * 28 + 31)
+                    .attr('fill', 'rgba(255, 255, 255, 0.80)')
                     .attr('stroke', '#ccc')
                     .attr('rx', 4);
                 legendGroup.append('text')
