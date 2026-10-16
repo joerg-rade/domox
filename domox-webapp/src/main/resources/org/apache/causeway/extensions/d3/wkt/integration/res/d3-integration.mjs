@@ -46,7 +46,7 @@
             }
             // Measure available space from the container; fall back to config values
             var width = containerEl.clientWidth || config.initialWidth || 800;
-            var height = containerEl.clientHeight || config.initialHeight || Math.round(width * 0.6);
+            var height = (containerEl.clientHeight || config.initialHeight || Math.round(width * 0.6)) * 2;
             var enableDragging = config.enableDragging !== false;
             var enableZoom = config.enableZoom !== false;
 
@@ -88,27 +88,66 @@
                 return;
             }
 
+            // Derive subdomain groups for cluster layout.
+            // Nodes with the same subdomain are pulled toward a shared group center;
+            // nodes without a subdomain are pulled to the canvas center.
+            var subdomains = [];
+            var subdomainIndex = {};
+            nodes.forEach(function (d) {
+                var sd = d.subdomain || '';
+                if (sd && subdomainIndex[sd] === undefined) {
+                    subdomainIndex[sd] = subdomains.length;
+                    subdomains.push(sd);
+                }
+            });
+            nodes.forEach(function (d) {
+                d.group = d.subdomain && subdomainIndex[d.subdomain] !== undefined
+                        ? subdomainIndex[d.subdomain] : -1;
+            });
+
+            // Compute the center position for each subdomain group, spread in a ring
+            // around the canvas center so groups are visually separated.
+            function getGroupCenter(index) {
+                if (index < 0) return { x: width / 2, y: height / 2 };
+                var count = subdomains.length || 1;
+                var angle = (index / count) * 2 * Math.PI - Math.PI / 2;
+                var ringRadius = Math.min(width, height) * 0.30;
+                return {
+                    x: width / 2 + ringRadius * Math.cos(angle),
+                    y: height / 2 + ringRadius * Math.sin(angle)
+                };
+            }
+
             // Force parameters from config (with sensible defaults)
-            var linkDistance = config.linkDistance != null ? config.linkDistance : 120;
+            var linkDistance = config.linkDistance != null ? config.linkDistance : 180;
             var repulsionStrength = config.repulsionStrength != null ? config.repulsionStrength : -400;
             var collisionRadius = config.collisionRadius != null ? config.collisionRadius : 60;
             var distStrength = config.distributionStrength != null ? config.distributionStrength : 0.08;
 
             // Create the force simulation
-            // Use forceX/forceY (weaker than forceCenter) to spread nodes across the canvas,
-            // combined with collision detection to prevent overlap.
+            // Nodes in the same subdomain group are pulled toward a shared group center
+            // (arranged in a ring), while ungrouped nodes converge on the canvas center.
             var simulation = d3.forceSimulation(nodes)
                 .force('link', d3.forceLink(links)
                     .id(function (d) { return d.id; })
-                    .distance(linkDistance))
+                    // Keep the edge-to-edge gap constant regardless of node size:
+                    // center-to-center = r(src) + r(tgt) + linkDistance, so larger
+                    // central nodes don't crowd their satellites (r is 8-32 px).
+                    .distance(function (d) {
+                        return (d.source.r || 8) + (d.target.r || 8) + linkDistance;
+                    }))
                 .force('charge', d3.forceManyBody()
                     .strength(repulsionStrength))
                 .force('collide', d3.forceCollide()
                     .radius(function (d) {
                         return (d.r || 8) + collisionRadius;
                     }))
-                .force('x', d3.forceX(width / 2).strength(distStrength))
-                .force('y', d3.forceY(height / 2).strength(distStrength));
+                .force('x', d3.forceX(function (d) {
+                    return getGroupCenter(d.group).x;
+                }).strength(distStrength))
+                .force('y', d3.forceY(function (d) {
+                    return getGroupCenter(d.group).y;
+                }).strength(distStrength));
 
             // Re-center/distribute on window resize so the force layout stays proportioned to the container
             window.addEventListener('resize', function () {
@@ -118,8 +157,12 @@
                     width = w;
                     height = h || height;
                     svg.attr('viewBox', '0 0 ' + width + ' ' + height);
-                    simulation.force('x', d3.forceX(width / 2).strength(distStrength));
-                    simulation.force('y', d3.forceY(height / 2).strength(distStrength));
+                    simulation.force('x', d3.forceX(function (d) {
+                        return getGroupCenter(d.group).x;
+                    }).strength(distStrength));
+                    simulation.force('y', d3.forceY(function (d) {
+                        return getGroupCenter(d.group).y;
+                    }).strength(distStrength));
                     simulation.alpha(0.5).restart();
                 }
             });
@@ -215,6 +258,7 @@
                     return d.subdomain ? '1.15em' : '0';
                 })
                 .attr('font-weight', 'bold')
+                .attr('text-decoration', 'underline')
                 .attr('font-size', function (d) {
                     return clampFont(11 * nodeScale(d));
                 })
@@ -245,15 +289,18 @@
                     .attr('y', -h / 2);
             });
 
-            // Node click handler (if a callback URL is configured)
-            if (config.clickCallbackUrl) {
-                node.style('cursor', 'pointer')
-                    .on('click', function (event, d) {
-                        var url = config.clickCallbackUrl.replace(PLACEHOLDER, '')
-                            + '&nodeId=' + encodeURIComponent(d.id);
-                        Wicket.Ajax.get({'u': url});
-                    });
-            }
+            // Node click handler: open candidate entity page in a new tab
+            node.style('cursor', function (d) {
+                    return d.candidateId ? 'pointer' : 'default';
+                })
+                .on('click', function (event, d) {
+                    if (event.defaultPrevented) return;
+                    if (d.candidateId && d.objectType) {
+                        var basePath = config.contextPath || '';
+                        var entityUrl = basePath + '/wicket/object/' + encodeURIComponent(d.objectType) + ':' + d.candidateId;
+                        window.open(entityUrl, '_blank');
+                    }
+                });
 
             // Drag behaviour
             if (enableDragging) {

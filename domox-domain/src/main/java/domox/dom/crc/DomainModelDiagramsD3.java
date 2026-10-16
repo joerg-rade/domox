@@ -156,11 +156,25 @@ public class DomainModelDiagramsD3 {
                 subdomainByLemma.put(lemma, sdName != null ? sdName : "");
             }
 
+            // Map each lemma to the first candidate's database ID and object type
+            // (e.g. "domox.dom.crc.ClassCdd") for click-through links.
+            final Map<String, Long> candidateIdByLemma = new HashMap<>();
+            final Map<String, String> objectTypeByLemma = new HashMap<>();
+            for (final String lemma : nodeLemmas) {
+                final List<Candidate> cs = candidatesByLemma.get(lemma);
+                if (cs != null && !cs.isEmpty()) {
+                    final Candidate c = cs.getFirst();
+                    candidateIdByLemma.put(lemma, c.getId());
+                    objectTypeByLemma.put(lemma, DomainModule.NAMESPACE + "." + c.getClass().getSimpleName());
+                }
+            }
+
             // Build enriched JSON: nodes, links, legend.
             final StringBuilder json = new StringBuilder();
             json.append('{');
             appendNodes(json, nodeLemmas, posByLemma, countByLemma, maxCount,
-                    approvedLemmas, displayName, subdomainByLemma);
+                    approvedLemmas, displayName, subdomainByLemma,
+                    candidateIdByLemma, objectTypeByLemma);
             json.append(',');
             appendLinks(json, dependencies);
             json.append(',');
@@ -195,7 +209,9 @@ public class DomainModelDiagramsD3 {
                                     final int maxCount,
                                     final Set<String> approvedLemmas,
                                     final Map<String, String> displayName,
-                                    final Map<String, String> subdomainByLemma) {
+                                    final Map<String, String> subdomainByLemma,
+                                    final Map<String, Long> candidateIdByLemma,
+                                    final Map<String, String> objectTypeByLemma) {
         json.append("\"nodes\":[");
         boolean first = true;
         for (final String lemma : nodeLemmas) {
@@ -216,6 +232,12 @@ public class DomainModelDiagramsD3 {
             json.append(",\"color\":\"").append(posColor(pos)).append('"');
             json.append(",\"r\":").append(radius);
             json.append(",\"approved\":").append(approved);
+            final Long candId = candidateIdByLemma.get(lemma);
+            final String objType = objectTypeByLemma.get(lemma);
+            if (candId != null && objType != null) {
+                json.append(",\"candidateId\":").append(candId);
+                json.append(",\"objectType\":\"").append(escapeJson(objType)).append('"');
+            }
             json.append('}');
             first = false;
         }
