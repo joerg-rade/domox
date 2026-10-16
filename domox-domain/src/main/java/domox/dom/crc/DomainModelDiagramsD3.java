@@ -31,8 +31,8 @@ import java.util.*;
  * The result is a {@link String} containing a JSON object with the following structure:
  * <pre>{@code {
  *   "nodes": [
- *     {"id":"store","name":"Store","pos":"NN","color":"#3498DB",
- *      "r":12,"approved":true,"synonym":false}
+ *     {"id":"store","name":"Store","subdomain":"Inventory","pos":"NN","color":"#3498DB",
+ *      "r":12,"approved":true}
  *   ],
  *   "links": [
  *     {"source":"store","target":"customer","label":"nsubj"}
@@ -61,9 +61,6 @@ public class DomainModelDiagramsD3 {
     /** Rule-match count of the largest node maps to scale 4. */
     private static final double MAX_SCALE = 4.0;
 
-    /** Candidate-type marker for synonym rule match (TDR41). */
-    private static final String SYNONYM_CANDIDATE_TYPE = "SynonymCdd";
-
     @Programmatic
     public String renderDiagram(final DomainModel model) {
         if (model == null) {
@@ -90,6 +87,17 @@ public class DomainModelDiagramsD3 {
             final List<TypedDependency> dependencies = collectDependencies(
                     approved, candidateLemmas, candidatesByLemma, model.getHopDepth());
 
+            // Remove association-artifact candidate nodes — synthetic Association-typed compounds
+            // of the form "X_Y" derived from existing candidate lemmas (e.g. "Coverage_Age",
+            // "OnlineStore_Store"), regardless of which rule created them (synonym TDR41,
+            // generalization, association rule).  The participant lemmas and their typed
+            // dependency link are kept; only the synthetic compound node (with its empty <<>> POS)
+            // is removed from the lexical diagram.
+            final Set<String> artifactLemmas = associationArtifactLemmas(allCandidates, candidateLemmas);
+            dependencies.removeIf(td -> td != null && (
+                    artifactLemmas.contains(lower(td.getGovernorLemma())) ||
+                    artifactLemmas.contains(lower(td.getDependentLemma()))));
+
             // Build per-lemma metadata: POS tags and rule-match counts.
             final Map<String, Set<String>> posByLemma = new LinkedHashMap<>();
             final Map<String, Integer> countByLemma = new HashMap<>();
@@ -112,10 +120,11 @@ public class DomainModelDiagramsD3 {
                 nodeLemmas.add(lower(td.getGovernorLemma()));
                 nodeLemmas.add(lower(td.getDependentLemma()));
             }
+            // Association-artifact nodes are excluded from the diagram entirely.
+            nodeLemmas.removeAll(artifactLemmas);
 
-            // Approved and synonym lemma sets for border styling.
+            // Approved lemma set (bold border).
             final Set<String> approvedLemmas = approvedLemmasSet(allCandidates);
-            final Set<String> synonymLemmas = synonymLemmasSet(allCandidates);
 
             // Maximum count for scaling.
             final int maxCount = countByLemma.values().stream()
@@ -129,11 +138,29 @@ public class DomainModelDiagramsD3 {
                         ? cs.getFirst().getCandidateName() : lemma);
             }
 
+            // Map each lemma to its ClassCdd subDomain name (set during review), if any.
+            final Map<String, String> classSubdomainByLemma = new HashMap<>();
+            for (final Candidate c : allCandidates) {
+                if (c instanceof ClassCdd cc && cc.getSubDomain() != null
+                        && cc.getSubDomain().getName() != null) {
+                    classSubdomainByLemma.put(lower(c.getCandidateName()),
+                            cc.getSubDomain().getName());
+                }
+            }
+
+            // Map each lemma to its first label line (the "subdomain" line of the node):
+            // ClassCdd candidates show their assigned subDomain name; all others show blank.
+            final Map<String, String> subdomainByLemma = new HashMap<>();
+            for (final String lemma : nodeLemmas) {
+                final String sdName = classSubdomainByLemma.get(lemma);
+                subdomainByLemma.put(lemma, sdName != null ? sdName : "");
+            }
+
             // Build enriched JSON: nodes, links, legend.
             final StringBuilder json = new StringBuilder();
             json.append('{');
             appendNodes(json, nodeLemmas, posByLemma, countByLemma, maxCount,
-                    approvedLemmas, synonymLemmas, displayName);
+                    approvedLemmas, displayName, subdomainByLemma);
             json.append(',');
             appendLinks(json, dependencies, displayName);
             json.append(',');
@@ -153,7 +180,7 @@ public class DomainModelDiagramsD3 {
     // ============ JSON generation helpers ============
 
     /**
-     * Appends the {@code "nodes"} array. Each node: id, name, pos, color, r, approved, synonym.
+     * Appends the {@code "nodes"} array. Each node: id, name, subdomain, pos, color, r, approved.
      */
     private static void appendNodes(final StringBuilder json,
                                     final Set<String> nodeLemmas,
@@ -161,8 +188,8 @@ public class DomainModelDiagramsD3 {
                                     final Map<String, Integer> countByLemma,
                                     final int maxCount,
                                     final Set<String> approvedLemmas,
-                                    final Set<String> synonymLemmas,
-                                    final Map<String, String> displayName) {
+                                    final Map<String, String> displayName,
+                                    final Map<String, String> subdomainByLemma) {
         json.append("\"nodes\":[");
         boolean first = true;
         for (final String lemma : nodeLemmas) {
@@ -172,15 +199,17 @@ public class DomainModelDiagramsD3 {
             final double scale = scaleFor(count, maxCount);
             final int radius = (int) Math.round(scale * NODE_BASE_RADIUS);
             final boolean approved = approvedLemmas.contains(lemma);
-            final boolean synonym = synonymLemmas.contains(lemma);
             json.append('{');
             json.append("\"id\":\"").append(escapeJson(lemma)).append('"');
             json.append(",\"name\":\"").append(escapeJson(displayName.getOrDefault(lemma, lemma))).append('"');
+            final String sd = subdomainByLemma.getOrDefault(lemma, "");
+            if (!sd.isEmpty()) {
+                json.append(",\"subdomain\":\"").append(escapeJson(sd)).append('"');
+            }
             json.append(",\"pos\":\"").append(escapeJson(pos)).append('"');
             json.append(",\"color\":\"").append(posColor(pos)).append('"');
             json.append(",\"r\":").append(radius);
             json.append(",\"approved\":").append(approved);
-            json.append(",\"synonym\":").append(synonym);
             json.append('}');
             first = false;
         }
@@ -259,19 +288,44 @@ public class DomainModelDiagramsD3 {
         return lemmas;
     }
 
-    /** Lower-cased lemmas that participate in a SynonymCdd rule match (dashed border in D3). */
-    private static Set<String> synonymLemmasSet(final List<Candidate> candidates) {
-        final Set<String> lemmas = new HashSet<>();
+    /**
+     * Lower-cased lemmas of <em>association-artifact</em> candidates — synthetic
+     * {@code Association}-typed nodes whose name is a compound of two existing candidate lemmas
+     * joined by {@code _} (e.g. {@code Coverage_Age}, {@code OnlineStore_Store}).  Such
+     * candidates are products of the candidate-extraction rules (synonym TDR41, generalization,
+     * or association rules) and are excluded from the D3 diagram because their derived lemma is
+     * uninformative and their POS label is always empty ({@code <<>>}).
+     * <p>
+     * The <em>participant</em> lemmas (e.g. {@code coverage}, {@code age}) are deliberately
+     * <strong>kept</strong> in the diagram together with their typed-dependency link; only the
+     * synthetic association node is removed.  The originating rule is deliberately not consulted
+     * — the compound-name shape is the criterion, so the filter applies uniformly to every rule
+     * family (synonym, generalization, association rule).
+     * <p>
+     * <strong>Presentational scope only:</strong> this filter affects the <em>lexical</em> D3
+     * rendering.  The association candidates themselves remain in the model — they are required
+     * later for UML class-diagram construction, where generalizations and associations are
+     * first-class citizens.
+     */
+    private static Set<String> associationArtifactLemmas(final List<Candidate> candidates,
+                                                         final Set<String> candidateLemmas) {
+        final Set<String> artifactLemmas = new HashSet<>();
         for (final Candidate c : candidates) {
-            if (c == null || c.getRuleMatches() == null) continue;
-            for (final RuleMatch m : c.getRuleMatches()) {
-                if (m != null && SYNONYM_CANDIDATE_TYPE.equals(m.getCandidateType())) {
-                    lemmas.add(lower(m.getCandidateName()));
-                    lemmas.add(lower(m.getRelatedCandidateName()));
-                }
+            if (c == null || c.getCandidateName() == null) continue;
+            // Only association-typed candidates are considered synthetic compounds.
+            if (!"Association".equals(typeLabel(c.getCandidateType()))) continue;
+            final String lemma = lower(c.getCandidateName());
+            // Compound of the form "X_Y" — split on the (single) underscore separator.
+            final int sep = lemma.indexOf('_');
+            if (sep <= 0 || sep >= lemma.length() - 1) continue;
+            final String left = lemma.substring(0, sep);
+            final String right = lemma.substring(sep + 1);
+            // Both halves must be real candidate lemmas for this to be a derived compound.
+            if (candidateLemmas.contains(left) && candidateLemmas.contains(right)) {
+                artifactLemmas.add(lemma);
             }
         }
-        return lemmas;
+        return artifactLemmas;
     }
 
     // ============ Node sizing and colour ============
@@ -430,6 +484,16 @@ public class DomainModelDiagramsD3 {
 
     private static String lower(final String s) {
         return s == null ? "" : s.toLowerCase(Locale.ROOT);
+    }
+
+    /** Friendly label of a candidate type, e.g. {@code ClassCdd} → {@code Class}. */
+    private static String typeLabel(final String candidateType) {
+        if (candidateType == null || candidateType.isEmpty()) {
+            return "Domain";
+        }
+        return candidateType.endsWith("Cdd")
+                ? candidateType.substring(0, candidateType.length() - 3)
+                : candidateType;
     }
 
     /**
