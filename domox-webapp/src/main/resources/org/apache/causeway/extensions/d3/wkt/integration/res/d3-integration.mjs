@@ -140,7 +140,7 @@
                     .strength(repulsionStrength))
                 .force('collide', d3.forceCollide()
                     .radius(function (d) {
-                        return (d.r || 8) + collisionRadius;
+                        return (d.r || 8) * 4 + collisionRadius;
                     }))
                 .force('x', d3.forceX(function (d) {
                     return getGroupCenter(d.group).x;
