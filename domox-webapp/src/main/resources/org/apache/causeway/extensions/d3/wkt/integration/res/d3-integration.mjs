@@ -265,9 +265,15 @@
                 .text(function (d) { return d.name || d.id; });
 
             // Line 3: POS in double brackets
+            // The dy offset scales with the node's size multiplier so the gap
+            // between the name line and the POS line stays proportional to the
+            // rest of the label (font sizes and padding all scale with nodeScale).
+            // A base of 14px prevents the crowding that 1.15em @ 7px (~8px) caused.
             nodeText.append('tspan')
                 .attr('x', 0)
-                .attr('dy', '1.15em')
+                .attr('dy', function (d) {
+                    return (14 * nodeScale(d)).toFixed(1) + 'px';
+                })
                 .attr('font-size', function (d) {
                     return clampFont(7 * nodeScale(d));
                 })
@@ -331,9 +337,7 @@
                 //   bottom padding = 10 → box height = 31 + 28n
                 var legendGroup = svg.append('g')
                     .attr('class', 'd3-legend')
-                    .attr('transform', function () {
-                        return 'translate(20, ' + (height - 61 - legend.length * 28) + ')';
-                    });
+                    .attr('transform', 'translate(20, 20)');
                 // Compute the widest row text to size the background box.
                 var maxTextWidth = 240;
                 legend.forEach(function (item) {

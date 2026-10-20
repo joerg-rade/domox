@@ -226,5 +226,29 @@ fallbacks for test environments or headless rendering.
 - To change the **container constraints** — edit `D3Panel.css` (`.d3GraphPanel`,
   `.d3GraphCanvas`).
 - To change what data appears — edit `DomainModelDiagramsD3.java` (nodes, links, legend).
-- To rebuild the JS resource — run `mvn compile -pl extensions/vw/d3/wicket/integration`
-  from the Causeway repo root.
+- After editing `d3-integration.mjs`, **refresh the running app** by copying the file to
+  `domox-webapp/target/classes/` under the same resource path, or run
+  `mvn resources:resources -pl domox-webapp -q` for a full resource-cycle.
+- To change the **underline link-affordance** (under the bold candidate name):
+  - **Java side** (`DomainModelDiagramsD3.java` — `appendNodes()`) — emit the
+    `isCandidateColumn` boolean flag per node.  `true` when the node has a real
+    candidate entity (`candId != null`), `false` for synthetic/artifact nodes.
+  - **JS side** (`d3-integration.mjs` — `node.each()`) — draws an explicit SVG `<line>`
+    positioned by `tspan.d3-node-name.getBBox()` only when `d.isCandidateColumn` is
+    `true`.  Avoids SVG `text-decoration: underline` on the tspan, whose baseline
+    placement is unreliable with `dominant-baseline: central` when no subdomain line
+    precedes it.
+
+---
+
+## Verification
+
+After editing `d3-integration.mjs` or `DomainModelDiagramsD3.java`:
+
+1. **JS syntax** — `node --check domox-webapp/src/main/resources/org/apache/causeway/extensions/d3/wkt/integration/res/d3-integration.mjs`
+2. **Refresh** — copy the `.mjs` to `target/classes` (see Quick reference above).
+3. **Build + test** — `bash scripts/check.sh` (includes domain unit tests + metamodel guardrail).
+4. **Manual visual check** — boot the app, open the Domain Model diagram page, verify:
+   - ✅ Candidate-linked nodes (e.g. `Store`, `Customer`) have a white underline under the bold name.
+   - ✅ Synthetic/artifact nodes (e.g. `Coverage_Age`, `ShopSystem`) have **no** underline.
+   - ✅ The `<<POS>>` line is not overlapped by any underline.

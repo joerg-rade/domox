@@ -43,6 +43,11 @@ jobs:
             ${{ runner.os }}-m2-
 
       # -am builds and tests upstream domox-adapter too; mirrors the locally-proven command.
+      - name: JavaScript syntax check (hand-edited .mjs files)
+        run: |
+          for f in $(find . -path '*/node_modules' -prune -o -name '*.mjs' -print); do
+            node --check "$f" || exit 1
+          done
       - name: Run unit tests (domain + adapter)
         run: mvn -B -q test -pl domox-domain -am
 
