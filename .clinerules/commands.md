@@ -12,11 +12,19 @@ Whenever executing terminal commands that require Java, Maven, or SDKMAN binarie
 
 # Repo Map (navigation)
 
-Before searching the codebase, jump straight to the right steer/doc for common tasks:
+Before searching the codebase, jump straight to the right steer/doc for common tasks.
+
+**Rule-file partitioning:** `.clinerules/*.md` (top level) = always-active DoMoX steering;
+`.clinerules/memory-bank/technical/` = DoMoX-specific tech references (loaded on demand);
+`~/.clinerules/` = generic cross-project tech references (causeway, maven) — user-global
+Cline rules directory, loaded for every project.
 
 - **Causeway annotations & conventions** (e.g. `@DomainObject(editing = Editing.ENABLED)`) →
-  `.clinerules/memory-bank/technical/CAUSEWAY.md` (full reference: `docs/causeway/causeway-annotations.md`)
-- **Module layout / build** → `.clinerules/memory-bank/technical/MAVEN.md` (full reference: `docs/maven/maven-best-practices.md`)
+  `~/.clinerules/causeway.md` (user-global reference; full reference:
+  `docs/causeway/causeway-annotations.md`; DoMoX metamodel guardrail: `CODING_STANDARDS.md` §1)
+- **Module layout / build** → `.clinerules/memory-bank/technical/MAVEN.md` (DoMoX build facts;
+  full reference: `docs/maven/maven-best-practices.md`); generic Maven caveats (build-cache key
+  trap) → `~/.clinerules/maven.md`
 - **Persistence / schema / JPA field migration** (TABLE_PER_CLASS trap, `create-tables.sql`,
   drift check) → `.clinerules/memory-bank/technical/SCHEMA.md`
 - **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`

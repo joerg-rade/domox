@@ -5,7 +5,7 @@
 This guide explains best practices for maintaining a healthy multi-module Maven project. DoMoX follows these patterns across its four modules:
 - **domox** (parent)
 - **domox-domain** (entity/JPA layer)
-- **domox-service** (business logic)
+- **domox-adapter** (business logic)
 - **domox-webapp** (web application / Spring Boot)
 
 ---
@@ -19,7 +19,7 @@ domox/
 ├─ pom.xml                     (packaging: pom)
 ├─ domox-domain/
 │  └─ pom.xml
-├─ domox-service/
+├─ domox-adapter/
 │  └─ pom.xml
 └─ domox-webapp/
    └─ pom.xml
@@ -420,7 +420,7 @@ When a transitive dependency has a known CVE, override it in the root POM's `<de
 - Relationship definitions
 - No business logic; data structures only
 
-### domox-service
+### domox-adapter
 - Kotlin-based business logic
 - Service layer (repositories, managers)
 - Depends on domox-domain
@@ -430,7 +430,7 @@ When a transitive dependency has a known CVE, override it in the root POM's `<de
 - Spring Boot web application
 - Causeway viewers (Wicket, REST)
 - Application bootstrap and configuration
-- Depends on domox-service (which transitively pulls domox-domain)
+- Depends on domox-adapter (which transitively pulls domox-domain)
 
 ### domox (parent)
 - **Build configuration only** (no source code)
@@ -481,7 +481,7 @@ DoMoX follows a **layered architecture**:
 ```
 domox-webapp (top)
     ↓ depends on
-domox-service (middle)
+domox-adapter (middle)
     ↓ depends on
 domox-domain (bottom)
     
@@ -592,7 +592,7 @@ Configure Maven to use both:
 
 1. **Use incremental builds during development:**
    ```bash
-   mvn -pl domox-service -am install
+   mvn -pl domox-adapter -am install
    ```
 
 2. **Enable Maven build cache (Maven 3.9+):**
@@ -614,7 +614,7 @@ Configure Maven to use both:
 - **Unit tests:** Each module's own `src/test/java`
 - **Integration tests:** Use TestContainers for databases
 - **Mock dependencies:** Never depend on external services during tests
-- **Test module isolation:** Tests in domox-webapp don't require domox-service compilation (transitive pull only)
+- **Test module isolation:** Tests in domox-webapp don't require domox-adapter compilation (transitive pull only)
 
 ---
 
