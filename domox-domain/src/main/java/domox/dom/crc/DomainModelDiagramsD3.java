@@ -85,7 +85,7 @@ public class DomainModelDiagramsD3 {
             final Set<String> candidateLemmas = candidateLemmas(allCandidates);
             final Map<String, List<Candidate>> candidatesByLemma = candidatesByLemma(allCandidates);
             final List<TypedDependency> dependencies = collectDependencies(
-                    approved, candidateLemmas, candidatesByLemma, model.getHopDepth());
+                    approved, candidateLemmas, candidatesByLemma, 1);
 
             // Remove association-artifact candidate nodes — synthetic Association-typed compounds
             // of the form "X_Y" derived from existing candidate lemmas (e.g. "Coverage_Age",
