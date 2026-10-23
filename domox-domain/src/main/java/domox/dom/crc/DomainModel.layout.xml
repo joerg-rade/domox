@@ -57,7 +57,6 @@
             <bs:row>
                 <bs:col span="12">
                     <cpt:fieldSet name="Dependency Diagram" id="content">
-                        <cpt:property id="hopDepth"/>
                         <cpt:property id="diagram"/>
                     </cpt:fieldSet>
                 </bs:col>
