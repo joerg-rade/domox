@@ -274,3 +274,14 @@ domox:
   kroki:
     host: localhost
     port: 8001
+
+# ---- Logging (Spring Boot abstraction — works with Logback by default) ----
+logging:
+  level:
+    # Debug the PropertyGroup filter chain for the D3 fieldSet bug
+    # (adds debug logging in PropertyGroup.getPropertiesNotStaticallyHidden())
+    org.apache.causeway.viewer.wicket.ui.components.object.fieldset: DEBUG
+    # Debug the D3 facet factory
+    org.apache.causeway.extensions.d3: DEBUG
+    domox: INFO
+

@@ -94,7 +94,7 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
                 actionList != null ? actionList.size() : -1,
                 propertyList != null ? propertyList.size() : -1,
                 associationList != null ? associationList.size() : -1,
-                hopDepth);
+                1);
         String result = domainModelDiagramsServiceD3.renderDiagram(this);
         if (result == null) {
             log.warn("DomainModel #{}: domainModelDiagramsServiceD3.renderDiagram() returned null — no diagram produced", id);
@@ -104,33 +104,6 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
         return result != null ? result : "{\"nodes\":[],\"links\":[]}";
     }
 
-    /**
-     * How many hops the model-wide dependency diagram reaches out from the approved candidates:
-     * {@code 1} (the default) draws the approved candidates plus every candidate directly connected
-     * to them.  Larger values deepen the neighbourhood — e.g. {@code 2} additionally draws every
-     * candidate connected to those direct neighbours.
-     * <p>
-     * Changing this value triggers the {@link #getDiagram() dependency diagram} to be rebuilt at
-     * the new depth: the diagram is derived again on every access, so the next render reflects the
-     * updated hop depth.
-     * <p>
-     * This is a transient hint property.  Its primary purpose is to provide a second property
-     * alongside {@link #getDiagram() diagram} in the {@code content} fieldSet, ensuring the
-     * fieldSet renders even when the diagram property alone would be filtered out by the
-     * Wicket viewer's visibility checks in {@code PropertyGroup.getPropertiesNotStaticallyHidden()}.
-     * (When the fieldSet has only one property — the D3-annotated diagram — that single property
-     * can fail the filter chain, causing the entire fieldSet to be hidden.  The hop-depth property
-     * provides an anchor that passes the visibility checks.)
-     */
-    @Getter
-    @Transient
-    @Property(optionality = Optionality.OPTIONAL)
-    @PropertyLayout(
-            named = "Diagram Hop Depth",
-            describedAs = "How far the dependency diagram reaches out (in hops) from the approved candidates",
-            fieldSetId = "content",
-            sequence = "1")
-    private Integer hopDepth = 1;
     // endregion
 
     @Override
