@@ -81,7 +81,7 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
 
     @D3Graph
     @Property(optionality = Optionality.OPTIONAL)
-    @PropertyLayout(named = "Dependency Diagram / D3", fieldSetId = "content", sequence = "2.1")
+    @PropertyLayout(named = "Dependency Diagram / D3", fieldSetId = "content", sequence = "1")
     public String getDiagram() {
         final long id = getId() != null ? getId() : -1L;
         if (domainModelDiagramsServiceD3 == null) {
@@ -113,25 +113,24 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
      * Changing this value triggers the {@link #getDiagram() dependency diagram} to be rebuilt at
      * the new depth: the diagram is derived again on every access, so the next render reflects the
      * updated hop depth.
+     * <p>
+     * This is a transient hint property.  Its primary purpose is to provide a second property
+     * alongside {@link #getDiagram() diagram} in the {@code content} fieldSet, ensuring the
+     * fieldSet renders even when the diagram property alone would be filtered out by the
+     * Wicket viewer's visibility checks in {@code PropertyGroup.getPropertiesNotStaticallyHidden()}.
+     * (When the fieldSet has only one property — the D3-annotated diagram — that single property
+     * can fail the filter chain, causing the entire fieldSet to be hidden.  The hop-depth property
+     * provides an anchor that passes the visibility checks.)
      */
     @Getter
-    @Column(nullable = false)
+    @Transient
+    @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
             named = "Diagram Hop Depth",
             describedAs = "How far the dependency diagram reaches out (in hops) from the approved candidates",
             fieldSetId = "content",
             sequence = "1")
-    private int hopDepth = 1;
-
-    /**
-     * Sets the hop depth, clamped to a minimum of {@code 1}.  Because {@link #getDiagram()} is
-     * regenerated on every access, an actual change causes the dependency diagram to be rebuilt at
-     * the new depth on its next render.
-     */
-    public void setHopDepth(final int hopDepth) {
-        this.hopDepth = Math.max(1, hopDepth);
-    }
-
+    private Integer hopDepth = 1;
     // endregion
 
     @Override

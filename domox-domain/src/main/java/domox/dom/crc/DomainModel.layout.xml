@@ -50,13 +50,7 @@
         <bs:col span="8">
             <bs:row>
                 <bs:col span="12">
-                    <cpt:fieldSet name="General" id="general" unreferencedProperties="true">
-                    </cpt:fieldSet>
-                </bs:col>
-            </bs:row>
-            <bs:row>
-                <bs:col span="12">
-                    <cpt:fieldSet name="Dependency Diagram" id="content">
+                    <cpt:fieldSet name="Dependency Diagram" id="content" unreferencedProperties="true">
                         <cpt:property id="diagram"/>
                     </cpt:fieldSet>
                 </bs:col>
