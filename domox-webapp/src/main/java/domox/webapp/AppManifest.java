@@ -10,6 +10,8 @@ import org.apache.causeway.extensions.cors.impl.CausewayModuleExtCors;
 import org.apache.causeway.extensions.d3.applib.spi.D3GraphAdvisor;
 import org.apache.causeway.extensions.d3.wkt.ui.CausewayModuleExtD3WicketUi;
 import org.apache.causeway.extensions.pdfjs.wkt.ui.CausewayModuleExtPdfjsWicketUi;
+import org.apache.causeway.valuetypes.vega.metamodel.CausewayModuleValVegaMetaModel;
+import org.apache.causeway.valuetypes.vega.ui.wkt.CausewayModuleValVegaUiWkt;
 import org.apache.causeway.persistence.jpa.eclipselink.CausewayModulePersistenceJpaEclipselink;
 import org.apache.causeway.security.bypass.CausewayModuleSecurityBypass;
 import org.apache.causeway.testing.fixtures.applib.CausewayModuleTestingFixturesApplib;
@@ -38,6 +40,8 @@ import java.util.List;
         CausewayModuleExtCors.class,
         CausewayModuleExtD3WicketUi.class,
         CausewayModuleExtPdfjsWicketUi.class,
+        CausewayModuleValVegaMetaModel.class,
+        CausewayModuleValVegaUiWkt.class,
         CausewayModuleViewerWicketViewer.class,
         CausewayModuleTestingFixturesApplib.class,
 

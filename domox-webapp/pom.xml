@@ -215,6 +215,11 @@
             <artifactId>causeway-extensions-pdfjs-wicket-ui</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.causeway.valuetypes</groupId>
+            <artifactId>causeway-valuetypes-vega-ui-wkt</artifactId>
+        </dependency>
+
         <!-- @D3Graph rendering (D3PanelComponentFactory); pulls in
              d3-metamodel (D3GraphFacetFactory) and d3-wicket-integration
              (D3Panel + d3-integration.mjs) transitively. -->

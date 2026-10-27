@@ -275,6 +275,7 @@ domox:
     host: localhost
     port: 8001
 
+
 # ---- Logging (Spring Boot abstraction — works with Logback by default) ----
 logging:
   level:
@@ -283,5 +284,4 @@ logging:
     org.apache.causeway.viewer.wicket.ui.components.object.fieldset: DEBUG
     # Debug the D3 facet factory
     org.apache.causeway.extensions.d3: DEBUG
-    domox: INFO
-
+    domox.dom.crc: DEBUG

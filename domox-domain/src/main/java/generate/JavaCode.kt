@@ -6,7 +6,7 @@ import domox.dom.crc.PropertyCdd
 
 class JavaCode(val clazz: ClassCdd) : BaseCode() {
     private var clazzName:String = clazz.candidateName
-    private var packageName: String = clazz.subDomain.name
+    private var packageName: String = clazz.subDomain?.name ?: clazz.candidateName?.lowercase() ?: "generate"
 
     init {
         code = buildHeader()

@@ -539,6 +539,21 @@
                 <version>${causeway.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.causeway.valuetypes</groupId>
+                <artifactId>causeway-valuetypes-vega-applib</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.valuetypes</groupId>
+                <artifactId>causeway-valuetypes-vega-metamodel</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.causeway.valuetypes</groupId>
+                <artifactId>causeway-valuetypes-vega-ui-wkt</artifactId>
+                <version>${causeway.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.causeway.extensions</groupId>
                 <artifactId>causeway-extensions-secman-encryption-spring</artifactId>
                 <version>${causeway.version}</version>

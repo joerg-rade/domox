@@ -14,6 +14,7 @@ import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
+import org.apache.causeway.valuetypes.vega.applib.value.Vega;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +78,16 @@ public abstract class Candidate extends AbstractEntity {
     @Transient
     private CandidateDiagrams candidateDiagramsService;
 
+    /**
+     * Injected {@link CandidateVegaGraph} service used to render an interactive Vega-Lite
+     * bar chart of the candidate's rule-match and review profile on demand.
+     * <p>
+     * The graph is deliberately <em>not</em> persisted — it is regenerated on every access.
+     */
+    @Inject
+    @Transient
+    private CandidateVegaGraph candidateVegaGraphService;
+
     @PdfJsViewer
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(named = "Dependency Diagram", fieldSetId = "content", sequence = "2")
@@ -114,6 +125,16 @@ public abstract class Candidate extends AbstractEntity {
             this.hopDepth = clamped;
             // The dependency diagram is derived on access, so the next getDiagram() rebuilds it.
         }
+    }
+
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(
+            named = "Rule Match Profile (Vega)",
+            describedAs = "Interactive bar chart of rule-match and review counts for this candidate",
+            fieldSetId = "content",
+            sequence = "3")
+    public Vega getVegaGraph() {
+        return candidateVegaGraphService != null ? candidateVegaGraphService.renderGraph(this) : null;
     }
     // endregion Diagram
 

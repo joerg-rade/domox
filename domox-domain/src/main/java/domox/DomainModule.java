@@ -3,6 +3,7 @@ package domox;
 import org.apache.causeway.extensions.d3.applib.CausewayModuleExtD3Applib;
 import org.apache.causeway.extensions.pdfjs.applib.CausewayModuleExtPdfjsApplib;
 import org.apache.causeway.persistence.jpa.applib.CausewayModulePersistenceJpaApplib;
+import org.apache.causeway.valuetypes.vega.applib.CausewayModuleValVegaApplib;
 import org.apache.causeway.testing.fixtures.applib.modules.ModuleWithFixtures;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
@@ -14,6 +15,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Import({
         CausewayModuleExtPdfjsApplib.class,
         CausewayModuleExtD3Applib.class,
+        CausewayModuleValVegaApplib.class,
         CausewayModulePersistenceJpaApplib.class,
 })
 @ComponentScan

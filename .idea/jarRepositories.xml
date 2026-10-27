@@ -17,6 +17,11 @@
       <option name="url" value="http://repo.maven.apache.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="apache-releases" />
+      <option name="name" value="Apache Releases" />
+      <option name="url" value="https://repo.maven.apache.org/content/repositories/releases/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="nexus-incode-work" />
       <option name="name" value="Incode Work (maven)" />
       <option name="url" value="https://nexus.incode.work/repository/nightly-builds" />
