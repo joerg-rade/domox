@@ -3,7 +3,7 @@
 # DoMoX fast-check bundle (local guardrail).
 #
 # Usage:
-#   bash scripts/check.sh            # schema drift + JS syntax + domain unit tests + metamodel guardrail
+#   bash scripts/check.sh            # schema drift + JS syntax + domain unit tests + webjar check + metamodel guardrail
 #   bash scripts/check.sh --quick    # schema-drift only
 #
 # This mirrors what CI runs (.github/workflows/ci.yml) but exploits the local dev DB where the
@@ -32,7 +32,7 @@ if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
 fi
 
 # --- 1. Schema drift (dev-DB guardrail) ------------------------------------------------
-step "1/4  Schema drift (DDL vs live domox-db)"
+step "1/5  Schema drift (DDL vs live domox-db)"
 if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx domox-db; then
   if bash scripts/check-schema-drift.sh; then ok "no drift"; else bad "drift detected"; fi
 else
@@ -46,7 +46,7 @@ if [ "${1:-}" = "--quick" ]; then
 fi
 
 # --- 2. JavaScript syntax check (hand-edited .mjs files) --------------------------------
-step "2/4  JavaScript syntax check"
+step "2/5  JavaScript syntax check"
 JSOK=0
 for f in $(find . -path '*/node_modules' -prune -o -name '*.mjs' -print 2>/dev/null); do
   if node --check "$f" 2>/dev/null; then JSOK=$((JSOK+1)); else bad "syntax error in $f"; fi
@@ -54,7 +54,7 @@ done
 [ $JSOK -gt 0 ] && ok "$JSOK .mjs files pass syntax check" || skip "no .mjs files found"
 
 # --- 3. Domain unit tests (domox-domain + upstream domox-adapter) ----------------------
-step "3/4  Unit tests (domox-domain + domox-adapter)"
+step "3/5  Unit tests (domox-domain + domox-adapter)"
 LOG=/tmp/domox-check-unit.log
 # -Dmaven.build.cache.enabled=false: the maven-build-cache extension (.mvn/) restores cached
 # surefire executions and skips re-running them; a guardrail script's job is to actually run
@@ -65,8 +65,16 @@ else
   bad "unit tests failed (log: $LOG — last lines: $(tail -5 "$LOG" | tr '\n' ' '))"
 fi
 
-# --- 4. Metamodel guardrail (boot-time DomainModelValidator veto) ----------------------
-step "4/4  Metamodel guardrail (ValidateDomainModelIntegTest)"
+# --- 4. Webjar resource check (dev-instance guardrail) ---------------------------------
+step "4/5  Webjar resources served correctly (not through Wicket)"
+if curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/webjars/pdfjs-dist/5.4.624/build/pdf.min.mjs 2>/dev/null | grep -q 200; then
+  ok "webjar resource accessible at /webjars/... (not /wicket/wicket/...)"
+else
+  bad "webjar resource not accessible — double-wicket URL regression? (app must be running on :8080)"
+fi
+
+# --- 5. Metamodel guardrail (boot-time DomainModelValidator veto) ----------------------
+step "5/5  Metamodel guardrail (ValidateDomainModelIntegTest)"
 LOG=/tmp/domox-check-meta.log
 # Cache disabled for the same reason as step 2: -Dtest values are NOT part of the build-cache
 # key, so a cached entry from a different -Dtest run would restore and silently skip the

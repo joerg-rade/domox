@@ -46,8 +46,27 @@ never be exposed as a property or action. Suppress Lombok accessors or mark the 
 `@Programmatic`. Prefer constructor injection on services; entities may field-inject but MUST
 hide the field from the metamodel.
 
-## 3. Review checklist
+## 3. wicket-webjars `getName()` returns leading-slash paths
+
+When working with `IWebjarsResourceReference.getName()` (the `de.agilecoders.wicket.webjars`
+library), the returned resource path **starts with `/`** — e.g.
+`/webjars/pdfjs-dist/5.4.624/build/pdf.min.mjs`. This comes from the internal
+`prependWebjarsPathIfMissing` utility.
+
+Do **not** expect bare `webjars/...` (without the leading slash). A `startsWith("webjars/")`
+check silently fails because the actual prefix is `"/webjars/"`. Always check for the leading
+slash or use `IWebjarsResourceReference` type checks instead of string matching.
+
+**File:** `WebjarResourceMapperFix.java` demonstrates the correct pattern:
+```java
+String resourceName = ref.getName();
+// resourceName is "/webjars/..." (with leading slash)
+String webjarUrl = resourceName.startsWith("/") ? resourceName : "/" + resourceName;
+```
+
+## 4. Review checklist
 
 - [ ] No class-level `@Data` on entities / view models.
 - [ ] Injected fields on domain objects have suppressed accessors or `@Programmatic`.
 - [ ] After touching entity members, `ValidateDomainModelIntegTest` passes.
+- [ ] Webjar resource URL generation uses `/webjars/...` (absolute), not `../webjars/...` (relative).
