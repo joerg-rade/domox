@@ -6,7 +6,7 @@ import domox.dom.crc.PropertyCdd
 
 class JavaCode(val clazz: ClassCdd) : BaseCode() {
     private var clazzName:String = clazz.candidateName
-    private var packageName: String = clazz.packageName
+    private var packageName: String = clazz.subDomain.name
 
     init {
         code = buildHeader()
@@ -58,10 +58,10 @@ import org.jetbrains.annotations.NotNull;
 
     private fun buildBody(): String {
         var body = buildPersistenceProperties()
-        clazz.propertyList.forEach() { p ->
+        clazz.propertyList.forEach { p ->
             body += build(p)
         }
-        clazz.actionList.forEach() { a ->
+        clazz.actionList.forEach { a ->
             body += build(a)
         }
         body += buildComparator()

@@ -56,12 +56,7 @@ public class ClassCdd
     @Programmatic
     public ClassType classType = ClassType.PARTY_PLACE_THING;
 
-    @Getter
-    @Setter
-    @Programmatic
-    public String packageName = "sample";
-
-    /**
+     /**
      * The subdomain (business / functional area) this class candidate belongs to.
      * <p>
      * Set by the reviewer during the review workflow: as a {@code @ManyToOne} to the managed

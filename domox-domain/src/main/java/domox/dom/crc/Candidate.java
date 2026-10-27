@@ -146,7 +146,7 @@ public abstract class Candidate extends AbstractEntity {
         return ruleMatches.size();
     }
 
-    @PropertyLayout(sequence = "4")
+    @PropertyLayout(sequence = "4", hidden = Where.ALL_EXCEPT_STANDALONE_TABLES)
     public String getRuleNames() {
         return ruleMatches.stream()
                 .map(RuleMatch::getRuleClassName)
