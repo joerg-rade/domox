@@ -1,25 +1,52 @@
 package domox.dom.crc;
 
+import domox.dom.nlp.PartOfSpeechType;
+import domox.dom.nlp.TdType;
+import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
+import org.apache.causeway.valuetypes.vega.applib.value.Vega;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Verifies {@link CandidateVegaGraph#renderGraph(Candidate)} through its
- * public API, covering null/empty guards, rule-match grouping, review-panel
- * inclusion, and Vega-Lite JSON validity.
+ * public API, covering null/empty guards, schema classification (must be
+ * {@link Vega.Schema#VEGA}, never {@code NONE}), force-directed node-link
+ * structure, candidate-word restriction, hop-depth expansion,
+ * association-artifact filtering, approved-node marking, and POS-colour
+ * legend.
  * <p>
- * These tests exercise the <em>intermediate steps</em> of the graph-building
- * pipeline indirectly via the public {@code renderGraph} method, which is the
- * only API surface of this service.
+ * The test mocks the four candidate-repository services (mirroring
+ * {@link CandidateDiagramsTest}) and sets up {@link TypedDependency}s
+ * through {@link RuleMatch#setTypedDependency(TypedDependency)}.
  */
+@ExtendWith(MockitoExtension.class)
 class CandidateVegaGraphTest {
 
-    private final CandidateVegaGraph service = new CandidateVegaGraph();
+    @Mock
+    ClassCandidates classCandidates;
+    @Mock
+    ActionCandidates actionCandidates;
+    @Mock
+    PropertyCandidates propertyCandidates;
+    @Mock
+    AssociationCandidates associationCandidates;
+
+    CandidateVegaGraph service;
+
+    @BeforeEach
+    void setUp() {
+        service = new CandidateVegaGraph(
+                classCandidates, actionCandidates, propertyCandidates, associationCandidates);
+    }
 
     // ============ null / empty guards ============
 
@@ -29,249 +56,343 @@ class CandidateVegaGraphTest {
     }
 
     @Test
-    void returnsNullWhenRuleMatchesAreNull() {
-        // Simulates the JPA scenario where @ManyToMany resolves to null
-        // (TABLE_PER_CLASS + base-class @JoinTable leaves the collection null).
+    void returnsVegaWhenAllRepositoriesAreEmpty() {
+        stubEmptyLists();
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
-        candidate.setRuleMatches(null);   // ← JPA would set the field directly
-
         assertNotNull(service.renderGraph(candidate));
     }
 
     @Test
-    void returnsNullWhenCandidateTypeIsNull() {
-        // candidateType is used in the Vega title — verify it doesn't crash
+    void returnsVegaWhenRuleMatchesAreNull() {
+        stubEmptyLists();
+        final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
+        candidate.setCandidateType("ClassCdd");
+        candidate.setRuleMatches(null);
+        assertNotNull(service.renderGraph(candidate));
+    }
+
+    @Test
+    void handlesNullCandidateType() {
+        stubEmptyLists();
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType(null);
-
         assertNotNull(service.renderGraph(candidate));
     }
 
     @Test
-    void returnsNullWhenCandidateNameIsNull() {
+    void handlesNullCandidateName() {
+        stubEmptyLists();
         final ClassCdd candidate = new ClassCdd(null, List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
-
         assertNotNull(service.renderGraph(candidate));
     }
 
-    // ============ empty rule matches ============
+    // ============ schema / structure ============
 
     @Test
-    void returnsVegaSpecWithEmptyRuleMatches() {
+    void usesFullVegaV6Schema() {
+        stubEmptyLists();
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
-        // ruleMatches defaults to new ArrayList<>()
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega, "Vega should not be null for a candidate with empty rule matches");
-    }
-
-    // ============ rule-match grouping ============
-
-    @Test
-    void returnsVegaSpecWithSingleRuleMatch() {
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
-
-        final var vega = service.renderGraph(candidate);
+        final Vega vega = service.renderGraph(candidate);
         assertNotNull(vega);
-    }
-
-    @Test
-    void groupsRuleMatchesByRuleClassName() {
-        // Two matches for the same rule class → count = 2
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected"),
-                ruleMatch("TDR01 – Noun phrase detected"),
-                ruleMatch("TDR07 – Direct object relation")));
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-    }
-
-    @Test
-    void handlesRuleMatchWithNullRuleClassName() {
-        // The stream filters out null ruleClassName — should not crash
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected"),
-                ruleMatch(null)));
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-    }
-
-    @Test
-    void handlesManyRuleMatches() {
-        // 10 different rule classes — enough to test the height calculation branch
-        final List<RuleMatch> matches = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            matches.add(ruleMatch("TDR" + (i < 10 ? "0" : "") + i));
-        }
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", matches);
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-    }
-
-    // ============ review panel ============
-
-    @Test
-    void includesReviewPanelWhenReviewsExist() {
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
-        candidate.setCandidateType("ClassCdd");
-
-        // Add one APPROVED review and one REJECTED review
-        final Review approved = new Review();
-        approved.setStatus(ReviewStatus.APPROVED);
-        candidate.addReview(approved);
-
-        final Review rejected = new Review();
-        rejected.setStatus(ReviewStatus.REJECTED);
-        candidate.addReview(rejected);
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-    }
-
-    @Test
-    void handlesReviewsWithNullStatus() {
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
-        candidate.setCandidateType("ClassCdd");
-
-        final Review pending = new Review();
-        pending.setStatus(null);    // ← pending review, filtered out
-        candidate.addReview(pending);
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-    }
-
-    // ============ Vega-Lite JSON structure ============
-
-    @Test
-    void vegaSpecIsValidJson() {
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
-        candidate.setCandidateType("ClassCdd");
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-
-        // Vega value stores the JSON spec as a string — confirm it's parseable JSON
+        assertSame(Vega.Schema.VEGA, vega.getSchema(),
+                "Must be classified VEGA (not NONE) — NONE renders nothing in the Wicket viewer");
         final String json = vega.getJson();
-        assertNotNull(json);
+        assertTrue(json.contains("https://vega.github.io/schema/vega/v6.json"),
+                "Schema URL must point to Vega v6");
+    }
+
+    @Test
+    void vegaSpecHasForceDirectedStructure() {
+        stubEmptyLists();
+        final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
+        candidate.setCandidateType("ClassCdd");
+        final String json = service.renderGraph(candidate).getJson();
         assertTrue(json.startsWith("{"), "Vega spec must be a JSON object");
         assertTrue(json.endsWith("}"), "Vega spec must be a JSON object");
-        assertTrue(json.contains("\"$schema\""), "Vega spec must contain $schema");
-        assertTrue(json.contains("https://vega.github.io/schema/vega-lite/v6.json"),
-                "Vega spec must reference Vega-Lite v6 — the version the Causeway "
-                + "Vega.Schema enum recognizes (v5 would be classified Schema.NONE "
-                + "and render nothing)");
-        assertTrue(json.contains("\"title\""), "Vega spec must contain a title");
-        assertTrue(json.contains("\"vconcat\""),
-                "Vega spec must compose the two panels with vconcat, not layer");
-        assertTrue(json.contains("\"layer\""),
-                "Rule panel must itself be a layered bar+text chart");
+        assertTrue(json.contains("\"force\""), "Spec must contain the force transform");
+        assertTrue(json.contains("\"node-data\""), "Spec must define node-data");
+        assertTrue(json.contains("\"link-data\""), "Spec must define link-data");
+        assertTrue(json.indexOf("\"link-data\"") < json.indexOf("\"node-data\""),
+                "link-data must appear before node-data in the data array so Vega " +
+                "processes it before the force transform in node-data references it");
+        assertTrue(json.contains("\"type\": \"symbol\""), "Spec must contain symbol marks for nodes");
+        assertFalse(json.contains("vconcat"), "Spec must not use vconcat (bar-chart structure)");
+        assertFalse(json.contains("vega-lite"), "Spec must not reference Vega-Lite");
     }
 
     @Test
     void vegaSpecTitleContainsCandidateTypeAndName() {
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
+        stubEmptyLists();
+        final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-
-        final String json = vega.getJson();
+        final String json = service.renderGraph(candidate).getJson();
         assertTrue(json.contains("ClassCdd: Pet"),
                 "Title should be '<candidateType>: <candidateName>'");
     }
 
-    @Test
-    void vegaSpecTitleHandlesNullCandidateType() {
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
-        candidate.setCandidateType(null);
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-
-        final String json = vega.getJson();
-        assertTrue(json.contains("null: Pet"),
-                "Null candidateType should produce 'null: Pet'");
-    }
+    // ============ candidate neighbourhood ============
 
     @Test
-    void vegaSpecContainsRuleData() {
-        final ClassCdd candidate = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
+    void drawsSingleNodeWhenNoDependencies() {
+        stubEmptyLists();
+        final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
-
-        final var vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-
-        final String json = vega.getJson();
-        assertTrue(json.contains("\"data\""), "Vega spec must contain a data section");
-        assertTrue(json.contains("TDR01"), "Data must reference the rule class name");
+        final String json = service.renderGraph(candidate).getJson();
+        assertTrue(json.contains("\"id\":\"pet\""),
+                "Node-data must contain the candidate's lemma as a node");
+        assertFalse(json.contains("\"source\":"),
+                "No link-data when there are no typed dependencies");
     }
 
     @Test
-    void vegaSpecStacksReviewPanelOnlyWhenReviewsExist() {
-        // Without reviews → vconcat has ONE panel (rule chart only), no review axes
-        final ClassCdd noReviews = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
-        noReviews.setCandidateType("ClassCdd");
+    void includesDependencyLinkBetweenCandidateWords() {
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        customer.setCandidateType("ClassCdd");
+        customer.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
+                    "customer", PartOfSpeechType.NN)));
 
-        final String jsonNoReviews = service.renderGraph(noReviews).getJson();
-        assertTrue(jsonNoReviews.contains("\"vconcat\""), "Spec must use vconcat");
-        assertFalse(jsonNoReviews.contains("\"Reviews\""),
-                "Review panel must be omitted when no reviews exist");
-        assertFalse(jsonNoReviews.contains("\"legend\":"),
-                "Rule panel has a fixed colour — no legend expected");
+        final ActionCdd purchase = new ActionCdd();
+        purchase.setCandidateName("Purchase");
+        purchase.setCandidateType("ActionCdd");
 
-        // With reviews → vconcat has TWO panels, the review panel with its own
-        // height and a disabled colour legend (status is already on the y-axis)
-        final ClassCdd withReviews = classCddWithRuleMatches("Pet", List.of(
-                ruleMatch("TDR01 – Noun phrase detected")));
-        withReviews.setCandidateType("ClassCdd");
+        when(classCandidates.listAll()).thenReturn(List.of(customer));
+        when(actionCandidates.listAll()).thenReturn(List.of(purchase));
+        when(propertyCandidates.listAll()).thenReturn(List.of());
+        when(associationCandidates.listAll()).thenReturn(List.of());
+
+        final String json = service.renderGraph(customer).getJson();
+        assertTrue(json.contains("\"source\":\"purchase\""),
+                "Link source must be the governor lemma");
+        assertTrue(json.contains("\"target\":\"customer\""),
+                "Link target must be the dependent lemma");
+        assertTrue(json.contains("\"label\":\"nsubj\""),
+                "Link must carry the TdType code as label");
+        assertTrue(json.contains("\"name\":\"Purchase\""),
+                "Node-data must include the linked candidate 'Purchase'");
+        assertTrue(json.contains("\"name\":\"Customer\""),
+                "Node-data must include the linked candidate 'Customer'");
+    }
+
+    @Test
+    void restrictsDependenciesToCandidateWords() {
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        customer.setCandidateType("ClassCdd");
+        customer.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
+                    "customer", PartOfSpeechType.NN)));       // kept
+        customer.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
+                    "catalog", PartOfSpeechType.NN)));          // dropped
+
+        final ActionCdd purchase = new ActionCdd();
+        purchase.setCandidateName("Purchase");
+        purchase.setCandidateType("ActionCdd");
+
+        when(classCandidates.listAll()).thenReturn(List.of(customer));
+        when(actionCandidates.listAll()).thenReturn(List.of(purchase));
+        when(propertyCandidates.listAll()).thenReturn(List.of());
+        when(associationCandidates.listAll()).thenReturn(List.of());
+
+        final String json = service.renderGraph(customer).getJson();
+        assertTrue(json.contains("\"source\":\"purchase\""),
+                "The candidate-word link purchase→customer must be present");
+        assertTrue(json.contains("\"target\":\"customer\""),
+                "The candidate-word link purchase→customer must be present");
+        assertFalse(json.contains("\"catalog\""),
+                "Non-candidate word 'catalog' must be excluded from the graph");
+    }
+
+    @Test
+    void deepensNeighbourhoodAtHopDepthTwo() {
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        customer.setCandidateType("ClassCdd");
+        customer.setHopDepth(2);
+        customer.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
+                    "customer", PartOfSpeechType.NN)));
+
+        final ActionCdd purchase = new ActionCdd();
+        purchase.setCandidateName("Purchase");
+        purchase.setCandidateType("ActionCdd");
+        purchase.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
+                    "order", PartOfSpeechType.NN)));
+
+        final ClassCdd order = new ClassCdd();
+        order.setCandidateName("Order");
+        order.setCandidateType("ClassCdd");
+
+        when(classCandidates.listAll()).thenReturn(List.of(customer, order));
+        when(actionCandidates.listAll()).thenReturn(List.of(purchase));
+        when(propertyCandidates.listAll()).thenReturn(List.of());
+        when(associationCandidates.listAll()).thenReturn(List.of());
+
+        final String json = service.renderGraph(customer).getJson();
+        assertTrue(json.contains("\"name\":\"Order\""),
+                "Second-level candidate 'Order' should surface at hop depth 2");
+        assertTrue(json.contains("\"source\":\"purchase\""),
+                "The purchase→order link must be present");
+        assertTrue(json.contains("\"target\":\"order\""),
+                "The purchase→order link must be present");
+    }
+
+    @Test
+    void defaultDepthOneExcludesSecondHopNodes() {
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        customer.setCandidateType("ClassCdd");
+        // hopDepth stays at default 1
+        customer.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
+                    "customer", PartOfSpeechType.NN)));
+
+        final ActionCdd purchase = new ActionCdd();
+        purchase.setCandidateName("Purchase");
+        purchase.setCandidateType("ActionCdd");
+        purchase.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
+                    "order", PartOfSpeechType.NN)));
+
+        final ClassCdd order = new ClassCdd();
+        order.setCandidateName("Order");
+        order.setCandidateType("ClassCdd");
+
+        when(classCandidates.listAll()).thenReturn(List.of(customer, order));
+        when(actionCandidates.listAll()).thenReturn(List.of(purchase));
+        when(propertyCandidates.listAll()).thenReturn(List.of());
+        when(associationCandidates.listAll()).thenReturn(List.of());
+
+        final String json = service.renderGraph(customer).getJson();
+        assertFalse(json.contains("\"name\":\"Order\""),
+                "Second-level candidate 'Order' must NOT appear at the default depth of 1");
+    }
+
+    @Test
+    void excludesAssociationArtifactNodes() {
+        final ClassCdd coverage = new ClassCdd();
+        coverage.setCandidateName("Coverage");
+        coverage.setCandidateType("ClassCdd");
+        coverage.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.NSUBJ, "coverage", PartOfSpeechType.NN,
+                    "age", PartOfSpeechType.NN)));                     // kept
+        coverage.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.OBJ, "coverage_age", PartOfSpeechType.NN,
+                    "coverage", PartOfSpeechType.NN)));                // artifactual
+
+        final PropertyCdd age = new PropertyCdd();
+        age.setCandidateName("Age");
+        age.setCandidateType("PropertyCdd");
+
+        final AssociationCdd coverageAge = new AssociationCdd();
+        coverageAge.setCandidateName("Coverage_Age");
+        coverageAge.setCandidateType("AssociationCdd");
+
+        when(classCandidates.listAll()).thenReturn(List.of(coverage));
+        when(actionCandidates.listAll()).thenReturn(List.of());
+        when(propertyCandidates.listAll()).thenReturn(List.of(age));
+        when(associationCandidates.listAll()).thenReturn(List.of(coverageAge));
+
+        final String json = service.renderGraph(coverage).getJson();
+        assertTrue(json.contains("\"source\":\"coverage\""),
+                "The kept link coverage→age must have source 'coverage'");
+        assertTrue(json.contains("\"target\":\"age\""),
+                "The kept link coverage→age must have target 'age'");
+        assertFalse(json.contains("coverage_age"),
+                "The synthetic compound lemma 'coverage_age' must be excluded from the graph");
+    }
+
+    // ============ node metadata ============
+
+    @Test
+    void marksApprovedNodes() {
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        customer.setCandidateType("ClassCdd");
+        customer.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
+                    "customer", PartOfSpeechType.NN)));
         final Review approved = new Review();
         approved.setStatus(ReviewStatus.APPROVED);
-        withReviews.addReview(approved);
+        customer.addReview(approved);
 
-        final String jsonWithReviews = service.renderGraph(withReviews).getJson();
-        assertTrue(jsonWithReviews.contains("\"Reviews\""),
-                "Review panel must appear when reviews exist");
-        assertTrue(jsonWithReviews.contains("\"height\":80"),
-                "Review panel must declare its own height (independent of rule panel)");
-        assertTrue(jsonWithReviews.contains("\"legend\":null"),
-                "Review panel colour legend must be disabled (statuses on y-axis)");
+        final ActionCdd purchase = new ActionCdd();
+        purchase.setCandidateName("Purchase");
+        purchase.setCandidateType("ActionCdd");
+
+        when(classCandidates.listAll()).thenReturn(List.of(customer));
+        when(actionCandidates.listAll()).thenReturn(List.of(purchase));
+        when(propertyCandidates.listAll()).thenReturn(List.of());
+        when(associationCandidates.listAll()).thenReturn(List.of());
+
+        final String json = service.renderGraph(customer).getJson();
+        assertTrue(json.contains("\"approved\":true"),
+                "Approved candidate must have 'approved': true");
+        assertTrue(json.contains("\"approved\":false"),
+                "Non-approved candidate must have 'approved': false");
+    }
+
+    @Test
+    void addsPosCategoryColourScaleAndLegend() {
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        customer.setCandidateType("ClassCdd");
+        customer.getRuleMatches().add(ruleMatchWith(
+                dep(TdType.NSUBJ, "purchase", PartOfSpeechType.VBZ,
+                    "customer", PartOfSpeechType.NN)));
+
+        final ActionCdd purchase = new ActionCdd();
+        purchase.setCandidateName("Purchase");
+        purchase.setCandidateType("ActionCdd");
+
+        when(classCandidates.listAll()).thenReturn(List.of(customer));
+        when(actionCandidates.listAll()).thenReturn(List.of(purchase));
+        when(propertyCandidates.listAll()).thenReturn(List.of());
+        when(associationCandidates.listAll()).thenReturn(List.of());
+
+        final String json = service.renderGraph(customer).getJson();
+        assertTrue(json.contains("\"Noun\""), "Scale domain must include 'Noun' for NN");
+        assertTrue(json.contains("\"Verb\""), "Scale domain must include 'Verb' for VBZ");
+        assertTrue(json.contains("#3498DB"), "Range must include the Noun colour");
+        assertTrue(json.contains("#E74C3C"), "Range must include the Verb colour");
+        assertTrue(json.contains("\"legends\""), "Spec must declare a top-level legends array");
+        assertTrue(json.contains("Part of Speech"), "Legend title must be 'Part of Speech'");
     }
 
     // ============ helper factories ============
 
-    /** Creates a RuleMatch with the given ruleClassName. */
-    private static RuleMatch ruleMatch(final String ruleClassName) {
+    private void stubEmptyLists() {
+        when(classCandidates.listAll()).thenReturn(List.of());
+        when(actionCandidates.listAll()).thenReturn(List.of());
+        when(propertyCandidates.listAll()).thenReturn(List.of());
+        when(associationCandidates.listAll()).thenReturn(List.of());
+    }
+
+    private static RuleMatch ruleMatchWith(final TypedDependency td) {
         final RuleMatch rm = new RuleMatch();
-        rm.setRuleClassName(ruleClassName);
+        rm.setTypedDependency(td);
         return rm;
     }
 
-    /**
-     * Creates a {@link ClassCdd} whose {@code ruleMatches} list is populated
-     * with the given matches, and whose type is set to "ClassCdd".
-     */
-    private static ClassCdd classCddWithRuleMatches(
-            final String name, final List<RuleMatch> matches) {
-        final ClassCdd candidate = new ClassCdd(name, List.of(), List.of(), List.of());
-        candidate.setCandidateType("ClassCdd");
-        // Replace the default empty list with the test data
-        candidate.getRuleMatches().clear();
-        candidate.getRuleMatches().addAll(matches);
-        return candidate;
+    private static TypedDependency dep(final TdType type,
+                                       final String governorLemma,
+                                       final PartOfSpeechType governorPos,
+                                       final String dependentLemma,
+                                       final PartOfSpeechType dependentPos) {
+        final TypedDependency td = new TypedDependency();
+        td.setType(type);
+        td.setGovernorIndex(1);
+        td.setGovernorLemma(governorLemma);
+        td.setGovernorPos(governorPos);
+        td.setDependentIndex(2);
+        td.setDependentLemma(dependentLemma);
+        td.setDependentPos(dependentPos);
+        return td;
     }
 }

@@ -79,10 +79,13 @@ public abstract class Candidate extends AbstractEntity {
     private CandidateDiagrams candidateDiagramsService;
 
     /**
-     * Injected {@link CandidateVegaGraph} service used to render an interactive Vega-Lite
-     * bar chart of the candidate's rule-match and review profile on demand.
+     * Injected {@link CandidateVegaGraph} service used to render an interactive
+     * <b>full-Vega force-directed node-link graph</b> of the candidate's dependency
+     * neighbourhood on demand.
      * <p>
-     * The graph is deliberately <em>not</em> persisted — it is regenerated on every access.
+     * The graph is deliberately <em>not</em> persisted — it is regenerated on every access
+     * because its content depends on the current candidate set, which changes as candidates are
+     * reviewed, approved, or rejected.
      */
     @Inject
     @Transient
@@ -129,8 +132,8 @@ public abstract class Candidate extends AbstractEntity {
 
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
-            named = "Rule Match Profile (Vega)",
-            describedAs = "Interactive bar chart of rule-match and review counts for this candidate",
+            named = "Dependency Graph (Vega)",
+            describedAs = "Interactive force-directed node-link graph of this candidate's dependency neighbourhood",
             fieldSetId = "content",
             sequence = "3")
     public Vega getVegaGraph() {

@@ -1,9 +1,12 @@
 package domox.dom.crc;
 
 import domox.DomainModule;
-import jakarta.annotation.Priority;
-import jakarta.inject.Named;
+import domox.dom.nlp.PartOfSpeechType;
+import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
@@ -12,20 +15,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
- * Generates a <b>Vega-Lite</b> bar chart for a single {@link Candidate}, parallel to
- * {@link CandidateDiagrams#renderDiagram(Candidate)} which produces a PDF.
+ * Renders a candidate-centric <em>dependency neighbourhood</em> as an interactive
+ * <b>full-Vega</b> force-directed <em>node-link</em> graph for a single {@link Candidate},
+ * analogous to {@link DomainModelDiagramsD3#renderDiagram(DomainModel)} (which covers the whole
+ * {@link DomainModel}) and parallel to {@link CandidateDiagrams#renderDiagram(Candidate)}
+ * (which produces a Kroki → PDF rendering of the same lexical-dependency neighbourhood).
  * <p>
- * The Vega graph provides an interactive, browser-native chart of the candidate's
- * rule-match profile — a horizontal bar chart showing how many rule matches exist per
- * {@code ruleClassName}, stacked above a small panel showing review status counts when
- * reviews exist.
+ * The graph is a <em>cyclic</em> node-link graph: the nodes are candidate words, and the links
+ * are the typed dependencies of the candidates' {@link RuleMatch}es.  It is built by a
+ * breadth-first expansion of the candidate-connection graph starting from the candidate,
+ * {@link Candidate#getHopDepth()} hops deep (default {@code 1}): from each frontier candidate's
+ * own {@link RuleMatch}es, only dependencies whose governor <em>and</em> dependent lemma both
+ * correspond to a candidate word are kept, so the retained edges draw the candidate together
+ * with every candidate directly (or, at higher depths, transitively) connected to it — the same
+ * neighbourhood that {@link CandidateDiagrams} renders as PDF.
  * <p>
- * The graph is regenerated on <em>every</em> call — it is never cached — because its
- * content reflects the current candidate set, which changes as candidates are reviewed,
- * approved, or rejected.
+ * Synthetic association-artifact compounds of the form {@code "X_Y"} are excluded from the
+ * diagram exactly as in {@link DomainModelDiagramsD3}: the participant lemmas and their typed
+ * dependency link are kept; only the compound node is removed.  (Should the candidate itself be
+ * such a compound, its own word is nevertheless kept so the graph never renders empty.)
+ * <p>
+ * The emitted spec uses the <b>full Vega</b> schema
+ * ({@code https://vega.github.io/schema/vega/v6.json}), which the Wicket viewer classifies as
+ * {@link Vega.Schema#VEGA} — never {@link Vega.Schema#NONE}.  Full Vega is required because the
+ * force layout needs the Vega <em>{@code force}</em> transform, which Vega-Lite does not
+ * support.  (The Wicket viewer renders full-Vega specs with the canvas renderer, so hover
+ * tooltips and hyperlinks are inert in this stack; the graph itself — nodes, links, labels and
+ * a POS-colour legend — renders normally.)
+ * <p>
+ * The graph is regenerated on <em>every</em> call — it is never cached — because its content
+ * reflects the current candidate set, which changes as candidates are reviewed, approved, or
+ * rejected.
  */
 @Named(DomainModule.NAMESPACE + ".CandidateVegaGraph")
 @DomainService
@@ -34,6 +56,37 @@ public class CandidateVegaGraph {
 
     private static final Logger log = LoggerFactory.getLogger(CandidateVegaGraph.class);
 
+    /** Base node radius (px), enlarged proportionally to rule-match count. */
+    private static final double NODE_BASE_RADIUS = 8.0;
+
+    /** Rule-match count that maps to scale 1 (no enlargement). */
+    private static final int MIN_MATCH_COUNT = 1;
+
+    /** Rule-match count of the largest node maps to scale 4. */
+    private static final double MAX_SCALE = 4.0;
+
+    private final ClassCandidates classCandidates;
+    private final ActionCandidates actionCandidates;
+    private final PropertyCandidates propertyCandidates;
+    private final AssociationCandidates associationCandidates;
+
+    @Inject
+    public CandidateVegaGraph(
+            final ClassCandidates classCandidates,
+            final ActionCandidates actionCandidates,
+            final PropertyCandidates propertyCandidates,
+            final AssociationCandidates associationCandidates) {
+        this.classCandidates = classCandidates;
+        this.actionCandidates = actionCandidates;
+        this.propertyCandidates = propertyCandidates;
+        this.associationCandidates = associationCandidates;
+    }
+
+    /**
+     * Renders a freshly generated {@link Vega} value holding the full-Vega force-directed
+     * node-link spec of {@code candidate}'s dependency neighbourhood (see class javadoc), or
+     * {@code null} when the candidate is {@code null} or the render fails.
+     */
     @Programmatic
     public Vega renderGraph(final Candidate candidate) {
         if (candidate == null) {
@@ -43,7 +96,7 @@ public class CandidateVegaGraph {
         final String name = candidate.getCandidateName();
         log.debug("Rendering Vega graph for candidate #{} '{}'", id, name);
         try {
-            final String vegaJsonSpec = buildVegaLiteSpec(candidate);
+            final String vegaJsonSpec = buildVegaSpec(candidate);
             log.debug("Vega JSON spec ({} chars): {}", vegaJsonSpec.length(), vegaJsonSpec);
             return Vega.valueOf(vegaJsonSpec);
         } catch (Exception e) {
@@ -52,239 +105,602 @@ public class CandidateVegaGraph {
         }
     }
 
-    // -- helpers
+    // ============ spec assembly ============
 
     /**
-     * Builds a Vega-Lite v6 {@code "vconcat"} chart with two stacked, independently
-     * scaled panels:
-     * <ul>
-     *   <li><b>Panel 1 (top)</b> — A horizontal bar chart of rule-match counts grouped
-     *       by {@code ruleClassName}, with count labels at bar ends.</li>
-     *   <li><b>Panel 2 (bottom)</b> — A small bar chart of review status counts
-     *       (APPROVED / REJECTED), visible only when reviews exist.</li>
-     * </ul>
-     * <p>
-     * {@code vconcat} (rather than {@code layer}) is essential here: {@code layer}
-     * would merge both charts onto one shared plot with a unified y-domain, mixing the
-     * rule-class bars and the review-status bar onto the same axis.
+     * Assembles the full-Vega spec: {@code node-data} (with a static {@code force} transform),
+     * {@code link-data} (with {@code lookup} transforms joining both endpoints to their nodes),
+     * a POS-category colour scale with auto-generated legend, and rule/symbol/text marks.
      */
-    private static String buildVegaLiteSpec(final Candidate candidate) {
-        final List<Map<String, Object>> ruleMatchData = buildRuleMatchData(candidate);
-        final List<Map<String, Object>> reviewData = buildReviewData(candidate);
+    private String buildVegaSpec(final Candidate candidate) {
+        // Snapshot the candidate set once per render: the lemma whitelist and the per-lemma
+        // candidate lookups are derived from the same lists, so the graph is built against a
+        // consistent candidate set.
+        final List<Candidate> allCandidates = allCandidates();
+        final Set<String> candidateLemmas = candidateLemmas(allCandidates);
+        final Map<String, List<Candidate>> candidatesByLemma = candidatesByLemma(allCandidates);
 
-        final List<Map<String, Object>> panels = new ArrayList<>();
-        panels.add(buildRulePanel(ruleMatchData));
+        // Breadth-first expansion of the candidate-connection graph, hop-depth hops deep.
+        final List<TypedDependency> dependencies = collectDependencies(
+                candidate, candidateLemmas, candidatesByLemma, candidate.getHopDepth());
 
-        if (!reviewData.isEmpty()) {
-            panels.add(buildReviewPanel(reviewData));
+        // Remove association-artifact edges — synthetic "X_Y" compound nodes — exactly as
+        // DomainModelDiagramsD3 does: participant lemmas and their links are kept; only the
+        // compound node is dropped from the diagram.
+        final Set<String> artifactLemmas = associationArtifactLemmas(allCandidates, candidateLemmas);
+        dependencies.removeIf(td -> td != null && (
+                artifactLemmas.contains(lower(td.getGovernorLemma())) ||
+                artifactLemmas.contains(lower(td.getDependentLemma()))));
+
+        // Per-lemma metadata: POS codes and rule-match counts.
+        final Map<String, Set<String>> posByLemma = new LinkedHashMap<>();
+        final Map<String, Integer> countByLemma = new HashMap<>();
+        for (final TypedDependency td : dependencies) {
+            if (td == null) continue;
+            accumulatePos(posByLemma, lower(td.getGovernorLemma()), td.getGovernorPos());
+            accumulatePos(posByLemma, lower(td.getDependentLemma()), td.getDependentPos());
+            final int matches = td.getRuleMatches() != null ? td.getRuleMatches().size() : 0;
+            countByLemma.merge(lower(td.getGovernorLemma()), matches, Integer::sum);
+            countByLemma.merge(lower(td.getDependentLemma()), matches, Integer::sum);
         }
 
-        final Map<String, Object> spec = new LinkedHashMap<>();
-        // IMPORTANT: must be a schema version the Causeway Vega.Schema enum recognizes
-        // (https://vega.github.io/schema/vega-lite/v6.json). Any other value — e.g. a
-        // v5 URL — is classified Schema.NONE, which makes the Wicket panel render
-        // nothing and load no Vega JS at all.
-        spec.put("$schema", "https://vega.github.io/schema/vega-lite/v6.json");
-        spec.put("title", candidate.getCandidateType() + ": " + candidate.getCandidateName());
-        spec.put("width", 400);
-        spec.put("autosize", Map.of("type", "fit", "contains", "padding"));
-        spec.put("vconcat", panels);
-
-        return toJson(spec);
-    }
-
-    /**
-     * Groups rule matches by {@code ruleClassName} and returns a list of
-     * {@code {"rule": "...", "count": N}} data points, sorted descending by count.
-     */
-    private static List<Map<String, Object>> buildRuleMatchData(final Candidate candidate) {
-        final List<RuleMatch> matches = candidate.getRuleMatches();
-        if (matches == null) {
-            return List.of();
+        // Every lemma that becomes a node: the candidate itself plus endpoints of dependencies.
+        final Set<String> nodeLemmas = new LinkedHashSet<>();
+        nodeLemmas.add(lower(candidate.getCandidateName()));
+        for (final TypedDependency td : dependencies) {
+            if (td == null) continue;
+            nodeLemmas.add(lower(td.getGovernorLemma()));
+            nodeLemmas.add(lower(td.getDependentLemma()));
         }
-        final Map<String, Long> grouped = matches.stream()
-                .filter(rm -> rm.getRuleClassName() != null)
-                .collect(Collectors.groupingBy(
-                        RuleMatch::getRuleClassName,
-                        Collectors.counting()));
-        return grouped.entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                .map(e -> {
-                    final Map<String, Object> point = new LinkedHashMap<>();
-                    point.put("rule", e.getKey());
-                    point.put("count", e.getValue());
-                    return point;
-                })
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Returns review status counts as {@code {"status": "...", "count": N}} data
-     * points, or an empty list when no reviews exist.
-     */
-    private static List<Map<String, Object>> buildReviewData(final Candidate candidate) {
-        final List<Review> reviews = candidate.getReviews();
-        if (reviews == null || reviews.isEmpty()) {
-            return List.of();
+        nodeLemmas.removeAll(artifactLemmas);
+        if (nodeLemmas.isEmpty()) {
+            // The candidate's own word is an artifact compound and every edge touching it was
+            // removed: fall back to the single seed node so the graph never renders empty.
+            nodeLemmas.add(lower(candidate.getCandidateName()));
         }
-        final Map<ReviewStatus, Long> grouped = reviews.stream()
-                .filter(r -> r.getStatus() != null)
-                .collect(Collectors.groupingBy(Review::getStatus, Collectors.counting()));
-        return grouped.entrySet().stream()
-                .sorted(Map.Entry.<ReviewStatus, Long>comparingByValue().reversed())
-                .map(e -> {
-                    final Map<String, Object> point = new LinkedHashMap<>();
-                    point.put("status", e.getKey().name());
-                    point.put("count", e.getValue());
-                    return point;
-                })
-                .collect(Collectors.toList());
-    }
 
-    // -- panel builders
+        final int maxCount = countByLemma.values().stream()
+                .mapToInt(Integer::intValue).max().orElse(MIN_MATCH_COUNT);
 
-    /**
-     * Top panel: horizontal bar chart of rule-match counts — rule class name (nominal)
-     * on Y, count (quantitative) on X, with count labels at bar ends.
-     * <p>
-     * Height scales with the number of distinct rule classes (28px per band, min 120px).
-     */
-    private static Map<String, Object> buildRulePanel(final List<Map<String, Object>> data) {
-        final Map<String, Object> panel = new LinkedHashMap<>();
-        panel.put("height", Math.max(120, data.size() * 28));
-        panel.put("data", Map.of("values", data));
-
-        // Main bar mark
-        final Map<String, Object> bar = new LinkedHashMap<>();
-        bar.put("mark", Map.of(
-                "type", "bar",
-                "tooltip", true,
-                "cursor", "pointer"));
-
-        final Map<String, Object> barEncoding = new LinkedHashMap<>();
-        barEncoding.put("y", Map.of(
-                "field", "rule",
-                "type", "nominal",
-                "title", "Rule Class",
-                "sort", "-x",
-                "axis", Map.of("labelLimit", 300, "labelFontSize", 11)));
-        barEncoding.put("x", Map.of(
-                "field", "count",
-                "type", "quantitative",
-                "title", "Rule Matches",
-                "axis", Map.of("grid", true)));
-        barEncoding.put("color", Map.of("value", "#4c78a8"));
-        bar.put("encoding", barEncoding);
-
-        // Text labels at bar ends
-        final Map<String, Object> text = new LinkedHashMap<>();
-        text.put("mark", Map.of(
-                "type", "text",
-                "align", "left",
-                "dx", 3,
-                "fontSize", 10));
-        final Map<String, Object> textEncoding = new LinkedHashMap<>();
-        textEncoding.put("y", Map.of("field", "rule", "type", "nominal", "sort", "-x"));
-        textEncoding.put("x", Map.of("field", "count", "type", "quantitative"));
-        textEncoding.put("text", Map.of("field", "count", "type", "quantitative"));
-        text.put("encoding", textEncoding);
-
-        panel.put("layer", List.of(bar, text));
-        return panel;
-    }
-
-    /**
-     * Bottom panel: small horizontal bar chart of review status counts — status
-     * (nominal) on Y, count (quantitative) on X, colour-coded green (APPROVED) /
-     * red (REJECTED).
-     * <p>
-     * The colour legend is deliberately disabled ({@code "legend": null}): the y-axis
-     * labels already name the statuses, so a separate legend would only duplicate them.
-     */
-    private static Map<String, Object> buildReviewPanel(final List<Map<String, Object>> data) {
-        final Map<String, Object> panel = new LinkedHashMap<>();
-        panel.put("height", 80);
-        panel.put("data", Map.of("values", data));
-
-        final Map<String, Object> encoding = new LinkedHashMap<>();
-        encoding.put("y", Map.of(
-                "field", "status",
-                "type", "nominal",
-                "title", "Status",
-                "sort", "-x",
-                "axis", Map.of("labelFontSize", 11)));
-        encoding.put("x", Map.of(
-                "field", "count",
-                "type", "quantitative",
-                "title", "Reviews",
-                "axis", Map.of("grid", true)));
-        final Map<String, Object> colorEncoding = new LinkedHashMap<>();
-        colorEncoding.put("field", "status");
-        colorEncoding.put("type", "nominal");
-        colorEncoding.put("scale", Map.of(
-                "domain", List.of("APPROVED", "REJECTED"),
-                "range", List.of("#2ca02c", "#d62728")));
-        colorEncoding.put("legend", null);   // redundant — statuses are already on the y-axis
-        encoding.put("color", colorEncoding);
-
-        panel.put("mark", Map.of(
-                "type", "bar",
-                "tooltip", true));
-        panel.put("encoding", encoding);
-
-        return panel;
-    }
-
-    // -- JSON serialisation (lightweight, no external dep)
-
-    /**
-     * Converts a {@code Map<String, Object>} to a compact JSON string.
-     * <p>
-     * Handles strings, numbers, booleans, nulls, lists, and nested maps.
-     * Strings are escaped minimally (backslash and double-quote only).
-     */
-    private static String toJson(final Object value) {
-        if (value == null) {
-            return "null";
-        }
-        if (value instanceof String s) {
-            return "\"" + escapeJson(s) + "\"";
-        }
-        if (value instanceof Number || value instanceof Boolean) {
-            return value.toString();
-        }
-        if (value instanceof Map<?, ?> map) {
-            final StringBuilder sb = new StringBuilder("{");
-            boolean first = true;
-            for (final Map.Entry<?, ?> entry : map.entrySet()) {
-                if (!first) {
-                    sb.append(",");
-                }
-                first = false;
-                sb.append(toJson(entry.getKey().toString()));
-                sb.append(":");
-                sb.append(toJson(entry.getValue()));
+        // Lemma -> display name (original casing). The seed is primed from the candidate itself
+        // (it may not be part of the repository snapshot in every caller), then overwritten for
+        // lemmas that are found in the snapshot.
+        final Map<String, String> displayName = new HashMap<>();
+        displayName.put(lower(candidate.getCandidateName()), candidate.getCandidateName());
+        for (final String lemma : nodeLemmas) {
+            final List<Candidate> cs = candidatesByLemma.get(lemma);
+            if (cs != null && !cs.isEmpty()) {
+                displayName.put(lemma, cs.getFirst().getCandidateName());
             }
-            sb.append("}");
-            return sb.toString();
         }
-        if (value instanceof List<?> list) {
-            final StringBuilder sb = new StringBuilder("[");
-            boolean first = true;
-            for (final Object item : list) {
-                if (!first) {
-                    sb.append(",");
-                }
-                first = false;
-                sb.append(toJson(item));
+
+        final Map<String, String> classSubdomainByLemma = new HashMap<>();
+        for (final Candidate c : allCandidates) {
+            if (c instanceof ClassCdd cc && cc.getSubDomain() != null
+                    && cc.getSubDomain().getName() != null) {
+                classSubdomainByLemma.put(lower(c.getCandidateName()), cc.getSubDomain().getName());
             }
-            sb.append("]");
-            return sb.toString();
         }
-        return "\"" + escapeJson(String.valueOf(value)) + "\"";
+        final Map<String, String> subdomainByLemma = new HashMap<>();
+        for (final String lemma : nodeLemmas) {
+            final String sdName = classSubdomainByLemma.get(lemma);
+            subdomainByLemma.put(lemma, sdName != null ? sdName : "");
+        }
+
+        final Map<String, Long> candidateIdByLemma = new HashMap<>();
+        final Map<String, String> objectTypeByLemma = new HashMap<>();
+        for (final String lemma : nodeLemmas) {
+            final List<Candidate> cs = candidatesByLemma.get(lemma);
+            if (cs != null && !cs.isEmpty()) {
+                final Candidate c = cs.getFirst();
+                candidateIdByLemma.put(lemma, c.getId());
+                objectTypeByLemma.put(lemma, DomainModule.NAMESPACE + "." + c.getClass().getSimpleName());
+            }
+        }
+
+        final Set<String> approvedLemmas = approvedLemmasSet(allCandidates);
+
+        // POS categories actually present in the diagram, in encounter order — the scale domain
+        // and colour range are both derived from it so node fills and the legend always agree.
+        final Set<String> usedGroups = new LinkedHashSet<>();
+        for (final String lemma : nodeLemmas) {
+            usedGroups.add(posGroup(firstPos(posByLemma.get(lemma))));
+        }
+
+        final String nodesJson = nodeValuesJson(nodeLemmas, posByLemma, countByLemma, maxCount,
+                approvedLemmas, displayName, subdomainByLemma, candidateIdByLemma, objectTypeByLemma);
+        final String linksJson = linkValuesJson(dependencies);
+
+        return TEMPLATE
+                .replace("${title}", escapeJson(titleOf(candidate)))
+                .replace("${nodes}", nodesJson)
+                .replace("${links}", linksJson)
+                .replace("${groupDomain}", jsonStringArray(usedGroups))
+                .replace("${groupColors}", jsonStringArray(usedGroups.stream()
+                        .map(CandidateVegaGraph::groupColor).toList()))
+                // The text block ends with a newline after the closing brace; strip it so the
+                // emitted JSON is exactly "{...}" with no trailing whitespace.
+                .strip();
     }
 
+    /** Title caption: {@code "<candidateType>: <candidateName>"}. */
+    private static String titleOf(final Candidate candidate) {
+        return candidate.getCandidateType() + ": " + candidate.getCandidateName();
+    }
+
+    // ============ JSON generation helpers ============
+
+    /**
+     * Node data values, one JSON object per node:
+     * {@code {"id","name","subdomain"?,"pos","group","r","area","approved","candidateId"?,"objectType"?}}.
+     */
+    private static String nodeValuesJson(final Set<String> nodeLemmas,
+                                         final Map<String, Set<String>> posByLemma,
+                                         final Map<String, Integer> countByLemma,
+                                         final int maxCount,
+                                         final Set<String> approvedLemmas,
+                                         final Map<String, String> displayName,
+                                         final Map<String, String> subdomainByLemma,
+                                         final Map<String, Long> candidateIdByLemma,
+                                         final Map<String, String> objectTypeByLemma) {
+        final StringBuilder json = new StringBuilder();
+        boolean first = true;
+        for (final String lemma : nodeLemmas) {
+            if (!first) {
+                json.append(',');
+            }
+            first = false;
+            final String pos = firstPos(posByLemma.get(lemma));
+            final int count = countByLemma.getOrDefault(lemma, MIN_MATCH_COUNT);
+            final int radius = (int) Math.round(scaleFor(count, maxCount) * NODE_BASE_RADIUS);
+            final long area = Math.round(Math.PI * radius * radius);
+            final boolean approved = approvedLemmas.contains(lemma);
+            json.append('{');
+            json.append("\"id\":\"").append(escapeJson(lemma)).append('"');
+            json.append(",\"name\":\"").append(escapeJson(displayName.getOrDefault(lemma, lemma))).append('"');
+            final String sd = subdomainByLemma.getOrDefault(lemma, "");
+            if (!sd.isEmpty()) {
+                json.append(",\"subdomain\":\"").append(escapeJson(sd)).append('"');
+            }
+            json.append(",\"pos\":\"").append(escapeJson(pos)).append('"');
+            json.append(",\"group\":\"").append(escapeJson(posGroup(pos))).append('"');
+            json.append(",\"r\":").append(radius);
+            json.append(",\"area\":").append(area);
+            json.append(",\"approved\":").append(approved);
+            final Long candId = candidateIdByLemma.get(lemma);
+            final String objType = objectTypeByLemma.get(lemma);
+            if (candId != null && objType != null) {
+                json.append(",\"candidateId\":").append(candId);
+                json.append(",\"objectType\":\"").append(escapeJson(objType)).append('"');
+            }
+            json.append('}');
+        }
+        return json.toString();
+    }
+
+    /**
+     * Link data values, one JSON object per dependency:
+     * {@code {"source","target","label"?}} — source is the governor lemma, target the dependent.
+     */
+    private static String linkValuesJson(final List<TypedDependency> dependencies) {
+        final StringBuilder json = new StringBuilder();
+        boolean first = true;
+        for (final TypedDependency td : dependencies) {
+            if (td == null) continue;
+            if (!first) {
+                json.append(',');
+            }
+            first = false;
+            json.append('{');
+            json.append("\"source\":\"").append(escapeJson(lower(td.getGovernorLemma()))).append('"');
+            json.append(",\"target\":\"").append(escapeJson(lower(td.getDependentLemma()))).append('"');
+            if (td.getType() != null) {
+                json.append(",\"label\":\"").append(escapeJson(td.getType().getCode())).append('"');
+            }
+            json.append('}');
+        }
+        return json.toString();
+    }
+
+    /** {@code ["a","b"]} — a JSON string array of the given values, in order. */
+    private static String jsonStringArray(final Collection<String> values) {
+        final StringBuilder json = new StringBuilder();
+        json.append('[');
+        boolean first = true;
+        for (final String value : values) {
+            if (!first) {
+                json.append(',');
+            }
+            first = false;
+            json.append('"').append(escapeJson(value)).append('"');
+        }
+        json.append(']');
+        return json.toString();
+    }
+
+    // ============ spec template ============
+
+    /**
+     * Static skeleton of the force-directed spec.  Placeholders:
+     * {@code ${title}}, {@code ${nodes}}, {@code ${links}}, {@code ${groupDomain}},
+     * {@code ${groupColors}}.  Link source/target fields reference node {@code id} values (the
+     * link force declares {@code "id": "id"}); after the force simulation resolves source/target
+     * to node tuples, marks can access {@code source.x}, {@code source.y}, {@code target.x},
+     * {@code target.y} directly — no explicit lookup transforms needed.
+     */
+    private static final String TEMPLATE = """
+            {
+              "$schema": "https://vega.github.io/schema/vega/v6.json",
+              "description": "Candidate dependency neighbourhood - force-directed node-link graph",
+              "title": "${title}",
+              "width": 700,
+              "height": 460,
+              "padding": 20,
+
+              "data": [
+                {
+                  "name": "link-data",
+                  "values": [${links}]
+                },
+                {
+                  "name": "node-data",
+                  "values": [${nodes}],
+                  "transform": [
+                    {
+                      "type": "force",
+                      "iterations": 300,
+                      "static": true,
+                      "forces": [
+                        {"force": "center", "x": {"signal": "width / 2"}, "y": {"signal": "height / 2"}},
+                        {"force": "link", "links": "link-data", "id": "id", "distance": 65},
+                        {"force": "collide", "radius": 15},
+                        {"force": "nbody", "strength": -40}
+                      ]
+                    }
+                  ]
+                }
+              ],
+
+              "scales": [
+                {
+                  "name": "color",
+                  "type": "ordinal",
+                  "domain": ${groupDomain},
+                  "range": ${groupColors},
+                  "legend": true
+                }
+              ],
+
+              "legends": [
+                {
+                  "orient": "top-left",
+                  "title": "Part of Speech",
+                  "fill": "color"
+                }
+              ],
+
+              "marks": [
+                {
+                  "type": "rule",
+                  "from": {"data": "link-data"},
+                  "encode": {
+                    "update": {
+                      "stroke": {"value": "#b9b9b9"},
+                      "strokeWidth": {"value": 1},
+                      "x": {"field": "source.x"},
+                      "y": {"field": "source.y"},
+                      "x2": {"field": "target.x"},
+                      "y2": {"field": "target.y"}
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "from": {"data": "link-data"},
+                  "encode": {
+                    "update": {
+                      "x": {"signal": "(datum.source.x + datum.target.x) / 2"},
+                      "y": {"signal": "(datum.source.y + datum.target.y) / 2"},
+                      "align": {"value": "center"},
+                      "baseline": {"value": "middle"},
+                      "fill": {"value": "#7a7a7a"},
+                      "fontSize": {"value": 9},
+                      "text": {"signal": "datum.label ? datum.label : ''"},
+                      "opacity": {"signal": "datum.label ? 1 : 0"}
+                    }
+                  }
+                },
+                {
+                  "name": "nodes",
+                  "type": "symbol",
+                  "zindex": 1,
+                  "from": {"data": "node-data"},
+                  "encode": {
+                    "enter": {
+                      "fill": {"scale": "color", "field": "group"},
+                      "stroke": {"value": "#ffffff"},
+                      "fillOpacity": {"value": 0.9}
+                    },
+                    "update": {
+                      "x": {"field": "x"},
+                      "y": {"field": "y"},
+                      "size": {"field": "area"},
+                      "strokeWidth": {"signal": "datum.approved ? 2.5 : 0.6"},
+                      "cursor": {"signal": "datum.candidateId ? 'pointer' : 'default'"},
+                      "href": {"signal": "datum.candidateId ? '/wicket/object/' + datum.objectType + ':' + datum.candidateId : null"}
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "from": {"data": "node-data"},
+                  "encode": {
+                    "update": {
+                      "x": {"field": "x"},
+                      "y": {"field": "y"},
+                      "dx": {"value": 10},
+                      "dy": {"value": 3},
+                      "align": {"value": "left"},
+                      "baseline": {"value": "middle"},
+                      "fill": {"value": "#333333"},
+                      "fontSize": {"value": 10},
+                      "text": {"field": "name"}
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "from": {"data": "node-data"},
+                  "encode": {
+                    "update": {
+                      "x": {"field": "x"},
+                      "y": {"field": "y"},
+                      "dx": {"value": 10},
+                      "dy": {"value": 14},
+                      "align": {"value": "left"},
+                      "baseline": {"value": "middle"},
+                      "fill": {"value": "#888888"},
+                      "fontSize": {"value": 8},
+                      "text": {"signal": "datum.subdomain ? datum.subdomain : ''"},
+                      "opacity": {"signal": "datum.subdomain ? 1 : 0"}
+                    }
+                  }
+                }
+              ]
+            }
+            """;
+
+    // ============ candidate neighbourhood (mirrors CandidateDiagrams) ============
+
+    /** All candidates of every type currently present, in a single snapshot. */
+    private List<Candidate> allCandidates() {
+        final List<Candidate> all = new ArrayList<>();
+        addAll(all, classCandidates.listAll());
+        addAll(all, actionCandidates.listAll());
+        addAll(all, propertyCandidates.listAll());
+        addAll(all, associationCandidates.listAll());
+        return all;
+    }
+
+    /** Adds a {@code null}-safe candidate-list snapshot to {@code target}. */
+    private static void addAll(final List<Candidate> target, final List<? extends Candidate> source) {
+        if (source != null) {
+            target.addAll(source);
+        }
+    }
+
+    /** The lower-cased candidate names of the snapshot. */
+    private static Set<String> candidateLemmas(final List<Candidate> allCandidates) {
+        final Set<String> lemmas = new HashSet<>();
+        allCandidates.forEach(c -> lemmas.add(lower(c.getCandidateName())));
+        return lemmas;
+    }
+
+    /** Lower-case candidate name → every candidate carrying that name. */
+    private static Map<String, List<Candidate>> candidatesByLemma(final List<Candidate> allCandidates) {
+        final Map<String, List<Candidate>> byLemma = new HashMap<>();
+        allCandidates.forEach(c ->
+                byLemma.computeIfAbsent(lower(c.getCandidateName()), k -> new ArrayList<>()).add(c));
+        return byLemma;
+    }
+
+    /**
+     * Breadth-first traversal of the candidate-connection graph starting from {@code seed}, up to
+     * {@code maxDepth} hops, returning the <em>distinct</em> candidate-restricted dependencies.
+     */
+    private static List<TypedDependency> collectDependencies(
+            final Candidate seed,
+            final Set<String> candidateLemmas,
+            final Map<String, List<Candidate>> candidatesByLemma,
+            final int maxDepth) {
+        final List<TypedDependency> dependencies = new ArrayList<>();
+        final Set<TypedDependency> seen = new HashSet<>();
+        final Set<Candidate> visited = new HashSet<>();
+        Set<Candidate> frontier = new LinkedHashSet<>();
+        frontier.add(seed);
+        for (int hop = 0; hop < maxDepth && !frontier.isEmpty(); hop++) {
+            final Set<Candidate> nextFrontier = new LinkedHashSet<>();
+            for (final Candidate candidate : frontier) {
+                visited.add(candidate);
+                final List<RuleMatch> matches = candidate.getRuleMatches();
+                if (matches == null) {
+                    continue;
+                }
+                for (final RuleMatch ruleMatch : matches) {
+                    final TypedDependency td = ruleMatch.getTypedDependency();
+                    if (td == null || !bothEndpointsAreCandidates(td, candidateLemmas)) {
+                        continue;
+                    }
+                    if (!seen.add(td)) {
+                        continue;
+                    }
+                    dependencies.add(td);
+                    addCandidatesForLemma(td.getGovernorLemma(), candidatesByLemma, visited, nextFrontier);
+                    addCandidatesForLemma(td.getDependentLemma(), candidatesByLemma, visited, nextFrontier);
+                }
+            }
+            frontier = nextFrontier;
+        }
+        return dependencies;
+    }
+
+    /** Adds every candidate carrying {@code lemma} not yet expanded to the next frontier. */
+    private static void addCandidatesForLemma(
+            final String lemma,
+            final Map<String, List<Candidate>> candidatesByLemma,
+            final Set<Candidate> visited,
+            final Set<Candidate> nextFrontier) {
+        for (final Candidate candidate : candidatesByLemma.getOrDefault(lower(lemma), List.of())) {
+            if (!visited.contains(candidate)) {
+                nextFrontier.add(candidate);
+            }
+        }
+    }
+
+    /** Keeps only dependencies whose governor and dependent lemma are both candidate words. */
+    private static boolean bothEndpointsAreCandidates(final TypedDependency td,
+                                                      final Set<String> candidateLemmas) {
+        return candidateLemmas.contains(lower(td.getGovernorLemma()))
+                && candidateLemmas.contains(lower(td.getDependentLemma()));
+    }
+
+    /** Lower-cased lemmas of approved candidates (bold border in the graph). */
+    private static Set<String> approvedLemmasSet(final List<Candidate> candidates) {
+        final Set<String> lemmas = new HashSet<>();
+        for (final Candidate c : candidates) {
+            if (c != null && c.getReviews() != null
+                    && c.getReviews().stream().anyMatch(r -> r != null && r.getStatus() == ReviewStatus.APPROVED)) {
+                lemmas.add(lower(c.getCandidateName()));
+            }
+        }
+        return lemmas;
+    }
+
+    /** Lower-cased lemmas of synthetic {@code Association}-typed compound candidates ("X_Y"). */
+    private static Set<String> associationArtifactLemmas(final List<Candidate> candidates,
+                                                         final Set<String> candidateLemmas) {
+        final Set<String> artifactLemmas = new HashSet<>();
+        for (final Candidate c : candidates) {
+            if (c == null || c.getCandidateName() == null) continue;
+            if (!"Association".equals(typeLabel(c.getCandidateType()))) continue;
+            final String lemma = lower(c.getCandidateName());
+            final int sep = lemma.indexOf('_');
+            if (sep <= 0 || sep >= lemma.length() - 1) continue;
+            final String left = lemma.substring(0, sep);
+            final String right = lemma.substring(sep + 1);
+            if (candidateLemmas.contains(left) && candidateLemmas.contains(right)) {
+                artifactLemmas.add(lemma);
+            }
+        }
+        return artifactLemmas;
+    }
+
+    /** Friendly label of a candidate type, e.g. {@code ClassCdd} → {@code Class}. */
+    private static String typeLabel(final String candidateType) {
+        if (candidateType == null || candidateType.isEmpty()) {
+            return "Domain";
+        }
+        return candidateType.endsWith("Cdd")
+                ? candidateType.substring(0, candidateType.length() - 3)
+                : candidateType;
+    }
+
+    // ============ node metadata ============
+
+    /** Records a POS code for a lemma, skipping null. */
+    private static void accumulatePos(final Map<String, Set<String>> posByLemma,
+                                      final String lemma,
+                                      final PartOfSpeechType pos) {
+        if (pos == null) return;
+        final String code = pos.getCode();
+        if (code != null && !code.isEmpty()) {
+            posByLemma.computeIfAbsent(lemma, k -> new LinkedHashSet<>()).add(code);
+        }
+    }
+
+    /** First POS code from the set, or empty string when null/empty. */
+    private static String firstPos(final Set<String> posSet) {
+        if (posSet == null || posSet.isEmpty()) return "";
+        return posSet.iterator().next();
+    }
+
+    /** Linear scale: count 1 → 1.0, maxCount → MAX_SCALE. Clamped below 1. */
+    private static double scaleFor(final int count, final int maxCount) {
+        if (maxCount <= MIN_MATCH_COUNT) return 1.0;
+        final int n = Math.max(count, MIN_MATCH_COUNT);
+        return 1.0 + (MAX_SCALE - 1.0) * (n - MIN_MATCH_COUNT) / (maxCount - MIN_MATCH_COUNT);
+    }
+
+    /** Penn POS code → legend category label (first matching category wins). */
+    private static String posGroup(final String pos) {
+        for (final PosCategory category : CATEGORIES) {
+            if (category.posCodes().contains(pos)) {
+                return category.label();
+            }
+        }
+        return CATEGORIES.getLast().label();
+    }
+
+    /** Legend category label → fill colour. */
+    private static String groupColor(final String group) {
+        for (final PosCategory category : CATEGORIES) {
+            if (category.label().equals(group)) {
+                return category.color();
+            }
+        }
+        return CATEGORIES.getLast().color();
+    }
+
+    /** A single legend row: fill colour, short label, and the POS codes that map to it. */
+    private record PosCategory(String label, String color, Set<String> posCodes) {}
+
+    /**
+     * All legend categories, ordered by semantic priority — the first matching entry wins.
+     * Mirrors the {@link DomainModelDiagramsD3} legend (CD/CC codes fall through to "Other" so
+     * the node fill and the legend always agree).
+     */
+    private static final List<PosCategory> CATEGORIES = List.of(
+            new PosCategory("Noun", "#3498DB", Set.of("NN", "NNS")),
+            new PosCategory("Proper noun", "#85C1E9", Set.of("NNP", "NNPS")),
+            new PosCategory("Verb", "#E74C3C", Set.of("VB", "VBZ", "VBD", "VBG", "VBN", "VBP")),
+            new PosCategory("Adjective", "#2ECC71", Set.of("JJ", "JJR", "JJS")),
+            new PosCategory("Determiner", "#F39C12", Set.of("DT")),
+            new PosCategory("Pronoun", "#9B59B6", Set.of("PRP", "PRP$", "WDT", "WP", "WP$", "WRB")),
+            new PosCategory("Preposition", "#17A2B8", Set.of("IN")),
+            new PosCategory("Adverb", "#FFBB28", Set.of("RB")),
+            new PosCategory("Other", "#AAB7B8", Set.of()));
+
+    // ============ misc helpers ============
+
+    private static String lower(final String s) {
+        return s == null ? "" : s.toLowerCase(Locale.ROOT);
+    }
+
+    /** Minimal JSON string escaping: backslash, double-quote, and control characters. */
     private static String escapeJson(final String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"");
+        if (s == null || s.isEmpty()) {
+            return "";
+        }
+        final StringBuilder out = new StringBuilder(s.length() + 8);
+        for (int i = 0; i < s.length(); i++) {
+            final char c = s.charAt(i);
+            switch (c) {
+                case '\\' -> out.append("\\\\");
+                case '"' ->  out.append("\\\"");
+                case '\b' -> out.append("\\b");
+                case '\f' -> out.append("\\f");
+                case '\n' -> out.append("\\n");
+                case '\r' -> out.append("\\r");
+                case '\t' -> out.append("\\t");
+                default -> {
+                    if (c < 0x20) {
+                        out.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        out.append(c);
+                    }
+                }
+            }
+        }
+        return out.toString();
     }
 }

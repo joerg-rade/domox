@@ -146,6 +146,88 @@ public class AnalyticsService {
     }
 }
 ```
+```
+
+### C. Full-Vega Force-Directed Node-Link Diagrams (Cyclic Graphs)
+
+For <em>node-link</em> graphs — e.g. a force-directed "cyclic" graph of entities and their
+relationships, analogous to a D3 force layout — use **full Vega** (schema
+`https://vega.github.io/schema/vega/v6.json`), not Vega-Lite: the force layout requires the Vega
+`force` transform, which Vega-Lite does not support.
+
+> ⚠️ **Renderer caveat.** The Wicket viewer renders full-Vega specs via
+> `new vega.View(vega.parse(spec), {renderer: 'canvas', ...})` and loads **only**
+> `vega.min.js`. The force layout, marks, labels and legends all render normally in canvas;
+> hover tooltips and hyperlink `href` channels are canvas-inert (they only apply to SVG
+> renderers). For bar charts and other non-layout plots keep using Vega-Lite (rendered by
+> `vegaEmbed`, which supports tooltips).
+
+Minimal full-Vega force spec shape (nodes carry a unique `id`; links reference those ids; the
+link force declares `"id": "id"` so `source`/`target` resolve by node id rather than index):
+
+```json
+{
+  "$schema": "https://vega.github.io/schema/vega/v6.json",
+  "width": 700,
+  "height": 460,
+  "padding": 20,
+  "data": [
+    {
+      "name": "node-data",
+      "values": [
+        {"id": "customer", "name": "Customer", "group": "Noun", "r": 12, "area": 452}
+      ],
+      "transform": [
+        {
+          "type": "force",
+          "iterations": 300,
+          "static": true,
+          "forces": [
+            {"force": "center", "x": {"signal": "width / 2"}, "y": {"signal": "height / 2"}},
+            {"force": "link", "links": "link-data", "id": "id", "distance": 65},
+            {"force": "collide", "radius": 15},
+            {"force": "nbody", "strength": -40}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "link-data",
+      "values": [
+        {"source": "purchase", "target": "customer", "label": "nsubj"}
+      ],
+      "transform": [
+        {"type": "lookup", "from": "node-data", "key": "id", "fields": ["source"], "as": ["sourceNode"]},
+        {"type": "lookup", "from": "node-data", "key": "id", "fields": ["target"], "as": ["targetNode"]}
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": ["Noun", "Verb"],
+      "range": ["#3498DB", "#E74C3C"],
+      "legend": {"orient": "top-left", "title": "Part of Speech"}
+    }
+  ],
+  "marks": [
+    {"type": "rule", "from": {"data": "link-data"}, "encode": {"update": {
+      "x": {"field": "sourceNode.x"}, "y": {"field": "sourceNode.y"},
+      "x2": {"field": "targetNode.x"}, "y2": {"field": "targetNode.y"}}}},
+    {"type": "symbol", "from": {"data": "node-data"}, "encode": {
+      "enter": {"fill": {"scale": "color", "field": "group"}},
+      "update": {"x": {"field": "x"}, "y": {"field": "y"}, "size": {"field": "area"}}}},
+    {"type": "text", "from": {"data": "node-data"}, "encode": {"update": {
+      "x": {"field": "x"}, "y": {"field": "y"}, "dx": {"value": 10},
+      "text": {"field": "name"}}}}
+  ]
+}
+```
+
+See `domox-domain/src/main/java/domox/dom/crc/CandidateVegaGraph.java` for a production example
+that builds such a spec from domain entities (candidate words as nodes, typed dependencies as
+links, POS-coloured legend, hop-depth neighbourhood expansion).
 
 ---
 
