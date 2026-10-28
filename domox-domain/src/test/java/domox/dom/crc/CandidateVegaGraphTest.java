@@ -118,7 +118,7 @@ class CandidateVegaGraphTest {
         assertTrue(json.indexOf("\"link-data\"") < json.indexOf("\"node-data\""),
                 "link-data must appear before node-data in the data array so Vega " +
                 "processes it before the force transform in node-data references it");
-        assertTrue(json.contains("\"type\": \"symbol\""), "Spec must contain symbol marks for nodes");
+        assertTrue(json.contains("\"type\": \"rect\""), "Spec must contain rect marks for rounded-square nodes");
         assertFalse(json.contains("vconcat"), "Spec must not use vconcat (bar-chart structure)");
         assertFalse(json.contains("vega-lite"), "Spec must not reference Vega-Lite");
     }

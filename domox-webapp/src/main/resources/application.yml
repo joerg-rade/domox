@@ -47,7 +47,7 @@ causeway:
         brand-logo-header: images/domox_logo_48.svg
         favicon-url: images/favicon.png
         name: DoMoX
-        version: ^project.version^
+        version: @project.version@
 
       credit:
         - url: http://causeway.apache.org
@@ -55,6 +55,7 @@ causeway:
           name: Apache Causeway
 
     wicket:
+      css: css/application.css
       themes:
         show-chooser: false
 
@@ -158,6 +159,8 @@ app:
           message: "'{character}' is invalid."
           prohibited-characters: "&%$!"
 
+project:
+  version: 0.1.0-SNAPSHOT
 domox:
   nlp:
     disabled-rules: TDR30, TDR31
@@ -284,4 +287,4 @@ logging:
     org.apache.causeway.viewer.wicket.ui.components.object.fieldset: DEBUG
     # Debug the D3 facet factory
     org.apache.causeway.extensions.d3: DEBUG
-    domox.dom.crc: DEBUG
+    domox.dom.crc: INFO

@@ -42,7 +42,7 @@
                 <bs:tab name="Dependency Diagram">
                     <bs:row>
                         <bs:col span="12">
-                            <cpt:fieldSet name="Dependency Diagram" id="content">
+                            <cpt:fieldSet id="content">
                                 <cpt:property id="vegaGraph"/>
                             </cpt:fieldSet>
                         </bs:col>

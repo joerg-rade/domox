@@ -166,7 +166,8 @@ public class CandidateVegaGraph {
         // (it may not be part of the repository snapshot in every caller), then overwritten for
         // lemmas that are found in the snapshot.
         final Map<String, String> displayName = new HashMap<>();
-        displayName.put(lower(candidate.getCandidateName()), candidate.getCandidateName());
+        final String seedName = candidate.getCandidateName();
+        displayName.put(lower(seedName), seedName != null ? seedName : "");
         for (final String lemma : nodeLemmas) {
             final List<Candidate> cs = candidatesByLemma.get(lemma);
             if (cs != null && !cs.isEmpty()) {
@@ -207,8 +208,16 @@ public class CandidateVegaGraph {
             usedGroups.add(posGroup(firstPos(posByLemma.get(lemma))));
         }
 
+        // Per-lemma POS-type label (e.g. "<< Noun >>") for the third text line inside each rect.
+        final Map<String, String> posTypeLabelByLemma = new HashMap<>();
+        for (final String lemma : nodeLemmas) {
+            final String group = posGroup(firstPos(posByLemma.get(lemma)));
+            posTypeLabelByLemma.put(lemma, "<< " + group + " >>");
+        }
+
         final String nodesJson = nodeValuesJson(nodeLemmas, posByLemma, countByLemma, maxCount,
-                approvedLemmas, displayName, subdomainByLemma, candidateIdByLemma, objectTypeByLemma);
+                approvedLemmas, displayName, subdomainByLemma, posTypeLabelByLemma,
+                candidateIdByLemma, objectTypeByLemma);
         final String linksJson = linkValuesJson(dependencies);
 
         return TEMPLATE
@@ -232,7 +241,8 @@ public class CandidateVegaGraph {
 
     /**
      * Node data values, one JSON object per node:
-     * {@code {"id","name","subdomain"?,"pos","group","r","area","approved","candidateId"?,"objectType"?}}.
+     * {@code {"id","name","subdomain"?,"pos","group","r","approved","rectWidth","rectHeight",
+     * "candidateId"?,"objectType"?}}.
      */
     private static String nodeValuesJson(final Set<String> nodeLemmas,
                                          final Map<String, Set<String>> posByLemma,
@@ -241,6 +251,7 @@ public class CandidateVegaGraph {
                                          final Set<String> approvedLemmas,
                                          final Map<String, String> displayName,
                                          final Map<String, String> subdomainByLemma,
+                                         final Map<String, String> posTypeLabelByLemma,
                                          final Map<String, Long> candidateIdByLemma,
                                          final Map<String, String> objectTypeByLemma) {
         final StringBuilder json = new StringBuilder();
@@ -253,20 +264,26 @@ public class CandidateVegaGraph {
             final String pos = firstPos(posByLemma.get(lemma));
             final int count = countByLemma.getOrDefault(lemma, MIN_MATCH_COUNT);
             final int radius = (int) Math.round(scaleFor(count, maxCount) * NODE_BASE_RADIUS);
-            final long area = Math.round(Math.PI * radius * radius);
             final boolean approved = approvedLemmas.contains(lemma);
+            final String nameStr = displayName.getOrDefault(lemma, lemma);
+            final String sdStr = subdomainByLemma.getOrDefault(lemma, "");
+            final String posTypeStr = posTypeLabelByLemma.getOrDefault(lemma, "");
+            // Compute rect dimensions based on the longest text line.
+            final int maxTextLen = Math.max(nameStr.length(), Math.max(sdStr.length(), posTypeStr.length()));
+            final int rectWidth = Math.max(maxTextLen * 7 + 24, 90);
+            final int rectHeight = 48;
             json.append('{');
             json.append("\"id\":\"").append(escapeJson(lemma)).append('"');
-            json.append(",\"name\":\"").append(escapeJson(displayName.getOrDefault(lemma, lemma))).append('"');
-            final String sd = subdomainByLemma.getOrDefault(lemma, "");
-            if (!sd.isEmpty()) {
-                json.append(",\"subdomain\":\"").append(escapeJson(sd)).append('"');
+            json.append(",\"name\":\"").append(escapeJson(nameStr)).append('"');
+            if (!sdStr.isEmpty()) {
+                json.append(",\"subdomain\":\"").append(escapeJson(sdStr)).append('"');
             }
             json.append(",\"pos\":\"").append(escapeJson(pos)).append('"');
             json.append(",\"group\":\"").append(escapeJson(posGroup(pos))).append('"');
             json.append(",\"r\":").append(radius);
-            json.append(",\"area\":").append(area);
             json.append(",\"approved\":").append(approved);
+            json.append(",\"rectWidth\":").append(rectWidth);
+            json.append(",\"rectHeight\":").append(rectHeight);
             final Long candId = candidateIdByLemma.get(lemma);
             final String objType = objectTypeByLemma.get(lemma);
             if (candId != null && objType != null) {
@@ -333,9 +350,10 @@ public class CandidateVegaGraph {
               "$schema": "https://vega.github.io/schema/vega/v6.json",
               "description": "Candidate dependency neighbourhood - force-directed node-link graph",
               "title": "${title}",
-              "width": 700,
-              "height": 460,
+              "width": 1200,
+              "height": 800,
               "padding": 20,
+              "autosize": "none",
 
               "data": [
                 {
@@ -349,12 +367,12 @@ public class CandidateVegaGraph {
                     {
                       "type": "force",
                       "iterations": 300,
-                      "static": true,
+                      "static": false,
                       "forces": [
                         {"force": "center", "x": {"signal": "width / 2"}, "y": {"signal": "height / 2"}},
-                        {"force": "link", "links": "link-data", "id": "id", "distance": 65},
-                        {"force": "collide", "radius": 15},
-                        {"force": "nbody", "strength": -40}
+                        {"force": "link", "links": "link-data", "id": "id", "distance": 180},
+                        {"force": "collide", "radius": 60},
+                        {"force": "nbody", "strength": -90}
                       ]
                     }
                   ]
@@ -373,7 +391,9 @@ public class CandidateVegaGraph {
 
               "legends": [
                 {
-                  "orient": "top-left",
+                  "orient": "none",
+                  "legendX": 0,
+                  "legendY": 0,
                   "title": "Part of Speech",
                   "fill": "color"
                 }
@@ -403,8 +423,8 @@ public class CandidateVegaGraph {
                       "y": {"signal": "(datum.source.y + datum.target.y) / 2"},
                       "align": {"value": "center"},
                       "baseline": {"value": "middle"},
-                      "fill": {"value": "#7a7a7a"},
-                      "fontSize": {"value": 9},
+                      "fill": {"value": "#000000"},
+                      "fontSize": {"value": 10},
                       "text": {"signal": "datum.label ? datum.label : ''"},
                       "opacity": {"signal": "datum.label ? 1 : 0"}
                     }
@@ -412,7 +432,7 @@ public class CandidateVegaGraph {
                 },
                 {
                   "name": "nodes",
-                  "type": "symbol",
+                  "type": "rect",
                   "zindex": 1,
                   "from": {"data": "node-data"},
                   "encode": {
@@ -422,9 +442,12 @@ public class CandidateVegaGraph {
                       "fillOpacity": {"value": 0.9}
                     },
                     "update": {
-                      "x": {"field": "x"},
-                      "y": {"field": "y"},
-                      "size": {"field": "area"},
+                      "x": {"signal": "datum.x - datum.rectWidth / 2"},
+                      "y": {"signal": "datum.y - datum.rectHeight / 2"},
+                      "width": {"field": "rectWidth"},
+                      "height": {"field": "rectHeight"},
+                      "rx": {"value": 6},
+                      "ry": {"value": 6},
                       "strokeWidth": {"signal": "datum.approved ? 2.5 : 0.6"},
                       "cursor": {"signal": "datum.candidateId ? 'pointer' : 'default'"},
                       "href": {"signal": "datum.candidateId ? '/wicket/object/' + datum.objectType + ':' + datum.candidateId : null"}
@@ -437,12 +460,28 @@ public class CandidateVegaGraph {
                   "encode": {
                     "update": {
                       "x": {"field": "x"},
-                      "y": {"field": "y"},
-                      "dx": {"value": 10},
-                      "dy": {"value": 3},
-                      "align": {"value": "left"},
+                      "y": {"signal": "datum.y - 14"},
+                      "align": {"value": "center"},
                       "baseline": {"value": "middle"},
-                      "fill": {"value": "#333333"},
+                      "fill": {"value": "#000000"},
+                      "fontSize": {"value": 10},
+                      "text": {"signal": "datum.subdomain ? datum.subdomain : ''"},
+                      "opacity": {"signal": "datum.subdomain ? 1 : 0"}
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "from": {"data": "node-data"},
+                  "encode": {
+                    "update": {
+                      "x": {"field": "x"},
+                      "y": {"field": "y"},
+                      "align": {"value": "center"},
+                      "baseline": {"value": "middle"},
+                      "fill": {"value": "#000000"},
+                      "opacity": {"value": 1},
+                      "fontWeight": {"value": "bold"},
                       "fontSize": {"value": 10},
                       "text": {"field": "name"}
                     }
@@ -454,15 +493,14 @@ public class CandidateVegaGraph {
                   "encode": {
                     "update": {
                       "x": {"field": "x"},
-                      "y": {"field": "y"},
-                      "dx": {"value": 10},
-                      "dy": {"value": 14},
-                      "align": {"value": "left"},
+                      "y": {"signal": "datum.y + 14"},
+                      "align": {"value": "center"},
                       "baseline": {"value": "middle"},
-                      "fill": {"value": "#888888"},
-                      "fontSize": {"value": 8},
-                      "text": {"signal": "datum.subdomain ? datum.subdomain : ''"},
-                      "opacity": {"signal": "datum.subdomain ? 1 : 0"}
+                      "fill": {"value": "#000000"},
+                      "opacity": {"value": 1},
+                      "fontStyle": {"value": "italic"},
+                      "fontSize": {"value": 10},
+                      "text": {"signal": "'<< ' + datum.group + ' >>'"}
                     }
                   }
                 }

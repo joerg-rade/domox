@@ -11,8 +11,6 @@ import lombok.*;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.services.message.MessageService;
-import org.apache.causeway.applib.value.Blob;
-import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 import org.apache.causeway.valuetypes.vega.applib.value.Vega;
 
@@ -91,13 +89,6 @@ public abstract class Candidate extends AbstractEntity {
     @Transient
     private CandidateVegaGraph candidateVegaGraphService;
 
-    @PdfJsViewer
-    @Property(optionality = Optionality.OPTIONAL)
-    @PropertyLayout(named = "Dependency Diagram", fieldSetId = "content", sequence = "2")
-    public Blob getDiagram() {
-        return candidateDiagramsService != null ? candidateDiagramsService.renderDiagram(this) : null;
-    }
-
     /**
      * How many hops the candidate-centric lexical diagram reaches out from the candidate:
      * {@code 1} (the default) draws the candidate plus every candidate directly connected to it.
@@ -112,27 +103,34 @@ public abstract class Candidate extends AbstractEntity {
     @Column(nullable = false)
     @PropertyLayout(
             named = "Diagram Hop Depth",
-            describedAs = "How far the dependency diagram reaches out (in hops) from this candidate",
-            fieldSetId = "content",
-            sequence = "1")
-    private int hopDepth = 1;
+            describedAs = "How far the dependency diagram reaches out (in hops) from this candidate (1–7)",
+            fieldSetId = "general",
+            sequence = "2")
+    private Integer hopDepth = 1;
 
     /**
      * Sets the hop depth, clamped to a minimum of {@code 1}.  Because {@link #getDiagram()} is
      * regenerated on every access, an actual change causes the dependency diagram to be rebuilt at
      * the new depth on its next render.
      */
-    public void setHopDepth(final int hopDepth) {
-        final int clamped = Math.max(1, hopDepth);
-        if (this.hopDepth != clamped) {
+    public void setHopDepth(final Integer hopDepth) {
+        final int clamped = Math.max(1, hopDepth != null ? hopDepth : 1);
+        if (!this.hopDepth.equals(clamped)) {
             this.hopDepth = clamped;
             // The dependency diagram is derived on access, so the next getDiagram() rebuilds it.
         }
     }
 
+    /**
+     * Renders the hop depth as a dropdown restricted to 1–7.
+     */
+    public List<Integer> choicesHopDepth() {
+        return List.of(1, 2, 3, 4, 5, 6, 7);
+    }
+
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
-            named = "Dependency Graph (Vega)",
+            named = " ",
             describedAs = "Interactive force-directed node-link graph of this candidate's dependency neighbourhood",
             fieldSetId = "content",
             sequence = "3")

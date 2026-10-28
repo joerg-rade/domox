@@ -1,3 +1,26 @@
 *.scalarImage {
     width: 100% !important;
 }
+
+/* Base link color & decoration */
+a {
+    color: #07b4e5;
+    text-decoration: none;
+}
+
+/* Entity header title */
+.objectTitle {
+    color: #07b4e5 !important;
+    text-decoration: none;
+}
+
+/* Menu bar / primary background */
+.bg-primary {
+    background-color: #8a976e !important;
+}
+/* evans DDD
+#07b4e5 blue
+#593f79 violet
+#8a976e green
+#d88d50 orange
+*/

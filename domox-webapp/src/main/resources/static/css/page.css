@@ -27,3 +27,13 @@ th, td {
 }
 .d3GraphPanel { min-height: 400px; width: 100%; }
 .d3GraphCanvas { min-height: 400px; }
+
+/* Vega force-directed graph: allow scrolling when the canvas exceeds the viewport */
+.scalarValueInput.fragment-fieldFrame-withoutLink-viewing {
+    display: block;
+    overflow: auto;
+}
+div[id^="vegaContainer"] {
+    display: inline-block;
+    overflow: auto;
+}
