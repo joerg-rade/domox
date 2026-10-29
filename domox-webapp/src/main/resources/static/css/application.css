@@ -13,6 +13,15 @@ a {
     color: #07b4e5 !important;
     text-decoration: none;
 }
+/* Entity header icon — match title color */
+.objectIconAndTitlePanel .objectIconFa {
+    color: #07b4e5 !important;
+}
+/* Entity header icon — stay the same color on hover (suppress framework green) */
+.objectIconAndTitlePanel .objectIconFa:hover,
+.objectIconAndTitlePanel a:hover .objectIconFa {
+    color: #07b4e5 !important;
+}
 
 /* Menu bar / primary background */
 .bg-primary {
