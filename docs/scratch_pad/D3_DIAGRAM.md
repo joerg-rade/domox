@@ -57,15 +57,19 @@ flowchart LR
 
 ### Data flow
 
-1. **Domain layer** — `DomainModelDiagramsD3.renderDiagram(DomainModel)` queries candidates,
-   reviews, and rule matches, then assembles a JSON structure with `nodes`, `links`, and
-   `legend`.
-2. **Config** — The `@D3Graph` annotation on `DomainModel.getDiagram()` triggers
-   `D3Panel.buildConfig()` in the Wicket UI module, wrapping the JSON string into a
-   `D3Config`.
-3. **Page render** — `D3IntegrationReference.domReadyScript(config)` emits
+1. **Domain layer (model-wide)** — `DomainModelDiagramsD3.renderDiagram(DomainModel)` queries
+   all candidates, reviews, and rule matches, then assembles a JSON structure with `nodes`,
+   `links`, and `legend` for the entire model.
+2. **Domain layer (per candidate)** — `CandidateD3Graph.renderGraph(Candidate)` queries the
+   same data but restricts the graph to the candidate's dependency neighbourhood via
+   breadth-first expansion (up to `Candidate.hopDepth` hops), producing the same
+   `{nodes, links, legend}` JSON format for a single candidate.
+3. **Config** — The `@D3Graph` annotation on `DomainModel.getDiagram()` and
+   `Candidate.getD3Graph()` triggers `D3Panel.buildConfig()` in the Wicket UI module,
+   wrapping the JSON string into a `D3Config`.
+4. **Page render** — `D3IntegrationReference.domReadyScript(config)` emits
    `WicketStuff.D3.init(configJSON)` as an `onDomReady` script.
-4. **Client** — `init()` parses the JSON, creates an SVG, runs `d3.forceSimulation`,
+5. **Client** — `init()` parses the JSON, creates an SVG, runs `d3.forceSimulation`,
    and renders nodes (rounded rectangles, coloured fills, 3-line labels) + links.
 
 ---
@@ -214,8 +218,10 @@ fallbacks for test environments or headless rendering.
 | `D3Panel.java` (ui) | Wicket panel — builds `D3Config` from `@D3Graph` facet |
 | `D3Config.java` (applib) | `@Builder` config POJO — `initialWidth`, `initialHeight`, zoom/drag toggles |
 | `D3IntegrationReference.java` | Wicket resource reference — wraps `d3-integration.mjs` and emits init script |
-| `DomainModelDiagramsD3.java` | Domain service — assembles JSON graph data from candidates + reviews |
+| `DomainModelDiagramsD3.java` | Domain service — assembles JSON graph data from all candidates + reviews (model-wide) |
+| `CandidateD3Graph.java` | Domain service — assembles JSON graph data for a single candidate's neighbourhood (replaces `CandidateVegaGraph`) |
 | `DomainModel.java` | Entity — holds `@D3Graph`-annotated `getDiagram()` property |
+| `Candidate.java` | Entity — holds `@D3Graph`-annotated `getD3Graph()` property (replaces `getVegaGraph()`) |
 
 ---
 
@@ -225,7 +231,8 @@ fallbacks for test environments or headless rendering.
   (lines 47–48) and SVG attribute (line 55).
 - To change the **container constraints** — edit `D3Panel.css` (`.d3GraphPanel`,
   `.d3GraphCanvas`).
-- To change what data appears — edit `DomainModelDiagramsD3.java` (nodes, links, legend).
+- To change what data appears (model-wide) — edit `DomainModelDiagramsD3.java` (nodes, links, legend).
+- To change what data appears (per candidate) — edit `CandidateD3Graph.java` (same format, single-candidate BFS).
 - After editing `d3-integration.mjs`, **refresh the running app** by copying the file to
   `domox-webapp/target/classes/` under the same resource path, or run
   `mvn resources:resources -pl domox-webapp -q` for a full resource-cycle.
@@ -243,7 +250,7 @@ fallbacks for test environments or headless rendering.
 
 ## Verification
 
-After editing `d3-integration.mjs` or `DomainModelDiagramsD3.java`:
+After editing `d3-integration.mjs`, `DomainModelDiagramsD3.java`, or `CandidateD3Graph.java`:
 
 1. **JS syntax** — `node --check domox-webapp/src/main/resources/org/apache/causeway/extensions/d3/wkt/integration/res/d3-integration.mjs`
 2. **Refresh** — copy the `.mjs` to `target/classes` (see Quick reference above).

@@ -3,8 +3,9 @@
 **Design doc** → `docs/scratch_pad/D3_DIAGRAM.md`
 
 | Layer | File | Role |
-|---|---|---|
-| JSON data (Java) | `domox-domain/.../crc/DomainModelDiagramsD3.java` | Assembles `{nodes,links,legend}` from candidates + reviews |
+|---|---|---|---|
+| JSON data (Java) — model-wide | `domox-domain/.../crc/DomainModelDiagramsD3.java` | Assembles `{nodes,links,legend}` from all approved candidates |
+| JSON data (Java) — per candidate | `domox-domain/.../crc/CandidateD3Graph.java` | Assembles `{nodes,links,legend}` for a single candidate's neighbourhood |
 | Client renderer | `domox-webapp/src/main/resources/org/apache/causeway/extensions/d3/wkt/integration/res/d3-integration.mjs` | SVG creation, force simulation, node/link rendering, resize |
 | Container CSS | `domox-webapp/.../D3Panel.css` | `width:100%; min-height:400px` |
 | Wicket panel | `domox-webapp/.../D3Panel.java` + `.html` | Wraps config into `D3Config` |

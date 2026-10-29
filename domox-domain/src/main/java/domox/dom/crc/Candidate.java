@@ -12,7 +12,7 @@ import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
 import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
-import org.apache.causeway.valuetypes.vega.applib.value.Vega;
+import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,9 +77,9 @@ public abstract class Candidate extends AbstractEntity {
     private CandidateDiagrams candidateDiagramsService;
 
     /**
-     * Injected {@link CandidateVegaGraph} service used to render an interactive
-     * <b>full-Vega force-directed node-link graph</b> of the candidate's dependency
-     * neighbourhood on demand.
+     * Injected {@link CandidateD3Graph} service used to render an interactive
+     * <b>D3 force-directed node-link graph</b> of the candidate's dependency neighbourhood
+     * on demand.
      * <p>
      * The graph is deliberately <em>not</em> persisted — it is regenerated on every access
      * because its content depends on the current candidate set, which changes as candidates are
@@ -87,7 +87,7 @@ public abstract class Candidate extends AbstractEntity {
      */
     @Inject
     @Transient
-    private CandidateVegaGraph candidateVegaGraphService;
+    private CandidateD3Graph candidateD3GraphService;
 
     /**
      * How many hops the candidate-centric lexical diagram reaches out from the candidate:
@@ -128,14 +128,15 @@ public abstract class Candidate extends AbstractEntity {
         return List.of(1, 2, 3, 4, 5, 6, 7);
     }
 
+    @D3Graph
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
             named = " ",
-            describedAs = "Interactive force-directed node-link graph of this candidate's dependency neighbourhood",
+            describedAs = "Interactive D3 force-directed node-link graph of this candidate's dependency neighbourhood",
             fieldSetId = "content",
             sequence = "3")
-    public Vega getVegaGraph() {
-        return candidateVegaGraphService != null ? candidateVegaGraphService.renderGraph(this) : null;
+    public String getD3Graph() {
+        return candidateD3GraphService != null ? candidateD3GraphService.renderGraph(this) : null;
     }
     // endregion Diagram
 
