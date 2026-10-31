@@ -13,9 +13,9 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
  * Purpose: Identifies attributes from direct objects (dobj, iobj, pobj) where
  *          the verb is the governor and the object is a basic-attribute noun,
  *          or the verb is a "blocked" verb (entered/inputted/saved/added/has).
- *          Outputs Attributes (PropertyCdd) rather than Entities (ClassCdd).
+ *          Outputs Attributes (AttributeCdd) rather than Entities (ClassCdd).
  * Example: "The user enters the name." → name is identified as an attribute.
- * Candidate Type: PropertyCdd.
+ * Candidate Type: AttributeCdd.
  */
 public class TDR4 extends TypedDependencyRule {
 
@@ -45,7 +45,7 @@ public class TDR4 extends TypedDependencyRule {
             result = "dobj(" + currentTd.getB() + ")";
         }
 
-        // Phase 1: record the match — TDR4 outputs Attributes (PropertyCdd)
+        // Phase 1: record the match — TDR4 outputs Attributes (AttributeCdd)
         if (ruleMatches != null && currentTd != null) {
             // B is a basic attribute (guaranteed by when() unless a blocked verb).
             // The owning class is derived from the non-basic-attrib side if possible.

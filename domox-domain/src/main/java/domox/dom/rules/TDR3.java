@@ -17,11 +17,11 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
  *          the previous dependency is neither amod nor advmod, and the verb is
  *          not a "blocked" verb (entered/inputted/saved/added/has).
  * Example: "A pet shop can offer a wide range of pet products."
- *          → ActionCdd("offer") with relatedCandidate ClassCdd("Products").
+ *          → ResponsibilityCdd("offer") with relatedCandidate ClassCdd("Products").
  *          When the previous dependency is a compound, e.g.
  *          "compound(products, pet)", the noun part ("products") becomes the
  *          relatedCandidateName.
- * Candidate Type: ActionCdd (the verb is an action, not a class).
+ * Candidate Type: ResponsibilityCdd (the verb is an action, not a class).
  */
 public class TDR3 extends TypedDependencyRule {
     private static final Logger log = LoggerFactory.getLogger(TDR3.class);

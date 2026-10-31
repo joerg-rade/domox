@@ -1,6 +1,6 @@
 package domox.dom.fixtures;
 
-import domox.dom.rqm.Corpora;
+import domox.dom.requirements.Corpora;
 import jakarta.inject.Inject;
 import org.apache.causeway.testing.fixtures.applib.fixturescripts.FixtureScript;
 import org.slf4j.Logger;

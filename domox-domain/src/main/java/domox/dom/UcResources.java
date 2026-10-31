@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 /**
  * Shared enumeration of the classpath {@code UC*.md} use-case files.
  * <p>
- * {@link domox.dom.rqm.Documents} both loads those files into the corpus and exposes a
+ * {@link domox.dom.requirements.Documents} both loads those files into the corpus and exposes a
  * {@code findByFileName} dropdown of every available use-case, so both code paths need the same
  * list.  Keeping this helper free of Spring injection avoids a circular dependency: it is a
  * plain static utility.

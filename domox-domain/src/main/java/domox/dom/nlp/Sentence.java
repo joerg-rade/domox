@@ -3,7 +3,7 @@ package domox.dom.nlp;
 import domox.DomainModule;
 import domox.port.DomainConstants;
 import domox.dom.AbstractEntity;
-import domox.dom.rqm.Document;
+import domox.dom.requirements.Document;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.*;

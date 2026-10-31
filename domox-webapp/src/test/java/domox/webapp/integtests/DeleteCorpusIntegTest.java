@@ -11,29 +11,29 @@ import org.springframework.transaction.annotation.Transactional;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.services.xactn.TransactionService;
 
-import domox.dom.rqm.Corpora;
-import domox.dom.crc.ActionCdd;
-import domox.dom.crc.ActionCddRepository;
-import domox.dom.crc.AssociationCdd;
-import domox.dom.crc.AssociationCddRepository;
-import domox.dom.crc.AssociationType;
-import domox.dom.crc.ClassCdd;
-import domox.dom.crc.ClassCddRepository;
-import domox.dom.crc.DomainModel;
-import domox.dom.crc.DomainModels;
-import domox.dom.crc.PropertyCdd;
-import domox.dom.crc.PropertyCddRepository;
-import domox.dom.rqm.Corpus;
+import domox.dom.requirements.Corpora;
+import domox.dom.crc.model.ResponsibilityCdd;
+import domox.dom.crc.repository.ResponsibilityCddRepository;
+import domox.dom.crc.model.CollaboratorCdd;
+import domox.dom.crc.repository.CollaboratorCddRepository;
+import domox.dom.crc.model.AssociationType;
+import domox.dom.crc.model.ClassCdd;
+import domox.dom.crc.repository.ClassCddRepository;
+import domox.dom.crc.model.DomainModel;
+import domox.dom.crc.service.DomainModels;
+import domox.dom.crc.model.AttributeCdd;
+import domox.dom.crc.repository.AttributeCddRepository;
+import domox.dom.requirements.Corpus;
 
 /**
  * Regression test for {@code Corpora.deleteCorpus(Corpus)}.
  * <p>
  * A {@code Corpus} owns one shared {@link DomainModel}.  When the corpus is
  * deleted the shared model must be destroyed together with every candidate it
- * produced — class-owned and orphan (e.g. {@link ActionCdd} with a
+ * produced — class-owned and orphan (e.g. {@link ResponsibilityCdd} with a
  * {@code null} owning class) alike — without tripping the DB foreign-key
  * constraints that point back at the {@code DomainModel} (such as
- * {@code FK_ActionCdd_DOMAINMODEL_ID}) at flush time.
+ * {@code FK_ResponsibilityCdd_DOMAINMODEL_ID}) at flush time.
  */
 @Transactional
 class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
@@ -43,9 +43,9 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
     @Inject private RepositoryService repositoryService;
     @Inject private TransactionService transactionService;
     @Inject private ClassCddRepository classCddRepository;
-    @Inject private ActionCddRepository actionCddRepository;
-    @Inject private PropertyCddRepository propertyCddRepository;
-    @Inject private AssociationCddRepository associationCddRepository;
+    @Inject private ResponsibilityCddRepository responsibilityCddRepository;
+    @Inject private AttributeCddRepository propertyCddRepository;
+    @Inject private CollaboratorCddRepository associationCddRepository;
 
     @Test
     void deleteCorpus_removesSharedModel_TogetherWithOrphanAndClassOwnedCandidates() {
@@ -60,28 +60,28 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
         final ClassCdd customer = classCdd("Customer", dm);
         final ClassCdd store = classCdd("Store", dm);
 
-        final PropertyCdd age = new PropertyCdd("age", "int");
+        final AttributeCdd age = new AttributeCdd("age", "int");
         age.setCandidateType("PropertyCdd");
         age.domainModel = dm;
         age.classCdd = customer;
-        customer.propertyList.add(age);
-        dm.propertyList.add(age);
+        customer.attributeList.add(age);
+        dm.attributeList.add(age);
 
-        final ActionCdd purchase = actionCdd("purchase", dm);
+        final ResponsibilityCdd purchase = responsibilityCdd("purchase", dm);
         purchase.classCdd = customer;
-        customer.actionList.add(purchase);
-        dm.actionList.add(purchase);
+        customer.responsibilityList.add(purchase);
+        dm.responsibilityList.add(purchase);
 
         // orphan action — no owning class, reachable only through the model
-        final ActionCdd orphan = actionCdd("orphanAction", dm);
-        dm.actionList.add(orphan);
+        final ResponsibilityCdd orphan = responsibilityCdd("orphanAction", dm);
+        dm.responsibilityList.add(orphan);
 
-        final AssociationCdd customerStore = new AssociationCdd("Customer_Store", customer, store);
+        final CollaboratorCdd customerStore = new CollaboratorCdd("Customer_Store", customer, store);
         customerStore.setCandidateType("AssociationCdd");
         customerStore.setDomainModel(dm);
         customerStore.setType(AssociationType.ASSOCIATION);
-        customer.addAssociation(customerStore);
-        dm.associationList.add(customerStore);
+        customer.addCollaborator(customerStore);
+        dm.collaboratorList.add(customerStore);
 
         corpus.setDomainModel(dm);
         repositoryService.persistAndFlush(corpus);
@@ -89,7 +89,7 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
 
         // sanity: everything is present before deletion
         assertThat(classCddRepository.findAll()).hasSize(2);
-        assertThat(actionCddRepository.findAll()).hasSize(2);
+        assertThat(responsibilityCddRepository.findAll()).hasSize(2);
         assertThat(propertyCddRepository.findAll()).hasSize(1);
         assertThat(associationCddRepository.findAll()).hasSize(1);
 
@@ -99,7 +99,7 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
 
         // then: every candidate of every type is gone (flush did not trip an FK)
         assertThat(classCddRepository.findAll()).isEmpty();
-        assertThat(actionCddRepository.findAll()).isEmpty();
+        assertThat(responsibilityCddRepository.findAll()).isEmpty();
         assertThat(propertyCddRepository.findAll()).isEmpty();
         assertThat(associationCddRepository.findAll()).isEmpty();
     }
@@ -113,8 +113,8 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
         return c;
     }
 
-    private ActionCdd actionCdd(final String name, final DomainModel dm) {
-        final ActionCdd a = new ActionCdd();
+    private ResponsibilityCdd responsibilityCdd(final String name, final DomainModel dm) {
+        final ResponsibilityCdd a = new ResponsibilityCdd();
         a.setCandidateName(name);
         a.setCandidateType("ActionCdd");
         a.setOutputType("void");

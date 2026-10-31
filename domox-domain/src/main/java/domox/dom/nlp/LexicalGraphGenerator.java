@@ -1,8 +1,8 @@
 package domox.dom.nlp;
 
-import domox.dom.crc.Candidate;
-import domox.dom.crc.Review;
-import domox.dom.crc.ReviewStatus;
+import domox.dom.crc.model.Candidate;
+import domox.dom.crc.model.Review;
+import domox.dom.crc.model.ReviewStatus;
 import domox.dom.rules.RuleMatch;
 
 import java.util.ArrayList;

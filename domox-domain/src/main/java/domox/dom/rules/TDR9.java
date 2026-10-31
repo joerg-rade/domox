@@ -11,7 +11,7 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 /*
  * Purpose: Identifies entities/attributes from nmod:by, nmod:agent and nmod:with dependencies.
  * Example: "processed by the system" → system is identified as an entity.
- * Candidate Type: ClassCdd (entity) or PropertyCdd (basic attribute).
+ * Candidate Type: ClassCdd (entity) or AttributeCdd (basic attribute).
  */
 public class TDR9 extends TypedDependencyRule {
 

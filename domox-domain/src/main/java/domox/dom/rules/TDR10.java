@@ -11,7 +11,7 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 /**
  * Purpose: Identifies possessive relationships (nmod:poss).
  * Example: "the customer's name" → name is an attribute of customer.
- * Candidate Type: ClassCdd (possessed entity) or PropertyCdd (possessor/preposition attribute).
+ * Candidate Type: ClassCdd (possessed entity) or AttributeCdd (possessor/preposition attribute).
  */
 @RuleBean
 @Rule(order = 10)

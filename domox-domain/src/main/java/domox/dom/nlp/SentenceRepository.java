@@ -1,6 +1,6 @@
 package domox.dom.nlp;
 
-import domox.dom.rqm.Document;
+import domox.dom.requirements.Document;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

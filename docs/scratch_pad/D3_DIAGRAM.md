@@ -82,7 +82,7 @@ The lexical diagram was showing **synthetic association nodes** — e.g. `Covera
 `OnlineStore_Store`, `RemainStock_Stock`, `Inventory_Product`, `BulkOrder_Order`,
 `OnlineShop_Shop` — as orphan nodes with an empty `<<>>` POS label.  These nodes carry no
 lexical information of their own: they are the *compound name* (`X_Y`) of an
-`AssociationCdd` candidate derived from two real candidate lemmas, and the participants
+`CollaboratorCdd` candidate derived from two real candidate lemmas, and the participants
 plus their typed-dependency link are already drawn in the graph.
 
 ### Analysis (2026-10-16)
@@ -125,7 +125,7 @@ link are kept** — only the compound node disappears.
 ### Scope caveat — UML construction
 
 **This filter is presentational only.**  It affects solely the D3 *lexical* rendering; the
-`AssociationCdd` records themselves are **not** deleted or altered in the model.  The `X_Y`
+`CollaboratorCdd` records themselves are **not** deleted or altered in the model.  The `X_Y`
 compounds (and the `|>`-named generalizations) are required later for **UML class-diagram
 construction**, where generalizations and associations are first-class citizens — do not
 re-use this filter as a criterion for discarding association data anywhere else.

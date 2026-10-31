@@ -3,10 +3,10 @@ package domox.dom.rules;
 import com.deliveredtechnologies.rulebook.model.RuleBook;
 import com.deliveredtechnologies.rulebook.spring.SpringAwareRuleBookRunner;
 import domox.dom.nlp.*;
-import domox.dom.crc.ActionCandidates;
-import domox.dom.crc.AssociationCandidates;
-import domox.dom.crc.ClassCandidates;
-import domox.dom.crc.PropertyCandidates;
+import domox.dom.crc.service.ResponsibilityCandidates;
+import domox.dom.crc.service.CollaboratorCandidates;
+import domox.dom.crc.service.ClassCandidates;
+import domox.dom.crc.service.AttributeCandidates;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,18 +93,18 @@ public class TypedDependencyRulesTest {
         }
 
         @Bean
-        public PropertyCandidates propertyCandidates() {
-            return Mockito.mock(PropertyCandidates.class);
+        public AttributeCandidates attributeCandidates() {
+            return Mockito.mock(AttributeCandidates.class);
         }
 
         @Bean
-        public ActionCandidates actionCandidates() {
-            return Mockito.mock(ActionCandidates.class);
+        public ResponsibilityCandidates responsibilityCandidates() {
+            return Mockito.mock(ResponsibilityCandidates.class);
         }
 
         @Bean
-        public AssociationCandidates associationCandidates() {
-            return Mockito.mock(AssociationCandidates.class);
+        public CollaboratorCandidates collaboratorCandidates() {
+            return Mockito.mock(CollaboratorCandidates.class);
         }
 
         @Bean
@@ -431,7 +431,7 @@ public class TypedDependencyRulesTest {
                         && "PropertyCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(propertyMatch, "TDR10 should have created a PropertyCdd");
+        assertNotNull(propertyMatch, "TDR10 should have created a AttributeCdd");
         assertEquals("pets", propertyMatch.getCandidateName());
         assertEquals("Owners", propertyMatch.getRelatedCandidateName(),
                 "Pronominal possessor should resolve to the nsubj entity");
@@ -441,7 +441,7 @@ public class TypedDependencyRulesTest {
      * Test TDR10: possessive pronoun (PRP$) with an adjectival modifier on the
      * possessed noun.  "pet owners train their beloved pets" →
      * nmod:poss(pets, their) with amod(pets, beloved).
-     * Rule fires: enriched PropertyCdd "beloved pets" on ClassCdd "Owners".
+     * Rule fires: enriched AttributeCdd "beloved pets" on ClassCdd "Owners".
      */
     @Test
     public void testTDR10_PossessivePronoun_EnrichedPropertyName() {
@@ -465,7 +465,7 @@ public class TypedDependencyRulesTest {
                         && "PropertyCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(propertyMatch, "TDR10 should have created a PropertyCdd");
+        assertNotNull(propertyMatch, "TDR10 should have created a AttributeCdd");
         assertEquals("beloved pets", propertyMatch.getCandidateName(),
                 "Property name should be enriched with the amod modifier");
         assertEquals("Owners", propertyMatch.getRelatedCandidateName());
@@ -475,7 +475,7 @@ public class TypedDependencyRulesTest {
      * Test TDR11: amod with VBG modifier on a possessed noun.
      * "owners love their beloved pets" → amod(pets, beloved) where beloved=VBG,
      * with nmod:poss(pets, their) in the same sentence.
-     * Rule fires: PropertyCdd "beloved pets" on ClassCdd "Owners" (not a standalone entity).
+     * Rule fires: AttributeCdd "beloved pets" on ClassCdd "Owners" (not a standalone entity).
      */
     @Test
     public void testTDR11_AmodVBG_PossessedNoun_PropertyOnPossessor() {
@@ -506,7 +506,7 @@ public class TypedDependencyRulesTest {
                         && "PropertyCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(propertyMatch, "TDR11 should have created a PropertyCdd for the possessed noun");
+        assertNotNull(propertyMatch, "TDR11 should have created a AttributeCdd for the possessed noun");
         assertEquals("beloved pets", propertyMatch.getCandidateName());
         assertEquals("Owners", propertyMatch.getRelatedCandidateName());
     }
@@ -578,7 +578,7 @@ public class TypedDependencyRulesTest {
     // ======== TDR36 Tests: Validation operations (nsubj with "validate") ========
 
     @Test
-    public void testTDR36_ActionCddNamedAfterVerbNotSubject() {
+    public void testTDR36_ResponsibilityCddNamedAfterVerbNotSubject() {
         Sentence sentence = new Sentence();
         addToken(0, "validate", PartOfSpeechType.VB);
         addToken(1, "system", PartOfSpeechType.NN);
@@ -599,13 +599,13 @@ public class TypedDependencyRulesTest {
                         && "ActionCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(match, "TDR36 should have created an ActionCdd match");
+        assertNotNull(match, "TDR36 should have created an ResponsibilityCdd match");
         assertEquals("validate", match.getCandidateName(),
-                "TDR36 should name the ActionCdd after the verb, uncapitalized");
+                "TDR36 should name the ResponsibilityCdd after the verb, uncapitalized");
         assertNotEquals("Validate", match.getCandidateName(),
                 "TDR36 action candidate names are verbs and must not be capitalized");
         assertNotEquals("System", match.getCandidateName(),
-                "TDR36 must not name the ActionCdd after the subject");
+                "TDR36 must not name the ResponsibilityCdd after the subject");
         assertEquals("System_Actions.add(System validate)", match.getDescription(),
                 "TDR36 description should capitalize the noun subject but leave the verb lowercase");
     }
@@ -628,7 +628,7 @@ public class TypedDependencyRulesTest {
     // ======== TDR35 Tests: Conditional logic (advcl/mark with if/then/else) ========
 
     @Test
-    public void testTDR35_ActionCddNamedAfterVerbNotKeywordSubject() {
+    public void testTDR35_ResponsibilityCddNamedAfterVerbNotKeywordSubject() {
         Sentence sentence = new Sentence();
         addToken(0, "notify", PartOfSpeechType.VB);
         addToken(1, "restock", PartOfSpeechType.NN);
@@ -649,13 +649,13 @@ public class TypedDependencyRulesTest {
                         && "ActionCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(match, "TDR35 should have created an ActionCdd match");
+        assertNotNull(match, "TDR35 should have created an ResponsibilityCdd match");
         assertEquals("notify", match.getCandidateName(),
-                "TDR35 should name the ActionCdd after the verb, uncapitalized");
+                "TDR35 should name the ResponsibilityCdd after the verb, uncapitalized");
         assertNotEquals("Ifrestock", match.getCandidateName(),
                 "TDR35 must not concatenate the keyword with the condition");
         assertNotEquals("Restock", match.getCandidateName(),
-                "TDR35 must not name the ActionCdd after the condition");
+                "TDR35 must not name the ResponsibilityCdd after the condition");
         assertEquals("System_Actions.add(\"if\" + Restock + notify)", match.getDescription(),
                 "TDR35 description should capitalize the condition noun but leave the verb lowercase");
     }

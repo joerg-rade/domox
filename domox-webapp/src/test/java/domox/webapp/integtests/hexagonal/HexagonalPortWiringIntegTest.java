@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import domox.adapter.diagram.KrokiDiagramAdapter;
 import domox.adapter.nlp.StanfordCoreNlpAdapter;
-import domox.dom.crc.CandidateDiagrams;
+import domox.dom.crc.diagram.CandidateDiagrams;
 import domox.dom.nlp.Sentences;
-import domox.dom.rqm.Corpora;
-import domox.dom.rqm.Documents;
+import domox.dom.requirements.Corpora;
+import domox.dom.requirements.Documents;
 import domox.port.DiagramPort;
 import domox.port.NlpPort;
 import domox.webapp.integtests.ApplicationIntegTestAbstract;

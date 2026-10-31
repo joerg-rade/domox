@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import domox.dom.crc.Candidate;
-import domox.dom.crc.Reviews;
-import domox.dom.crc.ReviewRationale;
+import domox.dom.crc.model.Candidate;
+import domox.dom.crc.service.Reviews;
+import domox.dom.crc.model.ReviewRationale;
 
 /**
  * Exposes the automated Candidate-review workflow to LLM clients over MCP

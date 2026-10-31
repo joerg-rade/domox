@@ -16,7 +16,7 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
  *          when the previous dependency is an amod/advmod with a JJ dependent.
  * Example: "The user enters the account name." → name is an attribute,
  *          refined by the amod "account".
- * Candidate Type: PropertyCdd.
+ * Candidate Type: AttributeCdd.
  */
 public class TDR5 extends TypedDependencyRule {
 
@@ -51,7 +51,7 @@ public class TDR5 extends TypedDependencyRule {
             result = "dobj(" + currentTd.getB() + ")";
         }
 
-        // Phase 1: record the match — TDR5 outputs Attributes (PropertyCdd)
+        // Phase 1: record the match — TDR5 outputs Attributes (AttributeCdd)
         if (ruleMatches != null && currentTd != null) {
             if (!isBasicAttributeA(currentTd)) {
                 String className = capitalizeFirstLetter(currentTd.getA());

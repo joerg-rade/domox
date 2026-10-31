@@ -32,7 +32,7 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
  * </ul>
  * <p>
  * On a match the rule records a {@code SynonymCdd} RuleMatch; Phase 2 creates two
- * {@code ClassCdd} entities linked by an {@code AssociationCdd} of type
+ * {@code ClassCdd} entities linked by an {@code CollaboratorCdd} of type
  * {@code SYNONYM}.
  */
 @RuleBean

@@ -1,4 +1,4 @@
-# DoMoX Candidate-Review Pipeline — Agent Runbook
+mvn t6est# DoMoX Candidate-Review Pipeline — Agent Runbook
 
 Speed-run playbook for the task type: **"review all N candidates (approve/reject) via the
 MCP `ReviewMcpTools` pipeline, with LLM judgment."** Read this top-to-bottom once on first
@@ -36,7 +36,8 @@ The task signature includes any of:
 `Candidate` uses **TABLE_PER_CLASS** inheritance. Real candidate rows live in the **per-type
 tables**, NOT the base table:
 - `domox.classcdd` (classtype int), `domox.propertycdd`, `domox.actioncdd`, `domox.associationcdd`,
-  plus `packagecdd`, `parametercdd` (usually empty in this corpus).
+  plus `parametercdd` (usually empty in this corpus) and `packagecdd` (orphaned — its entity
+  was deleted in the CRC rename, the table still exists with 0 rows).
 - `domox.candidate` (base) and the `public`-schema tables (`tables.sql` legacy) are **stale/empty** — never query them for data.
 - A candidate's evidence lives in the join table `<type>cdd_rulematch` (`<type>cdd_id`,
   `rulematches_id`) → `domox.rulematch` → `domox.typeddependency` → `domox.sentence`.
@@ -95,6 +96,14 @@ mapping below. Be decisive — the whole point is cleaning the candidate set.
 | `WRONG_CANDIDATE_TYPE` | An attribute/unit in the entity slot: `Quantity`, `Cost`, `Availability`, `Age`, `Range`, `Second`, `Time`, `Online`; a verb used as a class: `Update`, `groom`, `have`, `reflect`, `require`, `restrict`; a measure phrase: `WideRange`, `RealTime`, `TotalCost` |
 | `DUPLICATE` | Capitalized `User_Action` dup of an accepted lowercase dobj action: `Select`/`select`, `Add`/`add`, `Process`/`process`, `Display`/`display`; a property that duplicates an entity (`cart` vs `Cart`) |
 | `INSUFFICIENT_INFORMATION` / `OTHER` | Rarely needed |
+
+> **Vocabulary note (CRC rename, 2026-10).** The Java entity classes now follow the CRC guide's
+> element names — `ResponsibilityCdd` (was `ActionCdd`), `AttributeCdd` (was `PropertyCdd`),
+> `CollaboratorCdd` (was `AssociationCdd`), `ResponsibilityParameter` (was `ParameterCdd`);
+> `ClassCdd` is unchanged and `PackageCdd` was deleted.  **The persisted `candidateType`
+> strings and table names were deliberately left unchanged**, so the policy below — and every
+> `candidatetype` value in `domox.rulematch` — still uses the historical names
+> (`ActionCdd`, `PropertyCdd`, `AssociationCdd`, `ParameterCdd`).
 
 ActionCdd policy: **approve** a genuine customer/system operation acting on a domain entity
 (`browse`, `purchase`, `select`, `add`, `proceed`, `validate`, `Calculate`, `confirm`,

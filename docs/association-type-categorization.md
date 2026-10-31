@@ -118,9 +118,9 @@ A class realizes an interface. This is procedural/architectural knowledge that r
 |----------------------|---------|-----------|
 | "implements", "realizes", "provides interface" | *"PaymentProcessor implements Gateway"* | `IMPLEMENTATION` |
 | "behaves as", "acts as" | *"User acts as Buyer"* (role-based) | `IMPLEMENTATION` |
-| *(most common)* **Manual assignment** in the UI | — | User sets via AssociationCdd editor |
+| *(most common)* **Manual assignment** in the UI | — | User sets via CollaboratorCdd editor |
 
-**Current status:** `IMPLEMENTATION` now has a non-empty PlantUML symbol `..|>` (dotted realization) — `AssociationCdd.toPlantUmlString()` dispatches on `this.type`, so an implementation link renders as a dotted `..|>` arrow. Effective type defaults to `ASSOCIATION` if the field is `null`.
+**Current status:** `IMPLEMENTATION` now has a non-empty PlantUML symbol `..|>` (dotted realization) — `CollaboratorCdd.toPlantUmlString()` dispatches on `this.type`, so an implementation link renders as a dotted `..|>` arrow. Effective type defaults to `ASSOCIATION` if the field is `null`.
 
 ---
 

@@ -1,15 +1,15 @@
 package domox.dom.rules;
 
-import domox.dom.crc.ActionCandidates;
-import domox.dom.crc.ActionCdd;
-import domox.dom.crc.AssociationCandidates;
-import domox.dom.crc.AssociationCdd;
-import domox.dom.crc.AssociationType;
-import domox.dom.crc.Candidate;
-import domox.dom.crc.ClassCdd;
-import domox.dom.crc.ClassCandidates;
-import domox.dom.crc.PropertyCdd;
-import domox.dom.crc.PropertyCandidates;
+import domox.dom.crc.service.ResponsibilityCandidates;
+import domox.dom.crc.model.ResponsibilityCdd;
+import domox.dom.crc.service.CollaboratorCandidates;
+import domox.dom.crc.model.CollaboratorCdd;
+import domox.dom.crc.model.AssociationType;
+import domox.dom.crc.model.Candidate;
+import domox.dom.crc.model.ClassCdd;
+import domox.dom.crc.service.ClassCandidates;
+import domox.dom.crc.model.AttributeCdd;
+import domox.dom.crc.service.AttributeCandidates;
 import domox.dom.nlp.SentenceRepository;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
@@ -50,13 +50,13 @@ class RuleMatchesTest {
     ClassCandidates mockClassCandidates;
 
     @Mock
-    PropertyCandidates mockPropertyCandidates;
+    AttributeCandidates mockAttributeCandidates;
 
     @Mock
-    ActionCandidates mockActionCandidates;
+    ResponsibilityCandidates mockResponsibilityCandidates;
 
     @Mock
-    AssociationCandidates mockAssociationCandidates;
+    CollaboratorCandidates mockCollaboratorCandidates;
 
     @Mock
     NlpProperties mockNlpProperties;
@@ -69,22 +69,22 @@ class RuleMatchesTest {
                 mockRuleMatchRepository,
                 mockSentenceRepository,
                 mockClassCandidates,
-                mockPropertyCandidates,
-                mockActionCandidates,
-                mockAssociationCandidates,
+                mockAttributeCandidates,
+                mockResponsibilityCandidates,
+                mockCollaboratorCandidates,
                 mockNlpProperties);
     }
 
     @Test
-    void createCandidatesFrom_createsClassAndPropertyCandidates() {
+    void createCandidatesFrom_createsClassAndAttributeCandidates() {
         // given
         final RuleMatch classMatch = match("ClassCdd", "Customer", null, null);
         final RuleMatch propertyMatch = match("PropertyCdd", "name", null, "Customer");
 
         final ClassCdd classCdd = new ClassCdd();
-        final PropertyCdd propertyCdd = new PropertyCdd();
+        final AttributeCdd propertyCdd = new AttributeCdd();
         when(mockClassCandidates.findOrCreate("Customer", null)).thenReturn(classCdd);
-        when(mockPropertyCandidates.findOrCreate("Customer", "name", "String", null)).thenReturn(propertyCdd);
+        when(mockAttributeCandidates.findOrCreate("Customer", "name", "String", null)).thenReturn(propertyCdd);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Arrays.asList(classMatch, propertyMatch));
@@ -96,29 +96,29 @@ class RuleMatchesTest {
     }
 
 @Test
-    void createCandidatesFrom_createsActionCandidates() {
+    void createCandidatesFrom_createsResponsibilityCandidates() {
         // given
         final RuleMatch actionMatch = match("ActionCdd", "process", null, null);
 
-        final ActionCdd actionCdd = new ActionCdd();
-        when(mockActionCandidates.findOrCreate("process", null, null)).thenReturn(actionCdd);
+        final ResponsibilityCdd responsibilityCdd = new ResponsibilityCdd();
+        when(mockResponsibilityCandidates.findOrCreate("process", null, null)).thenReturn(responsibilityCdd);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
 
         // then
         assertEquals(1, result.size());
-        assertEquals(actionCdd, result.getFirst());
+        assertEquals(responsibilityCdd, result.getFirst());
     }
     @Test
-    void createCandidatesFrom_createsActionCandidates_withOwningClass() {
+    void createCandidatesFrom_createsResponsibilityCandidates_withOwningClass() {
         // given
         final RuleMatch actionMatch = match("ActionCdd", "offer", "ClassCdd", "Offer");
 
         final ClassCdd offerClassCdd = new ClassCdd();
-        final ActionCdd offerAction = new ActionCdd();
+        final ResponsibilityCdd offerAction = new ResponsibilityCdd();
         when(mockClassCandidates.findOrCreate("Offer", null)).thenReturn(offerClassCdd);
-        when(mockActionCandidates.findOrCreate("offer", offerClassCdd, null)).thenReturn(offerAction);
+        when(mockResponsibilityCandidates.findOrCreate("offer", offerClassCdd, null)).thenReturn(offerAction);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
@@ -127,7 +127,7 @@ class RuleMatchesTest {
         assertEquals(1, result.size());
         assertEquals(offerAction, result.getFirst());
         verify(mockClassCandidates).findOrCreate("Offer", null);
-        verify(mockActionCandidates).findOrCreate("offer", offerClassCdd, null);
+        verify(mockResponsibilityCandidates).findOrCreate("offer", offerClassCdd, null);
     }
 
     @Test
@@ -156,7 +156,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates, mockAssociationCandidates);
+        verifyNoInteractions(mockClassCandidates, mockAttributeCandidates, mockResponsibilityCandidates, mockCollaboratorCandidates);
     }
 
     @Test
@@ -166,7 +166,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates, mockAssociationCandidates);
+        verifyNoInteractions(mockClassCandidates, mockAttributeCandidates, mockResponsibilityCandidates, mockCollaboratorCandidates);
     }
 
     @Test
@@ -179,7 +179,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockClassCandidates, mockPropertyCandidates, mockActionCandidates, mockAssociationCandidates);
+        verifyNoInteractions(mockClassCandidates, mockAttributeCandidates, mockResponsibilityCandidates, mockCollaboratorCandidates);
     }
 
     @Test
@@ -244,7 +244,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockAssociationCandidates);
+        verifyNoInteractions(mockCollaboratorCandidates);
         verify(mockClassCandidates, never()).findOrCreate("Payment", null);
         verify(mockClassCandidates, never()).findOrCreate("Condition", null);
     }
@@ -255,8 +255,8 @@ class RuleMatchesTest {
         when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("system"));
         final RuleMatch actionMatch = match("ActionCdd", "validate", "ClassCdd", "System");
 
-        final ActionCdd action = new ActionCdd();
-        when(mockActionCandidates.findOrCreate("validate", null, null)).thenReturn(action);
+        final ResponsibilityCdd action = new ResponsibilityCdd();
+        when(mockResponsibilityCandidates.findOrCreate("validate", null, null)).thenReturn(action);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
@@ -265,7 +265,7 @@ class RuleMatchesTest {
         assertEquals(1, result.size());
         assertEquals(action, result.getFirst());
         verify(mockClassCandidates, never()).findOrCreate("System", null);
-        verify(mockActionCandidates).findOrCreate("validate", null, null);
+        verify(mockResponsibilityCandidates).findOrCreate("validate", null, null);
     }
 
     @Test
@@ -279,7 +279,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockAssociationCandidates);
+        verifyNoInteractions(mockCollaboratorCandidates);
         verify(mockClassCandidates, never()).findOrCreate("Result", null);
     }
 
@@ -293,10 +293,10 @@ class RuleMatchesTest {
         store.setCandidateName("Store");
         final ClassCdd shop = new ClassCdd();
         shop.setCandidateName("Shop");
-        final AssociationCdd assoc = new AssociationCdd();
+        final CollaboratorCdd assoc = new CollaboratorCdd();
         when(mockClassCandidates.findOrCreate("Store", null)).thenReturn(store);
         when(mockClassCandidates.findOrCreate("Shop", null)).thenReturn(shop);
-        when(mockAssociationCandidates.findOrCreate(
+        when(mockCollaboratorCandidates.findOrCreate(
                 "Store_Shop", store, shop, null, AssociationType.SYNONYM)).thenReturn(assoc);
 
         // when
@@ -305,7 +305,7 @@ class RuleMatchesTest {
         // then
         assertEquals(1, result.size());
         assertEquals(assoc, result.getFirst());
-        verify(mockAssociationCandidates).findOrCreate(
+        verify(mockCollaboratorCandidates).findOrCreate(
                 "Store_Shop", store, shop, null, AssociationType.SYNONYM);
     }
 
@@ -320,7 +320,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verifyNoInteractions(mockAssociationCandidates);
+        verifyNoInteractions(mockCollaboratorCandidates);
         verify(mockClassCandidates, never()).findOrCreate("Result", null);
     }
 @Test
@@ -334,7 +334,7 @@ class RuleMatchesTest {
 
         // then
         assertEquals(0, result.size());
-        verify(mockPropertyCandidates, never()).findOrCreate(anyString(), anyString(), anyString(), any());
+        verify(mockAttributeCandidates, never()).findOrCreate(anyString(), anyString(), anyString(), any());
     }
 
     @Test

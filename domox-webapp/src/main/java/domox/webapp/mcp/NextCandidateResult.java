@@ -1,6 +1,6 @@
 package domox.webapp.mcp;
 
-import domox.dom.crc.Candidate;
+import domox.dom.crc.model.Candidate;
 
 /**
  * Result of the {@code nextCandidateForReview} MCP tool: either the next candidate to

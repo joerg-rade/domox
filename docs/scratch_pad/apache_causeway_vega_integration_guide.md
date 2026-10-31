@@ -225,7 +225,7 @@ link force declares `"id": "id"` so `source`/`target` resolve by node id rather 
 }
 ```
 
-See `domox-domain/src/main/java/domox/dom/crc/CandidateVegaGraph.java` for a production example
+See `domox-domain/src/main/java/domox/dom/crc/diagram/CandidateVegaGraph.java` for a production example
 that builds such a spec from domain entities (candidate words as nodes, typed dependencies as
 links, POS-coloured legend, hop-depth neighbourhood expansion).
 

@@ -1,9 +1,9 @@
 package domox.webapp.mcp;
 
-import domox.dom.crc.Candidate;
-import domox.dom.crc.Review;
-import domox.dom.crc.ReviewRationale;
-import domox.dom.crc.ReviewStatus;
+import domox.dom.crc.model.Candidate;
+import domox.dom.crc.model.Review;
+import domox.dom.crc.model.ReviewRationale;
+import domox.dom.crc.model.ReviewStatus;
 
 /**
  * Result of an agent approval/rejection MCP tool call.

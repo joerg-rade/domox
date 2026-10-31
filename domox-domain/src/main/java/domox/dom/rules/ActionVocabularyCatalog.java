@@ -69,7 +69,7 @@ public class ActionVocabularyCatalog {
     }
 
     /** Programmatic extension, e.g. from SeedService or tests. */
-    public boolean addActionVerb(String lemma) {
+    public boolean addResponsibilityVerb(String lemma) {
         return add(actionVerbs, lemma, TypedDependencyPredicates::registerActionVerbs);
     }
 

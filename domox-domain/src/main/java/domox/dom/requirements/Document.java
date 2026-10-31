@@ -1,0 +1,166 @@
+package domox.dom.requirements;
+
+import domox.DomainModule;
+import domox.dom.AbstractEntity;
+import domox.dom.crc.model.DomainModel;
+import domox.dom.nlp.Sentence;
+import jakarta.activation.MimeType;
+import jakarta.activation.MimeTypeParseException;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.apache.causeway.applib.annotation.BookmarkPolicy;
+import org.apache.causeway.applib.annotation.Bounding;
+import org.apache.causeway.applib.annotation.Domain;
+import org.apache.causeway.applib.annotation.DomainObject;
+import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.Optionality;
+import org.apache.causeway.applib.annotation.Programmatic;
+import org.apache.causeway.applib.annotation.Property;
+import org.apache.causeway.applib.annotation.PropertyLayout;
+import org.apache.causeway.applib.annotation.TableDecorator;
+import org.apache.causeway.applib.annotation.Title;
+import org.apache.causeway.applib.value.Blob;
+import org.apache.causeway.applib.value.Clob;
+import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
+import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.Timestamp;
+import java.util.List;
+
+@Entity
+@Table(schema = DomainModule.SCHEMA, name = "Document")
+@Named(DomainModule.NAMESPACE + ".Document")
+@DomainObject(bounding = Bounding.BOUNDED)
+@DomainObjectLayout(
+        cssClassFa = "file",
+        tableDecorator = TableDecorator.DatatablesNet.class,
+        bookmarking = BookmarkPolicy.AS_ROOT)
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@ToString
+public class Document extends AbstractEntity implements Comparable<Document> {
+
+    private static final Logger log = LoggerFactory.getLogger(Document.class);
+    private static MimeType MIME_TYPE = null;
+
+    @Title(prepend = "Object: ")
+    @PropertyLayout(sequence = "1")
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    private String title;
+
+    @PropertyLayout(sequence = "2")
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    private String docVersion; //SemVer
+
+    @PropertyLayout(sequence = "3")
+    @Column
+    @Getter
+    @Setter
+    private String url;
+
+    @PropertyLayout(sequence = "4", named = "File Name")
+    @Column
+    @Getter
+    @Setter
+    private String fileName;
+
+    @Embedded
+    @Domain.Exclude
+    private ClobJpaEmbeddable content;
+
+    public String getContent() {
+        return content.getChars();
+    }
+
+    public void setContent(String string) {
+        content = ClobJpaEmbeddable.fromClob(new Clob("", MIME_TYPE, string.toCharArray()));
+    }
+
+    static {
+        try {
+            MIME_TYPE = new MimeType("text/plain");
+        } catch (MimeTypeParseException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    // region Diagram
+    /**
+     * Injected {@link Documents} service used to render the document-wide lexical diagram on
+     * demand.
+     * <p>
+     * The diagram is deliberately <em>not</em> persisted: it is regenerated on every access
+     * because its content depends on the current candidate set, which changes as candidates are
+     * reviewed, approved, or rejected.
+     */
+    @Inject
+    @Transient
+    private Documents documentsService;
+
+    @PdfJsViewer
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(named = "Lexical Diagram", fieldSetId = "content", sequence = "1")
+    public Blob getDiagram() {
+        return documentsService != null ? documentsService.renderDiagram(this) : null;
+    }
+    // endregion Diagram
+
+    @PropertyLayout(sequence = "5")
+    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL)
+    @Getter
+    @Setter
+    @ToString.Exclude
+    private List<Sentence> sentences;
+
+    @PropertyLayout(sequence = "6")
+    @ManyToMany(mappedBy = "documents", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @Getter
+    @Setter
+    @ToString.Exclude
+    public List<Author> authors;
+
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    private Timestamp createdAt;
+
+    @Column
+    private Timestamp updatedAt;
+
+    //region > compareTo, toString
+    @Override
+    public int compareTo(final Document other) {
+        return Long.compare(this.getId(), other.getId());
+    }
+    //endregion
+
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "corpus_id")
+    @Programmatic
+    @Getter
+    @Setter
+    private Corpus corpus;
+
+    // A corpus owns exactly one shared DomainModel; every document in the corpus
+    // points at it (ManyToOne) so candidate names across the whole use-case suite
+    // de-duplicate into that single model.  The model's lifecycle (cascade and
+    // orphan removal) is owned by the Corpus, not by individual documents.
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "domain_model_id")
+    @Getter
+    @Setter
+    @Programmatic
+    private DomainModel domainModel;
+
+}

@@ -1,0 +1,48 @@
+package domox.dom.crc.service;
+import domox.DomainModule;
+import domox.dom.crc.model.ClassCdd;
+import domox.dom.crc.model.DomainModel;
+import generate.ClassDiagram;
+import generate.JavaCode;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import org.apache.causeway.applib.annotation.ActionLayout;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.PriorityPrecedence;
+import org.apache.causeway.applib.services.repository.RepositoryService;
+
+import java.util.List;
+
+@DomainService
+@Named(DomainModule.NAMESPACE + ".DomainModels")
+@Priority(PriorityPrecedence.EARLY)
+public class DomainModels {
+
+    private final RepositoryService repositoryService;
+
+    @Inject
+    public DomainModels(RepositoryService repositoryService) {
+        this.repositoryService = repositoryService;
+    }
+
+    @ActionLayout(sequence = "1")
+    public List<DomainModel> listAll() {
+        return repositoryService.allInstances(DomainModel.class);
+    }
+
+    @ActionLayout(sequence = "2")
+    public DomainModel create() {
+        final DomainModel obj = new DomainModel();
+        repositoryService.persist(obj);
+        return obj;
+    }
+
+    public String generateUmlDiagram(DomainModel domainModel) {
+        return new ClassDiagram().build(domainModel);
+    }
+    public String generateJavaCode(ClassCdd clazz) {
+        return new JavaCode(clazz).getCode();
+    }
+
+}

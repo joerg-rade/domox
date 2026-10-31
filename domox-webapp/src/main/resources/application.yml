@@ -55,7 +55,13 @@ causeway:
           name: Apache Causeway
 
     wicket:
-      css: css/application.css
+      # NOTE: the file name is deliberately NOT "application.css". Causeway renders this as a
+      # plain relative <link> with no version key, so a browser can hold a cached copy of a
+      # given file name indefinitely — a CSS change then appears to have no effect even after
+      # `mvn clean install` + an app restart. Renaming the file changes the URL and guarantees
+      # a fresh fetch. (spring.web.resources.cache.cachecontrol.no-cache below prevents this
+      # from recurring for future edits to this or any other static resource.)
+      css: css/domox.css
       themes:
         show-chooser: false
 
@@ -134,6 +140,18 @@ spring:
 
   quartz:
     job-store-type: memory
+
+  # Static resources (css/*.css, the vendored d3-integration.mjs, images) are served
+  # straight from the classpath with no version key in the URL, so browsers are free to
+  # serve a cached copy — a CSS/JS change then appears to "not work" even after a full
+  # `mvn clean install` and an application restart, because the browser never asks again.
+  # `no-cache` makes the browser revalidate on every use; the revalidation returns 200
+  # (and the new bytes) as soon as the file's Last-Modified changes.
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          no-cache: true
 
   ai:
     mcp:

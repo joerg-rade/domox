@@ -1,8 +1,8 @@
 package domox.dom.nlp;
 
-import domox.dom.crc.ClassCdd;
-import domox.dom.crc.Review;
-import domox.dom.crc.ReviewStatus;
+import domox.dom.crc.model.ClassCdd;
+import domox.dom.crc.model.Review;
+import domox.dom.crc.model.ReviewStatus;
 import domox.dom.rules.RuleMatch;
 import org.junit.jupiter.api.Test;
 

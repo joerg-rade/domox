@@ -1,6 +1,6 @@
 package domox.adapter.nlp
 
-import domox.FileUtil
+import domox.util.FileUtil
 import domox.port.DocumentTO
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

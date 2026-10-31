@@ -12,7 +12,7 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
 /*
  * Purpose: Identifies entities/attributes from adjectival modifiers (amod).
  * Example: "the full name" → "full name" is an attribute; "the active order" → order is an entity.
- * Candidate Type: PropertyCdd (attribute) or ClassCdd (entity).
+ * Candidate Type: AttributeCdd (attribute) or ClassCdd (entity).
  */
 public class TDR11 extends TypedDependencyRule {
 

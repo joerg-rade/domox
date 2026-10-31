@@ -1,0 +1,392 @@
+package domox.dom.crc.model;
+import domox.dom.AbstractEntity;
+import domox.DomainModule;
+import domox.dom.crc.diagram.CandidateD3Graph;
+import domox.dom.crc.diagram.CandidateDiagrams;
+import domox.dom.crc.service.Reviews;
+import domox.dom.rules.RuleMatch;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.persistence.*;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import lombok.*;
+import org.apache.causeway.applib.annotation.*;
+import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
+import org.apache.causeway.applib.services.message.MessageService;
+import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
+import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+/**
+ * Base class for all UML class-diagram candidate entities.
+ * <p>
+ * Holds the sentence / typed-dependency provenance of a candidate, and passes on
+ * the {@link AbstractEntity} {@code id}/{@code version} mapping to its concrete
+ * {@code @Entity} subclasses via {@link InheritanceType#TABLE_PER_CLASS}.
+ * <p>
+ * Because {@code Candidate} is itself an {@code @Entity} (for relationship support
+ * with {@link Review}), concrete subclasses produce their own full table via
+ * TABLE_PER_CLASS inheritance — no {@code CANDIDATE} base table is created.
+ */
+@Entity
+@Table(schema = DomainModule.SCHEMA, name = "Candidate")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@EntityListeners(CausewayEntityListener.class)
+@Named(DomainModule.NAMESPACE + ".Candidate")
+@XmlJavaTypeAdapter(PersistentEntityAdapter.class)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class Candidate extends AbstractEntity {
+
+    /**
+     * The concrete {@link Candidate} subclasses that participate in the review pipeline.
+     * <p>
+     * Single source of truth shared by {@code Reviews} (which iterates every type to find
+     * unprocessed candidates) and {@code CandidateEditingTest} (which asserts each subclass
+     * opts into inline editing).  When a new subclass is added it must be registered here —
+     * nowhere else — so the review pipeline and the guardrail test always see the same set.
+     */
+    public static final List<Class<? extends Candidate>> SUBCLASSES = List.of(
+            ClassCdd.class,
+            ResponsibilityCdd.class,
+            AttributeCdd.class,
+            CollaboratorCdd.class,
+            ResponsibilityParameter.class);
+
+    @Inject
+    @Transient
+    private Reviews reviewsService;
+
+    @Inject
+    @Transient
+    private MessageService messageService;
+
+    // region Diagram
+    /**
+     * Injected {@link CandidateDiagrams} service used to render the candidate-centric lexical
+     * diagram on demand.
+     * <p>
+     * The diagram is deliberately <em>not</em> persisted: it is regenerated on every access
+     * because its content depends on the current candidate set, which changes as candidates are
+     * reviewed, approved, or rejected.
+     */
+    @Inject
+    @Transient
+    private CandidateDiagrams candidateDiagramsService;
+
+    /**
+     * Injected {@link CandidateD3Graph} service used to render an interactive
+     * <b>D3 force-directed node-link graph</b> of the candidate's dependency neighbourhood
+     * on demand.
+     * <p>
+     * The graph is deliberately <em>not</em> persisted — it is regenerated on every access
+     * because its content depends on the current candidate set, which changes as candidates are
+     * reviewed, approved, or rejected.
+     */
+    @Inject
+    @Transient
+    private CandidateD3Graph candidateD3GraphService;
+
+    /**
+     * How many hops the candidate-centric lexical diagram reaches out from the candidate:
+     * {@code 1} (the default) draws the candidate plus every candidate directly connected to it.
+     * Larger values deepen the neighbourhood — e.g. {@code 2} additionally draws every candidate
+     * connected to those direct neighbours.
+     * <p>
+     * Changing this value triggers the {@link #getDiagram() dependency diagram} to be rebuilt at
+     * the new depth: the diagram is derived again on every access, so the next render reflects the
+     * updated hop depth.
+     */
+    @Getter
+    @Column(nullable = false)
+    @PropertyLayout(
+            named = "Diagram Hop Depth",
+            describedAs = "How far the dependency diagram reaches out (in hops) from this candidate (1–7)",
+            fieldSetId = "general",
+            sequence = "2")
+    private Integer hopDepth = 1;
+
+    /**
+     * Sets the hop depth, clamped to a minimum of {@code 1}.  Because {@link #getDiagram()} is
+     * regenerated on every access, an actual change causes the dependency diagram to be rebuilt at
+     * the new depth on its next render.
+     */
+    public void setHopDepth(final Integer hopDepth) {
+        final int clamped = Math.max(1, hopDepth != null ? hopDepth : 1);
+        if (!this.hopDepth.equals(clamped)) {
+            this.hopDepth = clamped;
+            // The dependency diagram is derived on access, so the next getDiagram() rebuilds it.
+        }
+    }
+
+    /**
+     * Renders the hop depth as a dropdown restricted to 1–7.
+     */
+    public List<Integer> choicesHopDepth() {
+        return List.of(1, 2, 3, 4, 5, 6, 7);
+    }
+
+    @D3Graph
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(
+            named = " ",
+            describedAs = "Interactive D3 force-directed node-link graph of this candidate's dependency neighbourhood",
+            fieldSetId = "content",
+            sequence = "3")
+    public String getD3Graph() {
+        return candidateD3GraphService != null ? candidateD3GraphService.renderGraph(this) : null;
+    }
+    // endregion Diagram
+
+    /**
+     * The Causeway object type of this candidate — e.g. {@code domox.ActionCdd}.
+     * <p>
+     * Read from the {@link Named} annotation rather than derived from
+     * {@link Class#getSimpleName()}: the entities were renamed to CRC vocabulary
+     * ({@code ResponsibilityCdd}, {@code AttributeCdd}, {@code CollaboratorCdd},
+     * {@code ResponsibilityParameter}) while their persisted names — {@code @Named},
+     * {@code @Table} and the {@code candidateType} strings — were deliberately pinned to the
+     * historical values.  The diagram JSON exposes this value so the client can build a
+     * {@code /wicket/object/<objectType>:<id>} click-through link, so it must match Causeway's
+     * object type exactly.
+     * <p>
+     * Marked {@link Programmatic} so Causeway does not expose it as a metamodel property.
+     */
+    @Programmatic
+    public String getObjectType() {
+        for (Class<?> type = getClass(); type != null; type = type.getSuperclass()) {
+            final Named named = type.getAnnotation(Named.class);
+            if (named != null && !named.value().isEmpty()) {
+                return named.value();
+            }
+        }
+        return DomainModule.NAMESPACE + "." + getClass().getSimpleName();
+    }
+
+    @Title
+    public String title() {
+        return getClass().getSimpleName() + ": " + candidateName;
+    }
+
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    @PropertyLayout(sequence = "1")
+    private String candidateName;
+
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    @PropertyLayout(sequence = "2")
+    private String candidateType;
+
+    @ManyToMany
+    @JoinTable(schema = DomainModule.SCHEMA)
+    @Getter
+    @Setter
+    @CollectionLayout(sequence = "1")
+    private List<RuleMatch> ruleMatches = new ArrayList<>();
+
+    @PropertyLayout(sequence = "3")
+    public int getRuleMatchCount() {
+        return ruleMatches.size();
+    }
+
+    @PropertyLayout(sequence = "4", hidden = Where.ALL_EXCEPT_STANDALONE_TABLES)
+    public String getRuleNames() {
+        return ruleMatches.stream()
+                .map(RuleMatch::getRuleClassName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(", "));
+    }
+
+    @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Getter
+    @Setter
+    @CollectionLayout(sequence = "2")
+    private List<Review> reviews = new ArrayList<>();
+
+    @PropertyLayout(sequence = "4")
+    public int getReviewCount() {
+        return reviews.size();
+    }
+
+    @PropertyLayout(sequence = "5")
+    public int getApprovalCount() {
+        final List<Review> approvals = reviews.stream()
+                .filter(r -> r.getStatus() == ReviewStatus.APPROVED)
+                .toList();
+        return approvals.size();
+    }
+
+    /**
+     * Adds a matching rule to this candidate.
+     * <p>
+     * The {@code ruleMatches} list is de-duplicated by the same candidate + rule
+     * signature used when {@code RuleMatches} persists matches ({@code ruleClassName},
+     * {@code candidateType}, {@code candidateName}, {@code relatedCandidateType},
+     * {@code relatedCandidateName}, {@code description}), so a candidate can never
+     * expose two equivalent matches — regardless of candidate type (ClassCdd,
+     * ResponsibilityCdd, AttributeCdd, CollaboratorCdd).  Note the persisted
+     * {@code candidateType} strings still carry the historical names
+     * ({@code ActionCdd} / {@code PropertyCdd} / {@code AssociationCdd}).  This also collapses duplicate M:N
+     * association rows left over from runs that predate RuleMatch de-duplication.
+     *
+     * @param match The rule match to add.
+     */
+    @Programmatic
+    public void addMatchingRule(RuleMatch match) {
+        if (match == null) {
+            return;
+        }
+        // First collapse any pre-existing signature-duplicates already attached to
+        // this candidate, then only append if no equivalent match is present.
+        deduplicateRuleMatches();
+        if (hasRuleMatchWithSameSignature(match)) {
+            return;
+        }
+        ruleMatches.add(match);
+    }
+
+    /**
+     * Removes any {@code RuleMatch} entries sharing the same candidate + rule
+     * signature (keeping the first occurrence), so the {@code ruleMatches} list
+     * holds no duplicates.  Signature match is defined exactly as in
+     * {@code RuleMatches.create(...)}.
+     */
+    @Programmatic
+    public void deduplicateRuleMatches() {
+        if (ruleMatches.size() < 2) {
+            return;
+        }
+        final List<RuleMatch> deduped = new ArrayList<>(ruleMatches.size());
+        for (final RuleMatch current : ruleMatches) {
+            boolean duplicate = false;
+            for (final RuleMatch kept : deduped) {
+                if (sameRuleMatchSignature(current, kept)) {
+                    duplicate = true;
+                    break;
+                }
+            }
+            if (!duplicate) {
+                deduped.add(current);
+            }
+        }
+        if (deduped.size() != ruleMatches.size()) {
+            ruleMatches.clear();
+            ruleMatches.addAll(deduped);
+        }
+    }
+
+    /**
+     * Returns whether any {@code RuleMatch} already attached to this candidate has
+     * the same candidate + rule signature as {@code match}.
+     */
+    private boolean hasRuleMatchWithSameSignature(RuleMatch match) {
+        for (final RuleMatch existing : ruleMatches) {
+            if (sameRuleMatchSignature(existing, match)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Two {@code RuleMatch} records are considered equivalent when all of
+     * {@code ruleClassName}, {@code candidateType}, {@code candidateName},
+     * {@code relatedCandidateType}, {@code relatedCandidateName} and
+     * {@code description} match — the same signature used by
+     * {@code RuleMatches.create(...)} to avoid persisting duplicates.
+     */
+    private boolean sameRuleMatchSignature(RuleMatch a, RuleMatch b) {
+        return a != null
+                && b != null
+                && Objects.equals(a.getRuleClassName(), b.getRuleClassName())
+                && Objects.equals(a.getCandidateType(), b.getCandidateType())
+                && Objects.equals(a.getCandidateName(), b.getCandidateName())
+                && Objects.equals(a.getRelatedCandidateType(), b.getRelatedCandidateType())
+                && Objects.equals(a.getRelatedCandidateName(), b.getRelatedCandidateName())
+                && Objects.equals(a.getDescription(), b.getDescription());
+    }
+
+    @Programmatic
+    public void addReview(Review review) {
+        if (review != null && !reviews.contains(review)) {
+            reviews.add(review);
+            review.setCandidate(this);
+        }
+    }
+
+    @Programmatic
+    public void removeReview(Review review) {
+        if (review != null && reviews.remove(review)) {
+            review.setCandidate(null);
+        }
+    }
+
+    @Action
+    @ActionLayout(
+            sequence = "6",
+            position = ActionLayout.Position.PANEL,
+            describedAs = "Create a new review for this candidate")
+    public Review createReview() {
+        return reviewsService.create(this);
+    }
+
+    // --- Review workflow actions ---
+
+    @Action(
+            semantics = SemanticsOf.NON_IDEMPOTENT,
+            commandPublishing = Publishing.ENABLED)
+    @ActionLayout(
+            sequence = "7",
+            position = ActionLayout.Position.PANEL,
+            cssClassFa = "check-circle",
+            describedAs = "Approve this candidate and go to the next unprocessed one of the same type")
+    public Candidate approveAndGoToNext() {
+        Review review = findOrCreatePendingReview();
+        reviewsService.approve(review);
+        Candidate next = reviewsService.nextUnprocessedOfType(this.getClass());
+        if (next == null) {
+            messageService.informUser("All candidates of this type have been reviewed. Nothing left to review.");
+        }
+        return next; // Causeway will navigate to the returned entity (or stay if null)
+    }
+
+    @Action(
+            semantics = SemanticsOf.NON_IDEMPOTENT,
+            commandPublishing = Publishing.ENABLED)
+    @ActionLayout(
+            sequence = "8",
+            position = ActionLayout.Position.PANEL,
+            cssClassFa = "times-circle",
+            describedAs = "Reject this candidate with a rationale and go to the next unprocessed one of the same type")
+    public Candidate rejectAndGoToNext(final ReviewRationale rationale) {
+        Review review = findOrCreatePendingReview();
+        reviewsService.reject(review, rationale);
+        Candidate next = reviewsService.nextUnprocessedOfType(this.getClass());
+        if (next == null) {
+            messageService.informUser("All candidates of this type have been reviewed. Nothing left to review.");
+        }
+        return next;
+    }
+
+    @MemberSupport
+    public List<ReviewRationale> choices0RejectAndGoToNext() {
+        return List.of(ReviewRationale.values());
+    }
+
+    /**
+     * Returns an existing pending review for this candidate, or creates a new one.
+     */
+    @Programmatic
+    public Review findOrCreatePendingReview() {
+        return reviews.stream()
+                .filter(r -> r.getStatus() == null)
+                .findFirst()
+                .orElseGet(() -> reviewsService.create(this));
+    }
+}

@@ -1,6 +1,6 @@
 package domox.webapp.mcp;
 
-import domox.dom.crc.Candidate;
+import domox.dom.crc.model.Candidate;
 import domox.dom.rules.RuleMatch;
 
 import java.util.Comparator;

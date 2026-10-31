@@ -92,7 +92,7 @@ Any command whose first whitespace-delimited token is one of the exact commands 
 - source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn compile -pl domox-domain -q 2>&1
 - source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn compile -pl domox-domain 2>&1 | tail -15
 - source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn test -pl domox-domain 2>&1 | tail -60
-- grep -n "ActionCdd" /home/jrade/projects/domox/domox-domain/src/main/java/domox/dom/rules/RuleMatches.java
+- grep -n "ResponsibilityCdd" /home/jrade/projects/domox/domox-domain/src/main/java/domox/dom/crc/model/ResponsibilityCdd.java
 - cat -n /home/jrade/projects/domox/domox-domain/src/test/java/domox/dom/rules/RuleMatchesTest.java | sed -n '83,100p'
 - cat -n /home/jrade/projects/domox/domox-domain/src/main/java/domox/dom/rules/RuleMatches.java | sed -n '100,218p'
 - docker exec domox-db psql -U postgres -d postgres -c "SELECT ..."

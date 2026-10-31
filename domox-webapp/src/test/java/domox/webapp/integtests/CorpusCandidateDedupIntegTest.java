@@ -10,17 +10,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import domox.dom.crc.ActionCddRepository;
-import domox.dom.crc.AssociationCddRepository;
-import domox.dom.crc.Candidate;
-import domox.dom.crc.ClassCddRepository;
-import domox.dom.crc.DomainModel;
-import domox.dom.crc.PropertyCdd;
-import domox.dom.crc.PropertyCddRepository;
-import domox.dom.rqm.Corpora;
-import domox.dom.rqm.Corpus;
-import domox.dom.rqm.CorpusRepository;
-import domox.dom.rqm.DocumentRepository;
+import domox.dom.crc.repository.ResponsibilityCddRepository;
+import domox.dom.crc.repository.CollaboratorCddRepository;
+import domox.dom.crc.model.Candidate;
+import domox.dom.crc.repository.ClassCddRepository;
+import domox.dom.crc.model.DomainModel;
+import domox.dom.crc.model.AttributeCdd;
+import domox.dom.crc.repository.AttributeCddRepository;
+import domox.dom.requirements.Corpora;
+import domox.dom.requirements.Corpus;
+import domox.dom.requirements.CorpusRepository;
+import domox.dom.requirements.DocumentRepository;
 
 /**
  * Focused regression test for the corpus-owned <em>shared</em> {@link DomainModel}.
@@ -36,7 +36,7 @@ import domox.dom.rqm.DocumentRepository;
  *   <li>the corpus owns one shared {@code DomainModel},</li>
  *   <li>every candidate of every type belongs to that single shared model, and</li>
  *   <li>no candidate name is ever duplicated within a candidate type (for
- *       {@code PropertyCdd}, one per owning class).</li>
+ *       {@code AttributeCdd}, one per owning class).</li>
  * </ul>
  * Requires the CoreNLP service (docker {@code domox-nlp-1}) on {@code localhost:8999},
  * and a fresh (empty) database so that no prior state trips the
@@ -60,13 +60,13 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
     private ClassCddRepository classCddRepository;
 
     @Autowired
-    private PropertyCddRepository propertyCddRepository;
+    private AttributeCddRepository propertyCddRepository;
 
     @Autowired
-    private ActionCddRepository actionCddRepository;
+    private ResponsibilityCddRepository responsibilityCddRepository;
 
     @Autowired
-    private AssociationCddRepository associationCddRepository;
+    private CollaboratorCddRepository associationCddRepository;
 
     @Test
     void loadingWholeCorpus_producesExactlyOneCandidatePerName_intoOneSharedDomainModel() {
@@ -88,9 +88,9 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
         // per-type candidate table.  (Had any candidate fallen outside the shared
         // model, its table row count would be greater than the collection size.)
         assertThat(sharedModel.getClassList()).hasSize((int) classCddRepository.count());
-        assertThat(sharedModel.getPropertyList()).hasSize((int) propertyCddRepository.count());
-        assertThat(sharedModel.getActionList()).hasSize((int) actionCddRepository.count());
-        assertThat(sharedModel.getAssociationList()).hasSize((int) associationCddRepository.count());
+        assertThat(sharedModel.getAttributeList()).hasSize((int) propertyCddRepository.count());
+        assertThat(sharedModel.getResponsibilityList()).hasSize((int) responsibilityCddRepository.count());
+        assertThat(sharedModel.getCollaboratorList()).hasSize((int) associationCddRepository.count());
 
         // THE core regression: exactly one candidate per name, per type (before the
         // fix every name appeared once per document, i.e. 15 times here).
@@ -99,7 +99,7 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
         // so the same name may legitimately belong to several classes; the regression
         // metric is uniqueness within each owning class.
         assertPropertyNamesNeverDuplicatedPerOwner(propertyCddRepository.findAll());
-        assertNeverDuplicated(actionCddRepository.findAll());
+        assertNeverDuplicated(responsibilityCddRepository.findAll());
         assertNeverDuplicated(associationCddRepository.findAll());
     }
 
@@ -123,12 +123,12 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
     /**
      * Asserts that no {@code (owning ClassCdd, property name)} pair is duplicated.
      * <p>
-     * {@link PropertyCdd} lookups are scoped by owning class
+     * {@link AttributeCdd} lookups are scoped by owning class
      * ({@code findByClassCddAndCandidateName}), so cross-class name reuse is legal
      * (e.g. {@code Pet.size} vs {@code Collar.size}); the pre-fix bug instead produced
      * N rows for the same pair — one per cumulatively re-materialised DomainModel.
      */
-    private static void assertPropertyNamesNeverDuplicatedPerOwner(final List<PropertyCdd> candidates) {
+    private static void assertPropertyNamesNeverDuplicatedPerOwner(final List<AttributeCdd> candidates) {
         final List<String> duplicatedKeys = candidates.stream()
                 .collect(Collectors.groupingBy(
                         p -> (p.classCdd != null ? p.classCdd.getId() : "?") + "::" + p.getCandidateName(),
@@ -139,7 +139,7 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
                 .sorted()
                 .toList();
         assertThat(duplicatedKeys)
-                .as("exactly one PropertyCdd per owning class and name across all corpus documents")
+                .as("exactly one AttributeCdd per owning class and name across all corpus documents")
                 .isEmpty();
     }
 

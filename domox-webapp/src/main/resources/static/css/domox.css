@@ -1,0 +1,137 @@
+*.scalarImage {
+    width: 100% !important;
+}
+
+/* Base link color & decoration */
+a {
+    color: #07b4e5;
+    text-decoration: none;
+}
+
+/* Entity header title */
+.objectTitle {
+    color: #07b4e5 !important;
+    text-decoration: none;
+}
+/* Entity header icon — match title color */
+.objectIconAndTitlePanel .objectIconFa {
+    color: #07b4e5 !important;
+}
+/* Entity header icon — stay the same color on hover (suppress framework green) */
+.objectIconAndTitlePanel .objectIconFa:hover,
+.objectIconAndTitlePanel a:hover .objectIconFa {
+    color: #07b4e5 !important;
+}
+
+/* Menu bar / primary background */
+.bg-primary {
+    background-color: #8a976e !important;
+}
+/* evans DDD
+#07b4e5 blue
+#593f79 violet
+#8a976e green
+#d88d50 orange
+*/
+
+/* ---------------------------------------------------------------------------
+   D3 dependency graph in LIST / TABLE views.
+
+   A @D3Graph property is rendered by the D3 extension's D3Panel, which replaces
+   Causeway's AttributePanel for the ATTRIBUTE_NAME_AND_VALUE component type.
+   AttributePanel is the only place that applies the @PropertyLayout(cssClass)
+   facet, so that annotation has NO effect here — instead we hook onto the CSS
+   class Causeway generates for the table cell itself
+   (AssociationColumnAbstract#getCssClass -> "causeway-<objectType>-<memberId>",
+   e.g. "causeway-domox-ActionCdd-d3Graph", "causeway-domox-DomainModel-diagram").
+
+   Those <td> classes only exist inside tables, so the object page (properties
+   rendered in a fieldSet) is never affected.
+
+   Behaviour: normal row height showing a miniature of the graph; hovering the
+   graph column reveals the full graph as a popup.
+
+   Two sizing facts drive the rules below:
+   1. D3Panel.css (from the extension) sets min-height:400px on BOTH .d3GraphPanel
+      and .d3GraphCanvas — the panel's must be overridden or the row stays 400px+
+      tall (and 800px with the SVG), i.e. the teaser has no effect.
+   2. d3-integration.mjs measures .d3GraphCanvas at DOM-ready and derives BOTH the
+      SVG viewBox and the force-layout width from it.  Inside a list cell the
+      column is only a few pixels wide, so the canvas is given a fixed width here
+      (the popup width) — otherwise the graph is laid out inside a ~3px window and
+      renders as an unreadable sliver.
+   --------------------------------------------------------------------------- */
+
+/* 1. Graph column: a fixed, narrow width keeps the table layout predictable, and the
+      panel clips whatever the (much wider) canvas draws.
+      min-height MUST be reset — D3Panel.css sets 400px, which would keep the row tall.
+      The .table-scoped selectors are a fallback that does not depend on Causeway's
+      generated cell class names (causeway-<objectType>-<memberId>). */
+td[class*="-d3Graph"] .d3GraphPanel,
+td[class*="-diagram"] .d3GraphPanel,
+.table .d3GraphPanel {
+    width: 6rem;
+    max-width: 6rem;
+    height: 2rem;        /* teaser height — tune here */
+    min-height: 0;       /* overrides D3Panel.css .d3GraphPanel { min-height: 400px } */
+    overflow: hidden;
+    cursor: zoom-in;
+}
+
+/* 2. Size the CANVAS independently of the narrow cell.  d3-integration.mjs measures it
+      at DOM-ready and derives the SVG viewBox *and* the force-layout width from it, so
+      it must report the popup width — otherwise the graph is laid out in a ~3px window. */
+td[class*="-d3Graph"] .d3GraphCanvas,
+td[class*="-diagram"] .d3GraphCanvas,
+.table .d3GraphCanvas {
+    width: 700px;
+    max-width: none;
+}
+
+/* 3. Teaser: the SVG is scaled into the 2rem band.  Because the viewBox is the full
+      canvas, preserveAspectRatio="xMidYMid meet" fits the WHOLE graph into the band. */
+td[class*="-d3Graph"] .d3GraphPanel svg,
+td[class*="-diagram"] .d3GraphPanel svg,
+.table .d3GraphPanel svg {
+    height: 2rem !important;
+}
+
+/* 4. Anchor the popup to its cell and keep the column from collapsing on hover. */
+td[class*="-d3Graph"],
+td[class*="-diagram"] {
+    position: relative;
+    min-width: 6rem;
+}
+
+/* 5. Full graph as a popup while the graph column is hovered.
+      position:absolute takes it out of flow, so the row keeps its normal height.
+      :hover still matches while the pointer is over a descendant, so the popup stays
+      open when the mouse moves into it. */
+tr:hover > td[class*="-d3Graph"] .d3GraphPanel,
+tr:hover > td[class*="-diagram"] .d3GraphPanel,
+.table tr:hover .d3GraphPanel {
+    position: absolute;
+    top: 0;
+    right: 0;            /* the graph column is the LAST column → open leftwards, on-screen */
+    z-index: 1050;
+    width: 700px;
+    max-width: 700px;
+    height: 600px;
+    cursor: default;
+    background: #fff;
+    border: 1px solid #adb5bd;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+}
+tr:hover > td[class*="-d3Graph"] .d3GraphPanel svg,
+tr:hover > td[class*="-diagram"] .d3GraphPanel svg,
+.table tr:hover .d3GraphPanel svg {
+    height: 600px !important;
+}
+
+/* 6. Bootstrap wraps the table in .table-responsive, whose overflow would clip the popup.
+      Lift it while a row is hovered.  (If :has() is unavailable the popup is simply
+      clipped to the table area — degraded, but still usable.) */
+.table-responsive:has(tr:hover) {
+    overflow: visible;
+}
+

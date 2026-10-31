@@ -1,6 +1,9 @@
 package domox.dom.rules;
 
-import domox.dom.crc.*;
+import domox.dom.crc.diagram.*;
+import domox.dom.crc.model.*;
+import domox.dom.crc.repository.*;
+import domox.dom.crc.service.*;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
 import jakarta.inject.Inject;
@@ -19,7 +22,7 @@ import java.util.stream.Collectors;
  * After Phase 1 (TDR rules create {@link RuleMatch} records) and Phase 2
  * (candidates are materialised from those matches), this resolver runs to
  * determine whether a noun that appears in both entity-like and attribute-like
- * positions should be kept as a {@link ClassCdd}, a {@link PropertyCdd}, or
+ * positions should be kept as a {@link ClassCdd}, a {@link AttributeCdd}, or
  * both.
  * </p>
  *
@@ -44,7 +47,7 @@ public class CandidateResolver {
     private static final Logger log = LoggerFactory.getLogger(CandidateResolver.class);
 
     @Inject
-    private PropertyCandidates propertyCandidates;
+    private AttributeCandidates attributeCandidates;
 
     @Inject
     private BasicAttributeCatalog basicAttributeCatalog;
@@ -59,7 +62,7 @@ public class CandidateResolver {
      *       basic-attributes whitelist, analyses the underlying
      *       {@link RuleMatch} records for attribute-like dependency evidence.</li>
      *   <li>If attribute evidence dominates, creates an additional
-     *       {@link PropertyCdd} candidate for the same noun, bound to the
+     *       {@link AttributeCdd} candidate for the same noun, bound to the
      *       inferred owning class.</li>
      *   <li>Both candidates remain in the graph — the user can review and
      *       accept/reject via the existing Review workflow.</li>
@@ -77,13 +80,13 @@ public class CandidateResolver {
         // (its rule matches are unchanged), so re-iterating the entire model on
         // every document made total load time quadratic.  Existing properties are
         // still indexed across the whole model so a noun already resolved to a
-        // PropertyCdd is never created twice.
+        // AttributeCdd is never created twice.
         List<ClassCdd> allClasses = candidates.stream()
                 .filter(c -> c instanceof ClassCdd)
                 .map(c -> (ClassCdd) c)
                 .filter(cc -> cc.domainModel == domainModel)
                 .toList();
-        List<PropertyCdd> allProperties = propertyCandidates.listAll().stream()
+        List<AttributeCdd> allProperties = attributeCandidates.listAll().stream()
                 .filter(pc -> pc.classCdd != null && pc.classCdd.domainModel == domainModel)
                 .toList();
 
@@ -104,7 +107,7 @@ public class CandidateResolver {
             // Skip if this noun is marked as a basic attribute — unambiguously a property
             if (basicAttributeCatalog.contains(lowerNoun)) continue;
 
-            // Skip if a PropertyCdd with the same name already exists
+            // Skip if a AttributeCdd with the same name already exists
             if (existingPropertyNames.contains(lowerNoun)) continue;
 
             // Analyse supporting RuleMatch records for attribute-like behaviour
@@ -122,7 +125,7 @@ public class CandidateResolver {
                     String propName = lowerNoun;
                     String type = inferPropertyType(lowerNoun);
                     try {
-                        PropertyCdd propertyCdd = propertyCandidates.findOrCreate(
+                        AttributeCdd propertyCdd = attributeCandidates.findOrCreate(
                                 ownerClass, propName, type, domainModel);
                         if (propertyCdd != null) {
                             for (RuleMatch match : ruleMatches) {
@@ -130,10 +133,10 @@ public class CandidateResolver {
                             }
                         }
                     } catch (Exception e) {
-                        log.warn("Could not create PropertyCdd for '{}': {}", noun, e.getMessage());
+                        log.warn("Could not create AttributeCdd for '{}': {}", noun, e.getMessage());
                     }
                 } else {
-                    log.debug("No owning class inferred for '{}' — skipping PropertyCdd creation", noun);
+                    log.debug("No owning class inferred for '{}' — skipping AttributeCdd creation", noun);
                 }
             }
         }

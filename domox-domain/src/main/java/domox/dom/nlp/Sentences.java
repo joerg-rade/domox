@@ -1,7 +1,7 @@
 package domox.dom.nlp;
 
 import domox.DomainModule;
-import domox.dom.rqm.Document;
+import domox.dom.requirements.Document;
 import domox.port.DiagramPort;
 import domox.port.ExtendedDependencyFactory;
 import domox.port.ExtendedDependencyTO;

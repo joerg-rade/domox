@@ -6,7 +6,7 @@ import java.io.InputStreamReader
  * Utility for reading files from the classpath.
  * <p>
  * Lives in the adapter (not the domain) because classpath-resource access is an
- * infrastructure concern; the domain's own {@code domox.FileUtil} serves the same
+ * infrastructure concern; the domain's own {@code domox.util.FileUtil} serves the same
  * purpose for domain-owned resources.
  * </p>
  */

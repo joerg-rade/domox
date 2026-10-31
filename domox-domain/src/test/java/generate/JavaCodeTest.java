@@ -1,12 +1,12 @@
 package generate;
 
-import domox.dom.crc.ActionCdd;
-import domox.dom.crc.AssociationCdd;
-import domox.dom.crc.ClassCdd;
-import domox.dom.crc.DomainModels;
-import domox.dom.crc.ParameterCdd;
-import domox.dom.crc.PropertyCdd;
-import domox.dom.crc.SubDomain;
+import domox.dom.crc.model.ResponsibilityCdd;
+import domox.dom.crc.model.CollaboratorCdd;
+import domox.dom.crc.model.ClassCdd;
+import domox.dom.crc.service.DomainModels;
+import domox.dom.crc.model.ResponsibilityParameter;
+import domox.dom.crc.model.AttributeCdd;
+import domox.dom.crc.model.SubDomain;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,30 +34,30 @@ public class JavaCodeTest {
     @Test
     void testGenerateJavaCode() {
         // given
-        final List<PropertyCdd> propertyList = new ArrayList<>();
-        final PropertyCdd property1 = new PropertyCdd("property1", "int");
-        propertyList.add(property1);
-        final PropertyCdd property2 = new PropertyCdd("property2", "Integer");
-        propertyList.add(property2);
+        final List<AttributeCdd> attributeList = new ArrayList<>();
+        final AttributeCdd property1 = new AttributeCdd("property1", "int");
+        attributeList.add(property1);
+        final AttributeCdd property2 = new AttributeCdd("property2", "Integer");
+        attributeList.add(property2);
 
-        final List<ParameterCdd> inputTypeList = new ArrayList<>();
-        final ParameterCdd p1 = new ParameterCdd("venirIci", "String");
+        final List<ResponsibilityParameter> inputTypeList = new ArrayList<>();
+        final ResponsibilityParameter p1 = new ResponsibilityParameter("venirIci", "String");
         inputTypeList.add(p1);
-        final ParameterCdd p2 = new ParameterCdd("toutSuit", "Boolean");
+        final ResponsibilityParameter p2 = new ResponsibilityParameter("toutSuit", "Boolean");
         inputTypeList.add(p2);
 
         final String outputType = Integer.class.getSimpleName();
-        final ActionCdd action = new ActionCdd("ordre", inputTypeList, outputType);
-        final List<ActionCdd> actionList = new ArrayList<>();
-        actionList.add(action);
+        final ResponsibilityCdd action = new ResponsibilityCdd("ordre", inputTypeList, outputType);
+        final List<ResponsibilityCdd> responsibilityList = new ArrayList<>();
+        responsibilityList.add(action);
 
-        final List<AssociationCdd> associationList = new ArrayList<>();
+        final List<CollaboratorCdd> collaboratorList = new ArrayList<>();
 
         final ClassCdd clazz1 = new ClassCdd(
                 "Alice",
-                propertyList,
-                actionList,
-                associationList);
+                attributeList,
+                responsibilityList,
+                collaboratorList);
 
         // when — no SubDomain assigned: generateJavaCode must not crash
         final String javaCode = classUnderTest.generateJavaCode(clazz1);

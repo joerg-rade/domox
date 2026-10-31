@@ -4,15 +4,15 @@ import domox.DomainModule;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
-import domox.dom.rqm.Document;
-import domox.dom.crc.ActionCandidates;
-import domox.dom.crc.AssociationCandidates;
-import domox.dom.crc.AssociationType;
-import domox.dom.crc.Candidate;
-import domox.dom.crc.ClassCandidates;
-import domox.dom.crc.ClassCdd;
-import domox.dom.crc.DomainModel;
-import domox.dom.crc.PropertyCandidates;
+import domox.dom.requirements.Document;
+import domox.dom.crc.service.ResponsibilityCandidates;
+import domox.dom.crc.service.CollaboratorCandidates;
+import domox.dom.crc.model.AssociationType;
+import domox.dom.crc.model.Candidate;
+import domox.dom.crc.service.ClassCandidates;
+import domox.dom.crc.model.ClassCdd;
+import domox.dom.crc.model.DomainModel;
+import domox.dom.crc.service.AttributeCandidates;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -44,9 +44,9 @@ public class RuleMatches {
     private final RuleMatchRepository ruleMatchRepository;
     private final SentenceRepository sentenceRepository;
     private final ClassCandidates classCandidates;
-    private final PropertyCandidates propertyCandidates;
-    private final ActionCandidates actionCandidates;
-    private final AssociationCandidates associationCandidates;
+    private final AttributeCandidates attributeCandidates;
+    private final ResponsibilityCandidates responsibilityCandidates;
+    private final CollaboratorCandidates collaboratorCandidates;
     private final NlpProperties nlpProperties;
 
     @Inject
@@ -56,18 +56,18 @@ public class RuleMatches {
             RuleMatchRepository ruleMatchRepository,
             SentenceRepository sentenceRepository,
             ClassCandidates classCandidates,
-            PropertyCandidates propertyCandidates,
-            ActionCandidates actionCandidates,
-            AssociationCandidates associationCandidates,
+            AttributeCandidates attributeCandidates,
+            ResponsibilityCandidates responsibilityCandidates,
+            CollaboratorCandidates collaboratorCandidates,
             NlpProperties nlpProperties) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatchRepository = ruleMatchRepository;
         this.sentenceRepository = sentenceRepository;
         this.classCandidates = classCandidates;
-        this.propertyCandidates = propertyCandidates;
-        this.actionCandidates = actionCandidates;
-        this.associationCandidates = associationCandidates;
+        this.attributeCandidates = attributeCandidates;
+        this.responsibilityCandidates = responsibilityCandidates;
+        this.collaboratorCandidates = collaboratorCandidates;
         this.nlpProperties = nlpProperties;
     }
 
@@ -261,7 +261,7 @@ public class RuleMatches {
                 ClassCdd target = classCandidates.findOrCreate(relatedCandidateName, domainModel);
                 target.setCandidateName(relatedCandidateName);
                 String assocName = candidateName + "_" + relatedCandidateName;
-                return associationCandidates.findOrCreate(assocName, source, target, domainModel);
+                return collaboratorCandidates.findOrCreate(assocName, source, target, domainModel);
             }
             if (isBlockedUseCaseNoun(candidateName)) {
                 return null;
@@ -283,7 +283,7 @@ public class RuleMatches {
             ClassCdd parent = classCandidates.findOrCreate(relatedCandidateName, domainModel);
             parent.setCandidateName(relatedCandidateName);
             String assocName = candidateName + "_" + relatedCandidateName;
-            return associationCandidates.findOrCreate(assocName, child, parent, domainModel, AssociationType.GENERALIZATION);
+            return collaboratorCandidates.findOrCreate(assocName, child, parent, domainModel, AssociationType.GENERALIZATION);
         } else if ("SynonymCdd".equals(candidateType)) {
             // Synonym (==) between two ClassCdd entities (produced by TDR41).
             // candidateName = head term, relatedCandidateName = synonym partner term.
@@ -298,14 +298,14 @@ public class RuleMatches {
             ClassCdd partner = classCandidates.findOrCreate(relatedCandidateName, domainModel);
             partner.setCandidateName(relatedCandidateName);
             String assocName = candidateName + "_" + relatedCandidateName;
-            return associationCandidates.findOrCreate(assocName, head, partner, domainModel, AssociationType.SYNONYM);
+            return collaboratorCandidates.findOrCreate(assocName, head, partner, domainModel, AssociationType.SYNONYM);
         } else if ("ActionCdd".equals(candidateType)) {
             // The related candidate name should be the owning class name;
             // a blocked use-case noun (e.g. "System") must not become the owner
             ClassCdd classCdd = (relatedCandidateName != null && !isBlockedUseCaseNoun(relatedCandidateName))
                     ? classCandidates.findOrCreate(relatedCandidateName, domainModel)
                     : null;
-            return actionCandidates.findOrCreate(candidateName, classCdd, domainModel);
+            return responsibilityCandidates.findOrCreate(candidateName, classCdd, domainModel);
         } else if ("PropertyCdd".equals(candidateType)) {
 // A blocked use-case noun as the owning class (e.g. "Condition") must not
             // produce an orphan property; skip entirely.
@@ -315,7 +315,7 @@ public class RuleMatches {
             // The related candidate name should be the owning class name
             String className = relatedCandidateName != null ? relatedCandidateName : "Unknown";
             String type = inferType(candidateName);
-            return propertyCandidates.findOrCreate(className, candidateName, type, domainModel);
+            return attributeCandidates.findOrCreate(className, candidateName, type, domainModel);
         }
         return null;
     }
