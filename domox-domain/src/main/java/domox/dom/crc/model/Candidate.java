@@ -96,7 +96,7 @@ public abstract class Candidate extends AbstractEntity {
      * Larger values deepen the neighbourhood — e.g. {@code 2} additionally draws every candidate
      * connected to those direct neighbours.
      * <p>
-     * Changing this value triggers the {@link #getDiagram() dependency diagram} to be rebuilt at
+     * Changing this value triggers the {@link #getD3Graph()} dependency diagram} to be rebuilt at
      * the new depth: the diagram is derived again on every access, so the next render reflects the
      * updated hop depth.
      */
@@ -110,7 +110,7 @@ public abstract class Candidate extends AbstractEntity {
     private Integer hopDepth = 1;
 
     /**
-     * Sets the hop depth, clamped to a minimum of {@code 1}.  Because {@link #getDiagram()} is
+     * Sets the hop depth, clamped to a minimum of {@code 1}.  Because {@link #getD3Graph()} is
      * regenerated on every access, an actual change causes the dependency diagram to be rebuilt at
      * the new depth on its next render.
      */
@@ -132,7 +132,7 @@ public abstract class Candidate extends AbstractEntity {
     @D3Graph
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
-            named = " ",
+            named = "Lexical Graph",
             describedAs = "Interactive D3 force-directed node-link graph of this candidate's dependency neighbourhood",
             fieldSetId = "content",
             sequence = "3")

@@ -18,15 +18,22 @@
 
         <!-- Framework versions -->
         <causeway.version>4.0.0-SNAPSHOT</causeway.version>
-        <!-- Spring Boot 4.2.0-M1: the version Causeway 4.0.0-SNAPSHOT is compiled against.
+        <!-- Spring Boot 4.2.0-RC1: the version Causeway 4.0.0-SNAPSHOT is compiled against.
+             The parent chain (causeway-app-starter-parent -> causeway-bom) pins
+             spring-boot.version=4.2.0-RC1; this override must stay in step with it, otherwise
+             the classpath mixes releases: the explicitly managed spring-boot-* artifacts below
+             would resolve to one version while anything NOT listed here (e.g.
+             spring-boot-micrometer-metrics) comes from the parent at another — which fails at
+             startup, e.g. "MetricsAutoConfiguration.defaultMeterObservationHandler" calling a
+             micrometer API that does not exist in the older micrometer-core.
              All spring-boot-* artifacts resolve at this version via the BOM import below
              (spring-boot-dependencies) and the explicit management entries that follow. -->
-        <spring-boot.version>4.2.0-M1</spring-boot.version>
-        <!-- Spring Framework 7.1.0-M1 (the version managed by the Spring Boot 4.2.0-M1 BOM).
-             All spring-* artifacts are pinned together at 7.1.0-M1 to avoid version skew. -->
-        <spring-framework.version>7.1.0-M1</spring-framework.version>
-        <spring-core.version>7.1.0-M1</spring-core.version>
-        <spring-jdbc.version>7.1.0-M1</spring-jdbc.version>
+        <spring-boot.version>4.2.0-RC1</spring-boot.version>
+        <!-- Spring Framework 7.1.0-RC1 (the version managed by the Spring Boot 4.2.0-RC1 BOM).
+             All spring-* artifacts are pinned together at 7.1.0-RC1 to avoid version skew. -->
+        <spring-framework.version>7.1.0-RC1</spring-framework.version>
+        <spring-core.version>7.1.0-RC1</spring-core.version>
+        <spring-jdbc.version>7.1.0-RC1</spring-jdbc.version>
         <spring-ai.version>1.1.8</spring-ai.version>
         <kotlin.version>2.2.0</kotlin.version>
 
@@ -92,13 +99,17 @@
         <!-- jackson-annotations dropped patch releases at 2.20 (its 2.21 line is version
              "2.21" only); jackson-core/databind keep full patch versions. -->
         <jackson-annotations.version>2.21</jackson-annotations.version>
-        <!-- Spring Data: Boot 4.2.0-M1 imports the 2026.1.0-M1 spring-data-bom, which manages
-             spring-data-jpa / spring-data-commons at 4.2.0-M1 (the Spring Framework 7.x line). -->
-        <spring-data.version>4.2.0-M1</spring-data.version>
-        <!-- spring-web: aligned at the Spring Framework version managed by the Boot 4.2.0-M1
-             BOM (7.1.0-M1), which includes OpenTelemetryServerRequestObservationConvention
-             referenced by CausewayModuleCoreWebapp (compiled against Spring 7.x / Boot 4.x). -->
-        <spring-web.version>7.1.0-M1</spring-web.version>
+        <!-- Spring Data: Boot 4.2.0-RC1 imports the 2026.1.0-RC1 spring-data-bom, which manages
+             spring-data-jpa / spring-data-commons at 4.2.0-RC1 (the Spring Framework 7.x line).
+             Must track the Boot version above — a mismatch puts two Spring Data lines on the
+             classpath alongside a single Spring Framework line. -->
+        <spring-data.version>4.2.0-RC1</spring-data.version>
+        <!-- spring-web: deliberately pinned to the same property as every other spring-* artifact
+             (see spring-framework.version above).  It previously had its own literal version,
+             which is exactly how it drifted out of step with spring-core (spring-web 7.1.0-M1
+             next to spring-core 7.1.0-RC1) — Spring Framework artifacts must move in lockstep.
+             spring-web is referenced by CausewayModuleCoreWebapp (compiled against Spring 7.x /
+             Boot 4.x). -->
         <jsoup.version>1.23.2</jsoup.version>
         <logback.version>1.5.38</logback.version>
         <commons-lang3.version>3.21.0</commons-lang3.version>
@@ -1086,7 +1097,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
-                <version>${spring-web.version}</version>
+                <version>${spring-framework.version}</version>
             </dependency>
             <!-- Spring Data (transitive via causeway-persistence-jpa-applib): Boot 4.2.0-M1
                  manages spring-data-jpa / spring-data-commons at 4.2.0-M1 via the
