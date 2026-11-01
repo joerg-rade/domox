@@ -70,9 +70,9 @@ a {
 td[class*="-d3Graph"] .d3GraphPanel,
 td[class*="-diagram"] .d3GraphPanel,
 .table .d3GraphPanel {
-    width: 6rem;
+    width: 6rem;         /* the VISIBLE window — the SVG is sized to match it (rule 3) */
     max-width: 6rem;
-    height: 2rem;        /* teaser height — tune here */
+    height: 4rem;        /* teaser height — tune here */
     min-height: 0;       /* overrides D3Panel.css .d3GraphPanel { min-height: 400px } */
     overflow: hidden;
     cursor: zoom-in;
@@ -80,7 +80,10 @@ td[class*="-diagram"] .d3GraphPanel,
 
 /* 2. Size the CANVAS independently of the narrow cell.  d3-integration.mjs measures it
       at DOM-ready and derives the SVG viewBox *and* the force-layout width from it, so
-      it must report the popup width — otherwise the graph is laid out in a ~3px window. */
+      it must report the popup width — otherwise the graph is laid out in a ~3px window.
+      NOTE: this makes the canvas (and therefore the SVG's `width:100%`) 700px wide, which
+      is WHY rule 3 must pin the SVG's own width: with only the height pinned, the graph is
+      laid out around the canvas' centre (~343px) and the 8rem-wide clip shows nothing. */
 td[class*="-d3Graph"] .d3GraphCanvas,
 td[class*="-diagram"] .d3GraphCanvas,
 .table .d3GraphCanvas {
@@ -88,12 +91,15 @@ td[class*="-diagram"] .d3GraphCanvas,
     max-width: none;
 }
 
-/* 3. Teaser: the SVG is scaled into the 2rem band.  Because the viewBox is the full
-      canvas, preserveAspectRatio="xMidYMid meet" fits the WHOLE graph into the band. */
+/* 3. Teaser: the SVG BOX is pinned to the visible cell (not to the 700px canvas), so
+      preserveAspectRatio="xMidYMid meet" scales the WHOLE graph into the cell — centred and
+      actually on screen.  Without `width` here the content is centred in the 700px canvas
+      and therefore clipped away entirely. */
 td[class*="-d3Graph"] .d3GraphPanel svg,
 td[class*="-diagram"] .d3GraphPanel svg,
 .table .d3GraphPanel svg {
-    height: 2rem !important;
+    width: 6rem !important;
+    height: 4rem !important;
 }
 
 /* 4. Anchor the popup to its cell and keep the column from collapsing on hover. */
@@ -128,6 +134,7 @@ td[class*="-diagram"]:hover .d3GraphPanel,
 td[class*="-d3Graph"]:hover .d3GraphPanel svg,
 td[class*="-diagram"]:hover .d3GraphPanel svg,
 .table td:has(.d3GraphPanel):hover .d3GraphPanel svg {
+    width: 100% !important;    /* the popup is 700px wide → let the SVG fill it again */
     height: 600px !important;
 }
 
