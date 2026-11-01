@@ -103,13 +103,16 @@ td[class*="-diagram"] {
     min-width: 6rem;
 }
 
-/* 5. Full graph as a popup while the graph column is hovered.
-      position:absolute takes it out of flow, so the row keeps its normal height.
-      :hover still matches while the pointer is over a descendant, so the popup stays
-      open when the mouse moves into it. */
-tr:hover > td[class*="-d3Graph"] .d3GraphPanel,
-tr:hover > td[class*="-diagram"] .d3GraphPanel,
-.table tr:hover .d3GraphPanel {
+/* 5. Full graph as a popup while the GRAPH CELL is hovered — deliberately NOT the whole row:
+      `tr:hover` would fire for every column of the row.  `td … :hover` also matches while the
+      pointer is over a descendant (i.e. the popup itself), so the popup stays open when the
+      mouse moves into it.
+      position:absolute takes the panel out of flow, so the row keeps its normal height.
+      The `td:has(...)` variant is the name-independent fallback: it identifies the cell by the
+      panel it contains, so it works even if Causeway's generated cell class ever changes. */
+td[class*="-d3Graph"]:hover .d3GraphPanel,
+td[class*="-diagram"]:hover .d3GraphPanel,
+.table td:has(.d3GraphPanel):hover .d3GraphPanel {
     position: absolute;
     top: 0;
     right: 0;            /* the graph column is the LAST column → open leftwards, on-screen */
@@ -122,16 +125,16 @@ tr:hover > td[class*="-diagram"] .d3GraphPanel,
     border: 1px solid #adb5bd;
     box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
 }
-tr:hover > td[class*="-d3Graph"] .d3GraphPanel svg,
-tr:hover > td[class*="-diagram"] .d3GraphPanel svg,
-.table tr:hover .d3GraphPanel svg {
+td[class*="-d3Graph"]:hover .d3GraphPanel svg,
+td[class*="-diagram"]:hover .d3GraphPanel svg,
+.table td:has(.d3GraphPanel):hover .d3GraphPanel svg {
     height: 600px !important;
 }
 
 /* 6. Bootstrap wraps the table in .table-responsive, whose overflow would clip the popup.
-      Lift it while a row is hovered.  (If :has() is unavailable the popup is simply
-      clipped to the table area — degraded, but still usable.) */
-.table-responsive:has(tr:hover) {
+      Lift it only while the graph cell (or the popup itself) is hovered.  (If :has() is
+      unavailable the popup is simply clipped to the table area — degraded, but still usable.) */
+.table-responsive:has(.d3GraphPanel:hover) {
     overflow: visible;
 }
 
