@@ -66,18 +66,6 @@ public abstract class Candidate extends AbstractEntity {
 
     // region Diagram
     /**
-     * Injected {@link CandidateDiagrams} service used to render the candidate-centric lexical
-     * diagram on demand.
-     * <p>
-     * The diagram is deliberately <em>not</em> persisted: it is regenerated on every access
-     * because its content depends on the current candidate set, which changes as candidates are
-     * reviewed, approved, or rejected.
-     */
-    @Inject
-    @Transient
-    private CandidateDiagrams candidateDiagramsService;
-
-    /**
      * Injected {@link CandidateD3Graph} service used to render an interactive
      * <b>D3 force-directed node-link graph</b> of the candidate's dependency neighbourhood
      * on demand.
@@ -106,7 +94,7 @@ public abstract class Candidate extends AbstractEntity {
             named = "Diagram Hop Depth",
             describedAs = "How far the dependency diagram reaches out (in hops) from this candidate (1–7)",
             fieldSetId = "general",
-            sequence = "2")
+            sequence = "4")
     private Integer hopDepth = 1;
 
     /**
@@ -135,7 +123,7 @@ public abstract class Candidate extends AbstractEntity {
             named = "Lexical Graph",
             describedAs = "Interactive D3 force-directed node-link graph of this candidate's dependency neighbourhood",
             fieldSetId = "content",
-            sequence = "3")
+            sequence = "5")
     public String getD3Graph() {
         return candidateD3GraphService != null ? candidateD3GraphService.renderGraph(this) : null;
     }
@@ -190,12 +178,12 @@ public abstract class Candidate extends AbstractEntity {
     @CollectionLayout(sequence = "1")
     private List<RuleMatch> ruleMatches = new ArrayList<>();
 
-    @PropertyLayout(sequence = "3")
+    @PropertyLayout(sequence = "8")
     public int getRuleMatchCount() {
         return ruleMatches.size();
     }
 
-    @PropertyLayout(sequence = "4", hidden = Where.ALL_EXCEPT_STANDALONE_TABLES)
+    @PropertyLayout(sequence = "9", hidden = Where.ALL_EXCEPT_STANDALONE_TABLES)
     public String getRuleNames() {
         return ruleMatches.stream()
                 .map(RuleMatch::getRuleClassName)

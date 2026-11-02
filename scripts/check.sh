@@ -113,6 +113,17 @@ fi
 
 # --- 5. Metamodel guardrail (boot-time DomainModelValidator veto) ----------------------
 step "7/7  Metamodel guardrail (ValidateDomainModelIntegTest)"
+# This test boots a Spring context (and EclipseLink, against the shared domox.SEQ_GEN).  With a dev
+# instance already owning :8080 that second context contends with it and can hang for minutes
+# instead of failing, so skip rather than block.  (See the "Port / DB ownership caveat" in
+# .clinerules/commands.md.)
+if curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ 2>/dev/null | grep -qE '^[23]'; then
+  skip "a dev instance owns :8080 — stop it and re-run to validate the metamodel"
+  echo
+  [ $FAILED -eq 0 ] && echo "ALL CHECKS PASSED (metamodel guardrail skipped)" || echo "FAILURES DETECTED — see logs above"
+  exit $FAILED
+fi
+
 LOG=/tmp/domox-check-meta.log
 # Cache disabled for the same reason as step 2: -Dtest values are NOT part of the build-cache
 # key, so a cached entry from a different -Dtest run would restore and silently skip the
