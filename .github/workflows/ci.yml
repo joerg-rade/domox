@@ -51,6 +51,18 @@ jobs:
       - name: Run unit tests (domain + adapter)
         run: mvn -B -q test -pl domox-domain -am
 
+      # Guards the trap that has broken startup twice: this pom overrides spring-boot.version,
+      # which the Causeway parent chain also pins — drift mixes releases on the classpath and
+      # fails at startup, not at build time.  Runs after the Maven step so ~/.m2 is populated.
+      - name: Dependency alignment (pom vs Causeway parent BOM)
+        run: bash scripts/check-dependency-alignment.sh
+
+      # Renders the real list-cell markup in headless Chromium and asserts the user-visible
+      # behaviour of the D3 graph column (content on screen, popup only over the graph column,
+      # stable row height).  Skips itself (exit 0) when no browser binary is available.
+      - name: UI render check (headless browser)
+        run: bash scripts/verify-ui-render.sh
+
   integration-test:
     runs-on: ubuntu-latest
     needs: test
@@ -87,5 +99,5 @@ jobs:
       - name: Run webapp integration tests (CoreNLP-free)
         run: |
           mvn -B test -pl domox-webapp -am \
-            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest,HexagonalPortWiringIntegTest,StaleComponentRecoveryListenerTest \
+            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest,HexagonalPortWiringIntegTest,StaleComponentRecoveryListenerTest,StaleComponentRecoveryEndToEndTest \
             -Dsurefire.failIfNoSpecifiedTests=false

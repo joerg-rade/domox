@@ -47,6 +47,23 @@ Cline rules directory, loaded for every project.
   `seq_gen already exists`. For a verification boot use a throwaway DB
   (`docker run -d --name domox-db-verify -p 5433:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres:latest`)
   plus a free port (`-Dspring-boot.run.arguments=--server.port=8082`), and tear it down after.
+- **Rebuilding upstream modules before a boot** → `mvn -pl domox-webapp spring-boot:run` resolves
+  `domox-domain` / `domox-adapter` from the local repository (`~/.m2`), NOT from the reactor. After
+  changing either, run `mvn -pl domox-domain,domox-adapter install -DskipTests` first — otherwise the
+  boot dies with `NoClassDefFoundError` for a class that compiles fine (e.g. after a package move).
+- **Version skew (Boot / Spring / micrometer)** → this pom overrides `spring-boot.version`, which the
+  parent chain (`causeway-app-starter-parent` → `causeway-bom`) also pins. Drift mixes releases on the
+  classpath and fails at **startup**, not at build time (e.g. `MetricsAutoConfiguration … NoSuchMethodError`).
+  `bash scripts/check-dependency-alignment.sh` — part of `scripts/check.sh` — reports it; align the
+  properties, then rebuild.
+- **Inspecting the running app** → Wicket pages need a session and the sign-in form is an Ajax form
+  that curl cannot drive. Use the RestfulObjects API with basic auth instead (users in `shiro.ini`,
+  e.g. `sven:pass`): `curl -s -u sven:pass 'http://localhost:8080/restful/objects/<objectType>/<id>/properties/<prop>'`.
+  For rendered HTML/CSS questions, prefer `scripts/verify-ui-render.sh` over reasoning about CSS.
+- **`git` after a package move** → the new path is UNTRACKED, so `git diff <new path>` prints nothing
+  while the old path shows as deleted. Use `git status --short`, or `git add -N <path>` to diff it.
+- **IDE (JetBrains) MCP tools** → always pass `projectPath=/home/jrade/projects/domox`, otherwise they
+  fail with "Unable to determine the target project".
 - **Coding standards (review)** → `CODING_STANDARDS.md` (repo root), esp. the
   no-`@Data`-on-entities rule and injected-service accessor suppression.
 - **Reference / archive docs** (completed-milestone how-to's: `RULES_*`,

@@ -70,3 +70,15 @@ String webjarUrl = resourceName.startsWith("/") ? resourceName : "/" + resourceN
 - [ ] Injected fields on domain objects have suppressed accessors or `@Programmatic`.
 - [ ] After touching entity members, `ValidateDomainModelIntegTest` passes.
 - [ ] Webjar resource URL generation uses `/webjars/...` (absolute), not `../webjars/...` (relative).
+- [ ] **A UI / static-asset change is verified by RENDERING, not by reading the CSS** — run
+      `bash scripts/verify-ui-render.sh` (or, for other views, measure the *user-visible* property:
+      is the content inside the clipped box, is the row the expected height). Asserting an element's
+      own box is not enough: the D3 graph column once measured a correct `96x32` panel while its
+      content was drawn 343px outside the clip, i.e. the column was empty.
+- [ ] **A new or renamed static resource is cache-safe** — the URL changes, or
+      `spring.web.resources.cache.cachecontrol.no-cache` is configured. Causeway renders the CSS as a
+      plain `<link>` with no version key, so a stale browser copy makes a correct fix look broken.
+- [ ] **Version-pinned properties still match their upstream BOM** — `bash scripts/check-dependency-alignment.sh`
+      (part of `scripts/check.sh`) covers `spring-boot` / `spring-framework` / `spring-core` /
+      `spring-jdbc` / `spring-data` against the Causeway parent chain. Skew fails at startup, silently
+      at build time.

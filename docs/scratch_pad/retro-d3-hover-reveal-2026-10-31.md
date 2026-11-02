@@ -256,5 +256,48 @@ Candidates **1** and **2** are the two that would have prevented this session's 
 
 ## Status
 
-**Nothing applied.** Per the `retro` skill it only proposes — no hook installed, no rule written, no
-script added. Reply with the candidate number(s) (suggested set: **1 + 2 + 3**) and they get implemented.
+**Implemented on 2026-11-01** (retro of that date — same D3 thread; its own candidates are listed there):
+
+| # | Candidate | Where it landed |
+|---|---|---|
+| **1** | `scripts/verify-ui-render.sh` (+ `verify-ui-render.mjs`) — renders the real list-cell markup in headless Chromium and asserts the **user-visible** behaviour | new script; wired into `scripts/check.sh` step 5/7 and CI |
+| **2** | Stale-DDL guard in `scripts/check-schema-drift.sh` — refuse to report OK when an entity source is newer than `create-tables.sql` | `check-schema-drift.sh` |
+| **3** | `@D3Graph` + `@PropertyLayout(cssClass=…)` is a no-op; hook the generated cell class instead | `.clinerules/d3-diagram.md` |
+| **4** | `spring-boot:run` resolves `domox-domain`/`domox-adapter` from `~/.m2` — install them first | `.clinerules/commands.md` |
+| **5** | Authenticated pages: use RestfulObjects + basic auth (the Wicket sign-in is an Ajax form) | `.clinerules/commands.md` |
+| **6** | Reviewer checklist items: verify UI by rendering; keep static URLs cache-safe; keep version pins aligned | `CODING_STANDARDS.md` §4 |
+| **7** | Static-resource staleness (target/classes **and** the browser cache) | `.clinerules/d3-diagram.md` |
+| **8** | A moved file is untracked → `git diff <new path>` prints nothing | `.clinerules/commands.md` |
+| **9** | IDE MCP tools need an explicit `projectPath` | `.clinerules/commands.md` |
+
+Both new checks were **negative-tested** (a check must be shown to fail):
+
+```
+# stale-DDL guard
+DOMOX_DDL=/tmp/stale-ddl.sql bash scripts/check-schema-drift.sh   # → ERROR: … is STALE, exit 2
+# render check, with the teaser `width` rule removed (the original bug)
+DOMOX_CSS=/tmp/buggy2.css bash scripts/verify-ui-render.sh        # → visible=-231x54, FAIL, exit 1
+```
+
+**Still open:** none from the two retros — candidate 3 of the 2026-11-01 retro landed on 2026-11-01 as well:
+
+| # | Candidate | Where it landed |
+|---|---|---|
+| 3 | End-to-end Wicket test for the stale-link recovery | `wicket-tester` declared (test scope, version from `causeway-bom`) in `domox-webapp/pom.xml`; `domox-webapp/src/test/java/domox/webapp/unittests/{StaleLinkPage.java,StaleLinkPage.html,StaleComponentRecoveryEndToEndTest.java}`; runs in `scripts/check.sh` step 4 via `domox.webapp.unittests.**` |
+
+**🐞 …and it found a real bug.** The test failed on first run: even *with* the listener registered the
+`ComponentNotFoundException` propagated. Root cause: `RequestHandlerExecutor.execute()` clears its
+"active" handler in a `finally` block —
+
+```java
+active = handler;
+try { respond(handler); } finally { active = null; }
+```
+
+— so at `onException` time `cycle.getActiveRequestHandler()` is already `null`, the recovery bailed out
+("no page context available"), and the listener had therefore **never** worked on this path. The earlier
+unit test could not see it: it passed a *mock* handler straight into `recover(...)`, bypassing the very
+machinery that was broken. Fixed by capturing the handler in `onRequestHandlerResolved` (called before
+execution) and stashing it in the request cycle's metadata. The e2e test now passes, and its control case
+(same request without the listener → `assertThrows(ComponentNotFoundException)`) proves it guards the
+behaviour rather than merely exercising it.

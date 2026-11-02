@@ -400,6 +400,17 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
+        <!-- Wicket's own test harness: drives a real Wicket request cycle in-process (no browser,
+             no Spring context, no containers).  Used by StaleComponentRecoveryEndToEndTest to
+             prove that a request for a STALE listener — a link whose component was removed from
+             the page — re-renders the page instead of failing with ComponentNotFoundException.
+             The version is managed by causeway-bom (${wicket.version}) and deliberately NOT
+             pinned here, so it cannot drift from wicket-core. -->
+        <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-tester</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

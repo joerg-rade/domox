@@ -1,7 +1,3 @@
-*.scalarImage {
-    width: 100% !important;
-}
-
 /* Base link color & decoration */
 a {
     color: #07b4e5;
@@ -102,11 +98,20 @@ td[class*="-diagram"] .d3GraphPanel svg,
     height: 4rem !important;
 }
 
-/* 4. Anchor the popup to its cell and keep the column from collapsing on hover. */
+/* 4. Anchor the popup to its cell and keep the column from collapsing on hover.
+      The explicit `height` matters: on hover the panel becomes position:absolute, which takes
+      it out of flow — without a height on the cell the row would SHRINK while hovering (the
+      rows below would jump up).  A specified height on a table cell acts as a minimum, so the
+      row keeps its teaser height and the popup overlays instead of reflowing.
+      The value is the teaser height (4rem, rule 1) PLUS the cell's vertical padding
+      (Bootstrap .table-sm = 0.25rem top/bottom = 0.5rem) — `box-sizing: border-box` makes
+      `height` include the padding.  `scripts/verify-ui-render.sh` asserts the row height does
+      not change on hover, so the two numbers cannot drift apart unnoticed. */
 td[class*="-d3Graph"],
 td[class*="-diagram"] {
     position: relative;
     min-width: 6rem;
+    height: 4.5rem;      /* 4rem teaser + 0.5rem .table-sm padding */
 }
 
 /* 5. Full graph as a popup while the GRAPH CELL is hovered — deliberately NOT the whole row:

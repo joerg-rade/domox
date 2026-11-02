@@ -1,5 +1,6 @@
 package domox.webapp.config;
 
+import org.apache.wicket.MetaDataKey;
 import org.apache.wicket.core.request.handler.ComponentNotFoundException;
 import org.apache.wicket.core.request.handler.IPageRequestHandler;
 import org.apache.wicket.core.request.handler.PageProvider;
@@ -57,9 +58,34 @@ public class StaleComponentRecoveryListener implements IRequestCycleListener {
 
     private static final Logger log = LoggerFactory.getLogger(StaleComponentRecoveryListener.class);
 
+    /**
+     * Remembers the page-bound request handler of the current request.
+     *
+     * <p><b>Why this is needed:</b> {@code RequestHandlerExecutor.execute()} clears its "active"
+     * handler in a {@code finally} block:</p>
+     * <pre>
+     *   active = handler;
+     *   try { respond(handler); } finally { active = null; }
+     * </pre>
+     * <p>so by the time {@link #onException} runs, {@code cycle.getActiveRequestHandler()} is
+     * already {@code null} and carries no page information.  The handler is therefore captured in
+     * {@link #onRequestHandlerResolved}, which Wicket calls before execution, and stashed in the
+     * request cycle's metadata (per request, thread-safe — unlike a listener field).</p>
+     */
+    private static final MetaDataKey<IRequestHandler> RESOLVED_PAGE_HANDLER = new MetaDataKey<>() {
+    };
+
+    @Override
+    public void onRequestHandlerResolved(final RequestCycle cycle, final IRequestHandler handler) {
+        if (handler instanceof IPageRequestHandler) {
+            cycle.setMetaData(RESOLVED_PAGE_HANDLER, handler);
+        }
+    }
+
     @Override
     public IRequestHandler onException(final RequestCycle cycle, final Exception ex) {
-        return recover(ex, cycle.getActiveRequestHandler());
+        final IRequestHandler remembered = cycle.getMetaData(RESOLVED_PAGE_HANDLER);
+        return recover(ex, remembered != null ? remembered : cycle.getActiveRequestHandler());
     }
 
     /**
