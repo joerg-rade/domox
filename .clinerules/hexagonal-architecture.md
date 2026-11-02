@@ -80,6 +80,7 @@ Define **port interfaces inside `domox-domain`** — these are what the domain n
 domox-domain/src/main/java/domox/port/
 ├── NlpPort.java              # parse text → domain-usable NLP results
 ├── DiagramPort.java          # render DOT/PlantUML → PDF/SVG
+├── RdfPort.java              # load RDF/OWL + SPARQL → RdfGraphTO (RdfTripleTO, RdfFormat)
 └── NlpResult.java            # domain-safe transfer object (not from adapter!)
 ```
 
@@ -96,6 +97,8 @@ domox-adapter/src/main/java/domox/adapter/
 │   └── DocumentTO.java               # external DTO (stays in adapter)
 ├── diagram/
 │   └── KrokiDiagramAdapter.java      # implements DiagramPort
+├── rdf/
+│   └── JenaRdfAdapter.kt             # implements RdfPort (Apache Jena)
 └── ruleengine/
     └── RuleBookConfig.java           # Spring config
 ```

@@ -11,11 +11,14 @@ import domox.dom.crc.model.ClassType;
 import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.service.DomainModels;
 import domox.dom.nlp.Sentence;
+import domox.dom.rdf.RdfGraphDiagrams;
 import domox.dom.rules.RuleMatches;
 import domox.dom.rules.CandidateResolver;
 import domox.dom.rules.TypedDependencyRule;
 import domox.port.DocumentTO;
 import domox.port.NlpPort;
+import domox.port.RdfGraphTO;
+import domox.port.RdfPort;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
@@ -30,6 +33,9 @@ import jakarta.inject.Named;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Named(DomainModule.NAMESPACE + ".Corpora")
 @DomainService
@@ -52,6 +58,8 @@ public class Corpora {
     private final ClassArchetypeClassifier archetypeClassifier;
     private final CandidateResolver candidateResolver;
     private final NlpPort nlpPort;
+    private final RdfPort rdfPort;
+    private final RdfGraphDiagrams rdfGraphDiagrams;
 
     @Inject
     public Corpora(RepositoryService repositoryService,
@@ -62,7 +70,9 @@ public class Corpora {
                    DomainModels domainModels,
                    ClassArchetypeClassifier archetypeClassifier,
                    CandidateResolver candidateResolver,
-                   NlpPort nlpPort) {
+                   NlpPort nlpPort,
+                   RdfPort rdfPort,
+                   RdfGraphDiagrams rdfGraphDiagrams) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatches = ruleMatches;
@@ -72,6 +82,8 @@ public class Corpora {
         this.archetypeClassifier = archetypeClassifier;
         this.candidateResolver = candidateResolver;
         this.nlpPort = nlpPort;
+        this.rdfPort = rdfPort;
+        this.rdfGraphDiagrams = rdfGraphDiagrams;
     }
 
     @ActionLayout(sequence = "1")
@@ -155,6 +167,124 @@ public class Corpora {
     @MemberSupport
     public List<Corpus> choices0DeleteCorpus() {
         return repositoryService.allInstances(Corpus.class);
+    }
+
+    // ======================================================================
+    // RDF/OWL ontology → D3 graph
+    // ======================================================================
+
+    /** Classpath location of the bundled sample ontology (in {@code domox-domain}'s resources). */
+    static final String ONTOLOGY_RESOURCE = "petshop-ontology.ttl";
+
+    /** CONSTRUCT returning every statement — the "no filter" case (blank search term). */
+    private static final String ALL_TRIPLES_QUERY = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }";
+
+    /**
+     * Searches the bundled RDF/OWL ontology for {@code searchTerm} and renders the matching
+     * neighbourhood as an interactive D3 graph.
+     *
+     * <p>Two SPARQL queries are issued through {@link RdfPort}: a {@code SELECT} that finds the
+     * <i>focus</i> resources — IRIs whose own IRI or {@code rdfs:label} contains the term,
+     * case-insensitively — and a {@code CONSTRUCT} that returns those resources' own triples plus
+     * every triple pointing at them.  That one hop of context means the D3 graph shows structure
+     * rather than isolated nodes.</p>
+     *
+     * @param searchTerm text to look for; blank renders the whole ontology
+     * @return D3 graph JSON ({@code {nodes,links,legend}}) as consumed by the client renderer
+     */
+    @Action(semantics = SemanticsOf.SAFE)
+    @ActionLayout(
+            named = "Search Ontology (D3)",
+            describedAs = "Search the bundled RDF/OWL ontology and render the matches as an interactive D3 graph",
+            sequence = "5")
+    public String searchOntologyAsD3Graph(final String searchTerm) {
+        final List<String> focus = focusIris(searchTerm);
+        final String sparql;
+        if (isBlank(searchTerm)) {
+            sparql = ALL_TRIPLES_QUERY;
+        } else if (focus.isEmpty()) {
+            // no match: render an empty (but well-formed) graph rather than dumping the whole ontology
+            return rdfGraphDiagrams.renderDiagram(new RdfGraphTO(List.of(), Map.of()));
+        } else {
+            sparql = neighbourhoodQuery(focus);
+        }
+        final RdfGraphTO graph = rdfPort.construct(ONTOLOGY_RESOURCE, sparql);
+        return rdfGraphDiagrams.renderDiagram(graph);
+    }
+
+    /**
+     * Renders the <em>whole</em> bundled RDF/OWL ontology as a D3 graph.
+     *
+     * <p>The parameterless entry point used by derived (transient) properties such as
+     * {@code Corpus#getOntologyDiagram()}: a property cannot take a search term, so it always
+     * renders everything.  Marked {@link Programmatic} so it is not itself exposed as an action.</p>
+     */
+    @Programmatic
+    public String ontologyAsD3Graph() {
+        return searchOntologyAsD3Graph("");
+    }
+
+    /**
+     * Runs the focus {@code SELECT}: the IRIs whose own IRI or {@code rdfs:label} contains
+     * {@code searchTerm}.
+     *
+     * <p>{@code isIRI} keeps literals out — a literal cannot be written as a subject in the
+     * follow-up {@code CONSTRUCT}'s {@code VALUES} clause — and blank nodes ({@code _:x}, which
+     * likewise cannot be written as {@code <...>}) are dropped here.</p>
+     */
+    private List<String> focusIris(final String searchTerm) {
+        if (isBlank(searchTerm)) {
+            return List.of();
+        }
+        final String literal = escapeSparqlString(searchTerm.trim());
+        final String sparql = """
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                SELECT DISTINCT ?focus WHERE {
+                  { ?focus ?p ?o . FILTER(isIRI(?focus) && REGEX(STR(?focus), "%s", "i")) }
+                  UNION
+                  { ?s ?p ?focus . FILTER(isIRI(?focus) && REGEX(STR(?focus), "%s", "i")) }
+                  UNION
+                  { ?focus rdfs:label ?l . FILTER(isIRI(?focus) && REGEX(STR(?l), "%s", "i")) }
+                }
+                """.formatted(literal, literal, literal);
+        return rdfPort.select(ONTOLOGY_RESOURCE, sparql).stream()
+                .map(row -> row.get("focus"))
+                .filter(Objects::nonNull)
+                .filter(iri -> !iri.startsWith("_:"))
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * Builds the {@code CONSTRUCT} that returns the focus resources' own triples plus every triple
+     * pointing at them — one hop of context around each match.
+     */
+    static String neighbourhoodQuery(final List<String> focusIris) {
+        final String values = focusIris.stream()
+                .map(iri -> "<" + iri + ">")
+                .collect(Collectors.joining(" "));
+        return """
+                CONSTRUCT { ?s ?p ?o }
+                WHERE {
+                  VALUES ?focus { %s }
+                  { BIND(?focus AS ?s) ?s ?p ?o }
+                  UNION
+                  { ?s ?p ?focus . BIND(?focus AS ?o) }
+                }
+                """.formatted(values);
+    }
+
+    /** Escapes a value for use inside a double-quoted SPARQL string literal. */
+    static String escapeSparqlString(final String value) {
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    private static boolean isBlank(final String value) {
+        return value == null || value.isBlank();
     }
 
     // ======================================================================

@@ -60,6 +60,16 @@
                 <artifactId>rulebook-spring</artifactId>
                 <version>${rulebook.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>jena-core</artifactId>
+                <version>${jena.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>jena-arq</artifactId>
+                <version>${jena.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -90,6 +100,17 @@
         <dependency>
             <groupId>org.apache.causeway.domox</groupId>
             <artifactId>domox-domain</artifactId>
+        </dependency>
+
+        <!-- RDF/OWL: implements domox.port.RdfPort (JenaRdfAdapter) — retrieval and SPARQL.
+             Versions managed in <dependencyManagement> above (${jena.version}). -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-arq</artifactId>
         </dependency>
 
         <!-- HTTP Invocation -->

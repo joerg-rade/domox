@@ -80,6 +80,9 @@
         <rulebook.version>0.12</rulebook.version>
         <result.version>3.1.0</result.version>
         <resteasy-core.version>7.0.0.Final</resteasy-core.version>
+        <!-- Apache Jena (RDF/OWL): used by domox-adapter's JenaRdfAdapter only — retrieval and
+             SPARQL over RDF/OWL, mapped into the domain-safe domox.port.RdfGraphTO. -->
+        <jena.version>4.10.0</jena.version>
         <!-- Apache Tomcat (transitive via spring-boot-starter-tomcat in domox-webapp).
              Boot 4.2.0-M1 manages Tomcat 11.0.24; this pin keeps tomcat-embed-core in step
              with the other embed artifacts (websocket / el) the Boot BOM resolves. -->

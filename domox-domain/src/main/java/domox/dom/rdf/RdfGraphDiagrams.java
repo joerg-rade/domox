@@ -1,0 +1,266 @@
+package domox.dom.rdf;
+
+import domox.port.RdfGraphTO;
+import domox.port.RdfTripleTO;
+import jakarta.annotation.Priority;
+import jakarta.inject.Named;
+import org.apache.causeway.applib.annotation.DomainService;
+import org.apache.causeway.applib.annotation.PriorityPrecedence;
+import org.apache.causeway.applib.annotation.Programmatic;
+
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Turns an RDF/OWL graph (as delivered by {@link domox.port.RdfPort}) into the JSON structure the
+ * D3 force-layout renderer consumes: <code>{nodes, links, legend}</code>.
+ *
+ * <p>The shape is the same one {@code DomainModelDiagramsD3} / {@code CandidateD3Graph} produce, so
+ * the existing client renderer (`d3-integration.mjs`) draws an ontology without any change:</p>
+ *
+ * <pre>
+ *   "nodes": [ {"id","name","subdomain","pos","color","r","approved","isCandidateColumn"} ]
+ *   "links": [ {"source","target","label"} ]
+ *   "legend":[ {"color","label","description"} ]
+ * </pre>
+ *
+ * <p><b>RDF → diagram mapping</b> (every RDF statement becomes an edge):</p>
+ * <ul>
+ *   <li><b>node id</b> — the IRI (blank nodes keep their <code>_:label</code>)</li>
+ *   <li><b>name</b> — <code>rdfs:label</code> when present, else the IRI's local name</li>
+ *   <li><b>subdomain</b> — the cluster group (the client clusters nodes by this field):
+ *       a <b>class</b> by its super-class (empty for a root class), an <b>individual</b> by its
+ *       <code>rdf:type</code>, a <b>literal</b> by its predicate</li>
+ *   <li><b>pos</b> — the node kind shown in <code>&lt;&lt;…&gt;&gt;</code>:
+ *       {@code Class}, {@code Individual} or {@code Literal}</li>
+ *   <li><b>links</b> — one per triple: subject → object, labelled with the predicate's local name
+ *       (e.g. {@code subClassOf}, {@code owns}, {@code isVaccinated})</li>
+ * </ul>
+ */
+@DomainService
+@Named("domox.dom.rdf.RdfGraphDiagrams")
+@Priority(PriorityPrecedence.LATE)
+public class RdfGraphDiagrams {
+
+    private static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
+    private static final String RDFS_SUBCLASS_OF = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    private static final String OWL_CLASS = "http://www.w3.org/2002/07/owl#Class";
+    private static final String RDFS_CLASS = "http://www.w3.org/2000/01/rdf-schema#Class";
+
+    /**
+     * Renders the graph as D3 JSON (nodes/links/legend).
+     *
+     * @param graph the RDF graph, e.g. {@code rdfPort.load("petshop-ontology.ttl")}
+     */
+    @Programmatic
+    public String renderDiagram(final RdfGraphTO graph) {
+        final Map<String, Node> nodes = indexNodes(graph);
+        final StringBuilder json = new StringBuilder(256);
+        json.append('{');
+        appendNodes(json, nodes);
+        json.append(',');
+        appendLinks(json, graph, nodes);
+        json.append(',');
+        appendLegend(json, nodes);
+        json.append('}');
+        return json.toString();
+    }
+
+    // -- nodes -----------------------------------------------------------------
+
+    /** Every subject becomes a node; literals become nodes too, so data values stay visible. */
+    private static Map<String, Node> indexNodes(final RdfGraphTO graph) {
+        final Map<String, String> labelByIri = new LinkedHashMap<>();
+        final Map<String, String> typeByIri = new LinkedHashMap<>();
+        final Map<String, String> superClassByIri = new LinkedHashMap<>();
+        final Set<String> classIris = new LinkedHashSet<>();
+        for (final RdfTripleTO triple : graph.triples()) {
+            if (RDFS_LABEL.equals(triple.predicate()) && triple.literal()) {
+                labelByIri.putIfAbsent(triple.subject(), triple.objectValue());
+            } else if (RDF_TYPE.equals(triple.predicate()) && !triple.literal()) {
+                typeByIri.putIfAbsent(triple.subject(), triple.objectValue());
+                if (OWL_CLASS.equals(triple.objectValue()) || RDFS_CLASS.equals(triple.objectValue())) {
+                    classIris.add(triple.subject());
+                }
+            } else if (RDFS_SUBCLASS_OF.equals(triple.predicate()) && !triple.literal()) {
+                superClassByIri.putIfAbsent(triple.subject(), triple.objectValue());
+                classIris.add(triple.subject());
+                classIris.add(triple.objectValue());
+            }
+        }
+
+        final Map<String, Node> nodes = new LinkedHashMap<>();
+        for (final RdfTripleTO triple : graph.triples()) {
+            final String subject = triple.subject();
+            final Kind kind = classIris.contains(subject) ? Kind.CLASS : Kind.INDIVIDUAL;
+            final String typeIri = typeByIri.get(subject);
+            final String group = kind == Kind.CLASS
+                    ? groupOfClass(subject, superClassByIri)
+                    : (typeIri != null ? localName(typeIri) : "");
+            nodes.putIfAbsent(subject,
+                    new Node(subject, labelOf(subject, labelByIri), group, kind));
+
+            if (triple.literal()) {
+                final String literalId = literalId(triple.objectValue());
+                nodes.putIfAbsent(literalId,
+                        new Node(literalId, triple.objectValue(),
+                                localName(triple.predicate()), Kind.LITERAL));
+            }
+        }
+        return nodes;
+    }
+
+    /**
+     * A class clusters with its super-class ({@code Dog} under {@code Pet}); a root class has no
+     * group, so the client places it at the centre of the canvas.
+     */
+    private static String groupOfClass(final String iri, final Map<String, String> superClassByIri) {
+        final String parent = superClassByIri.get(iri);
+        return parent != null ? localName(parent) : "";
+    }
+
+    private static String labelOf(final String iri, final Map<String, String> labelByIri) {
+        final String label = labelByIri.get(iri);
+        return label != null ? label : localName(iri);
+    }
+
+    private static String literalId(final String lexicalForm) {
+        return "literal:" + lexicalForm;
+    }
+
+    // -- links -----------------------------------------------------------------
+
+    private static void appendLinks(
+            final StringBuilder json, final RdfGraphTO graph, final Map<String, Node> nodes) {
+        json.append("\"links\":[");
+        boolean first = true;
+        final Set<String> seen = new LinkedHashSet<>();
+        for (final RdfTripleTO triple : graph.triples()) {
+            final String target = triple.literal() ? literalId(triple.objectValue()) : triple.objectValue();
+            if (!nodes.containsKey(triple.subject()) || !nodes.containsKey(target)) {
+                continue;
+            }
+            if (!seen.add(triple.subject() + "->" + target + ":" + triple.predicate())) {
+                continue;   // duplicate statements in the source graph
+            }
+            if (!first) {
+                json.append(',');
+            }
+            first = false;
+            json.append("{\"source\":\"").append(escapeJson(triple.subject()))
+                    .append("\",\"target\":\"").append(escapeJson(target))
+                    .append("\",\"label\":\"").append(escapeJson(localName(triple.predicate())))
+                    .append("\"}");
+        }
+        json.append(']');
+    }
+
+    // -- nodes / legend JSON ---------------------------------------------------
+
+    private static void appendNodes(final StringBuilder json, final Map<String, Node> nodes) {
+        json.append("\"nodes\":[");
+        boolean first = true;
+        for (final Node node : nodes.values()) {
+            if (!first) {
+                json.append(',');
+            }
+            first = false;
+            json.append("{\"id\":\"").append(escapeJson(node.id()))
+                    .append("\",\"name\":\"").append(escapeJson(node.name()))
+                    .append("\",\"subdomain\":\"").append(escapeJson(node.typeLocalName()))
+                    .append("\",\"pos\":\"").append(node.kind().label)
+                    .append("\",\"color\":\"").append(node.kind().color)
+                    .append("\",\"r\":").append(node.kind().radius)
+                    .append(",\"approved\":true")
+                    .append(",\"isCandidateColumn\":false}");
+        }
+        json.append(']');
+    }
+
+    /** One legend entry per node kind that actually occurs in the graph. */
+    private static void appendLegend(final StringBuilder json, final Map<String, Node> nodes) {
+        json.append("\"legend\":[");
+        boolean first = true;
+        for (final Kind kind : Kind.values()) {
+            if (nodes.values().stream().noneMatch(node -> node.kind() == kind)) {
+                continue;
+            }
+            if (!first) {
+                json.append(',');
+            }
+            first = false;
+            json.append("{\"color\":\"").append(kind.color)
+                    .append("\",\"label\":\"").append(kind.label)
+                    .append("\",\"description\":\"").append(kind.description).append("\"}");
+        }
+        json.append(']');
+    }
+
+    // -- helpers ---------------------------------------------------------------
+
+    /** Local name of an IRI: after {@code #}, else after the last {@code /}. */
+    static String localName(final String iri) {
+        if (iri == null || iri.isEmpty()) {
+            return "";
+        }
+        final int hash = iri.lastIndexOf('#');
+        if (hash >= 0 && hash + 1 < iri.length()) {
+            return iri.substring(hash + 1);
+        }
+        final int slash = iri.lastIndexOf('/');
+        if (slash >= 0 && slash + 1 < iri.length()) {
+            return iri.substring(slash + 1);
+        }
+        return iri;
+    }
+
+    static String escapeJson(final String value) {
+        if (value == null) {
+            return "";
+        }
+        final StringBuilder out = new StringBuilder(value.length() + 8);
+        for (int i = 0; i < value.length(); i++) {
+            final char c = value.charAt(i);
+            switch (c) {
+                case '\\' -> out.append("\\\\");
+                case '"' -> out.append("\\\"");
+                case '\n' -> out.append("\\n");
+                case '\r' -> out.append("\\r");
+                case '\t' -> out.append("\\t");
+                default -> {
+                    if (c < 0x20) {
+                        out.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        out.append(c);
+                    }
+                }
+            }
+        }
+        return out.toString();
+    }
+
+    private record Node(String id, String name, String typeLocalName, Kind kind) {
+    }
+
+    /** The three node kinds of an RDF graph, rendered in the {@code <<…>>} label line. */
+    private enum Kind {
+        CLASS("Class", "#3498DB", 14, "owl:Class / rdfs:Class - a concept"),
+        INDIVIDUAL("Individual", "#2ECC71", 11, "An instance (rdf:type of a class)"),
+        LITERAL("Literal", "#AAB7B8", 8, "A data value");
+
+        final String label;
+        final String color;
+        final int radius;
+        final String description;
+
+        Kind(final String label, final String color, final int radius, final String description) {
+            this.label = label;
+            this.color = color;
+            this.radius = radius;
+            this.description = description;
+        }
+    }
+}

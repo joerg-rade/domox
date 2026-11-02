@@ -43,11 +43,19 @@ PSQL_USER="${DOMOX_DB_USER:-postgres}"
 [ -f "$DDL" ] || { echo "ERROR: $DDL not found (run the app once to regenerate it)"; exit 2; }
 
 # The DDL is only regenerated when the app boots (EclipseLink writes create-tables.sql).  If an
-# entity source is NEWER than the DDL, this check would compare a stale file against the live DB
+# ENTITY source is NEWER than the DDL, this check would compare a stale file against the live DB
 # and can therefore pass VACUOUSLY — that happened once: five real drifts (from renaming
 # @Entity / @JoinColumn members) went unreported until the app was booted afterwards.  Refuse to
 # report OK on stale input.
-newest_src=$(find domox-domain/src/main/java -name '*.java' -newer "$DDL" -print -quit 2>/dev/null)
+#
+# Only JPA entities count: a new port interface, rule class or service cannot change the schema
+# (an earlier, broader version of this guard flagged exactly that — a new `domox.port.RdfPort`).
+newer_sources=$(find domox-domain/src/main/java -name '*.java' -newer "$DDL" 2>/dev/null)
+newest_src=""
+if [ -n "$newer_sources" ]; then
+  newest_src=$(printf '%s\n' "$newer_sources" \
+    | xargs -r grep -lE '(^|[[:space:]])@Entity' 2>/dev/null | head -1)
+fi
 if [ -n "$newest_src" ]; then
   echo "ERROR: $DDL is STALE — newer entity source: $newest_src"
   echo "       Boot the app once so EclipseLink regenerates the DDL, then re-run this check."

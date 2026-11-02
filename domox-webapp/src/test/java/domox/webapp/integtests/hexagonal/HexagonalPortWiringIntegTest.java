@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import domox.adapter.diagram.KrokiDiagramAdapter;
 import domox.adapter.nlp.StanfordCoreNlpAdapter;
+import domox.adapter.rdf.JenaRdfAdapter;
 import domox.dom.crc.diagram.CandidateDiagrams;
 import domox.dom.nlp.Sentences;
 import domox.dom.requirements.Corpora;
 import domox.dom.requirements.Documents;
 import domox.port.DiagramPort;
 import domox.port.NlpPort;
+import domox.port.RdfPort;
 import domox.webapp.integtests.ApplicationIntegTestAbstract;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,9 @@ class HexagonalPortWiringIntegTest extends ApplicationIntegTestAbstract {
     private NlpPort nlpPort;
 
     @Autowired
+    private RdfPort rdfPort;
+
+    @Autowired
     private CandidateDiagrams candidateDiagrams;
 
     @Autowired
@@ -57,6 +62,12 @@ class HexagonalPortWiringIntegTest extends ApplicationIntegTestAbstract {
     @Test
     void nlpPort_isWiredToStanfordCoreNlpAdapter() {
         assertThat(nlpPort).isInstanceOf(StanfordCoreNlpAdapter.class);
+    }
+
+    @Test
+    void rdfPort_isWiredToJenaRdfAdapter() {
+        // proves the adapter module's @Component is component-scanned (DomainModule scans `domox`)
+        assertThat(rdfPort).isInstanceOf(JenaRdfAdapter.class);
     }
 
     @Test

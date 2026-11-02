@@ -3,19 +3,26 @@ package domox.dom.requirements;
 import domox.DomainModule;
 import domox.dom.AbstractEntity;
 import domox.dom.crc.model.DomainModel;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.DomainObjectLayout;
+import org.apache.causeway.applib.annotation.Optionality;
+import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Publishing;
 import org.apache.causeway.applib.annotation.TableDecorator;
+import org.apache.causeway.applib.annotation.Where;
+import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -61,6 +68,50 @@ public class Corpus extends AbstractEntity implements Comparable<Corpus> {
     @Getter
     @Setter
     private Timestamp analyzedAt;
+
+    //region > ontology diagram (RDF/OWL → D3)
+
+    /**
+     * Injected {@link Corpora} service, used to render the bundled RDF/OWL ontology as a
+     * D3 graph.
+     * <p>
+     * Hidden from the metamodel: an injected collaborator is <em>not</em> a property, and exposing
+     * it would trip the metamodel veto (see {@code CODING_STANDARDS.md} §1).
+     */
+    @Transient
+    @Inject
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Corpora corporaService;
+
+    /**
+     * The bundled RDF/OWL ontology rendered as an interactive D3 force-layout graph.
+     * <p>
+     * <b>Transient and derived</b> — never persisted: the JSON is regenerated on every access from
+     * the classpath ontology ({@code petshop-ontology.ttl}) via
+     * {@link Corpora#ontologyAsD3Graph()}.
+     * <p>
+     * Hidden in tables ({@link Where#ALL_TABLES}): this entity's list view is decorated by
+     * {@code TableDecorator.DatatablesNet}, which relocates cell DOM for sorting/paging and would
+     * fight the D3 canvas.  The graph is shown on the object page instead.
+     */
+    @D3Graph
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(
+            named = "Ontology Diagram / D3",
+            describedAs = "The bundled RDF/OWL ontology rendered as an interactive D3 graph",
+            sequence = "3",
+            hidden = Where.ALL_TABLES)
+    public String getOntologyDiagram() {
+        if (corporaService == null) {
+            return "{\"nodes\":[],\"links\":[],\"legend\":[]}";
+        }
+        return corporaService.ontologyAsD3Graph();
+    }
+
+    //endregion
 
     //region > compareTo, toString
     @Override

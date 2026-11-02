@@ -85,6 +85,15 @@ if mvn -B test -pl domox-webapp -Dtest='domox.webapp.unittests.**' -am \
 else
   bad "webapp unit tests failed (log: $LOG — last lines: $(tail -5 "$LOG" | tr '\n' ' '))"
 fi
+# The RDF/OWL adapter test is container-free as well, but the adapter module's OTHER tests spin up
+# containers (Kroki, CoreNLP), so run this class by name rather than the whole module.
+LOG=/tmp/domox-check-unit-rdf.log
+if mvn -B test -pl domox-adapter -Dtest=JenaRdfAdapterTest -am \
+  -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.build.cache.enabled=false >"$LOG" 2>&1; then
+  ok "RDF adapter tests passed"
+else
+  bad "RDF adapter tests failed (log: $LOG — last lines: $(tail -5 "$LOG" | tr '\n' ' '))"
+fi
 
 # --- 5. UI render check (headless browser; CSS/JS in list views) ------------------------
 step "5/7  UI render check (headless browser)"
