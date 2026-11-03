@@ -53,7 +53,7 @@ public class RdfGraphDiagrams {
     /**
      * Renders the graph as D3 JSON (nodes/links/legend).
      *
-     * @param graph the RDF graph, e.g. {@code rdfPort.load("petshop-ontology.ttl")}
+     * @param graph the RDF graph, e.g. {@code rdfPort.load("PetStore-ontology.ttl")}
      */
     @Programmatic
     public String renderDiagram(final RdfGraphTO graph) {
@@ -71,7 +71,15 @@ public class RdfGraphDiagrams {
 
     // -- nodes -----------------------------------------------------------------
 
-    /** Every subject becomes a node; literals become nodes too, so data values stay visible. */
+    /**
+     * Every resource mentioned by the graph becomes a node; literals become nodes too, so data
+     * values stay visible.
+     * <p>
+     * <b>Resource <em>objects</em> count as well, not just subjects.</b>  {@code appendLinks} skips
+     * an edge whose endpoints are not both nodes, so a resource that only ever appears as an object
+     * (e.g. the class in {@code Whiskers rdf:type Cat}) would otherwise have its edge silently
+     * dropped — the "one hop of context" a neighbourhood search is meant to show.
+     */
     private static Map<String, Node> indexNodes(final RdfGraphTO graph) {
         final Map<String, String> labelByIri = new LinkedHashMap<>();
         final Map<String, String> typeByIri = new LinkedHashMap<>();
@@ -94,23 +102,37 @@ public class RdfGraphDiagrams {
 
         final Map<String, Node> nodes = new LinkedHashMap<>();
         for (final RdfTripleTO triple : graph.triples()) {
-            final String subject = triple.subject();
-            final Kind kind = classIris.contains(subject) ? Kind.CLASS : Kind.INDIVIDUAL;
-            final String typeIri = typeByIri.get(subject);
-            final String group = kind == Kind.CLASS
-                    ? groupOfClass(subject, superClassByIri)
-                    : (typeIri != null ? localName(typeIri) : "");
-            nodes.putIfAbsent(subject,
-                    new Node(subject, labelOf(subject, labelByIri), group, kind));
+            addResourceNode(nodes, triple.subject(), labelByIri, typeByIri, superClassByIri, classIris);
 
             if (triple.literal()) {
                 final String literalId = literalId(triple.objectValue());
                 nodes.putIfAbsent(literalId,
                         new Node(literalId, triple.objectValue(),
                                 localName(triple.predicate()), Kind.LITERAL));
+            } else {
+                addResourceNode(nodes, triple.objectValue(), labelByIri, typeByIri, superClassByIri, classIris);
             }
         }
         return nodes;
+    }
+
+    /** Adds an IRI node (a no-op if it is already present), classifying it as class or individual. */
+    private static void addResourceNode(
+            final Map<String, Node> nodes,
+            final String iri,
+            final Map<String, String> labelByIri,
+            final Map<String, String> typeByIri,
+            final Map<String, String> superClassByIri,
+            final Set<String> classIris) {
+        if (nodes.containsKey(iri)) {
+            return;
+        }
+        final Kind kind = classIris.contains(iri) ? Kind.CLASS : Kind.INDIVIDUAL;
+        final String typeIri = typeByIri.get(iri);
+        final String group = kind == Kind.CLASS
+                ? groupOfClass(iri, superClassByIri)
+                : (typeIri != null ? localName(typeIri) : "");
+        nodes.put(iri, new Node(iri, labelOf(iri, labelByIri), group, kind));
     }
 
     /**

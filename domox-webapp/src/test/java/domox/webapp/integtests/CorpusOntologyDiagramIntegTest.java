@@ -16,9 +16,9 @@ import domox.dom.requirements.Corpus;
 /**
  * Guards {@link Corpus#getOntologyDiagram()} — the derived (transient) RDF/OWL → D3 property.
  * <p>
- * Proves the injected {@code DomainModels} collaborator really is wired on a persisted entity (a
+ * Proves the injected {@code Corpora} collaborator really is wired on a persisted entity (a
  * {@code null} service would silently yield the empty-graph fallback) and that the property renders
- * the bundled ontology rather than an empty graph.
+ * the bundled ontology (a DBpedia export) rather than an empty graph.
  */
 @Transactional
 class CorpusOntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
@@ -38,12 +38,12 @@ class CorpusOntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
         // when
         final String json = corpus.getOntologyDiagram();
 
-        // then — a real D3 payload (not the empty fallback), drawn from the bundled sample ontology
+        // then — a real D3 payload (not the empty fallback), drawn from the bundled ontology
         assertThat(json).startsWith("{").endsWith("}");
         assertThat(json).contains("\"nodes\":[");
         assertThat(json).contains("\"links\":[");
         assertThat(json).contains("\"legend\":[");
-        assertThat(json).contains("http://example.org/petshop#Buddy");
-        assertThat(json).contains("\"subClassOf\"");
+        assertThat(json).contains("http://dbpedia.org/resource/Pet_store");
+        assertThat(json).contains("\"wikiPageWikiLink\"");
     }
 }

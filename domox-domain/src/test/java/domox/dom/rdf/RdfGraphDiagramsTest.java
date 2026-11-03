@@ -60,6 +60,22 @@ class RdfGraphDiagramsTest {
     }
 
     @Test
+    void resourceObjectsBecomeNodesSoTheirEdgesSurvive() {
+        // Whiskers --rdf:type--> Cat, and Cat appears ONLY as an object (it is never a subject)
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(PS + "Whiskers", RDF_TYPE, PS + "Cat")
+        ), Map.of("ps", PS));
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertTrue(json.contains("\"id\":\"" + PS + "Cat\""),
+                "the object resource must become a node: " + json);
+        assertTrue(json.contains("\"target\":\"" + PS + "Cat\""),
+                "…otherwise the edge is silently dropped: " + json);
+        assertTrue(json.contains("\"label\":\"type\""), json);
+    }
+
+    @Test
     void escapesLabelsAndLeavesRootClassesUngrouped() {
         final RdfGraphTO graph = new RdfGraphTO(List.of(
                 RdfTripleTO.resource(PS + "Quote", RDF_TYPE, OWL_CLASS),

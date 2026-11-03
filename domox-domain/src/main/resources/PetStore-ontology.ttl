@@ -1,0 +1,243 @@
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix wikipedia-en:	<http://en.wikipedia.org/wiki/> .
+@prefix dbr:	<http://dbpedia.org/resource/> .
+wikipedia-en:Pet_store	foaf:primaryTopic	dbr:Pet_store .
+@prefix dbo:	<http://dbpedia.org/ontology/> .
+<http://dbpedia.org/resource/Chesley_V._Morton>	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Earthlings_(film)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Sex_offender_registries_in_the_United_States	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Post_Oak_Mall	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Cattery	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/L\u00F6ggul\u00EDf>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:List_of_amphibians_of_Puerto_Rico	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:List_of_reptiles_of_Puerto_Rico	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Acclimatization	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Robinsons_Retail	dbo:division	dbr:Pet_store ;
+	dbo:wikiPageWikiLink	dbr:Pet_store .
+@prefix dbp:	<http://dbpedia.org/property/> .
+dbr:Robinsons_Retail	dbp:divisions	dbr:Pet_store .
+dbr:Pet_Circle	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Parkpoom_Jangphonak	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Elizabethan_collar	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Timeline_of_Animal_Liberation_Front_actions	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:How_to_Train_a_Dog	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/List_of_Littlest_Pet_Shop_(2012_TV_series)_characters>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Lint_remover	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Pixel_Chix	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Fancy_rat	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Live_food	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Puutori	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Overpopulation_in_domestic_pets	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Daniel_Ducruet	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Beethoven\u0027s_2nd_(film)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:List_of_Nathan_for_You_episodes	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Wing_clipping	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Tony_Silva	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Muzzle_(mouth_guard)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/The_Birds_(film)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Aquarist	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Pakuan_City_F.C.>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Leroy_Milton_Grider	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Kalevanrinne	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Malibu_Feed_Bin	dbo:type	dbr:Pet_store ;
+	dbp:buildingType	dbr:Pet_store .
+dbr:Animal_welfare	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Petco	dbo:genre	dbr:Pet_store ;
+	dbp:genre	dbr:Pet_store ;
+	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Wilco_(farm_supply_cooperative)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/A_Fish_Out_of_Water_(book)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/List_of_Timon_&_Pumbaa_episodes>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Walmart	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Homes_Alive_Pets	dbo:industry	dbr:Pet_store ;
+	dbp:industry	dbr:Pet_store .
+dbr:Animal_shelter	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Lepidobatrachus_laevis	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:MEVAS_Bank	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Retail	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Alexis_Rockman	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Feral_parakeets_in_Great_Britain	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Zoo_Zajac	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Shark	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:The_Grand_Doubletree	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Strip_mall	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Cat_food	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:The_Sims_3_expansion_packs	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Floyd_Robertson	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Liasis_mackloti	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Pet_Lovers_Centre	dbo:genre	dbr:Pet_store ;
+	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Hotel_for_Dogs_(film)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:List_of_Littlest_Pet_Shop_episodes	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Red_factor_canary	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Chao_Phrom_Market	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Pet_shop	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Pet_Store	dbo:wikiPageWikiLink	dbr:Pet_store ;
+	dbo:wikiPageRedirects	dbr:Pet_store .
+dbr:Pet_shops	dbo:wikiPageWikiLink	dbr:Pet_store ;
+	dbo:wikiPageRedirects	dbr:Pet_store .
+dbr:Pet_stores	dbo:wikiPageWikiLink	dbr:Pet_store ;
+	dbo:wikiPageRedirects	dbr:Pet_store .
+<http://dbpedia.org/resource/Wingmen_(Flight_of_the_Conchords)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Marc_Morrone	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Littlest_Pet_Shop_(2012_TV_series)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Poecilia_wingei	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Goosebumps_HorrorLand	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Monopoly_Junior	dbp:space	dbr:Pet_store .
+<http://dbpedia.org/resource/Hello!_Morning>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Dog_grooming	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Molly_Badham	dbo:wikiPageWikiLink	dbr:Pet_store .
+@prefix ns5:	<http://dbpedia.org/resource/Peter_Rabbit_2:> .
+ns5:_The_Runaway	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Puppy_mill	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/E._J._Korvette>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Life_in_Hell	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Rocky	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Mary_Brancker	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Shopping	dbo:wikiPageWikiLink	dbr:Pet_store .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+dbr:Pet_store	rdf:type	owl:Thing ;
+	owl:sameAs	<http://tr.dbpedia.org/resource/Evcil_hayvan_ma\u011Fazas\u0131> ,
+		<http://de.dbpedia.org/resource/Zoofachgesch\u00E4ft> ,
+		<http://uk.dbpedia.org/resource/\u0417\u043E\u043E\u043C\u0430\u0433\u0430\u0437\u0438\u043D> .
+@prefix dbpedia-fr:	<http://fr.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-fr:Animalerie .
+@prefix dbpedia-no:	<http://no.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-no:Dyrebutikk .
+@prefix dbpedia-es:	<http://es.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-es:Tienda_de_animales ,
+		<http://rdf.freebase.com/ns/m.054nwq> .
+@prefix wikidata:	<http://www.wikidata.org/entity/> .
+dbr:Pet_store	owl:sameAs	wikidata:Q220142 ,
+		wikidata:Q110449209 .
+@prefix yago-res:	<http://yago-knowledge.org/resource/> .
+dbr:Pet_store	owl:sameAs	yago-res:Pet_store ,
+		<http://zh.dbpedia.org/resource/\u5BF5\u7269\u5E97> ,
+		<https://global.dbpedia.org/id/25fyB> .
+@prefix dbpedia-it:	<http://it.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-it:Negozio_per_animali .
+@prefix dbpedia-pt:	<http://pt.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-pt:Pet_shop ,
+		<http://cs.dbpedia.org/resource/Obchod_se_zv\u00ED\u0159ec\u00EDmi_pot\u0159ebami> .
+@prefix dbpedia-fi:	<http://fi.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-fi:Lemmikkikauppa ,
+		<http://ko.dbpedia.org/resource/\uC560\uC644\uB3D9\uBB3C_\uAC00\uAC8C> ,
+		wikidata:Q98115425 .
+@prefix dbpedia-pl:	<http://pl.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-pl:Sklep_zoologiczny ,
+		<http://ru.dbpedia.org/resource/\u0417\u043E\u043E\u043C\u0430\u0433\u0430\u0437\u0438\u043D> .
+@prefix dbpedia-id:	<http://id.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-id:Toko_hewan_peliharaan ,
+		dbr:Pet_store .
+@prefix dbpedia-nl:	<http://nl.dbpedia.org/resource/> .
+dbr:Pet_store	owl:sameAs	dbpedia-nl:Dierenwinkel ,
+		<http://fa.dbpedia.org/resource/\u0641\u0631\u0648\u0634\u06AF\u0627\u0647_\u062D\u06CC\u0648\u0627\u0646\u0627\u062A_\u062E\u0627\u0646\u06AF\u06CC> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+dbr:Pet_store	rdfs:label	"\uC560\uC644\uB3D9\uBB3C \uAC00\uAC8C"@ko ,
+		"Zoofachgesch\u00E4ft"@de ,
+		"Dierenwinkel"@nl ,
+		"Toko hewan peliharaan"@in ,
+		"\u0417\u043E\u043E\u043C\u0430\u0433\u0430\u0437\u0438\u043D"@ru ,
+		"Pet shop"@pt ,
+		"\u5BF5\u7269\u5E97"@zh ,
+		"Tienda de animales"@es ,
+		"Negozio per animali"@it ,
+		"Obchod se zv\u00ED\u0159ec\u00EDmi pot\u0159ebami"@cs ,
+		"Animalerie"@fr ,
+		"\u0417\u043E\u043E\u043C\u0430\u0433\u0430\u0437\u0438\u043D"@uk ,
+		"Sklep zoologiczny"@pl ,
+		"Pet store"@en .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix dbc:	<http://dbpedia.org/resource/Category:> .
+dbr:Pet_store	dct:subject	dbc:Dog_shows_and_showing ,
+		dbc:Articles_containing_video_clips ,
+		dbc:Animal_welfare ,
+		dbc:Animal_hair ,
+		dbc:Cats_as_pets ,
+		dbc:Dog_nutrition ,
+		dbc:Retailers_by_type_of_merchandise_sold ,
+		dbc:Pet_stores ,
+		dbc:Pet_foods ,
+		dbc:Dog_equipment ;
+	foaf:depiction	<http://commons.wikimedia.org/wiki/Special:FilePath/Henry_Wersell\u0027s_Pet_Store,_Toledo,_Ohio_-_DPLA_-_3b65e6e07f6ba640cd3cdce160703082_(page_1).jpg> ,
+		<http://commons.wikimedia.org/wiki/Special:FilePath/Henry_Bishop_storefront.jpg> ,
+		<http://commons.wikimedia.org/wiki/Special:FilePath/Zoo_Zajac_4.jpg> ,
+		<http://commons.wikimedia.org/wiki/Special:FilePath/Pets_at_home_-_Forster_Square_Retail_Park_-_geograph.org.uk_-_1156676.jpg> .
+@prefix prov:	<http://www.w3.org/ns/prov#> .
+dbr:Pet_store	prov:wasDerivedFrom	<http://en.wikipedia.org/wiki/Pet_store?oldid=1311490527&ns=0> .
+@prefix gold:	<http://purl.org/linguistics/gold/> .
+dbr:Pet_store	gold:hypernym	dbr:Business ;
+	foaf:isPrimaryTopicOf	wikipedia-en:Pet_store ;
+	dbo:thumbnail	<http://commons.wikimedia.org/wiki/Special:FilePath/Pets_at_home_-_Forster_Square_Retail_Park_-_geograph.org.uk_-_1156676.jpg?width=300> ;
+	dbo:wikiPageWikiLink	dbc:Dog_shows_and_showing ,
+		dbr:Cat_food ,
+		dbc:Animal_hair ,
+		dbr:Cat ,
+		dbc:Retailers_by_type_of_merchandise_sold ,
+		dbr:Dog_grooming ,
+		dbr:Animal_shelter ,
+		dbr:Duisburg ,
+		dbr:Puppy ,
+		dbr:Animal_breeding ,
+		dbc:Pet_foods ,
+		dbr:PetSmart ,
+		dbr:Leroy_Milton_Grider ,
+		dbr:Retail ,
+		dbr:Millennials ,
+		dbc:Articles_containing_video_clips ,
+		dbr:Atlanta ,
+		dbc:Dog_equipment ,
+		dbr:Animal ,
+		dbr:Pet ,
+		dbr:Puppy_mill ,
+		<http://dbpedia.org/resource/File:Henry_Wersell\u0027s_Pet_Store,_Toledo,_Ohio_-_DPLA_-_288eb6fb1efc95e70966f6ebaa09458e_(page_1).jpg> ,
+		<http://dbpedia.org/resource/File:Pets_at_home_-_Forster_Square_Retail_Park_-_geograph.org.uk_-_1156676.jpg> ,
+		dbc:Cats_as_pets ,
+		dbc:Dog_nutrition ,
+		dbr:Zoo ,
+		dbr:California ,
+		dbr:Kitten ,
+		dbr:Dog_food ,
+		dbr:Pets_at_Home ,
+		dbc:Animal_welfare ,
+		dbc:Pet_stores ;
+	dbo:description	"\u00E9tablissement qui vend des animaux de compagnie, de la nourriture pour animaux de compagnie ou de l'\u00E9quipement connexe"@fr ,
+		"attivit\u00E0 commerciale"@it ,
+		"nigozziu ca vinni armali vivi"@scn ,
+		"establishment that sells pets, pet food, or related equipment"@en ,
+		"plac\u00F3wka handlowa"@pl ,
+		"Verkaufsgesch\u00E4ft von Haustieren und Zubeh\u00F6r"@de ,
+		"winkel die dieren, dierenvoer of dierentoebehoren verkoopt"@nl ,
+		"prodejna se zv\u00ED\u0159aty a pot\u0159ebami pro jejich chov"@cs ,
+		"lokal za prodajo hi\u0161nih ljubljen\u010Dkov ter hrane in opreme za hi\u0161ne ljubljen\u010Dke"@sl ,
+		"tienda donde se venden mascotas, comida de mascotas o similares"@es ,
+		"estabelecimento que vende animais de estima\u00E7\u00E3o, alimentos para animais de estima\u00E7\u00E3o ou equipamentos relacionados"@pt ,
+		"Establiment on es venen mascotes, menjar per mascotes o similars"@ca .
+@prefix dbt:	<http://dbpedia.org/resource/Template:> .
+dbr:Pet_store	dbp:wikiPageUsesTemplate	dbt:Pet_stores ,
+		dbt:Reflist ,
+		dbt:BRLConvert ,
+		dbt:As_of ,
+		dbt:Authority_control ,
+		dbt:Circa ,
+		dbt:Wiktionary ,
+		dbt:Retail ,
+		dbt:Short_description .
+dbr:Dog_bakery	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:CPP_Investment_Board	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Microchip_implant_(animal)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:The_Dirk_Diggler_Story	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Cora_(hypermarket)>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:My_Pet_Warehouse	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/John_Aston_Jr.>	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Mouseheart	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Kemono_Michi	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Dog_food	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Jack_Hermansson	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Ruxley	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Bark_Mitzvah	dbo:wikiPageWikiLink	dbr:Pet_store .
+dbr:Okojo-san	dbo:wikiPageWikiLink	dbr:Pet_store .
+<http://dbpedia.org/resource/Mud_Bay_(store)>	dbo:industry	dbr:Pet_store ;
+	dbp:industry	dbr:Pet_store ;
+	dbo:wikiPageWikiLink	dbr:Pet_store .

@@ -48,6 +48,10 @@ jobs:
           for f in $(find . -path '*/node_modules' -prune -o -name '*.mjs' -print); do
             node --check "$f" || exit 1
           done
+      # Causeway silently discards a *.layout.xml that breaks its structural rules (the page then
+      # falls back to the span-4 default grid, with only a buried boot-log ERROR as evidence).
+      - name: Layout XML structure (unreferencedCollections marker, properties inside fieldSets)
+        run: bash scripts/check-layout-xml.sh
       - name: Run unit tests (domain + adapter)
         run: mvn -B -q test -pl domox-domain -am
 
@@ -91,10 +95,10 @@ jobs:
 
       # CoreNLP-free subset of the *IntegTest classes. ValidateDomainModelIntegTest is the
       # metamodel-veto guardrail (boot-time DomainModelValidator); ReviewMcpToolsIntegTest,
-      # DeleteCorpusIntegTest, Smoke_IntegTest and CorpusOntologyDiagramIntegTest need only Postgres.
-      # CorpusCandidateDedupIntegTest is intentionally NOT here: it calls the real Stanford CoreNLP
-      # service (docker domox-nlp-1, localhost:8999) and needs a fresh DB — run it locally with that
-      # container up.
+      # DeleteCorpusIntegTest, Smoke_IntegTest, CorpusOntologyDiagramIntegTest and
+      # OntologyDiagramIntegTest need only Postgres. CorpusCandidateDedupIntegTest is intentionally
+      # NOT here: it calls the real Stanford CoreNLP service (docker domox-nlp-1, localhost:8999)
+      # and needs a fresh DB — run it locally with that container up.
       # surefire.failIfNoSpecifiedTests=false keeps the upstream modules (no matching test
       # classes) from failing the build.
       # run must be a LITERAL block scalar (`|`), NOT a plain scalar with `\` continuations:
@@ -105,5 +109,5 @@ jobs:
       - name: Run webapp integration tests (CoreNLP-free)
         run: |
           mvn -B test -pl domox-webapp -am \
-            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest,HexagonalPortWiringIntegTest,CorpusOntologyDiagramIntegTest,StaleComponentRecoveryListenerTest,StaleComponentRecoveryEndToEndTest \
+            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest,HexagonalPortWiringIntegTest,CorpusOntologyDiagramIntegTest,OntologyDiagramIntegTest,StaleComponentRecoveryListenerTest,StaleComponentRecoveryEndToEndTest \
             -Dsurefire.failIfNoSpecifiedTests=false

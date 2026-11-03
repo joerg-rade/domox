@@ -12,6 +12,7 @@ import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.service.DomainModels;
 import domox.dom.nlp.Sentence;
 import domox.dom.rdf.RdfGraphDiagrams;
+import domox.dom.rdf.RdfProperties;
 import domox.dom.rules.RuleMatches;
 import domox.dom.rules.CandidateResolver;
 import domox.dom.rules.TypedDependencyRule;
@@ -19,6 +20,8 @@ import domox.port.DocumentTO;
 import domox.port.NlpPort;
 import domox.port.RdfGraphTO;
 import domox.port.RdfPort;
+import domox.port.RdfRemoteOptions;
+import domox.port.RdfTripleTO;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
@@ -31,10 +34,13 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Named(DomainModule.NAMESPACE + ".Corpora")
@@ -60,6 +66,7 @@ public class Corpora {
     private final NlpPort nlpPort;
     private final RdfPort rdfPort;
     private final RdfGraphDiagrams rdfGraphDiagrams;
+    private final RdfProperties rdfProperties;
 
     @Inject
     public Corpora(RepositoryService repositoryService,
@@ -72,7 +79,8 @@ public class Corpora {
                    CandidateResolver candidateResolver,
                    NlpPort nlpPort,
                    RdfPort rdfPort,
-                   RdfGraphDiagrams rdfGraphDiagrams) {
+                   RdfGraphDiagrams rdfGraphDiagrams,
+                   RdfProperties rdfProperties) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatches = ruleMatches;
@@ -84,6 +92,7 @@ public class Corpora {
         this.nlpPort = nlpPort;
         this.rdfPort = rdfPort;
         this.rdfGraphDiagrams = rdfGraphDiagrams;
+        this.rdfProperties = rdfProperties;
     }
 
     @ActionLayout(sequence = "1")
@@ -173,43 +182,54 @@ public class Corpora {
     // RDF/OWL ontology → D3 graph
     // ======================================================================
 
-    /** Classpath location of the bundled sample ontology (in {@code domox-domain}'s resources). */
-    static final String ONTOLOGY_RESOURCE = "petshop-ontology.ttl";
+    /* Classpath location of the bundled sample ontology (in {@code domox-domain}'s resources). */
+    /**
+     * Default local graph source: the bundled DBpedia export shipped in {@code domox-domain}'s
+     * resources.  Overridable per deployment with {@code domox.rdf.local-resource} (a classpath
+     * resource name or a filesystem path) — see {@link #localResource()}.
+     */
+    static final String DEFAULT_ONTOLOGY_RESOURCE = "PetStore-ontology.ttl";
 
     /** CONSTRUCT returning every statement — the "no filter" case (blank search term). */
     private static final String ALL_TRIPLES_QUERY = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }";
 
     /**
-     * Searches the bundled RDF/OWL ontology for {@code searchTerm} and renders the matching
+     * Searches the bundled RDF/OWL ontology for {@code searchTerm} and opens the matching
      * neighbourhood as an interactive D3 graph.
      *
-     * <p>Two SPARQL queries are issued through {@link RdfPort}: a {@code SELECT} that finds the
-     * <i>focus</i> resources — IRIs whose own IRI or {@code rdfs:label} contains the term,
-     * case-insensitively — and a {@code CONSTRUCT} that returns those resources' own triples plus
-     * every triple pointing at them.  That one hop of context means the D3 graph shows structure
-     * rather than isolated nodes.</p>
+     * <p>Returns an {@link OntologyDiagram} view model rather than the raw JSON: {@code @D3Graph}
+     * is a property facet, so an action returning a plain {@code String} is displayed as text
+     * instead of being drawn as a graph.</p>
      *
      * @param searchTerm text to look for; blank renders the whole ontology
-     * @return D3 graph JSON ({@code {nodes,links,legend}}) as consumed by the client renderer
      */
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(
             named = "Search Ontology (D3)",
             describedAs = "Search the bundled RDF/OWL ontology and render the matches as an interactive D3 graph",
             sequence = "5")
-    public String searchOntologyAsD3Graph(final String searchTerm) {
-        final List<String> focus = focusIris(searchTerm);
-        final String sparql;
-        if (isBlank(searchTerm)) {
-            sparql = ALL_TRIPLES_QUERY;
-        } else if (focus.isEmpty()) {
-            // no match: render an empty (but well-formed) graph rather than dumping the whole ontology
-            return rdfGraphDiagrams.renderDiagram(new RdfGraphTO(List.of(), Map.of()));
-        } else {
-            sparql = neighbourhoodQuery(focus);
+    public OntologyDiagram searchOntologyAsD3Graph(final String searchTerm) {
+        return ontologyDiagram(searchTerm);
+    }
+
+    /**
+     * Builds the view model for {@code searchTerm}, reporting a query failure on the model rather
+     * than throwing (a failing endpoint must not surface as a raw 500/stack trace).
+     * <p>
+     * Also used by {@link OntologyDiagram#getDiagram()} when the graph has to be re-derived — e.g.
+     * after an in-place edit or on reload of a bookmarked view model — so the reason survives too.
+     */
+    @Programmatic
+    public OntologyDiagram ontologyDiagram(final String searchTerm) {
+        final OntologyDiagram viewModel = OntologyDiagram.of(searchTerm);
+        try {
+            viewModel.render(ontologyGraphJson(searchTerm));
+        } catch (final RuntimeException ex) {
+            final String reason = rootMessage(ex);
+            log.warn("Ontology search for '{}' failed against {}: {}", searchTerm, sourceDescription(), reason);
+            viewModel.fail("Could not query " + sourceDescription() + ": " + reason);
         }
-        final RdfGraphTO graph = rdfPort.construct(ONTOLOGY_RESOURCE, sparql);
-        return rdfGraphDiagrams.renderDiagram(graph);
+        return viewModel;
     }
 
     /**
@@ -221,33 +241,98 @@ public class Corpora {
      */
     @Programmatic
     public String ontologyAsD3Graph() {
-        return searchOntologyAsD3Graph("");
+        return ontologyAsD3Graph("");
     }
 
     /**
-     * Runs the focus {@code SELECT}: the IRIs whose own IRI or {@code rdfs:label} contains
-     * {@code searchTerm}.
+     * The D3 graph JSON for {@code searchTerm} — the actual SPARQL work behind
+     * {@link #searchOntologyAsD3Graph(String)} and {@link OntologyDiagram#getDiagram()}.
+     *
+     * <p>Two SPARQL queries are issued through {@link RdfPort}: a {@code SELECT} that finds the
+     * <i>focus</i> resources — IRIs whose own IRI or {@code rdfs:label} contains the term,
+     * case-insensitively — and a {@code CONSTRUCT} that returns those resources' own triples plus
+     * every triple pointing at them.  That one hop of context means the D3 graph shows structure
+     * rather than isolated nodes.</p>
+     *
+     * @param searchTerm text to look for; blank renders the whole ontology
+     * @return D3 graph JSON ({@code {nodes,links,legend}}) as consumed by the client renderer
+     */
+    @Programmatic
+    public String ontologyAsD3Graph(final String searchTerm) {
+        try {
+            return ontologyGraphJson(searchTerm);
+        } catch (final RuntimeException ex) {
+            // Never throw from a derived property: log and render an empty graph instead.
+            log.warn("Ontology diagram for '{}' could not be built from {}: {}",
+                    searchTerm, sourceDescription(), rootMessage(ex));
+            return rdfGraphDiagrams.renderDiagram(new RdfGraphTO(List.of(), Map.of()));
+        }
+    }
+
+    /**
+     * The graph JSON, <em>throwing</em> if the source cannot be queried — so
+     * {@link #searchOntologyAsD3Graph(String)} can report the reason instead of showing a bare
+     * stack trace.
+     */
+    private String ontologyGraphJson(final String searchTerm) {
+        final List<String> focus = focusIris(searchTerm);
+        final RdfGraphTO graph;
+        if (isBlank(searchTerm)) {
+            graph = fetchGraph(ALL_TRIPLES_QUERY, allTriplesSelectQuery());
+        } else if (focus.isEmpty()) {
+            // no match: render an empty (but well-formed) graph rather than dumping the whole ontology
+            return rdfGraphDiagrams.renderDiagram(new RdfGraphTO(List.of(), Map.of()));
+        } else {
+            graph = fetchGraph(neighbourhoodQuery(focus), neighbourhoodSelectQuery(focus));
+        }
+        return rdfGraphDiagrams.renderDiagram(graph);
+    }
+
+    /**
+     * Fetches one of the two graph shapes: the local {@code CONSTRUCT} against the bundled ontology,
+     * or — when {@link RdfProperties#isRemote() an endpoint is configured} — the equivalent
+     * {@code SELECT} issued through {@link RdfPort#selectRemote}.
+     *
+     * @param localConstruct the {@code CONSTRUCT} used in local mode
+     * @param remoteSelect   the {@code SELECT} used in remote mode
+     */
+    private RdfGraphTO fetchGraph(final String localConstruct, final String remoteSelect) {
+        return isRemote()
+                ? triplesFromRemote(rdfProperties.getEndpointUrl(), remoteSelect)
+                : rdfPort.construct(localResource(), localConstruct);
+    }
+
+    /** Whether the graph is sourced from a configured SPARQL endpoint rather than the fixture. */
+    private boolean isRemote() {
+        return rdfProperties.isRemote();
+    }
+
+    /**
+     * Resolves the search term to the IRIs it names.
+     *
+     * <p>Two passes: the <b>exact</b> query first ({@link #focusQuery}), and only if that finds
+     * nothing the <b>word-boundary</b> query ({@link #wordMatchQuery}).  Exact-first keeps
+     * {@code Pet} from dragging in {@code Petit}; the fallback keeps a partial phrase such as
+     * {@code Golden Retriever} usable.</p>
      *
      * <p>{@code isIRI} keeps literals out — a literal cannot be written as a subject in the
-     * follow-up {@code CONSTRUCT}'s {@code VALUES} clause — and blank nodes ({@code _:x}, which
-     * likewise cannot be written as {@code <...>}) are dropped here.</p>
+     * follow-up query's {@code VALUES} clause — and blank nodes ({@code _:x}, which likewise cannot
+     * be written as {@code <...>}) are dropped here.</p>
      */
     private List<String> focusIris(final String searchTerm) {
         if (isBlank(searchTerm)) {
             return List.of();
         }
-        final String literal = escapeSparqlString(searchTerm.trim());
-        final String sparql = """
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                SELECT DISTINCT ?focus WHERE {
-                  { ?focus ?p ?o . FILTER(isIRI(?focus) && REGEX(STR(?focus), "%s", "i")) }
-                  UNION
-                  { ?s ?p ?focus . FILTER(isIRI(?focus) && REGEX(STR(?focus), "%s", "i")) }
-                  UNION
-                  { ?focus rdfs:label ?l . FILTER(isIRI(?focus) && REGEX(STR(?l), "%s", "i")) }
-                }
-                """.formatted(literal, literal, literal);
-        return rdfPort.select(ONTOLOGY_RESOURCE, sparql).stream()
+        final String language = rdfProperties.getLabelLanguage();
+        final List<String> exact = runFocusQuery(focusQuery(searchTerm, language));
+        return exact.isEmpty()
+                ? runFocusQuery(wordMatchQuery(searchTerm, language))
+                : exact;
+    }
+
+    /** Runs one focus query and reduces it to the distinct, usable focus IRIs. */
+    private List<String> runFocusQuery(final String sparql) {
+        return runSelect(sparql + limitClause()).stream()
                 .map(row -> row.get("focus"))
                 .filter(Objects::nonNull)
                 .filter(iri -> !iri.startsWith("_:"))
@@ -255,23 +340,206 @@ public class Corpora {
                 .toList();
     }
 
+    /** @see #focusQuery(String, String) */
+    public static String focusQuery(final String searchTerm) {
+        return focusQuery(searchTerm, "");
+    }
+
+    /**
+     * The focus {@code SELECT}: the resources the search term <b>names</b>.
+     *
+     * <p><b>Exact, not substring.</b>  The term is compared for <em>equality</em>
+     * (case-insensitively) against either the IRI's local name
+     * ({@code REPLACE(STR(?focus), "^.*[/#]", "")}) or a label — {@code rdfs:label} <em>or</em>
+     * {@code skos:prefLabel}.  A substring {@code REGEX} — the previous behaviour — made a search
+     * for {@code Pet} also return {@code Petit}, {@code PetShow}, {@code competition}, … : noise
+     * that buries the very concept being asked for.  With equality, {@code Pet} resolves to
+     * {@code ps:Pet} (local name {@code Pet}, label {@code "Pet"}) and nothing else, so the rendered
+     * neighbourhood is the concept's own relations — its {@code rdfs:subClassOf} targets
+     * ({@code Pet → Animal}) and everything pointing at it ({@code Owner —owns→ Pet}).</p>
+     *
+     * <p>The three branches cover: the resource as a <em>subject</em>, the resource as an
+     * <em>object</em> (so vocabulary IRIs such as {@code owl:Class} stay reachable), and
+     * <em>label-only</em> matches.</p>
+     *
+     * <p>Public so the adapter module can exercise the real semantics against Jena
+     * (see {@code JenaRdfAdapterTest}); it is a pure function and static, so Causeway does not
+     * treat it as a metamodel member.</p>
+     *
+     * @param searchTerm    the concept name to resolve, e.g. {@code "Pet"}
+     * @param labelLanguage when non-blank, labels must carry that language tag (or be untagged);
+     *                      blank accepts any label
+     */
+    public static String focusQuery(final String searchTerm, final String labelLanguage) {
+        return focusQuery("=", escapeSparqlString(
+                searchTerm == null ? "" : searchTerm.trim().toLowerCase(Locale.ROOT)), labelLanguage);
+    }
+
+    /**
+     * The <b>fallback</b> focus {@code SELECT}, used only when {@link #focusQuery} finds nothing:
+     * the same match, but on <b>word boundaries</b> instead of equality.
+     *
+     * <p>{@code Golden Retriever} then finds the label {@code "Buddy the Golden Retriever"}, while
+     * {@code Pet} still does <em>not</em> drag in {@code Petit} — there is no word boundary between
+     * "pet" and "it".  The term is wrapped in {@code \Q…\E} so any regex metacharacters in it are
+     * matched literally.</p>
+     *
+     * @see #focusQuery(String, String)
+     */
+    public static String wordMatchQuery(final String searchTerm, final String labelLanguage) {
+        final String term = searchTerm == null ? "" : searchTerm.trim().toLowerCase(Locale.ROOT);
+        final String regex = "(^|\\W)" + Pattern.quote(term) + "(\\W|$)";
+        return focusQuery("REGEX", escapeSparqlString(regex), labelLanguage);
+    }
+
+    /**
+     * Shared body of {@link #focusQuery} and {@link #wordMatchQuery}.
+     *
+     * @param comparison {@code "="} for equality, {@code "REGEX"} for the word-boundary fallback
+     * @param value      already lower-cased and SPARQL-escaped (an equality value or a regex)
+     */
+    private static String focusQuery(
+            final String comparison, final String value, final String labelLanguage) {
+        // NB: equality is INFIX in SPARQL ("expr = value"); only REGEX is a call — "=(expr, value)"
+        // is not valid SPARQL and makes the whole query fail to parse.
+        final String localName = comparisonExpr(
+                comparison, "LCASE(REPLACE(STR(?focus), \"^.*[/#]\", \"\"))", value);
+        final String label = comparisonExpr(comparison, "LCASE(STR(?l))", value);
+        final String language = labelLanguage == null ? "" : labelLanguage.trim();
+        final String langFilter = language.isEmpty()
+                ? ""
+                : " && (LANG(?l) = \"%s\" || LANG(?l) = \"\")".formatted(escapeSparqlString(language));
+        return """
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+                SELECT DISTINCT ?focus WHERE {
+                  { ?focus ?p ?o . FILTER(isIRI(?focus) && %1$s) }
+                  UNION
+                  { ?focus ?labelPred ?l .
+                    FILTER( (?labelPred = rdfs:label || ?labelPred = skos:prefLabel)
+                            && isIRI(?focus) && %2$s%3$s ) }
+                  UNION
+                  { ?s ?p ?focus . FILTER(isIRI(?focus) && %1$s) }
+                }
+                """.formatted(localName, label, langFilter);
+    }
+
+    /** {@code lhs = "value"} for equality, {@code REGEX(lhs, "value")} for the word-boundary match. */
+    private static String comparisonExpr(
+            final String comparison, final String lhs, final String value) {
+        return "=".equals(comparison)
+                ? lhs + " = \"" + value + "\""
+                : "REGEX(" + lhs + ", \"" + value + "\")";
+    }
+
+    /** Runs a {@code SELECT} against the configured endpoint, or against the bundled ontology. */
+    private List<Map<String, String>> runSelect(final String sparql) {
+        return isRemote()
+                ? rdfPort.selectRemote(rdfProperties.getEndpointUrl(), sparql, remoteOptions())
+                : rdfPort.select(localResource(), sparql);
+    }
+
+    /** Per-call remote options: the configured timeout and {@code User-Agent}. */
+    private RdfRemoteOptions remoteOptions() {
+        return new RdfRemoteOptions(
+                Duration.ofSeconds(Math.max(1, rdfProperties.getQueryTimeoutSeconds())),
+                rdfProperties.getUserAgent());
+    }
+
+    /**
+     * Where the local (non-endpoint) graph is read from: the configured
+     * {@link RdfProperties#getLocalResource() local-resource} — a classpath resource name or a
+     * filesystem path — or the bundled default when that is blank.
+     */
+    private String localResource() {
+        final String configured = rdfProperties.getLocalResource();
+        return configured == null || configured.isBlank()
+                ? DEFAULT_ONTOLOGY_RESOURCE
+                : configured.trim();
+    }
+
+    /** What the graph is being read from — for log messages. */
+    private String sourceDescription() {
+        return isRemote() ? rdfProperties.getEndpointUrl() : localResource();
+    }
+
+    /** The deepest message of a failure, for a user-facing note. */
+    private static String rootMessage(final Throwable ex) {
+        Throwable cause = ex;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        final String message = cause.getMessage();
+        return message != null && !message.isBlank() ? message : cause.getClass().getSimpleName();
+    }
+
+    /** {@code LIMIT} clause for remote queries only — the bundled fixture is tiny. */
+    private String limitClause() {
+        return isRemote() ? "\nLIMIT " + Math.max(1, rdfProperties.getQueryLimit()) : "";
+    }
+
+    /** {@code SELECT} form of {@link #ALL_TRIPLES_QUERY}, for a remote endpoint. */
+    private String allTriplesSelectQuery() {
+        return "SELECT ?s ?p ?o (isLiteral(?o) AS ?lit)\nWHERE { ?s ?p ?o }" + limitClause();
+    }
+
+    /** {@code SELECT} form of {@link #neighbourhoodQuery}, for a remote endpoint. */
+    private String neighbourhoodSelectQuery(final List<String> focusIris) {
+        return "SELECT ?s ?p ?o (isLiteral(?o) AS ?lit)\nWHERE {\n"
+                + neighbourhoodPattern(focusIris) + "\n}" + limitClause();
+    }
+
+    /**
+     * Builds a graph from a remote {@code SELECT ?s ?p ?o (isLiteral(?o) AS ?lit)}.
+     *
+     * <p><b>Why a {@code SELECT} rather than a {@code CONSTRUCT}.</b>  {@link RdfPort#construct}
+     * reads a <em>local</em> graph while {@link RdfPort#selectRemote} is the endpoint API, so the
+     * remote path asks for the triples as rows and rebuilds {@link RdfTripleTO}s from them.  The
+     * {@code isLiteral(?o)} projection carries the resource/literal distinction that a bare
+     * {@code ?o} binding would lose — {@code selectRemote} flattens every binding to its lexical
+     * form.</p>
+     */
+    private RdfGraphTO triplesFromRemote(final String endpointUrl, final String sparql) {
+        final List<RdfTripleTO> triples = new ArrayList<>();
+        for (final Map<String, String> row : rdfPort.selectRemote(endpointUrl, sparql, remoteOptions())) {
+            final String subject = row.get("s");
+            final String predicate = row.get("p");
+            final String objectValue = row.get("o");
+            if (subject == null || predicate == null || objectValue == null) {
+                continue;
+            }
+            triples.add(new RdfTripleTO(subject, predicate, objectValue, "true".equals(row.get("lit"))));
+        }
+        return new RdfGraphTO(triples, Map.of());
+    }
+
     /**
      * Builds the {@code CONSTRUCT} that returns the focus resources' own triples plus every triple
-     * pointing at them — one hop of context around each match.
+     * pointing at them — one hop of context around each match (local mode).
      */
     static String neighbourhoodQuery(final List<String> focusIris) {
+        return "CONSTRUCT { ?s ?p ?o }\nWHERE {\n" + neighbourhoodPattern(focusIris) + "\n}";
+    }
+
+    /**
+     * The one-hop pattern shared by {@link #neighbourhoodQuery} and
+     * {@link #neighbourhoodSelectQuery}: the focus resources' own triples plus every triple pointing
+     * at them.
+     *
+     * <p><b>The {@code VALUES} clause must sit INSIDE each {@code UNION} branch.</b>  Written once
+     * in front of the union it does not constrain the branch patterns: SPARQL evaluates
+     * {@code Join(VALUES, Union(A,B))} by evaluating the union <em>independently</em>, so
+     * {@code ?focus} is unbound inside the branches — they then match <em>every</em> triple, and the
+     * join does not filter them out (an unbound variable is compatible with any binding).  That bug
+     * made every search return the whole ontology; the regression is pinned by
+     * {@code JenaRdfAdapterTest."search restricts the graph to the matching neighbourhood"}.</p>
+     */
+    private static String neighbourhoodPattern(final List<String> focusIris) {
         final String values = focusIris.stream()
                 .map(iri -> "<" + iri + ">")
                 .collect(Collectors.joining(" "));
-        return """
-                CONSTRUCT { ?s ?p ?o }
-                WHERE {
-                  VALUES ?focus { %s }
-                  { BIND(?focus AS ?s) ?s ?p ?o }
-                  UNION
-                  { ?s ?p ?focus . BIND(?focus AS ?o) }
-                }
-                """.formatted(values);
+        return "{ VALUES ?s { %1$s } ?s ?p ?o }\nUNION\n{ VALUES ?o { %1$s } ?s ?p ?o }"
+                .formatted(values);
     }
 
     /** Escapes a value for use inside a double-quoted SPARQL string literal. */

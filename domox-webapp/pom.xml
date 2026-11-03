@@ -300,6 +300,14 @@
             <artifactId>archunit-junit5-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- The ENGINE is what actually discovers and runs the @ArchTest fields.  With only the API
+             on the classpath surefire reports "Tests run: 0" for ArchitectureTests and EVERY
+             architecture rule in the repo is silently inert (no failure, no warning). -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- Non-test scoped test only dependencies found -->
         <dependency>
             <groupId>com.google.guava</groupId>

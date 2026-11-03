@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bs:grid
+        xmlns:bs="https://causeway.apache.org/applib/layout/grid/bootstrap3"
+        xmlns:cpt="https://causeway.apache.org/applib/layout/component">
+
+    <!-- Top Header & Unassigned Actions -->
+    <bs:row>
+        <bs:col span="12" unreferencedActions="true">
+            <cpt:domainObject/>
+        </bs:col>
+    </bs:row>
+
+    <!-- General properties -->
+    <bs:row>
+        <bs:col span="12">
+            <cpt:fieldSet name="General" id="general" unreferencedProperties="true">
+                <cpt:property id="title"/>
+                <cpt:property id="analyzedAt"/>
+            </cpt:fieldSet>
+        </bs:col>
+    </bs:row>
+
+    <!-- Documents -->
+    <bs:row>
+        <bs:col span="12" unreferencedCollections="true">
+            <cpt:collection id="documents"/>
+        </bs:col>
+    </bs:row>
+
+    <!-- The ontology graph spans ALL 12 columns: a force-directed layout is only readable when
+         the panel is given the full width of the page (the SVG is width:100% of its container). -->
+    <bs:row>
+        <bs:col span="12">
+            <cpt:fieldSet name="Ontology Diagram" id="content">
+                <cpt:property id="ontologyDiagram"/>
+            </cpt:fieldSet>
+        </bs:col>
+    </bs:row>
+</bs:grid>

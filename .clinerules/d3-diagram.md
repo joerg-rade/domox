@@ -1,6 +1,9 @@
 ### D3 domain-model diagrams (force-layout graph)
 
 **Design doc** → `docs/scratch_pad/D3_DIAGRAM.md`
+**Causeway facts** (how `@D3Graph` is honoured, layout XML, view models) → `.clinerules/memory-bank/technical/CAUSEWAY-LAYOUT.md`
+**Check** → `ArchitectureTests.D3Graph_is_only_placed_on_property_getters` (`domox-webapp`) enforces that
+`@D3Graph` sits on a **property getter** — on an action it is a silent no-op.
 
 | Layer | File | Role |
 |---|---|---|---|

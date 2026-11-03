@@ -11,7 +11,7 @@ import java.util.Map;
  * The domain must never see Jena types: the port speaks in {@link RdfGraphTO} /
  * {@link RdfTripleTO} / {@link RdfFormat} only.</p>
  *
- * <p><b>Sources.</b> {@code location} is a classpath resource ({@code classpath:petshop-ontology.ttl})
+ * <p><b>Sources.</b> {@code location} is a classpath resource ({@code classpath:PetStore-ontology.ttl})
  * or a file path; the RDF syntax is taken from the extension ({@code .ttl}, {@code .owl},
  * {@code .rdf}, {@code .nt}, {@code .jsonld}).  Remote graphs are addressed by SPARQL endpoint URL.</p>
  *
@@ -45,6 +45,13 @@ public interface RdfPort {
      * Runs a SPARQL {@code SELECT} against a remote SPARQL endpoint (e.g. DBpedia, Wikidata).
      */
     List<Map<String, String>> selectRemote(String endpointUrl, String sparql);
+
+    /**
+     * As {@link #selectRemote(String, String)}, with a per-call timeout and {@code User-Agent}.
+     *
+     * @param options timeout / user agent; see {@link RdfRemoteOptions#DEFAULTS}
+     */
+    List<Map<String, String>> selectRemote(String endpointUrl, String sparql, RdfRemoteOptions options);
 
     /**
      * Serializes the graph at {@code location} in the requested syntax.

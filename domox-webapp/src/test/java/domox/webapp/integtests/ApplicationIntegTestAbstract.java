@@ -18,7 +18,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
     },
     properties = {
             // "logging.level.io.cucumber.core.runner.Runner=DEBUG",
-            "causeway.persistence.jpa.auto-create-schemas=simple"
+            "causeway.persistence.jpa.auto-create-schemas=simple",
+            // Integration tests must never depend on the internet: whatever `domox.rdf.endpoint-url`
+            // is configured for the running app (e.g. a public SPARQL endpoint), pin the RDF graph
+            // source back to the bundled classpath ontology so the assertions stay deterministic.
+            "domox.rdf.endpoint-url="
     }
 )
 @TestPropertySource(properties = "eclipselink.ddl-generation.output-mode=database")

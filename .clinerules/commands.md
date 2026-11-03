@@ -29,17 +29,21 @@ Cline rules directory, loaded for every project.
   drift check) → `.clinerules/memory-bank/technical/SCHEMA.md`
 - **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`
 - **Domain-modeling (CRC) extraction rules** → `.clinerules/crc_domain_modeling_guide.md` (full guide: `docs/domain-modeling/crc-guide.md`)
-- **Run the app & confirm boot** → EclipseLink resolves `create-ddl-jdbc-file-name`
-  (`domox-webapp/create-tables.sql`) relative to the CWD, so the app MUST start with the REPO
-  ROOT as the working directory. From a bare shell pass
-  `-Dspring-boot.run.workingDirectory=/home/jrade/projects/domox` (the IDE "DoMoX" run config
-  already starts there); starting from the module dir dies at startup with EclipseLink-7018
-  FileNotFound. Recipe (teed log so failures are debuggable):
-  `nohup mvn -pl domox-webapp spring-boot:run -Dspring-boot.run.workingDirectory=/home/jrade/projects/domox > /tmp/domox-boot.log 2>&1 &`,
-  then `tail -f /tmp/domox-boot.log`.  Liveness:
-  `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/`
-  (expect 200); MCP endpoint: `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:8080/mcp`
-  (expect 200; 404 = the `spring.ai.mcp.server.protocol` key issue, see `mcp-review-pipeline.md`).
+- **Run the app & confirm boot** → use `bash scripts/run-app.sh [--spring.args…]`. It does the three
+  things that are easy to get wrong, in order: (1) `install`s `domox-domain`/`domox-adapter` into
+  `~/.m2` first, (2) starts `spring-boot:run` with the **REPO ROOT** as the working directory
+  (EclipseLink resolves `create-ddl-jdbc-file-name` = `domox-webapp/create-tables.sql` relative to the
+  CWD; the wrong CWD dies at startup with EclipseLink-7018 FileNotFound), (3) starts it **detached**
+  (`setsid`, so it survives the shell that launched it) and tees to `/tmp/domox-boot.log`. It prints the
+  PID and log path and returns immediately — then `tail -f /tmp/domox-boot.log` (expect
+  `Validation PASSED` then `Started Application`). Liveness:
+  `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/` (expect 200); MCP endpoint:
+  `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:8080/mcp` (expect 200; 404 = the
+  `spring.ai.mcp.server.protocol` key issue, see `mcp-review-pipeline.md`).
+- **Stop the app** → `bash scripts/stop-app.sh [port…]` (default 8080). It resolves the PID by port.
+  **Never `pkill -f <pattern>`**: the pattern also matches the shell running the `pkill` — its own
+  command line contains it — so it SIGTERMs the caller and the output is lost (happened twice).
+
 - **Port / DB ownership caveat** → a dev instance may already own 8080: check
   `curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/` and
   `docker ps --format '{{.Names}} {{.Status}}'`. NEVER boot a second instance against the same
@@ -50,7 +54,10 @@ Cline rules directory, loaded for every project.
 - **Rebuilding upstream modules before a boot** → `mvn -pl domox-webapp spring-boot:run` resolves
   `domox-domain` / `domox-adapter` from the local repository (`~/.m2`), NOT from the reactor. After
   changing either, run `mvn -pl domox-domain,domox-adapter install -DskipTests` first — otherwise the
-  boot dies with `NoClassDefFoundError` for a class that compiles fine (e.g. after a package move).
+  boot dies with `NoClassDefFoundError` / `AbstractMethodError` for a class that compiles fine.
+  `scripts/run-app.sh` does this for you. **Do not batch the `install` and the `run` in one shell call**
+  — they execute concurrently and the app starts against a half-written jar, which then looks like
+  "my change had no effect".
 - **Version skew (Boot / Spring / micrometer)** → this pom overrides `spring-boot.version`, which the
   parent chain (`causeway-app-starter-parent` → `causeway-bom`) also pins. Drift mixes releases on the
   classpath and fails at **startup**, not at build time (e.g. `MetricsAutoConfiguration … NoSuchMethodError`).
@@ -58,8 +65,22 @@ Cline rules directory, loaded for every project.
   properties, then rebuild.
 - **Inspecting the running app** → Wicket pages need a session and the sign-in form is an Ajax form
   that curl cannot drive. Use the RestfulObjects API with basic auth instead (users in `shiro.ini`,
-  e.g. `sven:pass`): `curl -s -u sven:pass 'http://localhost:8080/restful/objects/<objectType>/<id>/properties/<prop>'`.
+  e.g. `sven:pass`) — or better, `scripts/ro.py`:
+  `ro.py invoke <service> <action> [k=v…]` (e.g. `ro.py invoke domox.Corpora searchOntologyAsD3Graph searchTerm=Pet`,
+  then it dumps the returned object's members), `ro.py property <objectRef> <member>`,
+  `ro.py layout <objectRef>` (top-level columns with their span — the fastest way to see whether a
+  layout XML was actually applied), `ro.py members|object <objectRef>`. It reads `DOMOX_URL`
+  (default `http://localhost:8080`) and `DOMOX_USER`/`DOMOX_PASS`.
   For rendered HTML/CSS questions, prefer `scripts/verify-ui-render.sh` over reasoning about CSS.
+- **Causeway layouts / view models / `@D3Graph`** → `.clinerules/memory-bank/technical/CAUSEWAY-LAYOUT.md`
+  (verified facts: layout-XML resolution and the silent fallback grid, the `unreferenced*` markers,
+  `@D3Graph` being property-only, view-model mementos and `hideXxx()`, plus the jar-inspection recipes).
+- **Overriding a config value for a verification boot** → a **non-empty** `--key=value` works; an
+  **empty** one does NOT (`--domox.rdf.endpoint-url=` leaves the `application.yml` value in place —
+  verified for CLI args; a `@SpringBootTest(properties = "…=")` inlined empty value DOES override, which is how the webapp integration tests pin local mode). Set blank values in the YAML.
+  Related trap: `spring-boot:run` reads `target/classes/application.yml`, so after editing
+  `src/main/resources/application.yml` **without rebuilding**, the app silently uses the OLD value —
+  which can look like a config override working when it never did.
 - **`git` after a package move** → the new path is UNTRACKED, so `git diff <new path>` prints nothing
   while the old path shows as deleted. Use `git status --short`, or `git add -N <path>` to diff it.
 - **IDE (JetBrains) MCP tools** → always pass `projectPath=/home/jrade/projects/domox`, otherwise they

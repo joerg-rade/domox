@@ -82,3 +82,27 @@ String webjarUrl = resourceName.startsWith("/") ? resourceName : "/" + resourceN
       (part of `scripts/check.sh`) covers `spring-boot` / `spring-framework` / `spring-core` /
       `spring-jdbc` / `spring-data` against the Causeway parent chain. Skew fails at startup, silently
       at build time.
+- [ ] **A test that asserts a SUBSET also asserts a bound** — if a test asserts "the result
+      **contains** X" over a collection (a graph, a result set, a candidate list), it must also assert
+      an upper bound or the **absence** of a known-unrelated element. `contains` alone passes on an
+      unfiltered result: the D3 ontology search asserted `contains(Buddy)` while actually returning
+      the *whole* graph, so a broken SPARQL filter shipped and was only found by the user.
+- [ ] **A change to generated SPARQL (or any generated query/DSL string) is exercised against the
+      REAL engine** — not only against a mocked port. A mocked test asserts the string you wrote, so
+      it cannot catch an invalid one: an equality filter was emitted as `=(expr, "value")` (invalid —
+      SPARQL equality is infix), and all 16 mocked cases passed while every search returned nothing.
+      The real-engine tests live in the adapter module (`JenaRdfAdapterTest`).
+- [ ] **An integration test pins every config value that can point at an external service** —
+      URLs, endpoints, credentials. The test must pass with the developer's own `application.yml`.
+      Setting `domox.rdf.endpoint-url` to a public SPARQL endpoint silently turned two webapp
+      integration tests into live internet calls; `ApplicationIntegTestBase` now pins that key back
+      to the bundled fixture.
+- [ ] **A `*.layout.xml` keeps Causeway's structural rules** — `bash scripts/check-layout-xml.sh`
+      (also in `check.sh --quick` and CI). Causeway *discards* a grid that lacks an
+      `unreferencedCollections` marker or puts a `cpt:property` outside a `cpt:fieldSet`, and falls
+      back to a span-4 default layout with only a buried boot-log ERROR as evidence.
+- [ ] **A guardrail that can only warn is not a guardrail** — if a rule would fail on the first run
+      for reasons the codebase does not actually follow, narrow it or drop it (the `@Entity ⇒
+      @XmlJavaTypeAdapter` ArchUnit rule failed 14 times on the classes that legitimately omit it).
+      Conversely, a rule that never runs is worse than none: check that a new ArchUnit rule reports
+      `Tests run: n > 0`, and negative-test a new script before trusting it.
