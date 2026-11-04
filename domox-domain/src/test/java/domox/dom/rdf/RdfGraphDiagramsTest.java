@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -23,6 +24,13 @@ class RdfGraphDiagramsTest {
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
     private static final String RDFS_SUBCLASS_OF = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
     private static final String OWL_CLASS = "http://www.w3.org/2002/07/owl#Class";
+
+    // -- OntoUML vocabulary (a UML tool's export) ------------------------------
+    private static final String OU = "https://w3id.org/ontouml#";
+    private static final String ONTOUML_CLASS = OU + "Class";
+    private static final String ONTOUML_NAME = OU + "name";
+    private static final String ONTOUML_GENERAL = OU + "general";
+    private static final String ONTOUML_SPECIFIC = OU + "specific";
 
     private final RdfGraphDiagrams diagrams = new RdfGraphDiagrams();
 
@@ -88,11 +96,139 @@ class RdfGraphDiagramsTest {
         assertTrue(json.contains("\"subdomain\":\"\""), "a root class has no cluster group: " + json);
     }
 
+    /**
+     * A UML/OntoUML export uses its own vocabulary: {@code ontouml:Class} (not {@code owl:Class}),
+     * {@code ontouml:name} (not {@code rdfs:label}) and a <b>reified</b> generalization — an
+     * {@code ontouml:Generalization} resource pointing at its parent via {@code ontouml:general} and
+     * at its child via {@code ontouml:specific}.  Without those three rules such a model renders as a
+     * cloud of opaque tool IDs with no classes at all.
+     */
+    @Test
+    void mapsAnOntoumlModelClassesNamesAndReifiedGeneralization() {
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(OU + "SocialRelator", RDF_TYPE, ONTOUML_CLASS),
+                RdfTripleTO.literal(OU + "SocialRelator", ONTOUML_NAME, "Social Relator"),
+                RdfTripleTO.resource(OU + "Commitment", RDF_TYPE, ONTOUML_CLASS),
+                RdfTripleTO.literal(OU + "Commitment", ONTOUML_NAME, "Commitment"),
+                // Commitment is a kind of Social Relator, reified as a Generalization resource
+                RdfTripleTO.resource(OU + "G1", RDF_TYPE, OU + "Generalization"),
+                RdfTripleTO.resource(OU + "G1", ONTOUML_SPECIFIC, OU + "Commitment"),
+                RdfTripleTO.resource(OU + "G1", ONTOUML_GENERAL, OU + "SocialRelator")
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        // ontouml:Class is a class, and its label is the ontouml:name (not the opaque IRI local name)
+        assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
+                + "\"subdomain\":\"Social Relator\",\"pos\":\"Class\""), json);
+        // the parent of the reified generalization is a root class: a class, but no cluster group
+        assertTrue(json.contains("\"id\":\"" + OU + "SocialRelator\",\"name\":\"Social Relator\","
+                + "\"subdomain\":\"\",\"pos\":\"Class\""), json);
+        // …so the Class kind is present in the legend
+        assertTrue(json.contains("\"label\":\"Class\""), json);
+    }
+
+    /** An explicit {@code rdfs:label} wins over an {@code ontouml:name} on the same resource. */
+    @Test
+    void rdfsLabelTakesPrecedenceOverAnOntoumlName() {
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(PS + "Pet", RDF_TYPE, OWL_CLASS),
+                RdfTripleTO.literal(PS + "Pet", RDFS_LABEL, "Pet"),
+                RdfTripleTO.literal(PS + "Pet", ONTOUML_NAME, "Haustier")
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        // the *resource* is labelled "Pet" — the ontouml:name did not override it
+        assertTrue(json.contains("\"id\":\"" + PS + "Pet\",\"name\":\"Pet\",\"subdomain\":\"\",\"pos\":\"Class\""),
+                json);
+        // (the ontouml:name is still present as its own Literal node — every statement becomes an edge)
+        assertTrue(json.contains("\"label\":\"name\""), json);
+    }
+
     @Test
     void localNameHandlesHashSlashAndMissingIris() {
         assertEquals("Dog", RdfGraphDiagrams.localName(PS + "Dog"));
         assertEquals("Class", RdfGraphDiagrams.localName(OWL_CLASS));
         assertEquals("index.html", RdfGraphDiagrams.localName("http://example.org/index.html"));
         assertEquals("", RdfGraphDiagrams.localName(null));
+    }
+
+    /**
+     * The opaque-id discriminator: a UML/OntoUML export names its diagram *layout* resources with
+     * generated ids ({@code ykj3OGFS_j2pB_5}), which must be told apart from real names.
+     */
+    @Test
+    void distinguishesOpaqueIdsFromHumanNames() {
+        // opaque tool ids (letters and digits alternate at least twice, no whitespace)
+        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("ykj3OGFS_j2pB_5"));
+        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("02kj3OGFS_j2pCNa"));
+        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("02kj3OGFS_j2pCNa_path_point_0"));
+        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("092b46b9-c5e1-428c-9e20-4343e235985b"));
+
+        // human names — a phrase, a plain word, a leading/trailing number, a pure value
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("Feather Cat Toy"));
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("Sale 4711"));
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("Social Relator"));
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("Pet"));
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("actions"));
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("cl_hiredprovider"));
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("AssociationClass1"));
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("1st Order Entities"));
+        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("507"));
+
+        // a missing name is treated as opaque (nothing to display)
+        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId(null));
+        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("  "));
+    }
+
+    /**
+     * A node whose name is an opaque tool id is dropped, and so is the edge that pointed at it — but
+     * a node with a human name (and its edges) survives untouched.
+     */
+    @Test
+    void dropsOpaqueIdNodesAndTheirEdges() {
+        final String opaque = "https://w3id.org/ontouml-models/model/services2015#ykj3OGFS_j2pB_5";
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                // a named class, connected to a named parent ...
+                RdfTripleTO.resource(OU + "Commitment", RDF_TYPE, ONTOUML_CLASS),
+                RdfTripleTO.literal(OU + "Commitment", ONTOUML_NAME, "Commitment"),
+                RdfTripleTO.resource(OU + "G1", RDF_TYPE, OU + "Generalization"),
+                RdfTripleTO.resource(OU + "G1", ONTOUML_SPECIFIC, OU + "Commitment"),
+                RdfTripleTO.resource(OU + "G1", ONTOUML_GENERAL, OU + "SocialRelator"),
+                RdfTripleTO.literal(OU + "SocialRelator", ONTOUML_NAME, "Social Relator"),
+                // ... and a layout resource named only by its generated id
+                RdfTripleTO.resource(OU + "Commitment", OU + "shape", opaque),
+                RdfTripleTO.resource(opaque, RDF_TYPE, OU + "Rectangle")
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertFalse(json.contains("ykj3OGFS_j2pB_5"),
+                "the opaque-id node (and the edge to it) must be gone: " + json);
+        assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\""),
+                "a human-named node stays: " + json);
+        assertTrue(json.contains("\"label\":\"specific\""), "the named nodes keep their edge: " + json);
+    }
+
+    /**
+     * A class whose super-class is known only by an opaque id must not leak that id into the cluster
+     * label — the group is blanked, exactly as for a root class.
+     */
+    @Test
+    void blanksAClusterGroupThatIsOnlyAnOpaqueId() {
+        final String parent = "https://w3id.org/ontouml-models/model/services2015#aCkj3OGFS_j2pB5b";
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(OU + "Commitment", RDF_TYPE, ONTOUML_CLASS),
+                RdfTripleTO.literal(OU + "Commitment", ONTOUML_NAME, "Commitment"),
+                RdfTripleTO.resource(OU + "G1", RDF_TYPE, OU + "Generalization"),
+                RdfTripleTO.resource(OU + "G1", ONTOUML_SPECIFIC, OU + "Commitment"),
+                RdfTripleTO.resource(OU + "G1", ONTOUML_GENERAL, parent)
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
+                + "\"subdomain\":\"\",\"pos\":\"Class\""), json);
     }
 }

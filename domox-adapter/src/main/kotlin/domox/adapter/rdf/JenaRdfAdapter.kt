@@ -33,10 +33,10 @@ import java.util.concurrent.TimeUnit
  *
  * <p><b>Typical use</b> (ontology exploration, feeding the D3 diagram):</p>
  * <pre>
- *   val graph  = rdfPort.load("PetStore-ontology.ttl")                        // the whole ontology
- *   val dogs   = rdfPort.construct("PetStore-ontology.ttl", constructQuery)   // just the dogs
- *   val rows   = rdfPort.select("PetStore-ontology.ttl", selectQuery)         // tabular output
- *   val turtle = rdfPort.serialize("PetStore-ontology.ttl", RdfFormat.TURTLE) // re-serialize
+ *   val graph  = rdfPort.load("ontology.ttl")                        // the whole ontology
+ *   val dogs   = rdfPort.construct("ontology.ttl", constructQuery)   // just the dogs
+ *   val rows   = rdfPort.select("ontology.ttl", selectQuery)         // tabular output
+ *   val turtle = rdfPort.serialize("ontology.ttl", RdfFormat.TURTLE) // re-serialize
  * </pre>
  *
  * <p>Registered as a `@Component`: `DomainModule` component-scans package `domox`, so the adapter

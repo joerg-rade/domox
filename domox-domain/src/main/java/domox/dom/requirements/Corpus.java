@@ -90,7 +90,7 @@ public class Corpus extends AbstractEntity implements Comparable<Corpus> {
      * The bundled RDF/OWL ontology rendered as an interactive D3 force-layout graph.
      * <p>
      * <b>Transient and derived</b> — never persisted: the JSON is regenerated on every access from
-     * the classpath ontology ({@code PetStore-ontology.ttl}) via
+     * the classpath ontology ({@code ontology.ttl}) via
      * {@link Corpora#ontologyAsD3Graph()}.
      * <p>
      * Hidden in tables ({@link Where#ALL_TABLES}): this entity's list view is decorated by

@@ -32,16 +32,19 @@ class OntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
     @Inject private Corpora corpora;
     @Inject private ObjectManager objectManager;
 
-    /** The bundled fixture is a DBpedia export; {@code Fancy_rat} is a leaf resource in it. */
-    private static final String SEARCH_TERM = "Fancy_rat";
-    private static final String SEARCH_TERM_IRI = "http://dbpedia.org/resource/Fancy_rat";
+    /**
+     * The bundled fixture is a UML/OntoUML export: its elements are named by {@code ontouml:name}
+     * and carry no {@code rdfs:label}, so a name is the only handle a search has on them.
+     */
+    private static final String SEARCH_TERM = "Commitment";
+    private static final String SEARCH_TERM_NAME = "\"name\":\"Commitment\"";
 
     @Test
     void searchAction_returnsAViewModelCarryingTheRenderedGraph() {
         final OntologyDiagram viewModel = wrap(corpora).searchOntologyAsD3Graph(SEARCH_TERM);
 
         assertThat(viewModel.getSearchTerm()).isEqualTo(SEARCH_TERM);
-        assertThat(viewModel.getDiagram()).contains(SEARCH_TERM_IRI);
+        assertThat(viewModel.getDiagram()).contains(SEARCH_TERM_NAME);
     }
 
     /**
@@ -57,7 +60,7 @@ class OntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
         // no cached graph on a freshly adapted instance, so getDiagram() must derive it
         viewModel.setSearchTerm(SEARCH_TERM);
 
-        assertThat(viewModel.getDiagram()).contains(SEARCH_TERM_IRI);
+        assertThat(viewModel.getDiagram()).contains(SEARCH_TERM_NAME);
     }
 
     /**
@@ -75,7 +78,7 @@ class OntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
                 (OntologyDiagram) objectManager.debookmark(bookmark).getPojo();
 
         assertThat(restored.getSearchTerm()).isEqualTo(SEARCH_TERM);
-        assertThat(restored.getDiagram()).contains(SEARCH_TERM_IRI);
+        assertThat(restored.getDiagram()).contains(SEARCH_TERM_NAME);
     }
 
     /**

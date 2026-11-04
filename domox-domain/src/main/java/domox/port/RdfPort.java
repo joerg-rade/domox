@@ -11,7 +11,7 @@ import java.util.Map;
  * The domain must never see Jena types: the port speaks in {@link RdfGraphTO} /
  * {@link RdfTripleTO} / {@link RdfFormat} only.</p>
  *
- * <p><b>Sources.</b> {@code location} is a classpath resource ({@code classpath:PetStore-ontology.ttl})
+ * <p><b>Sources.</b> {@code location} is a classpath resource ({@code classpath:ontology.ttl})
  * or a file path; the RDF syntax is taken from the extension ({@code .ttl}, {@code .owl},
  * {@code .rdf}, {@code .nt}, {@code .jsonld}).  Remote graphs are addressed by SPARQL endpoint URL.</p>
  *

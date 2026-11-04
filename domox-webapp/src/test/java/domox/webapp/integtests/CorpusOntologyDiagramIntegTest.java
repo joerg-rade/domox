@@ -18,7 +18,7 @@ import domox.dom.requirements.Corpus;
  * <p>
  * Proves the injected {@code Corpora} collaborator really is wired on a persisted entity (a
  * {@code null} service would silently yield the empty-graph fallback) and that the property renders
- * the bundled ontology (a DBpedia export) rather than an empty graph.
+ * the bundled ontology (a UML/OntoUML export) rather than an empty graph.
  */
 @Transactional
 class CorpusOntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
@@ -43,7 +43,9 @@ class CorpusOntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
         assertThat(json).contains("\"nodes\":[");
         assertThat(json).contains("\"links\":[");
         assertThat(json).contains("\"legend\":[");
-        assertThat(json).contains("http://dbpedia.org/resource/Pet_store");
-        assertThat(json).contains("\"wikiPageWikiLink\"");
+        // the bundled fixture is a UML/OntoUML model: it has real classes with human names
+        assertThat(json).contains("\"pos\":\"Class\"");
+        assertThat(json).contains("https://w3id.org/ontouml#Class");
+        assertThat(json).contains("\"name\":\"Commitment\"");
     }
 }

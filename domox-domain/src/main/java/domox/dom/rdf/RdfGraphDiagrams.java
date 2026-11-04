@@ -29,15 +29,24 @@ import java.util.Set;
  * <p><b>RDF → diagram mapping</b> (every RDF statement becomes an edge):</p>
  * <ul>
  *   <li><b>node id</b> — the IRI (blank nodes keep their <code>_:label</code>)</li>
- *   <li><b>name</b> — <code>rdfs:label</code> when present, else the IRI's local name</li>
+ *   <li><b>name</b> — <code>rdfs:label</code> when present, else <code>ontouml:name</code>, else the
+ *       IRI's local name.  A node whose name is an opaque tool id (e.g. <code>ykj3OGFS_j2pB_5</code>)
+ *       is dropped — see {@link #looksLikeOpaqueId(String)}</li>
  *   <li><b>subdomain</b> — the cluster group (the client clusters nodes by this field):
- *       a <b>class</b> by its super-class (empty for a root class), an <b>individual</b> by its
+ *       a <b>class</b> by its super-class' name (empty for a root class), an <b>individual</b> by its
  *       <code>rdf:type</code>, a <b>literal</b> by its predicate</li>
  *   <li><b>pos</b> — the node kind shown in <code>&lt;&lt;…&gt;&gt;</code>:
  *       {@code Class}, {@code Individual} or {@code Literal}</li>
  *   <li><b>links</b> — one per triple: subject → object, labelled with the predicate's local name
  *       (e.g. {@code subClassOf}, {@code owns}, {@code isVaccinated})</li>
  * </ul>
+ *
+ * <p><b>Two class vocabularies are understood.</b> A plain OWL/RDFS ontology types its classes
+ * {@code owl:Class}/{@code rdfs:Class} and relates them with {@code rdfs:subClassOf}; a
+ * <b>UML/OntoUML</b> export types them {@code ontouml:Class}, names them with {@code ontouml:name}
+ * and reifies generalization (an {@code ontouml:Generalization} resource linking
+ * {@code ontouml:general} to {@code ontouml:specific}).  Both are mapped onto the same node kinds
+ * and the same cluster field — see the OntoUML constants below.
  */
 @DomainService
 @Named("domox.dom.rdf.RdfGraphDiagrams")
@@ -50,10 +59,25 @@ public class RdfGraphDiagrams {
     private static final String OWL_CLASS = "http://www.w3.org/2002/07/owl#Class";
     private static final String RDFS_CLASS = "http://www.w3.org/2000/01/rdf-schema#Class";
 
+    // -- OntoUML vocabulary (https://w3id.org/ontouml#) -------------------------
+    //
+    // A UML/OntoUML tool exports a model in its own vocabulary: classes are typed `ontouml:Class`
+    // (not `owl:Class`), the human name lives in `ontouml:name` (there is no `rdfs:label`), and
+    // generalization is *reified* — an `ontouml:Generalization` resource points at its parent via
+    // `ontouml:general` and at its child via `ontouml:specific`, instead of a direct
+    // `rdfs:subClassOf` statement.  Without these three rules such a file renders as a cloud of
+    // opaque IDs with no classes at all.
+
+    private static final String ONTOUML_NS = "https://w3id.org/ontouml#";
+    private static final String ONTOUML_CLASS = ONTOUML_NS + "Class";
+    private static final String ONTOUML_NAME = ONTOUML_NS + "name";
+    private static final String ONTOUML_GENERAL = ONTOUML_NS + "general";
+    private static final String ONTOUML_SPECIFIC = ONTOUML_NS + "specific";
+
     /**
      * Renders the graph as D3 JSON (nodes/links/legend).
      *
-     * @param graph the RDF graph, e.g. {@code rdfPort.load("PetStore-ontology.ttl")}
+     * @param graph the RDF graph, e.g. {@code rdfPort.load("ontology.ttl")}
      */
     @Programmatic
     public String renderDiagram(final RdfGraphTO graph) {
@@ -82,23 +106,50 @@ public class RdfGraphDiagrams {
      */
     private static Map<String, Node> indexNodes(final RdfGraphTO graph) {
         final Map<String, String> labelByIri = new LinkedHashMap<>();
+        final Map<String, String> ontoumlNameByIri = new LinkedHashMap<>();
         final Map<String, String> typeByIri = new LinkedHashMap<>();
         final Map<String, String> superClassByIri = new LinkedHashMap<>();
         final Set<String> classIris = new LinkedHashSet<>();
+        // An OntoUML generalization is reified: g --general--> parent, g --specific--> child.
+        // Collected per generalization resource, then folded into superClassByIri after the loop
+        // (the two statements are not adjacent in the source, so a single pass cannot resolve them).
+        final Map<String, String> generalOfGeneralization = new LinkedHashMap<>();
+        final Map<String, String> specificOfGeneralization = new LinkedHashMap<>();
         for (final RdfTripleTO triple : graph.triples()) {
             if (RDFS_LABEL.equals(triple.predicate()) && triple.literal()) {
                 labelByIri.putIfAbsent(triple.subject(), triple.objectValue());
+            } else if (ONTOUML_NAME.equals(triple.predicate()) && triple.literal()) {
+                ontoumlNameByIri.putIfAbsent(triple.subject(), triple.objectValue());
             } else if (RDF_TYPE.equals(triple.predicate()) && !triple.literal()) {
                 typeByIri.putIfAbsent(triple.subject(), triple.objectValue());
-                if (OWL_CLASS.equals(triple.objectValue()) || RDFS_CLASS.equals(triple.objectValue())) {
+                if (OWL_CLASS.equals(triple.objectValue())
+                        || RDFS_CLASS.equals(triple.objectValue())
+                        || ONTOUML_CLASS.equals(triple.objectValue())) {
                     classIris.add(triple.subject());
                 }
             } else if (RDFS_SUBCLASS_OF.equals(triple.predicate()) && !triple.literal()) {
                 superClassByIri.putIfAbsent(triple.subject(), triple.objectValue());
                 classIris.add(triple.subject());
                 classIris.add(triple.objectValue());
+            } else if (ONTOUML_GENERAL.equals(triple.predicate()) && !triple.literal()) {
+                generalOfGeneralization.putIfAbsent(triple.subject(), triple.objectValue());
+            } else if (ONTOUML_SPECIFIC.equals(triple.predicate()) && !triple.literal()) {
+                specificOfGeneralization.putIfAbsent(triple.subject(), triple.objectValue());
             }
         }
+        // `ontouml:name` is the OntoUML equivalent of `rdfs:label`; an explicit rdfs:label still wins.
+        ontoumlNameByIri.forEach(labelByIri::putIfAbsent);
+        // A reified generalization carries the same "child is a kind of parent" information that
+        // rdfs:subClassOf does, so it feeds the same map (and both ends are classes).
+        specificOfGeneralization.forEach((generalization, child) -> {
+            final String parent = generalOfGeneralization.get(generalization);
+            if (parent == null) {
+                return;
+            }
+            superClassByIri.putIfAbsent(child, parent);
+            classIris.add(child);
+            classIris.add(parent);
+        });
 
         final Map<String, Node> nodes = new LinkedHashMap<>();
         for (final RdfTripleTO triple : graph.triples()) {
@@ -113,6 +164,11 @@ public class RdfGraphDiagrams {
                 addResourceNode(nodes, triple.objectValue(), labelByIri, typeByIri, superClassByIri, classIris);
             }
         }
+        // Drop the nodes whose display name is an opaque tool id rather than a human label (e.g. the
+        // UML export's `ykj3OGFS_j2pB_5`).  Such a node is pure noise in the diagram — and because
+        // `appendLinks` skips an edge whose endpoints are not both nodes, dropping the node also drops
+        // the layout edges that pointed at it (its `_shape` / `_path_point_0` satellites).
+        nodes.values().removeIf(node -> looksLikeOpaqueId(node.name()));
         return nodes;
     }
 
@@ -130,7 +186,7 @@ public class RdfGraphDiagrams {
         final Kind kind = classIris.contains(iri) ? Kind.CLASS : Kind.INDIVIDUAL;
         final String typeIri = typeByIri.get(iri);
         final String group = kind == Kind.CLASS
-                ? groupOfClass(iri, superClassByIri)
+                ? groupOfClass(iri, superClassByIri, labelByIri)
                 : (typeIri != null ? localName(typeIri) : "");
         nodes.put(iri, new Node(iri, labelOf(iri, labelByIri), group, kind));
     }
@@ -138,10 +194,22 @@ public class RdfGraphDiagrams {
     /**
      * A class clusters with its super-class ({@code Dog} under {@code Pet}); a root class has no
      * group, so the client places it at the centre of the canvas.
+     * <p>
+     * The group is the parent's <em>name</em> where one is known (the client renders this italic
+     * line above the node label) — an OntoUML model's parent IRIs are opaque tool IDs, so the local
+     * name alone would put an unreadable id in the diagram.
      */
-    private static String groupOfClass(final String iri, final Map<String, String> superClassByIri) {
+    private static String groupOfClass(
+            final String iri,
+            final Map<String, String> superClassByIri,
+            final Map<String, String> labelByIri) {
         final String parent = superClassByIri.get(iri);
-        return parent != null ? localName(parent) : "";
+        if (parent == null) {
+            return "";
+        }
+        final String parentLabel = labelOf(parent, labelByIri);
+        // A parent known only by its opaque tool id would put that id in the cluster label — blank it.
+        return looksLikeOpaqueId(parentLabel) ? "" : parentLabel;
     }
 
     private static String labelOf(final String iri, final Map<String, String> labelByIri) {
@@ -222,6 +290,45 @@ public class RdfGraphDiagrams {
     }
 
     // -- helpers ---------------------------------------------------------------
+
+    /**
+     * Whether {@code label} is an opaque machine identifier rather than a human-readable name — the
+     * discriminator the diagram uses to drop the noise nodes a UML/OntoUML tool leaves behind
+     * (e.g. {@code ykj3OGFS_j2pB_5}, {@code 02kj3OGFS_j2pCNa_path_point_0}, a UUID).
+     *
+     * <p>A name is considered human when it <b>contains whitespace</b> ({@code "Feather Cat Toy"},
+     * {@code "Sale 4711"}, {@code "Social Relator"}) or when letters and digits are <b>not
+     * interleaved</b>: a plain word ({@code Pet}, {@code actions}, {@code cl_hiredprovider}), a
+     * leading/trailing number ({@code "1st Order Entities"}, {@code AssociationClass1}) or a pure
+     * number ({@code 507}, {@code 24.90}) all stay.  It is opaque when <b>letters and digits alternate
+     * at least twice</b> — the signature of a generated id — which every example above shares, while
+     * the human names do not.</p>
+     *
+     * <p>Public for the guardrail test; it is a pure function and static, so Causeway does not treat
+     * it as a member (see {@code localName}).</p>
+     */
+    static boolean looksLikeOpaqueId(final String label) {
+        if (label == null) {
+            return true;
+        }
+        final String trimmed = label.trim();
+        if (trimmed.isEmpty()) {
+            return true;
+        }
+        if (trimmed.chars().anyMatch(Character::isWhitespace)) {
+            return false;   // a phrase of words, however short ("A", "Based on")
+        }
+        int alternations = 0;
+        for (int i = 1; i < trimmed.length(); i++) {
+            final char previous = trimmed.charAt(i - 1);
+            final char current = trimmed.charAt(i);
+            if (Character.isLetterOrDigit(previous) && Character.isLetterOrDigit(current)
+                    && Character.isDigit(previous) != Character.isDigit(current)) {
+                alternations++;
+            }
+        }
+        return alternations >= 2;
+    }
 
     /** Local name of an IRI: after {@code #}, else after the last {@code /}. */
     static String localName(final String iri) {

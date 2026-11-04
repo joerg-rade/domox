@@ -188,7 +188,7 @@ public class Corpora {
      * resources.  Overridable per deployment with {@code domox.rdf.local-resource} (a classpath
      * resource name or a filesystem path) — see {@link #localResource()}.
      */
-    static final String DEFAULT_ONTOLOGY_RESOURCE = "PetStore-ontology.ttl";
+    static final String DEFAULT_ONTOLOGY_RESOURCE = "ontology.ttl";
 
     /** CONSTRUCT returning every statement — the "no filter" case (blank search term). */
     private static final String ALL_TRIPLES_QUERY = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }";
@@ -350,8 +350,10 @@ public class Corpora {
      *
      * <p><b>Exact, not substring.</b>  The term is compared for <em>equality</em>
      * (case-insensitively) against either the IRI's local name
-     * ({@code REPLACE(STR(?focus), "^.*[/#]", "")}) or a label — {@code rdfs:label} <em>or</em>
-     * {@code skos:prefLabel}.  A substring {@code REGEX} — the previous behaviour — made a search
+     * ({@code REPLACE(STR(?focus), "^.*[/#]", "")}) or a label — {@code rdfs:label},
+     * {@code skos:prefLabel} <em>or</em> {@code ontouml:name} (a UML/OntoUML export names its
+     * elements with the latter and carries no {@code rdfs:label} at all, so without it a search over
+     * such a model could never match anything).  A substring {@code REGEX} — the previous behaviour — made a search
      * for {@code Pet} also return {@code Petit}, {@code PetShow}, {@code competition}, … : noise
      * that buries the very concept being asked for.  With equality, {@code Pet} resolves to
      * {@code ps:Pet} (local name {@code Pet}, label {@code "Pet"}) and nothing else, so the rendered
@@ -412,11 +414,13 @@ public class Corpora {
         return """
                 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+                PREFIX ontouml: <https://w3id.org/ontouml#>
                 SELECT DISTINCT ?focus WHERE {
                   { ?focus ?p ?o . FILTER(isIRI(?focus) && %1$s) }
                   UNION
                   { ?focus ?labelPred ?l .
-                    FILTER( (?labelPred = rdfs:label || ?labelPred = skos:prefLabel)
+                    FILTER( (?labelPred = rdfs:label || ?labelPred = skos:prefLabel
+                             || ?labelPred = ontouml:name)
                             && isIRI(?focus) && %2$s%3$s ) }
                   UNION
                   { ?s ?p ?focus . FILTER(isIRI(?focus) && %1$s) }

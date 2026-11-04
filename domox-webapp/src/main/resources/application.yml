@@ -183,7 +183,7 @@ domox:
   # RDF/OWL graph source behind the ontology diagram (Corpora#searchOntologyAsD3Graph,
   # Corpus#getOntologyDiagram).
   #
-  # CURRENT SETUP: the bundled classpath ontology — PetStore-ontology.ttl, a DBpedia export shipped
+  # CURRENT SETUP: the bundled classpath ontology — ontology.ttl, a DBpedia export shipped
   # in domox-domain's resources — is the source for BOTH tests and production.  Blank (or whitespace)
   # selects it; a local file is not used, so the diagram works offline and is deterministic.
   #   endpoint-url  blank = bundled ontology (default); set a URL to query live instead — the queries
@@ -192,7 +192,7 @@ domox:
   #                   https://query.wikidata.org/sparql   (needs user-agent)
   #                   http://localhost:3030/ds/sparql     (a local Fuseki — future path)
   #   local-resource  which local graph to read while endpoint-url is blank: a classpath resource
-  #                 (default: the bundled PetStore-ontology.ttl) or a filesystem path, e.g.
+  #                 (default: the bundled ontology.ttl) or a filesystem path, e.g.
   #                   /opt/ontologies/petshop.ttl         — swap ontologies without rebuilding
   #   query-limit   row cap for endpoint queries (a public endpoint holds billions of triples)
   #   query-timeout-seconds  per-request timeout, so a slow endpoint cannot block the request thread

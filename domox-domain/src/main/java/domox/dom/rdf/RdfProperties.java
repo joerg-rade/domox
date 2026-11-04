@@ -25,7 +25,7 @@ public class RdfProperties {
      * SPARQL endpoint the ontology diagram is queried from.
      * <p>
      * Blank (the default) keeps everything local: the bundled classpath ontology
-     * ({@code PetStore-ontology.ttl}) is queried through {@code RdfPort#select}/{@code construct}.
+     * ({@code ontology.ttl}) is queried through {@code RdfPort#select}/{@code construct}.
      * When set, the focus query and the triple fetch are issued against this endpoint through
      * {@code RdfPort#selectRemote} instead.
      */
@@ -33,7 +33,7 @@ public class RdfProperties {
 
     /**
      * Local graph source used while {@link #getEndpointUrl() endpoint-url} is blank: a classpath
-     * resource name (e.g. {@code PetStore-ontology.ttl}) or a filesystem path (e.g.
+     * resource name (e.g. {@code ontology.ttl}) or a filesystem path (e.g.
      * {@code /opt/ontologies/petshop.ttl}).
      * <p>
      * Blank (the default) uses the ontology bundled in {@code domox-domain}'s resources.  Override it

@@ -206,6 +206,21 @@ class CorporaTest {
         assertTrue(sparql.contains("?labelPred = rdfs:label || ?labelPred = skos:prefLabel"), sparql);
     }
 
+    /**
+     * A UML/OntoUML export names its elements with {@code ontouml:name} and carries no
+     * {@code rdfs:label} at all, so the focus query must consider that predicate too — otherwise
+     * every search over such a model resolves nothing and renders an empty diagram.
+     *
+     * @see domox.dom.rdf.RdfGraphDiagrams for the matching node-classification rules
+     */
+    @Test
+    void focusQueryConsidersOntoumlNames() {
+        final String sparql = Corpora.focusQuery("Commitment");
+
+        assertTrue(sparql.contains("PREFIX ontouml: <https://w3id.org/ontouml#>"), sparql);
+        assertTrue(sparql.contains("?labelPred = ontouml:name"), sparql);
+    }
+
     /** A configured label language restricts label matching to that tag (or untagged labels). */
     @Test
     void focusQueryAppliesTheConfiguredLabelLanguage() {

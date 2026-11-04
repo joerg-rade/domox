@@ -19,30 +19,52 @@ import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Guards the RDF/OWL retrieval service against the bundled sample ontology
- * (`domox-domain/src/main/resources/PetStore-ontology.ttl` — a **DBpedia export** of the
- * "Pet store" page and its incoming links): load → SPARQL → D3 JSON.
+ * Guards the RDF/OWL retrieval service against the bundled classpath fixtures
+ * (`domox-domain/src/main/resources/`): load → SPARQL → D3 JSON.
  *
- * <p>No containers and no network: everything runs against the classpath fixture, so this test is
- * part of the ordinary unit-test run.</p>
+ * <p>No containers and no network: everything runs against the classpath, so this test is part of
+ * the ordinary unit-test run.</p>
  *
- * <p>Shape of the fixture (it drives the assertions below): one hub, {@code dbr:Pet_store}, with
- * ~93 incoming {@code dbo:wikiPageWikiLink} edges, ~12 {@code owl:sameAs} translations,
- * {@code rdf:type owl:Thing}, multi-language {@code rdfs:label}s and one {@code dbo:description}
- * literal.  There is no {@code owl:Class}/{@code rdfs:subClassOf}, so only the <em>Individual</em> and
- * <em>Literal</em> node kinds occur.  {@code dbr:Fancy_rat} is a leaf: it links to the hub and nothing
- * links to it.</p>
+ * <p><b>Two fixtures, one per class vocabulary the mapper understands</b> — the diagram has to work
+ * for both a knowledge graph and a UML model:</p>
+ *
+ * <ul>
+ *   <li>[SAMPLE] — `PetStore-ontology.ttl`, a **DBpedia export** of the "Pet store" page and its
+ *       incoming links.  One hub, `dbr:Pet_store`, with ~93 incoming `dbo:wikiPageWikiLink` edges,
+ *       ~12 `owl:sameAs` translations, `rdf:type owl:Thing`, multi-language `rdfs:label`s and one
+ *       `dbo:description` literal.  There is no `owl:Class`/`rdfs:subClassOf`, so only the
+ *       *Individual* and *Literal* node kinds occur.  `dbr:Fancy_rat` is a leaf: it links to the hub
+ *       and nothing links to it.</li>
+ *   <li>[ONTOUML] — `ontology.ttl`, a **UML/OntoUML** model export: classes typed `ontouml:Class`,
+ *       named with `ontouml:name` (it carries no `rdfs:label` at all), generalization reified as an
+ *       `ontouml:Generalization` resource (`ontouml:general` → parent, `ontouml:specific` → child),
+ *       plus diagram *layout* statements (`ontouml:Point`/`Rectangle`/`Path` and coordinates).</li>
+ * </ul>
  */
 class JenaRdfAdapterTest {
 
     private val rdf = JenaRdfAdapter()
 
     private companion object {
+        /** The DBpedia export: individuals and literals only, no classes. */
         const val SAMPLE = "PetStore-ontology.ttl"
+
+        /** The UML/OntoUML model export: `ontouml:Class` + `ontouml:name`, reified generalization. */
+        const val ONTOUML = "ontology.ttl"
+
         const val DBR = "http://dbpedia.org/resource/"
         const val DBO = "http://dbpedia.org/ontology/"
         const val HUB = DBR + "Pet_store"
         const val LEAF = "Fancy_rat"
+
+        const val RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        const val OU = "https://w3id.org/ontouml#"
+
+        /**
+         * A concept of the OntoUML fixture, resolvable only through `ontouml:name` — exactly one
+         * resource carries it, so its neighbourhood is small and its assertions are stable.
+         */
+        const val ONTOUML_CONCEPT = "Commitment"
     }
 
     @Test
@@ -142,7 +164,7 @@ class JenaRdfAdapterTest {
      */
     @Test
     fun `search renders the matching neighbourhood as D3 JSON`() {
-        val root = JSONObject(corporaWithRdf().ontologyAsD3Graph(LEAF))
+        val root = JSONObject(corporaWithRdf(dbpediaFixture()).ontologyAsD3Graph(LEAF))
         val ids = nodeIds(root)
 
         assertTrue(ids.contains(LEAF), "the matched resource is a node: $ids")
@@ -160,7 +182,7 @@ class JenaRdfAdapterTest {
      */
     @Test
     fun `search restricts the graph to the matching neighbourhood`() {
-        val ids = nodeIds(JSONObject(corporaWithRdf().ontologyAsD3Graph(LEAF)))
+        val ids = nodeIds(JSONObject(corporaWithRdf(dbpediaFixture()).ontologyAsD3Graph(LEAF)))
 
         assertTrue(ids.contains(LEAF), "the match itself: $ids")
         assertTrue(ids.contains("Pet_store"), "the one hop it reaches: $ids")
@@ -233,7 +255,7 @@ class JenaRdfAdapterTest {
      */
     @Test
     fun `the search action returns a view model that renders the graph`() {
-        val viewModel = corporaWithRdf().searchOntologyAsD3Graph(LEAF)
+        val viewModel = corporaWithRdf(dbpediaFixture()).searchOntologyAsD3Graph(LEAF)
 
         assertEquals(LEAF, viewModel.searchTerm)
         assertTrue(viewModel.title().startsWith("Ontology:"), viewModel.title())
@@ -241,6 +263,70 @@ class JenaRdfAdapterTest {
         assertTrue(nodeIds(JSONObject(viewModel.diagram)).contains(LEAF),
             "the graph is pre-rendered: ${viewModel.diagram.take(200)}")
     }
+
+    // -- the UML/OntoUML vocabulary -------------------------------------------
+
+    @Test
+    fun `loads the OntoUML model with its classes`() {
+        val graph = rdf.load(ONTOUML)
+
+        assertTrue(graph.size() > 1_000, "expected the whole model, got ${graph.size()} triples")
+        assertTrue(graph.prefixes().containsKey("ontouml"), "prefix declarations should be preserved")
+        assertTrue(
+            graph.triples().count { it.predicate() == RDF_TYPE && it.objectValue() == OU + "Class" } > 100,
+            "a UML model types its classes as ontouml:Class"
+        )
+        assertTrue(
+            graph.triples().none {
+                it.predicate() == RDF_TYPE && it.objectValue() == "http://www.w3.org/2002/07/owl#Class"
+            },
+            "…and declares no owl:Class at all — which is exactly why the mapper needs the ontouml: rules"
+        )
+    }
+
+    /**
+     * The point of the OntoUML support: `ontouml:Class` becomes a **Class** node labelled with its
+     * `ontouml:name`.  Without those rules this model renders as opaque tool IDs (`:0Ckj3OGFS_j2pB5A`)
+     * with no class kind at all.
+     */
+    @Test
+    fun `an OntoUML model renders classes with their human names`() {
+        val root = JSONObject(RdfGraphDiagrams().renderDiagram(rdf.load(ONTOUML)))
+
+        val concept = nodesNamed(root, ONTOUML_CONCEPT)
+        assertTrue(concept.isNotEmpty(), "ontouml:name must become the node label")
+        // the concept is a *Class* node carrying its human name and clustering under its parent's name
+        // (the same name also appears as a Literal node — every statement becomes an edge)
+        val klass = concept.singleOrNull { it.getString("pos") == "Class" }
+        assertTrue(klass != null, "an ontouml:Class must be a Class node: $concept")
+        assertTrue(klass!!.getString("subdomain").isNotBlank(),
+            "it clusters under the name of its super-class: $klass")
+
+        val legend = (0 until root.getJSONArray("legend").length())
+            .map { root.getJSONArray("legend").getJSONObject(it).getString("label") }
+        assertTrue(legend.contains("Class"), "legend: $legend")
+    }
+
+    /**
+     * End-to-end over the UML fixture: `Corpora.ontologyAsD3Graph` must resolve a concept named
+     * *only* by `ontouml:name` (the file carries no `rdfs:label`), and bring its neighbourhood along
+     * — but only its neighbourhood, not the whole 15 000-statement model.
+     */
+    @Test
+    fun `search resolves an OntoUML concept by its ontouml name`() {
+        val root = JSONObject(corporaWithRdf().ontologyAsD3Graph(ONTOUML_CONCEPT))
+        val names = nodeNames(root)
+
+        assertTrue(names.contains(ONTOUML_CONCEPT), "the named concept is a node: $names")
+        assertTrue(root.getJSONArray("links").length() > 0, "its neighbourhood must bring edges along")
+        assertTrue(names.size < 100, "a one-concept neighbourhood, not the whole model: ${names.size}")
+    }
+
+    /**
+     * The DBpedia fixture as the configured local source.  The *default* local source is the
+     * OntoUML model (`ontology.ttl`), so the page-links assertions must opt in to their own fixture.
+     */
+    private fun dbpediaFixture(): RdfProperties = RdfProperties().apply { localResource = SAMPLE }
 
     /**
      * A [Corpora] with only its RDF collaborators wired — enough to exercise the ontology search;
@@ -362,6 +448,20 @@ class JenaRdfAdapterTest {
             .map { nodes.getJSONObject(it).getString("id") }
             .map { it.substringAfterLast('#').substringAfterLast('/') }
     }
+
+    /** Every node, for the name/kind assertions — an OntoUML model's ids are opaque tool IDs. */
+    private fun nodeObjects(root: JSONObject): List<JSONObject> {
+        val nodes = root.getJSONArray("nodes")
+        return (0 until nodes.length()).map { nodes.getJSONObject(it) }
+    }
+
+    /** The `name` of every node — the human label the client draws. */
+    private fun nodeNames(root: JSONObject): List<String> =
+        nodeObjects(root).map { it.getString("name") }
+
+    /** The nodes carrying `name`; an OntoUML model has no readable id to match on instead. */
+    private fun nodesNamed(root: JSONObject, name: String): List<JSONObject> =
+        nodeObjects(root).filter { it.getString("name") == name }
 
     /** A SPARQL-protocol stub endpoint; optionally slow, and records the `User-Agent` it received. */
     private fun stubEndpoint(delayMillis: Long, seenUserAgent: AtomicReference<String>): HttpServer {
