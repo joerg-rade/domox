@@ -30,8 +30,9 @@ import java.util.Set;
  * <ul>
  *   <li><b>node id</b> — the IRI (blank nodes keep their <code>_:label</code>)</li>
  *   <li><b>name</b> — <code>rdfs:label</code> when present, else <code>ontouml:name</code>, else the
- *       IRI's local name.  A node whose name is an opaque tool id (e.g. <code>ykj3OGFS_j2pB_5</code>)
- *       is dropped — see {@link #looksLikeOpaqueId(String)}</li>
+ *       IRI's local name.  A node <em>without</em> a name whose fallback local name is an opaque tool
+ *       id (e.g. <code>ykj3OGFS_j2pB_5</code>) is dropped; a node carrying a real name is always kept,
+ *       however machine-like that name happens to look — see {@link #looksLikeOpaqueId(String)}</li>
  *   <li><b>subdomain</b> — the cluster group (the client clusters nodes by this field):
  *       a <b>class</b> by its super-class' name (empty for a root class), an <b>individual</b> by its
  *       <code>rdf:type</code>, a <b>literal</b> by its predicate</li>
@@ -164,11 +165,15 @@ public class RdfGraphDiagrams {
                 addResourceNode(nodes, triple.objectValue(), labelByIri, typeByIri, superClassByIri, classIris);
             }
         }
-        // Drop the nodes whose display name is an opaque tool id rather than a human label (e.g. the
-        // UML export's `ykj3OGFS_j2pB_5`).  Such a node is pure noise in the diagram — and because
-        // `appendLinks` skips an edge whose endpoints are not both nodes, dropping the node also drops
-        // the layout edges that pointed at it (its `_shape` / `_path_point_0` satellites).
-        nodes.values().removeIf(node -> looksLikeOpaqueId(node.name()));
+        // Drop only the nodes that have NO name to show — an unnamed resource whose sole label is its
+        // IRI's local name, which for a UML/OntoUML export is an opaque tool id (`ykj3OGFS_j2pB_5`).
+        // A resource carrying a real `rdfs:label` / `ontouml:name` is NEVER dropped: the name has
+        // already replaced the id, and the heuristic must not second-guess it — a genuine name such as
+        // `B2B` interleaves letters and digits and would otherwise be mistaken for an id.  Dropping a
+        // node also drops the edges that pointed at it, because `appendLinks` skips an edge whose
+        // endpoints are not both nodes — which is how the export's `_shape` / `_path_point_0`
+        // satellites (thousands of them in the bundled model) go with it.
+        nodes.values().removeIf(node -> !hasName(node.id(), labelByIri) && looksLikeOpaqueId(node.name()));
         return nodes;
     }
 
@@ -208,8 +213,21 @@ public class RdfGraphDiagrams {
             return "";
         }
         final String parentLabel = labelOf(parent, labelByIri);
-        // A parent known only by its opaque tool id would put that id in the cluster label — blank it.
-        return looksLikeOpaqueId(parentLabel) ? "" : parentLabel;
+        // Only a parent with NO name of its own would leak its opaque tool id into the cluster label;
+        // a named parent is used verbatim, however machine-like the name looks.
+        return !hasName(parent, labelByIri) && looksLikeOpaqueId(parentLabel) ? "" : parentLabel;
+    }
+
+    /**
+     * Whether the resource behind {@code id} carries an explicit name — an {@code rdfs:label} or an
+     * {@code ontouml:name}.
+     * <p>
+     * Only an <em>unnamed</em> resource may be discarded for looking like a generated id: a name the
+     * model actually states is authoritative, however machine-like it happens to look.  A literal
+     * node's id ({@code literal:…}) is never a key here, so a literal is judged by its own value.
+     */
+    private static boolean hasName(final String id, final Map<String, String> labelByIri) {
+        return labelByIri.containsKey(id);
     }
 
     private static String labelOf(final String iri, final Map<String, String> labelByIri) {
@@ -303,6 +321,10 @@ public class RdfGraphDiagrams {
      * number ({@code 507}, {@code 24.90}) all stay.  It is opaque when <b>letters and digits alternate
      * at least twice</b> — the signature of a generated id — which every example above shares, while
      * the human names do not.</p>
+     *
+     * <p>Consulted only for resources that have <em>no</em> name of their own: a resource with an
+     * {@code rdfs:label} / {@code ontouml:name} is kept whatever that name looks like, so a real
+     * {@code B2B} or {@code H1N1} is never mistaken for a generated id.</p>
      *
      * <p>Public for the guardrail test; it is a pure function and static, so Causeway does not treat
      * it as a member (see {@code localName}).</p>

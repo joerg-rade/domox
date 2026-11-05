@@ -24,10 +24,12 @@ The diagram understands **both class vocabularies**: a plain OWL/RDFS ontology
 `ontouml:name`, and generalization reified as `ontouml:Generalization` /
 `ontouml:general` + `ontouml:specific`) — see `RdfGraphDiagrams` and `Corpora.focusQuery`.
 
-A node whose display name is an **opaque tool id** (e.g. `ykj3OGFS_j2pB_5` — the OntoUML export's
-diagram *layout* resources carry no `ontouml:name`, so they fall back to the IRI's local name) is
-dropped from the diagram, together with the edges that pointed at it; a class whose super-class is
-known only by such an id loses its cluster label instead.  See `RdfGraphDiagrams.looksLikeOpaqueId`.
+A node with **no name of its own** — the OntoUML export's diagram *layout* resources (`Point`, `Path`,
+`Rectangle`, `ClassView`, …) carry no `ontouml:name`, so they fall back to the IRI's local name, an
+opaque tool id such as `ykj3OGFS_j2pB_5` — is dropped from the diagram, together with the edges that
+pointed at it.  A node that **does** carry an `rdfs:label`/`ontouml:name` is always kept, however
+machine-like the name looks; a class whose super-class is known only by such an id loses its cluster
+label instead.  See `RdfGraphDiagrams.hasName` / `looksLikeOpaqueId`.
 
 ```bash
 # DBpedia export -> PetStore-ontology.ttl

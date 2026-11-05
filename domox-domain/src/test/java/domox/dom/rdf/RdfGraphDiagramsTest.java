@@ -231,4 +231,48 @@ class RdfGraphDiagramsTest {
         assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
                 + "\"subdomain\":\"\",\"pos\":\"Class\""), json);
     }
+
+    /**
+     * A node whose <em>real</em> name happens to interleave letters and digits (e.g. {@code B2B}) must
+     * survive: the opaque-id heuristic is a fallback for <em>unnamed</em> resources, not a veto on a
+     * name the model actually carries.
+     */
+    @Test
+    void keepsANamedNodeEvenWhenItsNameLooksMachineGenerated() {
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(OU + "B2B", RDF_TYPE, ONTOUML_CLASS),
+                RdfTripleTO.literal(OU + "B2B", ONTOUML_NAME, "B2B"),
+                // ... while an unnamed layout resource is still dropped
+                RdfTripleTO.resource(OU + "B2B", OU + "shape", OU + "ykj3OGFS_j2pB_5"),
+                RdfTripleTO.resource(OU + "ykj3OGFS_j2pB_5", RDF_TYPE, OU + "Rectangle")
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertTrue(json.contains("\"name\":\"B2B\""),
+                "a named node is kept even though its name looks like an id: " + json);
+        assertFalse(json.contains("ykj3OGFS_j2pB_5"),
+                "the unnamed layout node is still dropped: " + json);
+    }
+
+    /**
+     * A cluster label taken from a <em>named</em> parent is used verbatim, even when the name looks
+     * machine-generated — only an unnamed parent is blanked.
+     */
+    @Test
+    void keepsAClusterGroupThatComesFromANamedParent() {
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(OU + "Commitment", RDF_TYPE, ONTOUML_CLASS),
+                RdfTripleTO.literal(OU + "Commitment", ONTOUML_NAME, "Commitment"),
+                RdfTripleTO.resource(OU + "G1", RDF_TYPE, OU + "Generalization"),
+                RdfTripleTO.resource(OU + "G1", ONTOUML_SPECIFIC, OU + "Commitment"),
+                RdfTripleTO.resource(OU + "G1", ONTOUML_GENERAL, OU + "B2B"),
+                RdfTripleTO.literal(OU + "B2B", ONTOUML_NAME, "B2B")
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
+                + "\"subdomain\":\"B2B\",\"pos\":\"Class\""), json);
+    }
 }
