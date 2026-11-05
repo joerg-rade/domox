@@ -40,3 +40,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8000"
+
+  fuseki:
+    build:
+      # The Dockerfile pre-loads domox-domain/src/main/resources/ontology.ttl, so the build
+      # context must be the REPOSITORY ROOT (not docker/fuseki/).
+      context: .
+      dockerfile: docker/fuseki/Dockerfile
+    ports:
+      - "3030:3030"

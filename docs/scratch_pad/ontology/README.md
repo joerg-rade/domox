@@ -13,9 +13,11 @@ All of these live in `domox-domain/src/main/resources/`:
 | `ontology.ttl` | the **OntoUML `services2015` model** (link at the bottom) | `ontouml:` — a UML class model |
 | `ontouml-models-latest.ttl` | the whole OntoUML model collection (~74 MB — it is on the classpath, so every build and boot carries it) | `ontouml:` |
 
-`ontology.ttl` is the **bundled default** the ontology diagram reads
-(`Corpora.DEFAULT_ONTOLOGY_RESOURCE`); swap it per deployment with `domox.rdf.local-resource`
-(a classpath name or a file path), or point `domox.rdf.endpoint-url` at a SPARQL endpoint.
+The ontology diagram reads from the SPARQL endpoint in `domox.rdf.endpoint-url` — by default the
+local **Fuseki** server (`http://localhost:3030/ds/sparql`; see `docker/fuseki/`).  When that is
+blank it falls back to the **bundled default** `ontology.ttl`
+(`Corpora.DEFAULT_ONTOLOGY_RESOURCE`); swap that per deployment with `domox.rdf.local-resource`
+(a classpath name or a file path).
 
 The diagram understands **both class vocabularies**: a plain OWL/RDFS ontology
 (`owl:Class` + `rdfs:subClassOf` + `rdfs:label`) and the OntoUML one (`ontouml:Class`,

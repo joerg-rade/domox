@@ -183,14 +183,19 @@ domox:
   # RDF/OWL graph source behind the ontology diagram (Corpora#searchOntologyAsD3Graph,
   # Corpus#getOntologyDiagram).
   #
-  # CURRENT SETUP: the bundled classpath ontology — ontology.ttl, a DBpedia export shipped
-  # in domox-domain's resources — is the source for BOTH tests and production.  Blank (or whitespace)
-  # selects it; a local file is not used, so the diagram works offline and is deterministic.
-  #   endpoint-url  blank = bundled ontology (default); set a URL to query live instead — the queries
-  #                 then go through RdfPort#selectRemote, and the settings below apply:
+  # CURRENT SETUP: the ontology is served by the local Apache Jena Fuseki container defined in
+  # docker-compose.yml (image built from docker/fuseki/Dockerfile).  It holds the OntoUML
+  # `services2015` model that domox-domain/src/main/resources/ontology.ttl also carries, and the
+  # diagram queries it over SPARQL (RdfPort#selectRemote) through endpoint-url below.
+  # Start it with `docker compose up -d fuseki`; if it is unreachable the diagram degrades to a
+  # short message on the view model instead of a stack trace.
+  #
+  #   endpoint-url  the SPARQL endpoint the diagram is queried from.  Blank selects the bundled
+  #                 classpath ontology instead (offline, deterministic — the mode the integration
+  #                 tests pin back via `domox.rdf.endpoint-url=`):
+  #                   http://localhost:3030/ds/sparql     (the local Fuseki — current setup)
   #                   https://dbpedia.org/sparql          (flaky: regularly 502s / times out)
   #                   https://query.wikidata.org/sparql   (needs user-agent)
-  #                   http://localhost:3030/ds/sparql     (a local Fuseki — future path)
   #   local-resource  which local graph to read while endpoint-url is blank: a classpath resource
   #                 (default: the bundled ontology.ttl) or a filesystem path, e.g.
   #                   /opt/ontologies/petshop.ttl         — swap ontologies without rebuilding
@@ -199,10 +204,9 @@ domox:
   #   user-agent    identifies us to the endpoint; Wikidata rejects requests without one
   #   label-language  e.g. "en" — restrict label matching to that language tag (or untagged labels)
   #
-  # The endpoint-only settings are inert while endpoint-url is blank; they are kept so that switching
-  # to a live endpoint (or Fuseki) is a one-line change.
+  # The endpoint-only settings are inert while endpoint-url is blank.
   rdf:
-    endpoint-url: ""
+    endpoint-url: http://localhost:3030/ds/sparql
     local-resource: ""
     query-limit: 100
     query-timeout-seconds: 120

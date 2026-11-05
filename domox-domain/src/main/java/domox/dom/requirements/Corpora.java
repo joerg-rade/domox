@@ -182,11 +182,14 @@ public class Corpora {
     // RDF/OWL ontology → D3 graph
     // ======================================================================
 
-    /* Classpath location of the bundled sample ontology (in {@code domox-domain}'s resources). */
+    /* Classpath location of the ontology bundled in {@code domox-domain}'s resources. */
     /**
-     * Default local graph source: the bundled DBpedia export shipped in {@code domox-domain}'s
-     * resources.  Overridable per deployment with {@code domox.rdf.local-resource} (a classpath
-     * resource name or a filesystem path) — see {@link #localResource()}.
+     * Default graph source <em>while no endpoint is configured</em> (blank
+     * {@code domox.rdf.endpoint-url}): the OntoUML {@code services2015} model shipped in
+     * {@code domox-domain}'s resources.  Overridable per deployment with
+     * {@code domox.rdf.local-resource} (a classpath resource name or a filesystem path) — see
+     * {@link #localResource()}.  The running application points at the local Fuseki endpoint, so this
+     * resource is the offline / deterministic fallback (and what the integration tests pin).
      */
     static final String DEFAULT_ONTOLOGY_RESOURCE = "ontology.ttl";
 
@@ -194,8 +197,9 @@ public class Corpora {
     private static final String ALL_TRIPLES_QUERY = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }";
 
     /**
-     * Searches the bundled RDF/OWL ontology for {@code searchTerm} and opens the matching
-     * neighbourhood as an interactive D3 graph.
+     * Searches the configured ontology source (the local Fuseki SPARQL endpoint by default; the
+     * bundled classpath ontology when no endpoint is set) for {@code searchTerm} and opens the
+     * matching neighbourhood as an interactive D3 graph.
      *
      * <p>Returns an {@link OntologyDiagram} view model rather than the raw JSON: {@code @D3Graph}
      * is a property facet, so an action returning a plain {@code String} is displayed as text
@@ -206,7 +210,7 @@ public class Corpora {
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(
             named = "Search Ontology (D3)",
-            describedAs = "Search the bundled RDF/OWL ontology and render the matches as an interactive D3 graph",
+            describedAs = "Search the RDF/OWL ontology and render the matches as an interactive D3 graph",
             sequence = "5")
     public OntologyDiagram searchOntologyAsD3Graph(final String searchTerm) {
         return ontologyDiagram(searchTerm);
@@ -233,7 +237,7 @@ public class Corpora {
     }
 
     /**
-     * Renders the <em>whole</em> bundled RDF/OWL ontology as a D3 graph.
+     * Renders the <em>whole</em> configured RDF/OWL ontology as a D3 graph.
      *
      * <p>The parameterless entry point used by derived (transient) properties such as
      * {@code Corpus#getOntologyDiagram()}: a property cannot take a search term, so it always
@@ -289,7 +293,8 @@ public class Corpora {
     }
 
     /**
-     * Fetches one of the two graph shapes: the local {@code CONSTRUCT} against the bundled ontology,
+     * Fetches one of the two graph shapes: the local {@code CONSTRUCT} against the bundled classpath
+     * ontology,
      * or — when {@link RdfProperties#isRemote() an endpoint is configured} — the equivalent
      * {@code SELECT} issued through {@link RdfPort#selectRemote}.
      *
@@ -436,7 +441,7 @@ public class Corpora {
                 : "REGEX(" + lhs + ", \"" + value + "\")";
     }
 
-    /** Runs a {@code SELECT} against the configured endpoint, or against the bundled ontology. */
+    /** Runs a {@code SELECT} against the configured endpoint, or against the bundled classpath ontology. */
     private List<Map<String, String>> runSelect(final String sparql) {
         return isRemote()
                 ? rdfPort.selectRemote(rdfProperties.getEndpointUrl(), sparql, remoteOptions())

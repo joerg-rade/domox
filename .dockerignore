@@ -1,0 +1,15 @@
+# Docker build-context filter (repository root).
+#
+# The only build that uses the repository root as its context is docker/fuseki/
+# (see docker/fuseki/Dockerfile) — it needs just domox-domain/src/main/resources/.
+# The per-service Dockerfiles under docker/*/ build from their own directory and are
+# unaffected by this file.  Excluding the heavy, regenerated directories keeps the
+# context a few MB instead of the ~850 MB a full working copy weighs.
+
+.git
+.github
+**/target
+**/node_modules
+venv
+.idea
+*.iml

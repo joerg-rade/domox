@@ -72,7 +72,7 @@ public class Corpus extends AbstractEntity implements Comparable<Corpus> {
     //region > ontology diagram (RDF/OWL → D3)
 
     /**
-     * Injected {@link Corpora} service, used to render the bundled RDF/OWL ontology as a
+     * Injected {@link Corpora} service, used to render the configured RDF/OWL ontology as a
      * D3 graph.
      * <p>
      * Hidden from the metamodel: an injected collaborator is <em>not</em> a property, and exposing
@@ -87,11 +87,11 @@ public class Corpus extends AbstractEntity implements Comparable<Corpus> {
     private Corpora corporaService;
 
     /**
-     * The bundled RDF/OWL ontology rendered as an interactive D3 force-layout graph.
+     * The configured RDF/OWL ontology rendered as an interactive D3 force-layout graph.
      * <p>
      * <b>Transient and derived</b> — never persisted: the JSON is regenerated on every access from
-     * the classpath ontology ({@code ontology.ttl}) via
-     * {@link Corpora#ontologyAsD3Graph()}.
+     * the configured ontology source (the Fuseki SPARQL endpoint, or the classpath ontology in local
+     * mode) via {@link Corpora#ontologyAsD3Graph()}.
      * <p>
      * Hidden in tables ({@link Where#ALL_TABLES}): this entity's list view is decorated by
      * {@code TableDecorator.DatatablesNet}, which relocates cell DOM for sorting/paging and would
@@ -101,7 +101,7 @@ public class Corpus extends AbstractEntity implements Comparable<Corpus> {
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
             named = "Ontology Diagram / D3",
-            describedAs = "The bundled RDF/OWL ontology rendered as an interactive D3 graph",
+            describedAs = "The RDF/OWL ontology rendered as an interactive D3 graph",
             sequence = "3",
             hidden = Where.ALL_TABLES)
     public String getOntologyDiagram() {

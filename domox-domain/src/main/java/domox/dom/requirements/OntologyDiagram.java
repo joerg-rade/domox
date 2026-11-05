@@ -29,8 +29,10 @@ import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
  * — the Wicket viewer only draws a canvas for a property.  Returning this object is the Causeway
  * idiom for "an action whose result is itself a rendered object".</p>
  *
- * <p>The diagram is <em>derived</em>: it is regenerated on every access from the bundled ontology,
- * so editing {@link #getSearchTerm() the search term} re-renders the graph.</p>
+ * <p>The diagram is <em>derived</em>: it is regenerated on every access from the configured ontology
+ * source — the local Fuseki SPARQL endpoint ({@code domox.rdf.endpoint-url}) in the running app, or
+ * the bundled classpath ontology when no endpoint is configured — so editing
+ * {@link #getSearchTerm() the search term} re-renders the graph.</p>
  */
 @DomainObject(nature = Nature.VIEW_MODEL)
 @Named(DomainModule.NAMESPACE + ".OntologyDiagram")
@@ -126,14 +128,14 @@ public class OntologyDiagram {
     }
 
     /**
-     * The bundled RDF/OWL ontology, filtered by {@link #getSearchTerm()}, as an interactive D3
+     * The configured RDF/OWL ontology, filtered by {@link #getSearchTerm()}, as an interactive D3
      * force-layout graph.
      */
     @D3Graph
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
             named = "Ontology Diagram / D3",
-            describedAs = "The bundled RDF/OWL ontology, filtered by the search term, as an interactive D3 graph",
+            describedAs = "The RDF/OWL ontology, filtered by the search term, as an interactive D3 graph",
             sequence = "2")
     public String getDiagram() {
         ensureDerived();
