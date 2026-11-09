@@ -31,6 +31,12 @@ pointed at it.  A node that **does** carry an `rdfs:label`/`ontouml:name` is alw
 machine-like the name looks; a class whose super-class is known only by such an id loses its cluster
 label instead.  See `RdfGraphDiagrams.hasName` / `looksLikeOpaqueId`.
 
+The **stored diagram layout is reusable too**: `UmlLayoutDiagrams` turns an `ontouml:Diagram`'s
+`ClassView` rectangles and `RelationView`/`GeneralizationView` polylines back into boxes and
+connectors, so `Corpora#openUmlDiagram` redraws one of the 10 diagrams *as the model's author drew it*
+(a static D3 rendering — see `docker/fuseki/README.md` for serving the model).  The force-layout
+search above is for *exploring*; this is for *reproducing*.
+
 ```bash
 # DBpedia export -> PetStore-ontology.ttl
 curl -L -H "Accept: text/turtle" http://dbpedia.org/data/Pet_store.ttl -o PetStore-ontology.ttl

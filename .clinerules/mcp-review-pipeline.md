@@ -1,4 +1,4 @@
-mvn t6est# DoMoX Candidate-Review Pipeline — Agent Runbook
+# DoMoX Candidate-Review Pipeline — Agent Runbook
 
 Speed-run playbook for the task type: **"review all N candidates (approve/reject) via the
 MCP `ReviewMcpTools` pipeline, with LLM judgment."** Read this top-to-bottom once on first

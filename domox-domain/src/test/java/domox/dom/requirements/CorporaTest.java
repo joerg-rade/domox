@@ -4,6 +4,7 @@ import domox.dom.crc.service.ClassArchetypeClassifier;
 import domox.dom.crc.service.DomainModels;
 import domox.dom.rdf.RdfGraphDiagrams;
 import domox.dom.rdf.RdfProperties;
+import domox.dom.rdf.UmlLayoutDiagrams;
 import domox.dom.rules.CandidateResolver;
 import domox.dom.rules.RuleMatches;
 import domox.port.NlpPort;
@@ -75,7 +76,7 @@ class CorporaTest {
         return new Corpora(
                 repositoryService, factoryService, ruleMatches, documents, List.of(),
                 domainModels, archetypeClassifier, candidateResolver, nlpPort,
-                rdfPort, new RdfGraphDiagrams(), properties);
+                rdfPort, new RdfGraphDiagrams(), new UmlLayoutDiagrams(), properties);
     }
 
     @Test

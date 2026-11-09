@@ -101,7 +101,7 @@ fi
 # The RDF/OWL adapter test is container-free as well, but the adapter module's OTHER tests spin up
 # containers (Kroki, CoreNLP), so run this class by name rather than the whole module.
 LOG=/tmp/domox-check-unit-rdf.log
-if mvn -B test -pl domox-adapter -Dtest=JenaRdfAdapterTest -am \
+if mvn -B test -pl domox-adapter -Dtest=JenaRdfAdapterTest,UmlLayoutIntegrityTest -am \
   -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.build.cache.enabled=false >"$LOG" 2>&1; then
   ok "RDF adapter tests passed"
 else
@@ -123,6 +123,20 @@ if UIOUT=$(bash scripts/verify-ui-render.sh 2>&1); then
 else
   printf '%s\n' "$UIOUT" | sed 's/^/    /'
   bad "UI render check failed"
+fi
+
+# The static UML payload has its own renderer branch in d3-integration.mjs, so it needs its own
+# assertion that the boxes, the arrow markers and the legend are actually drawn.  Same skip behaviour.
+if UMLOUT=$(bash scripts/verify-uml-render.sh 2>&1); then
+  printf '%s\n' "$UMLOUT" | sed 's/^/    /'
+  if printf '%s' "$UMLOUT" | grep -q 'SKIP:'; then
+    skip "not runnable here (node/chromium/d3 webjar missing — see above)"
+  else
+    ok "static UML rendering as expected"
+  fi
+else
+  printf '%s\n' "$UMLOUT" | sed 's/^/    /'
+  bad "UML render check failed"
 fi
 
 # --- 7. Webjar resource check (dev-instance guardrail) ---------------------------------

@@ -57,8 +57,10 @@ jobs:
 
       # The adapter's full suite needs containers (Kroki / CoreNLP); the RDF/OWL retrieval test is
       # container-free, so run it by name — it covers the Jena adapter plus the D3 JSON mapping.
+      # UmlLayoutIntegrityTest is container-free too, and asserts the UML diagram GEOMETRY invariants
+      # over the real ontology.ttl (arrow tips on box edges, no backtracks, no leaked points).
       - name: Run RDF adapter tests (container-free)
-        run: mvn -B -q test -pl domox-adapter -Dtest=JenaRdfAdapterTest -am -Dsurefire.failIfNoSpecifiedTests=false
+        run: mvn -B -q test -pl domox-adapter -Dtest=JenaRdfAdapterTest,UmlLayoutIntegrityTest -am -Dsurefire.failIfNoSpecifiedTests=false
 
       # Guards the trap that has broken startup twice: this pom overrides spring-boot.version,
       # which the Causeway parent chain also pins — drift mixes releases on the classpath and
@@ -71,6 +73,12 @@ jobs:
       # stable row height).  Skips itself (exit 0) when no browser binary is available.
       - name: UI render check (headless browser)
         run: bash scripts/verify-ui-render.sh
+
+      # Renders a UML payload in headless Chromium and asserts the STATIC renderer draws the boxes,
+      # the generalization's arrow marker and the legend — the client half of the geometry invariants
+      # UmlLayoutIntegrityTest asserts on the server side.  Skips itself (exit 0) without a browser.
+      - name: UML render check (headless browser)
+        run: bash scripts/verify-uml-render.sh
 
   integration-test:
     runs-on: ubuntu-latest

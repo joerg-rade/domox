@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bs:grid
+        xmlns:bs="https://causeway.apache.org/applib/layout/grid/bootstrap3"
+        xmlns:cpt="https://causeway.apache.org/applib/layout/component">
+
+    <!-- Top Header & Unassigned Actions.
+         Causeway requires a column (or tabGroup) carrying unreferencedCollections="true"
+         in EVERY layout XML, even when the type has no collections — without it the
+         whole grid is rejected with a metadataError and silently replaced by the default. -->
+    <bs:row>
+        <bs:col span="12" unreferencedActions="true" unreferencedCollections="true">
+            <cpt:domainObject/>
+        </bs:col>
+    </bs:row>
+
+    <!-- The drawing spans ALL 12 columns: the stored layout is wide, and a static picture is
+         only readable when the panel is given the full width of the page (the SVG is
+         width:100% of its container).  The diagram name is deliberately NOT given a fieldSet
+         of its own: it is hidden (Where.EVERYWHERE) and already shown in the object title
+         ("UML diagram: …").  unreferencedProperties must still be set somewhere, or the
+         whole grid is rejected. -->
+    <bs:row>
+        <bs:col span="12">
+            <cpt:fieldSet name="Diagram" id="content" unreferencedProperties="true">
+                <cpt:property id="diagram"/>
+            </cpt:fieldSet>
+        </bs:col>
+    </bs:row>
+</bs:grid>

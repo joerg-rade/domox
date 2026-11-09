@@ -33,3 +33,8 @@ hs_err_pid*
 /domox-service/domox-service.iml
 /target/
 /domox-adapter/target/
+
+# Python caches (scripts/*.py)
+__pycache__/
+*.pyc
+

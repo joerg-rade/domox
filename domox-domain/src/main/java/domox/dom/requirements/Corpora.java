@@ -13,6 +13,7 @@ import domox.dom.crc.service.DomainModels;
 import domox.dom.nlp.Sentence;
 import domox.dom.rdf.RdfGraphDiagrams;
 import domox.dom.rdf.RdfProperties;
+import domox.dom.rdf.UmlLayoutDiagrams;
 import domox.dom.rules.RuleMatches;
 import domox.dom.rules.CandidateResolver;
 import domox.dom.rules.TypedDependencyRule;
@@ -66,6 +67,7 @@ public class Corpora {
     private final NlpPort nlpPort;
     private final RdfPort rdfPort;
     private final RdfGraphDiagrams rdfGraphDiagrams;
+    private final UmlLayoutDiagrams umlLayoutDiagrams;
     private final RdfProperties rdfProperties;
 
     @Inject
@@ -80,6 +82,7 @@ public class Corpora {
                    NlpPort nlpPort,
                    RdfPort rdfPort,
                    RdfGraphDiagrams rdfGraphDiagrams,
+                   UmlLayoutDiagrams umlLayoutDiagrams,
                    RdfProperties rdfProperties) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
@@ -92,6 +95,7 @@ public class Corpora {
         this.nlpPort = nlpPort;
         this.rdfPort = rdfPort;
         this.rdfGraphDiagrams = rdfGraphDiagrams;
+        this.umlLayoutDiagrams = umlLayoutDiagrams;
         this.rdfProperties = rdfProperties;
     }
 
@@ -197,6 +201,14 @@ public class Corpora {
     private static final String ALL_TRIPLES_QUERY = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }";
 
     /**
+     * {@code SELECT} form of {@link #ALL_TRIPLES_QUERY} for the endpoint, deliberately <b>without</b> a
+     * {@code LIMIT}: an export's layout resources are most of its triples, so a truncated fetch would
+     * silently reconstruct a partial picture.  Meant for a locally served UML model.
+     */
+    private static final String ALL_TRIPLES_SELECT_QUERY =
+            "SELECT ?s ?p ?o (isLiteral(?o) AS ?lit)\nWHERE { ?s ?p ?o }";
+
+    /**
      * Searches the configured ontology source (the local Fuseki SPARQL endpoint by default; the
      * bundled classpath ontology when no endpoint is set) for {@code searchTerm} and opens the
      * matching neighbourhood as an interactive D3 graph.
@@ -214,6 +226,71 @@ public class Corpora {
             sequence = "5")
     public OntologyDiagram searchOntologyAsD3Graph(final String searchTerm) {
         return ontologyDiagram(searchTerm);
+    }
+
+    /**
+     * Opens one of the UML class diagrams the ontology export ships, reconstructed from the layout the
+     * model itself stores — each box's rectangle and each connector's polyline — rather than laid out
+     * afresh.  This is what makes the result look like the model's own diagram.
+     *
+     * @param diagramName the diagram to draw; blank picks the richest one (see
+     *                    {@link #choices0OpenUmlDiagram()})
+     */
+    @Action(semantics = SemanticsOf.SAFE)
+    @ActionLayout(
+            named = "Open UML Diagram (D3)",
+            describedAs = "Draw one of the UML class diagrams the export stores, at its own coordinates",
+            sequence = "6")
+    public UmlDiagram openUmlDiagram(
+            @Parameter(optionality = Optionality.OPTIONAL)
+            @ParameterLayout(
+                    named = "Diagram",
+                    describedAs = "Which stored diagram to draw; leave blank for the richest one")
+            final String diagramName) {
+        return umlDiagram(diagramName);
+    }
+
+    /** The diagrams the export ships, offered as the action parameter's choices. */
+    @MemberSupport
+    public List<String> choices0OpenUmlDiagram() {
+        try {
+            return umlLayoutDiagrams.diagramNames(fullGraph());
+        } catch (final RuntimeException ex) {
+            log.warn("Could not list UML diagrams from {}: {}", sourceDescription(), rootMessage(ex));
+            return List.of();
+        }
+    }
+
+    /**
+     * Builds the view model for {@code diagramName}, reporting a failure on the model rather than
+     * throwing — an unreachable endpoint, or a graph without that diagram, must not surface as a raw
+     * 500/stack trace.
+     * <p>
+     * Also used by {@link UmlDiagram#getDiagram()} when the picture has to be re-derived — e.g. on
+     * reload of a bookmarked view model — so the reason survives too.
+     */
+    @Programmatic
+    public UmlDiagram umlDiagram(final String diagramName) {
+        final UmlDiagram viewModel = UmlDiagram.of(diagramName);
+        try {
+            viewModel.render(umlLayoutDiagrams.renderLayout(fullGraph(), diagramName));
+        } catch (final RuntimeException ex) {
+            final String reason = rootMessage(ex);
+            log.warn("UML diagram '{}' could not be reconstructed from {}: {}",
+                    diagramName, sourceDescription(), reason);
+            viewModel.fail("Could not read " + sourceDescription() + ": " + reason);
+        }
+        return viewModel;
+    }
+
+    /**
+     * The <em>whole</em> configured graph, with no row cap — see {@link #ALL_TRIPLES_SELECT_QUERY} for
+     * why the usual {@code query-limit} must not apply here.
+     */
+    private RdfGraphTO fullGraph() {
+        return isRemote()
+                ? triplesFromRemote(rdfProperties.getEndpointUrl(), ALL_TRIPLES_SELECT_QUERY)
+                : rdfPort.construct(localResource(), ALL_TRIPLES_QUERY);
     }
 
     /**

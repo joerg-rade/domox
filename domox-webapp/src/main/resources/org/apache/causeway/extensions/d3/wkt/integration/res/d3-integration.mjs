@@ -35,6 +35,243 @@
 
     var PLACEHOLDER = "<PLACEHOLDER>";
 
+    /**
+     * Draws a UML class diagram from the geometry the model itself stores.
+     *
+     * The payload is produced by `UmlLayoutDiagrams` on the server: every node carries its own
+     * rectangle (`x`, `y`, `w`, `h`) and every link its polyline (`points`), so there is nothing to
+     * lay out — the picture is drawn exactly as the model's author drew it.  A `d3-force` simulation
+     * would destroy precisely that (boxes drift, edges cross, the original routing is lost), which is
+     * why this path never starts one.
+     */
+    function renderStaticUml(svg, containerEl, data, config) {
+        var canvas = data.canvas || {};
+        var cw = canvas.width || 1200;
+        var ch = canvas.height || 800;
+
+        // Fit the stored canvas into the cell: keep the aspect ratio rather than a fixed height.
+        var available = containerEl.clientWidth || cw;
+        var heightPx = Math.max(320, Math.round(available * ch / cw));
+        svg.attr('width', '100%')
+            .attr('height', heightPx)
+            .attr('viewBox', '0 0 ' + cw + ' ' + ch)
+            .attr('preserveAspectRatio', 'xMidYMid meet');
+
+        // One arrowhead marker, reused by every generalization.
+        svg.append('defs').append('marker')
+            .attr('id', 'uml-generalization-arrow')
+            .attr('viewBox', '0 0 10 10')
+            .attr('refX', 10).attr('refY', 5)
+            .attr('markerWidth', 9).attr('markerHeight', 9)
+            .attr('orient', 'auto-start-reverse')
+            .append('path')
+            .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+            .attr('fill', '#e67e22');
+
+        var layer = svg.append('g').attr('class', 'uml-layer');
+
+        var byId = {};
+        (data.nodes || []).forEach(function (n) { byId[n.id] = n; });
+
+        // ---- connectors first, so the boxes sit on top of them ----
+        (data.links || []).forEach(function (link) {
+            var points = link.points && link.points.length > 1
+                ? link.points
+                : fallbackPoints(link, byId);
+            if (!points || points.length < 2) return;
+
+            var d = 'M ' + points.map(function (p) { return p[0] + ' ' + p[1]; }).join(' L ');
+            var path = layer.append('path')
+                .attr('d', d)
+                .attr('fill', 'none')
+                .attr('stroke', link.kind === 'generalization' ? '#e67e22' : '#7f8c8d')
+                .attr('stroke-width', 1.5);
+            if (link.kind === 'generalization' && link.arrow !== false) {
+                path.attr('marker-end', 'url(#uml-generalization-arrow)');
+            }
+            if (link.label) {
+                var anchor = labelAnchor(points);
+                if (anchor) {
+                    layer.append('text')
+                        .attr('x', anchor.x).attr('y', anchor.y)
+                        .attr('text-anchor', anchor.horizontal ? 'middle' : 'start')
+                        .attr('font-size', 9).attr('fill', '#555')
+                        // A white halo, painted *behind* the glyphs: 58 of the bundled model's 156
+                        // labelled connectors have another line passing over the text, and without this
+                        // the label is unreadable where it happens.
+                        .attr('stroke', '#ffffff').attr('stroke-width', 3)
+                        .attr('stroke-linejoin', 'round').attr('paint-order', 'stroke')
+                        .text(link.label);
+                }
+            }
+        });
+
+        // ---- the class boxes ----
+        var box = layer.selectAll('g.uml-class')
+            .data(data.nodes || [], function (d) { return d.id; })
+            .enter().append('g')
+            .attr('class', 'uml-class')
+            .attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+
+        box.append('rect')
+            .attr('width', function (d) { return d.w; })
+            .attr('height', function (d) { return d.h; })
+            .attr('rx', 3)
+            .attr('fill', '#eaf3fb')
+            .attr('stroke', '#3498DB')
+            .attr('stroke-width', 1.5);
+
+        // The name compartment — the separator line a UML class box carries.
+        box.append('line')
+            .attr('x1', 0).attr('x2', function (d) { return d.w; })
+            .attr('y1', 20).attr('y2', 20)
+            .attr('stroke', '#3498DB').attr('stroke-width', 1);
+
+        box.append('text')
+            .attr('x', function (d) { return d.w / 2; })
+            .attr('y', 14)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 12).attr('font-weight', 'bold').attr('fill', '#1b3b57')
+            .text(function (d) { return d.name || d.id; })
+            .each(function (d) {
+                // A model's box is only as wide as its own layout says, and over a third of them are
+                // narrower than their class name at 12px — so the label is shrunk to fit rather than
+                // spilling over the neighbouring boxes.  Wrapping is not the answer here: half of those
+                // boxes are 28 units tall (no room for a second line) and most of the names are compound
+                // words with nothing to break on.  Measured, not estimated — character widths vary a lot.
+                var available = d.w - 10;                       // a little padding inside the box
+                var needed = this.getComputedTextLength();
+                if (needed > available && needed > 0) {
+                    d3.select(this).attr('font-size', Math.max(6, 12 * available / needed));
+                }
+            });
+
+        // ---- the legend, pinned to the top-left corner ----
+        appendUmlLegend(svg, data, cw, available);
+
+        // ---- zoom & pan: the drawing is static, the view need not be ----
+        if (config.enableZoom !== false) {
+            svg.call(d3.zoom().scaleExtent([0.2, 8]).on('zoom', function (event) {
+                layer.attr('transform', event.transform);
+            }));
+        }
+    }
+
+    /**
+     * Where to hang a connector's label: the middle of its **longest straight run**, nudged clear of the
+     * line.
+     *
+     * Not the middle of the route — that is usually a corner, and a label sitting on a corner makes the
+     * edge look indented around it.  In the bundled model 124 of the 156 labelled connectors put the
+     * label on a corner, and the 28 two-point ones put it on the end point itself.
+     */
+    function labelAnchor(points) {
+        var best = null;
+        for (var i = 1; i < points.length; i++) {
+            var length = Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
+            if (best === null || length > best.length) {
+                best = { length: length, from: points[i - 1], to: points[i] };
+            }
+        }
+        if (best === null) return null;
+        var horizontal = Math.abs(best.to[0] - best.from[0]) > Math.abs(best.to[1] - best.from[1]);
+        return {
+            x: (best.from[0] + best.to[0]) / 2 + (horizontal ? 0 : 4),
+            y: (best.from[1] + best.to[1]) / 2 + (horizontal ? -4 : 0),
+            horizontal: horizontal
+        };
+    }
+
+    /**
+     * A straight line between two box centres, for a connector the export left without a usable path.
+     *
+     * A generalization's arrowhead belongs on its `source` — the super-class — so the line is stated
+     * target -> source; for every other connector the direction is immaterial.
+     */
+    function fallbackPoints(link, byId) {
+        var source = byId[link.source];
+        var target = byId[link.target];
+        if (!source || !target) return null;
+        var from = [source.x + source.w / 2, source.y + source.h / 2];
+        var to = [target.x + target.w / 2, target.y + target.h / 2];
+        return link.kind === 'generalization' ? [to, from] : [from, to];
+    }
+
+    /**
+     * The legend, pinned to the top-left corner: which line is which.
+     *
+     * Appended to the SVG rather than to the zoomed layer, so panning and zooming leave it in place.
+     * Every size is multiplied by `canvasWidth / availableWidth` — the inverse of the fit that maps the
+     * model's own canvas onto the cell — so the legend keeps a constant on-screen size whatever the
+     * model's canvas happens to be.
+     */
+    function appendUmlLegend(svg, data, canvasWidth, availableWidth) {
+        var linkKinds = {};
+        (data.links || []).forEach(function (l) { linkKinds[l.kind] = true; });
+
+        // Only explain what the drawing actually contains.
+        var entries = (data.legend || []).filter(function (item) {
+            return item.kind === 'node' ? (data.nodes || []).length > 0 : linkKinds[item.kind];
+        });
+        if (entries.length === 0) return;
+
+        var k = canvasWidth / (availableWidth || canvasWidth);
+        var pad = 10 * k;
+        var row = 22 * k;
+        var fontSize = 12 * k;
+        var sample = 26 * k;
+        // Never wider than the canvas itself (a very narrow cell would otherwise clip the legend).
+        var boxWidth = Math.min(330 * k, canvasWidth - 24 * k);
+
+        var legend = svg.append('g')
+            .attr('class', 'uml-legend')
+            .attr('transform', 'translate(' + 12 * k + ',' + 12 * k + ')');
+
+        legend.append('rect')
+            .attr('width', boxWidth)
+            .attr('height', entries.length * row + pad * 2)
+            .attr('rx', 4 * k)
+            .attr('fill', 'rgba(255, 255, 255, 0.88)')
+            .attr('stroke', '#cccccc');
+
+        entries.forEach(function (item, i) {
+            var midY = pad + i * row + row / 2;
+            var swatch = legend.append('g')
+                .attr('transform', 'translate(' + pad + ',' + midY + ')');
+
+            if (item.kind === 'node') {
+                swatch.append('rect')
+                    .attr('y', -7 * k)
+                    .attr('width', sample).attr('height', 14 * k)
+                    .attr('rx', 2 * k)
+                    .attr('fill', '#eaf3fb')
+                    .attr('stroke', item.color).attr('stroke-width', 1.5);
+            } else {
+                // A plain line for an association; the same line capped by an arrow for a
+                // generalization.  The arrow is an explicit triangle so it scales with the legend —
+                // the diagram's marker is sized in stroke-widths, which would not.
+                var generalization = item.kind === 'generalization';
+                swatch.append('line')
+                    .attr('x1', 0).attr('y1', 0)
+                    .attr('x2', generalization ? sample - 8 * k : sample).attr('y2', 0)
+                    .attr('stroke', item.color).attr('stroke-width', 1.5);
+                if (generalization) {
+                    swatch.append('path')
+                        .attr('d', 'M ' + (sample - 8 * k) + ' ' + (-4 * k)
+                                + ' L ' + sample + ' 0 L ' + (sample - 8 * k) + ' ' + (4 * k) + ' z')
+                        .attr('fill', item.color);
+                }
+            }
+
+            legend.append('text')
+                .attr('x', pad + sample + 8 * k)
+                .attr('y', midY + fontSize * 0.36)
+                .attr('font-size', fontSize)
+                .attr('fill', '#333333')
+                .text(item.label + ' \u2014 ' + (item.description || ''));
+        });
+    }
+
     WicketStuff.D3 = {
 
         init: function (config) {
@@ -72,6 +309,13 @@
                 }
             } catch (e) {
                 console.error('D3 graph data parse error:', e);
+                return;
+            }
+
+            // A "uml" payload carries its own geometry (the model's stored layout), so it is drawn
+            // statically — no force simulation, and no re-layout.
+            if (data && data.layout === 'uml') {
+                renderStaticUml(svg, containerEl, data, config);
                 return;
             }
 

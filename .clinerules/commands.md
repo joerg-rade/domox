@@ -44,6 +44,12 @@ Cline rules directory, loaded for every project.
   **Never `pkill -f <pattern>`**: the pattern also matches the shell running the `pkill` — its own
   command line contains it — so it SIGTERMs the caller and the output is lost (happened twice).
 
+- **Long `mvn` / boot commands must run detached** → the shell tool caps one call at ~30 s, so
+  `mvn test` (≈50 s) or `run-app.sh` (install + boot) die mid-run and their output is lost. Run them
+  in the background into a log, then poll:
+  `setsid mvn … > /tmp/x.log 2>&1 < /dev/null &` then `grep -E 'Tests run|BUILD' /tmp/x.log`.
+  (`run-app.sh` already does this for the boot itself; this applies to everything else.)
+
 - **Port / DB ownership caveat** → a dev instance may already own 8080: check
   `curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/` and
   `docker ps --format '{{.Names}} {{.Status}}'`. NEVER boot a second instance against the same

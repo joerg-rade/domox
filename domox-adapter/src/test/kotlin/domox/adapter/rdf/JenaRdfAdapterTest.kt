@@ -3,6 +3,7 @@ package domox.adapter.rdf
 import com.sun.net.httpserver.HttpServer
 import domox.dom.rdf.RdfGraphDiagrams
 import domox.dom.rdf.RdfProperties
+import domox.dom.rdf.UmlLayoutDiagrams
 import domox.dom.requirements.Corpora
 import domox.dom.rules.TypedDependencyRule
 import domox.port.RdfFormat
@@ -335,7 +336,7 @@ class JenaRdfAdapterTest {
      */
     private fun corporaWithRdf(properties: RdfProperties = RdfProperties()): Corpora =
         Corpora(null, null, null, null, emptyList<TypedDependencyRule>(), null, null, null, null,
-            rdf, RdfGraphDiagrams(), properties)
+            rdf, RdfGraphDiagrams(), UmlLayoutDiagrams(), properties)
 
     /**
      * `domox.rdf.local-resource` may point at a **file on disk**, so a deployment can swap ontologies
