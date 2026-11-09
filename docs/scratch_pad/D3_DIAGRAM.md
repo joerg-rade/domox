@@ -222,6 +222,7 @@ fallbacks for test environments or headless rendering.
 | `CandidateD3Graph.java` | Domain service — assembles JSON graph data for a single candidate's neighbourhood (replaces `CandidateVegaGraph`) |
 | `DomainModel.java` | Entity — holds `@D3Graph`-annotated `getDiagram()` property |
 | `Candidate.java` | Entity — holds `@D3Graph`-annotated `getD3Graph()` property (replaces `getVegaGraph()`) |
+| `UmlLayoutDiagrams.java` + `OrthogonalRouter.java` | The **other** renderer's data — a UML diagram rebuilt from an OntoUML export's stored geometry. Its rules and measurements are in `.clinerules/d3-diagram.md` and [UML_LAYOUT_GEOMETRY.md](UML_LAYOUT_GEOMETRY.md). |
 
 ---
 

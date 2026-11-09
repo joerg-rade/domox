@@ -54,9 +54,13 @@ Cline rules directory, loaded for every project.
   `curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/` and
   `docker ps --format '{{.Names}} {{.Status}}'`. NEVER boot a second instance against the same
   Postgres: the shared `domox.SEQ_GEN` sequence makes parallel boots fail with
-  `seq_gen already exists`. For a verification boot use a throwaway DB
-  (`docker run -d --name domox-db-verify -p 5433:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres postgres:latest`)
-  plus a free port (`-Dspring-boot.run.arguments=--server.port=8082`), and tear it down after.
+  `seq_gen already exists`.
+- **A verification boot, in one call** → `bash scripts/verify-boot.sh` brings up a throwaway Postgres
+  (`domox-db-verify`, port 5433) and boots the app on a free port (8082), **waiting until it actually
+  serves** and printing the log path. It rebuilds `domox-domain`/`domox-adapter` only when their sources
+  are newer than the installed jar, so the common case returns in ~13 s (~24 s cold) — inside the shell
+  budget, and with none of the hand-run steps or poll loops this used to take. Re-running is harmless
+  (it reports the instance already serving); `--stop` tears down the app **and** the DB.
 - **Rebuilding upstream modules before a boot** → `mvn -pl domox-webapp spring-boot:run` resolves
   `domox-domain` / `domox-adapter` from the local repository (`~/.m2`), NOT from the reactor. After
   changing either, run `mvn -pl domox-domain,domox-adapter install -DskipTests` first — otherwise the

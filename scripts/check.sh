@@ -61,7 +61,8 @@ fi
 # --- 3. JavaScript syntax check (hand-edited .mjs files) --------------------------------
 step "3/8  JavaScript syntax check"
 JSOK=0
-for f in $(find . -path '*/node_modules' -prune -o -name '*.mjs' -print 2>/dev/null); do
+# Source only: a scratch .mjs under target/ (or in venv/) is build output, not something we maintain.
+for f in $(find . \( -name node_modules -o -name target -o -name venv -o -name .git \) -prune -o -name '*.mjs' -print 2>/dev/null); do
   if node --check "$f" 2>/dev/null; then JSOK=$((JSOK+1)); else bad "syntax error in $f"; fi
 done
 [ $JSOK -gt 0 ] && ok "$JSOK .mjs files pass syntax check" || skip "no .mjs files found"
@@ -106,6 +107,21 @@ if mvn -B test -pl domox-adapter -Dtest=JenaRdfAdapterTest,UmlLayoutIntegrityTes
   ok "RDF adapter tests passed"
 else
   bad "RDF adapter tests failed (log: $LOG — last lines: $(tail -5 "$LOG" | tr '\n' ' '))"
+fi
+
+# UmlLayoutIntegrityTest dumps every diagram's payload to domox-adapter/target/uml-payloads, and the
+# Python report asserts the SAME geometry invariants over that dump.  Running it here keeps the two
+# implementations from drifting apart, and is the offline half of the measurement loop — no instance,
+# no database, no endpoint (see .clinerules/d3-diagram.md).
+DUMP=domox-adapter/target/uml-payloads
+if ! command -v python3 >/dev/null 2>&1; then
+  skip "python3 not available — the offline payload report can't run"
+elif [ ! -d "$DUMP" ]; then
+  skip "$DUMP not written (the adapter test above did not run)"
+elif python3 scripts/uml-diagram-report.py --check --payload "$DUMP" >/tmp/domox-check-uml.log 2>&1; then
+  ok "uml-diagram-report.py agrees on the dumped payloads"
+else
+  bad "uml-diagram-report.py disagrees (log: /tmp/domox-check-uml.log)"
 fi
 
 # --- 6. UI render check (headless browser; CSS/JS in list views) ------------------------

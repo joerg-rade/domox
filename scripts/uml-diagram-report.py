@@ -11,7 +11,13 @@ Usage:
   scripts/uml-diagram-report.py                      # the richest diagram, from the running instance
   scripts/uml-diagram-report.py --diagram 'UFO Skeleton' --diagram 'UFO-S Lite'   # specific ones
   scripts/uml-diagram-report.py --payload payload.json   # analyse a payload file (no instance)
+  scripts/uml-diagram-report.py --payload target/uml-payloads   # a whole dumped directory
   scripts/uml-diagram-report.py --check              # exit 1 when any invariant is violated
+
+The payloads come from `UmlLayoutIntegrityTest`'s dump, so a measurement run needs **no running
+instance** — `mvn -o -pl domox-adapter test -Dtest=UmlLayoutIntegrityTest` writes every diagram to
+`domox-adapter/target/uml-payloads/` and this reads them back.  That is the fast path; the live
+instance path is for checking what the app actually serves.
 
 Env: DOMOX_URL (default http://localhost:8080), DOMOX_USER / DOMOX_PASS (default sven / pass).
 Mirrors `UmlLayoutDiagrams`'s constants, so the thresholds mean the same thing as in the domain.
@@ -35,6 +41,10 @@ ON_EDGE = 1.5
 # A tip this far outside its box is floating in empty space rather than merely nudged off the edge.
 # Mirrors UmlLayoutDiagrams.END_SLACK.
 FLOATING = 30.0
+# A segment this close to an axis counts as orthogonal (mirrors UmlLayoutDiagrams.ORTHO_TOL).
+ORTHO_TOL = 1.0
+# An inheritance trunk shorter than this reads as a sideways entry, not a merged trunk.
+TRUNK_MIN = 8.0
 
 
 def _headers():
@@ -116,6 +126,29 @@ def _backtracks(points):
     return count
 
 
+def _edge_of(box, point):
+    """The box edge a point attaches to: 0 top, 1 bottom, 2 left, 3 right (mirrors OrthogonalRouter)."""
+    left = abs(point[0] - box[0])
+    right = abs(point[0] - (box[0] + box[2]))
+    top = abs(point[1] - box[1])
+    bottom = abs(point[1] - (box[1] + box[3]))
+    nearest = min(left, right, top, bottom)
+    if nearest == left:
+        return 2
+    if nearest == right:
+        return 3
+    return 0 if nearest == top else 1
+
+
+def _on_corner(point, box):
+    """Whether a point sits where two edges of the box meet."""
+    if not _inside(point, box):
+        return False
+    on_vertical = abs(point[0] - box[0]) <= ON_EDGE or abs(point[0] - (box[0] + box[2])) <= ON_EDGE
+    on_horizontal = abs(point[1] - box[1]) <= ON_EDGE or abs(point[1] - (box[1] + box[3])) <= ON_EDGE
+    return on_vertical and on_horizontal
+
+
 def analyse(payload):
     boxes = _boxes(payload)
     report = {
@@ -125,7 +158,9 @@ def analyse(payload):
         "links": len(payload.get("links", [])),
         "arrows": 0, "dangling": 0, "hiddenTips": 0, "floatingTips": 0,
         "backtracks": 0, "strays": 0, "straight": 0,
+        "corners": 0, "shared": 0, "sideways": 0, "shortTrunks": 0, "departed": 0,
     }
+    ends = []
     for link in payload.get("links", []):
         source, target = link.get("source"), link.get("target")
         points = link.get("points") or []
@@ -135,7 +170,10 @@ def analyse(payload):
         if len(points) < 2:
             report["straight"] += 1
             continue
-        if link.get("kind") == "generalization":
+        arrow = link.get("kind") == "generalization"
+        ends.append((target, points[0], arrow))
+        ends.append((source, points[-1], arrow))
+        if arrow:
             # The arrow lands on `source` — the super-class end of the path.
             report["arrows"] += 1
             tip, box = points[-1], boxes[source]
@@ -144,13 +182,48 @@ def analyse(payload):
                     report["hiddenTips"] += 1      # inside the box -> the box paints the arrowhead over
             elif _edge_distance(tip, box) > FLOATING:
                 report["floatingTips"] += 1        # well outside -> ends in empty space
+
+            # An inheritance edge leaves the middle of its sub-class's TOP edge...
+            sub = boxes[target]
+            if (abs(points[0][0] - (sub[0] + sub[2] / 2)) > ON_EDGE
+                    or abs(points[0][1] - sub[1]) > ON_EDGE):
+                report["departed"] += 1
+            # ...and runs into the super-class along its edge's normal, for long enough to read as a
+            # merged trunk rather than a line that arrives sideways and turns in the last unit or two.
+            edge = _edge_of(box, tip)
+            previous = points[-2]
+            along = abs(previous[1] - tip[1]) if edge <= 1 else abs(previous[0] - tip[0])
+            across = abs(previous[0] - tip[0]) if edge <= 1 else abs(previous[1] - tip[1])
+            if across > ORTHO_TOL:
+                report["sideways"] += 1
+            elif along < TRUNK_MIN:
+                report["shortTrunks"] += 1
         report["backtracks"] += _backtracks(points)
         limit = max(SLACK, _centre_distance(boxes[source], boxes[target]))
         report["strays"] += sum(
             1 for p in points
             if _edge_distance(p, boxes[source]) > limit and _edge_distance(p, boxes[target]) > limit)
+
+    # Where connectors attach: never at a corner, and never two of them at the same point of one edge —
+    # either way they cannot be told apart at the box.
+    for box_id, point, _ in ends:
+        if _on_corner(point, boxes[box_id]):
+            report["corners"] += 1
+    groups = {}
+    for box_id, point, arrow in ends:
+        groups.setdefault((box_id, _edge_of(boxes[box_id], point)), []).append((point, arrow))
+    for group in groups.values():
+        for i in range(len(group)):
+            for j in range(i + 1, len(group)):
+                if group[i][1] and group[j][1]:
+                    continue                       # one shared trunk, deliberately
+                if (abs(group[i][0][0] - group[j][0][0]) <= 1.0
+                        and abs(group[i][0][1] - group[j][0][1]) <= 1.0):
+                    report["shared"] += 1
+
     report["ok"] = not any(report[key] for key in
-                           ("dangling", "hiddenTips", "floatingTips", "backtracks", "strays"))
+                           ("dangling", "hiddenTips", "floatingTips", "backtracks", "strays",
+                            "corners", "shared", "sideways", "shortTrunks", "departed"))
     return report
 
 
@@ -161,18 +234,26 @@ def main():
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--diagram", action="append", default=[],
                         help="diagram name to report; repeatable (default: every diagram)")
-    parser.add_argument("--payload", help="analyse a payload JSON file instead of a live instance")
+    parser.add_argument("--payload", action="append",
+                        help="analyse a payload JSON file, or a directory of them, instead of a live "
+                             "instance; repeatable (the dump from UmlLayoutIntegrityTest lives in "
+                             "domox-adapter/target/uml-payloads)")
     parser.add_argument("--check", action="store_true",
                         help="exit 1 when any diagram violates an invariant")
     args = parser.parse_args()
 
     payloads = []
-    if args.payload:
-        with open(args.payload) as handle:
-            payloads.append(json.load(handle))
-    else:
-        names = args.diagram or [""]
-        for name in names:
+    for path in args.payload or []:
+        if os.path.isdir(path):
+            for name in sorted(os.listdir(path)):
+                if name.endswith(".json"):
+                    with open(os.path.join(path, name)) as handle:
+                        payloads.append(json.load(handle))
+        else:
+            with open(path) as handle:
+                payloads.append(json.load(handle))
+    if not args.payload:
+        for name in args.diagram or [""]:
             try:
                 payloads.append(diagram_payload(name))
             except Exception as exc:                                   # noqa: BLE001 - reported
@@ -180,20 +261,23 @@ def main():
                 if args.check:
                     sys.exit(1)
 
-    print(f"  {'diagram':<40} {'nodes':>5} {'links':>5} {'arrows':>6} {'hidden':>6}"
-          f" {'float':>5} {'back':>4} {'stray':>5}  canvas")
+    print(f"  {'diagram':<38} {'nodes':>5} {'links':>5} {'hidden':>6} {'float':>5}"
+          f" {'back':>4} {'stray':>5} {'corn':>4} {'shar':>4} {'side':>4} {'shrt':>4} {'dept':>4}  canvas")
     failed = 0
     for payload in payloads:
         r = analyse(payload)
         failed += 0 if r["ok"] else 1
         canvas = r["canvas"]
-        print(f"  {r['title']:<40} {r['nodes']:>5} {r['links']:>5} {r['arrows']:>6}"
+        print(f"  {r['title']:<38} {r['nodes']:>5} {r['links']:>5}"
               f" {r['hiddenTips']:>6} {r['floatingTips']:>5} {r['backtracks']:>4} {r['strays']:>5}"
-              f"  {canvas.get('width', '?')}x{canvas.get('height', '?')}")
+              f" {r['corners']:>4} {r['shared']:>4} {r['sideways']:>4} {r['shortTrunks']:>4}"
+              f" {r['departed']:>4}  {canvas.get('width', '?')}x{canvas.get('height', '?')}")
 
     if failed:
         print(f"\n{failed} of {len(payloads)} diagram(s) violate the geometry invariants"
-              " (hidden tips / floating tips / backtracks / strays / dangling links).")
+              " (hidden tips / floating tips / backtracks / strays / dangling links / corner"
+              " attachments / shared attachment points / sideways or short trunks / departures"
+              " off the top middle).")
         sys.exit(1 if args.check else 0)
     print(f"\nOK: {len(payloads)} diagram(s), no geometry violations.")
     sys.exit(0)
