@@ -14,6 +14,8 @@ The task signature includes any of:
 - "run the candidate review pipeline / Phase 1..4"
 - "fix /mcp / MCP 404 / tools not registered"
 - anything about `approveCandidate`, `rejectCandidate`, `nextCandidateForReview`, `ReviewMcpTools`
+- anything about grounding a decision in the reference ontologies (`ontologySearch`,
+  `ontologyEvidenceForCandidate`, `suggestReview`, `OntologyReviewMcpTools`) — see §5.2
 
 ---
 
@@ -26,6 +28,8 @@ The task signature includes any of:
 | MCP tools class | `domox-webapp/src/main/java/domox/webapp/mcp/ReviewMcpTools.java` |
 | MCP config | `domox-webapp/src/main/resources/application.yml` → `spring.ai.mcp.server.*` |
 | Tools exposed | `nextCandidateForReview`, `approveCandidate(candidateId)`, `rejectCandidate(candidateId, rationale)` |
+| Ontology-assisted tools | `ontologySearch(term)`, `ontologyEvidenceForCandidate(candidateId)`, `suggestReview(candidateId)` — `domox-webapp/.../mcp/OntologyReviewMcpTools.java` |
+| Ontology source | the local Fuseki image (`domox.rdf.endpoint-url` + `domox.rdf.default-graphs` = Schema.org / BFO / BBO / sBPMN); a blank endpoint falls back to the bundled `ontology.ttl` |
 | DB | docker container `domox-db`, user=`postgres`, db=`postgres`, app schema=`domox` |
 | Reviewer | every decision recorded as `username='agent'` (`Reviews.AGENT_USER`) via `findOrCreateReviewForAgent` — **idempotent** |
 | `ReviewStatus` | `APPROVED`, `REJECTED` |
@@ -124,6 +128,42 @@ Approved ids by type (reference for diffing/regression):
 - AssociationCdd (5): 6677,6679,6681,6685,6693
 
 Everything else REJECTED (statuses: NOT_RELEVANT 66, WRONG_CANDIDATE_TYPE 23, DUPLICATE 5).
+
+### 5.2 Ontology-assisted evidence (optional)
+
+`OntologyReviewMcpTools` grounds a decision in the reference vocabularies the Fuseki image serves
+(Schema.org, BFO, BBO, sBPMN) — the same graphs the ontology diagram reads. Three extra tools:
+
+| Tool | Returns |
+|---|---|
+| `ontologySearch(term)` | what the ontologies know about a term: source graph, IRI, label, kind (`CLASS`/`PROPERTY`/`INDIVIDUAL`), super-class, definition, synonyms |
+| `ontologyEvidenceForCandidate(candidateId)` | the above for the candidate's name, plus `typeAgreement` (`AGREES`/`MISMATCH`/`UNKNOWN`) and any **already-approved candidates with the same name** |
+| `suggestReview(candidateId)` | an **advisory** `suggestion` (`APPROVE`/`REJECT`/`UNCERTAIN`) + `rationale` + `confidence` + `reasons` |
+
+**Suggested workflow:** `nextCandidateForReview` → `ontologyEvidenceForCandidate(id)` (and/or
+`suggestReview(id)`) → decide → `approveCandidate`/`rejectCandidate`.
+
+**The advisor's rules** (`domox-domain/.../crc/service/ReviewAdvisor.java`) — deliberately conservative:
+
+| Signal | Suggestion |
+|---|---|
+| same-name candidate already **approved** | `REJECT` / `DUPLICATE`, confidence HIGH |
+| matches exist but none has the kind the candidate type implies (e.g. `ClassCdd` but only `PROPERTY`) | `REJECT` / `WRONG_CANDIDATE_TYPE`, confidence MEDIUM |
+| a match carries the expected kind (`ClassCdd`→CLASS, `AttributeCdd`→PROPERTY) | `APPROVE`, confidence MEDIUM |
+| a match, but the candidate type has no ontology counterpart (actions/associations) | `APPROVE`, confidence LOW |
+| no match at all | **`UNCERTAIN`**, confidence LOW |
+| endpoint unreachable | **`UNCERTAIN`** + the reason |
+
+> ⚠️ **Two traps.**
+> 1. **The reference vocabularies are generic.** Most PetShop nouns (`Pet`, `Groomer`, …) are simply
+>    not in Schema.org/BFO/BPMN, so *no match is NOT evidence against a candidate* — which is why the
+>    advisor returns `UNCERTAIN`, never a rejection, in that case.
+> 2. **`suggestReview` is advice, not a decision.** It sees only ontology + duplicate evidence — no
+>    sentence evidence, no policy table above. Weigh it against the rule-match evidence and decide
+>    yourself; do not rubber-stamp it.
+>
+> The lookup is a **remote SPARQL call**: it is deliberately made *outside* the review transaction,
+> and it degrades to "source unavailable" (never an exception) when Fuseki is down.
 
 ---
 

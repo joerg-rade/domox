@@ -161,6 +161,38 @@ public class Reviews {
                 .orElse(null);
     }
 
+    /**
+     * Other candidates that carry the same name (case-insensitively) and are already
+     * <b>approved</b> — the duplicate signal for the automated reviewer.
+     *
+     * <p>Scoped to this candidate: the candidate itself and its own reviews are excluded, so the
+     * result is the set of <em>other</em> approved candidates the name collides with.</p>
+     *
+     * @return the colliding approved candidates, empty when there are none
+     */
+    @Programmatic
+    public List<Candidate> findApprovedWithSameName(final Candidate candidate) {
+        if (candidate == null || candidate.getCandidateName() == null) {
+            return List.of();
+        }
+        final String name = candidate.getCandidateName().trim();
+        if (name.isEmpty()) {
+            return List.of();
+        }
+        return findAll().stream()
+                .filter(other -> other.getId() != null && !other.getId().equals(candidate.getId()))
+                .filter(other -> other.getCandidateName() != null
+                        && name.equalsIgnoreCase(other.getCandidateName().trim()))
+                .filter(Reviews::hasApproval)
+                .toList();
+    }
+
+    /** Whether any of the candidate's reviews approved it. */
+    private static boolean hasApproval(final Candidate candidate) {
+        return candidate.getReviews().stream()
+                .anyMatch(review -> review.getStatus() == ReviewStatus.APPROVED);
+    }
+
     private List<Candidate> findAll() {
         final List<Candidate> allCandidates = new ArrayList<>();
         for (final Class<? extends Candidate> type : CANDIDATE_SUBCLASSES) {

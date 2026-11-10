@@ -195,7 +195,7 @@ public class Corpora {
      * {@link #localResource()}.  The running application points at the local Fuseki endpoint, so this
      * resource is the offline / deterministic fallback (and what the integration tests pin).
      */
-    static final String DEFAULT_ONTOLOGY_RESOURCE = "ontology.ttl";
+    public static final String DEFAULT_ONTOLOGY_RESOURCE = "ontology.ttl";
 
     /** CONSTRUCT returning every statement — the "no filter" case (blank search term). */
     private static final String ALL_TRIPLES_QUERY = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }";
