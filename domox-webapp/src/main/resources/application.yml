@@ -183,12 +183,14 @@ domox:
   # RDF/OWL graph source behind the ontology diagram (Corpora#searchOntologyAsD3Graph,
   # Corpus#getOntologyDiagram).
   #
-  # CURRENT SETUP: the ontology is served by the local Apache Jena Fuseki container defined in
-  # docker-compose.yml (image built from docker/fuseki/Dockerfile).  It holds the OntoUML
-  # `services2015` model that domox-domain/src/main/resources/ontology.ttl also carries, and the
-  # diagram queries it over SPARQL (RdfPort#selectRemote) through endpoint-url below.
-  # Start it with `docker compose up -d fuseki`; if it is unreachable the diagram degrades to a
-  # short message on the view model instead of a stack trace.
+  # CURRENT SETUP: the graph is served by the local Apache Jena Fuseki container defined in
+  # docker-compose.yml (image built from docker/fuseki/Dockerfile).  It holds four REFERENCE
+  # vocabularies — Schema.org, BFO, BBO and sBPMN — each in its OWN NAMED GRAPH (the DoMoX
+  # OntoUML model is not imported there).  Because a named-graph dataset has an EMPTY default
+  # graph, endpoint queries must be scoped with the `default-graphs` list below, or the search
+  # would return nothing.  The diagram queries it over SPARQL (RdfPort#selectRemote) through
+  # endpoint-url.  Start it with `docker compose up -d fuseki`; if it is unreachable the diagram
+  # degrades to a short message on the view model instead of a stack trace.
   #
   #   endpoint-url  the SPARQL endpoint the diagram is queried from.  Blank selects the bundled
   #                 classpath ontology instead (offline, deterministic — the mode the integration
@@ -203,6 +205,9 @@ domox:
   #   query-timeout-seconds  per-request timeout, so a slow endpoint cannot block the request thread
   #   user-agent    identifies us to the endpoint; Wikidata rejects requests without one
   #   label-language  e.g. "en" — restrict label matching to that language tag (or untagged labels)
+  #   default-graphs  named graphs the endpoint queries are scoped to (SPARQL `FROM <graph>` clauses).
+  #                 Required when the endpoint serves its data as named graphs (empty default graph);
+  #                 leave empty for an endpoint whose data is in the default graph (DBpedia, Wikidata).
   #
   # The endpoint-only settings are inert while endpoint-url is blank.
   rdf:
@@ -212,6 +217,14 @@ domox:
     query-timeout-seconds: 120
     user-agent: domox-ontology-diagram/0.1
     label-language: ""
+    # Named graphs the endpoint queries are scoped to (SPARQL `FROM <graph>`).  The Fuseki image
+    # serves each reference ontology in its own named graph, leaving the DEFAULT graph empty — so
+    # without these the ontology search matches nothing.  Query a single ontology by listing just it.
+    default-graphs:
+      - https://schema.org/
+      - http://BPMNbasedOntology
+      - http://purl.obolibrary.org/obo/bfo.owl
+      - https://ntimes404.github.io/sBPMN/
   nlp:
     disabled-rules: TDR30, TDR31
     auxiliary-verbs: be, am, is, are, was, were, been, being, have, has, had, having, do, does, did, doing

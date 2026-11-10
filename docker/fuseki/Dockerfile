@@ -1,18 +1,30 @@
 # =============================================================================
-#  Apache Jena Fuseki serving the DoMoX ontology as the dataset  /ds
+#  Apache Jena Fuseki serving reference ontologies as the dataset  /ds
 # =============================================================================
-#  The dataset is the OntoUML `services2015` model the application bundles as
-#  `domox-domain/src/main/resources/ontology.ttl` — the same graph the ontology
-#  diagram reads in local mode.  Serving it from Fuseki lets
-#  `domox.rdf.endpoint-url` point at `http://localhost:3030/ds/sparql` (see
-#  `domox-webapp/src/main/resources/application.yml`) without touching the classpath.
+#  The dataset holds four supplementary reference vocabularies — Schema.org, BFO
+#  and BPMN (BBO + sBPMN) — each in its OWN named graph, so it stays individually
+#  addressable with `GRAPH <iri> { ... }`:
 #
-#  Build from the REPOSITORY ROOT so the bundled ontology is in the build context:
+#      <https://schema.org/>                        Schema.org (Turtle)
+#      <http://purl.obolibrary.org/obo/bfo.owl>     BFO 2019-08-26 (RDF/XML)
+#      <http://BPMNbasedOntology>                   BBO — BPMN 2.0 Based Ontology (RDF/XML)
+#      <https://ntimes404.github.io/sBPMN/>         sBPMN — semantic BPMN 2.0 (Turtle)
+#
+#  The DoMoX OntoUML model (`domox-domain/src/main/resources/ontology.ttl`) is NOT
+#  imported — this image serves the reference vocabularies only.
+#
+#  Build from the REPOSITORY ROOT (the build context is pruned by `.dockerignore`):
 #
 #      docker build -f docker/fuseki/Dockerfile -t domox-fuseki .
 #
-#  If the bundled copy is missing (or you want a newer upstream revision) the build
-#  downloads it from the OntoUML repository instead — see ONTOLOGY_URL below.
+#  Force a FRESH download + re-import.  The URLs below track "latest" revisions and
+#  Docker caches the RUN layer whenever the Dockerfile is unchanged, so pass
+#  --no-cache to bypass the cache and re-fetch every ontology:
+#
+#      docker build --no-cache -f docker/fuseki/Dockerfile -t domox-fuseki .
+#
+#  Each download is best-effort: a flaky upstream URL logs a WARNING and is skipped
+#  rather than failing the whole image build.  Override any URL with --build-arg.
 #
 #  Run (Fuseki UI + SPARQL endpoint on http://localhost:3030):
 #
@@ -23,35 +35,56 @@
 # =============================================================================
 FROM stain/jena-fuseki:5.1.0
 
-# Upstream OntoUML model — used only when the bundled copy is absent.
-ARG ONTOLOGY_URL=https://raw.githubusercontent.com/OntoUML/ontouml-models/master/models/services2015/ontology.ttl
-
-# Source ontology and the pre-built TDB2 database (published as dataset /ds, see CMD).
-ENV DOMOX_ONTOLOGY=/opt/domox/ontology.ttl \
-    DOMOX_DATABASE=/opt/domox/databases/ds
+# Pre-built TDB2 database (published as dataset /ds, see CMD) and where the
+# downloaded ontologies are staged.
+ENV DOMOX_DATABASE=/opt/domox/databases/ds \
+    DOMOX_ONTOLOGY_DIR=/opt/domox/ontologies
 
 USER root
 
-# The ontology: prefer the copy the build context provides (repo root); the
-# `domox-domain/src/main/resources/` directory always exists in the repository,
-# so this COPY never fails even when the ontology file itself is absent.
-COPY domox-domain/src/main/resources/ /opt/domox/source/
+# -----------------------------------------------------------------------------
+#  Reference ontologies (Schema.org, BFO, BPMN) — downloaded and imported.
+# -----------------------------------------------------------------------------
+#  Each is loaded into its OWN named graph (never the default graph) so it stays
+#  individually addressable with `GRAPH <iri> { ... }`:
+#
+#      <https://schema.org/>                        Schema.org (Turtle)
+#      <http://purl.obolibrary.org/obo/bfo.owl>     BFO 2019-08-26 (RDF/XML)
+#      <http://BPMNbasedOntology>                   BBO — BPMN 2.0 Based Ontology (RDF/XML)
+#      <https://ntimes404.github.io/sBPMN/>         sBPMN — semantic BPMN 2.0 (Turtle)
+#
+#  Each download is best-effort (curl --retry): a flaky third-party URL logs a
+#  WARNING and is skipped rather than failing the whole image build.  Override any
+#  URL with --build-arg, e.g.
+#      docker build -f docker/fuseki/Dockerfile \
+#        --build-arg SCHEMA_ORG_URL=https://example.org/schemaorg.ttl -t domox-fuseki .
+ARG SCHEMA_ORG_URL=https://schema.org/version/latest/schemaorg-current-https.ttl
+ARG BFO_URL=http://purl.obolibrary.org/obo/bfo.owl
+ARG BBO_URL=https://raw.githubusercontent.com/AminaANNANE/BBO_BPMNbasedOntology/master/BBO.owl
+ARG SBPMN_URL=https://raw.githubusercontent.com/ntimes404/sBPMN/main/ontology.ttl
 
-# Resolve the ontology, then pre-build the TDB2 index with tdb2.tdbloader.
-# NOTE: we deliberately build the database OUTSIDE /fuseki — that path is a VOLUME
-# in the base image, and Docker discards build-time writes into a volume.
+# Download each reference ontology and bulk-load it into a named graph of the TDB2
+# database.  Repeated tdb2.tdbloader runs against the same --loc APPEND, so all four
+# named graphs coexist in /ds.  NOTE: the database is built OUTSIDE /fuseki — that
+# path is a VOLUME in the base image, and Docker discards build-time writes into it.
 RUN set -eux; \
-    mkdir -p /opt/domox/databases; \
-    if [ -f /opt/domox/source/ontology.ttl ]; then \
-        echo "Using bundled ontology from the build context"; \
-        cp /opt/domox/source/ontology.ttl "${DOMOX_ONTOLOGY}"; \
-    else \
-        echo "Bundled ontology absent - downloading ${ONTOLOGY_URL}"; \
-        curl -fsSL "${ONTOLOGY_URL}" -o "${DOMOX_ONTOLOGY}"; \
-    fi; \
-    rm -rf /opt/domox/source; \
-    java -cp "${FUSEKI_HOME}/fuseki-server.jar" tdb2.tdbloader \
-         --loc="${DOMOX_DATABASE}" "${DOMOX_ONTOLOGY}"; \
+    mkdir -p "${DOMOX_ONTOLOGY_DIR}" "${DOMOX_DATABASE}"; \
+    fetch_and_load() { \
+        name="$1"; url="$2"; file="$3"; graph="$4"; \
+        echo "==> Importing ${name} into graph <${graph}> from ${url}"; \
+        if curl -fsSL --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 300 \
+                "${url}" -o "${DOMOX_ONTOLOGY_DIR}/${file}"; then \
+            java -cp "${FUSEKI_HOME}/fuseki-server.jar" tdb2.tdbloader \
+                 --loc="${DOMOX_DATABASE}" --graph="${graph}" \
+                 "${DOMOX_ONTOLOGY_DIR}/${file}"; \
+        else \
+            echo "WARNING: could not download ${name} from ${url} - skipping"; \
+        fi; \
+    }; \
+    fetch_and_load "Schema.org" "${SCHEMA_ORG_URL}" "schemaorg.ttl" "https://schema.org/"; \
+    fetch_and_load "BFO"        "${BFO_URL}"        "bfo.owl"        "http://purl.obolibrary.org/obo/bfo.owl"; \
+    fetch_and_load "BBO (BPMN)" "${BBO_URL}"        "bbo.owl"        "http://BPMNbasedOntology"; \
+    fetch_and_load "sBPMN"      "${SBPMN_URL}"      "sbpmn.ttl"      "https://ntimes404.github.io/sBPMN/"; \
     chown -R fuseki:fuseki /opt/domox
 
 # Back to the image's unprivileged user.

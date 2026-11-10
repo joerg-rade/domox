@@ -521,7 +521,7 @@ public class Corpora {
     /** Runs a {@code SELECT} against the configured endpoint, or against the bundled classpath ontology. */
     private List<Map<String, String>> runSelect(final String sparql) {
         return isRemote()
-                ? rdfPort.selectRemote(rdfProperties.getEndpointUrl(), sparql, remoteOptions())
+                ? rdfPort.selectRemote(rdfProperties.getEndpointUrl(), withDataset(sparql), remoteOptions())
                 : rdfPort.select(localResource(), sparql);
     }
 
@@ -559,6 +559,39 @@ public class Corpora {
         return message != null && !message.isBlank() ? message : cause.getClass().getSimpleName();
     }
 
+    /**
+     * Scopes an endpoint query to the configured named graphs by inserting SPARQL {@code FROM <graph>}
+     * dataset clauses (see {@link RdfProperties#getDefaultGraphs()}).
+     *
+     * <p><b>Why this is needed.</b>  A Fuseki dataset that serves its data as <em>named graphs</em> (as
+     * the reference-ontology image does — Schema.org, BFO, BBO and sBPMN each in its own graph) has an
+     * <b>empty default graph</b>: an unscoped {@code ?s ?p ?o} matches nothing, so every search would
+     * come back empty.  {@code FROM <g>} re-bases the query's default graph onto the merge of the listed
+     * graphs, so the query bodies stay graph-agnostic and work unchanged against a single-graph endpoint
+     * too.</p>
+     *
+     * <p>Applied to remote queries only: the bundled classpath ontology is a single unnamed graph, and a
+     * {@code FROM} clause there would make Jena try to dereference the URI.</p>
+     */
+    private String withDataset(final String sparql) {
+        final List<String> graphs = rdfProperties.getDefaultGraphs();
+        if (graphs == null || graphs.isEmpty()) {
+            return sparql;
+        }
+        final String clause = graphs.stream()
+                .filter(graph -> graph != null && !graph.isBlank())
+                .map(graph -> "FROM <" + graph.trim() + "> ")
+                .collect(Collectors.joining());
+        if (clause.isEmpty()) {
+            return sparql;
+        }
+        // Dataset clauses sit between the projection/template and WHERE.  Every query built here has a
+        // single top-level WHERE, and the only string literals (the lower-cased search term) can never
+        // contain the upper-case keyword.
+        final int where = sparql.indexOf("WHERE");
+        return where < 0 ? sparql : sparql.substring(0, where) + clause + sparql.substring(where);
+    }
+
     /** {@code LIMIT} clause for remote queries only — the bundled fixture is tiny. */
     private String limitClause() {
         return isRemote() ? "\nLIMIT " + Math.max(1, rdfProperties.getQueryLimit()) : "";
@@ -587,7 +620,7 @@ public class Corpora {
      */
     private RdfGraphTO triplesFromRemote(final String endpointUrl, final String sparql) {
         final List<RdfTripleTO> triples = new ArrayList<>();
-        for (final Map<String, String> row : rdfPort.selectRemote(endpointUrl, sparql, remoteOptions())) {
+        for (final Map<String, String> row : rdfPort.selectRemote(endpointUrl, withDataset(sparql), remoteOptions())) {
             final String subject = row.get("s");
             final String predicate = row.get("p");
             final String objectValue = row.get("o");

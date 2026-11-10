@@ -5,6 +5,9 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Configuration for the RDF/OWL graph source behind {@code Corpora}'s ontology diagram.
  *
@@ -73,6 +76,22 @@ public class RdfProperties {
      * labels are accepted, so an ontology with mixed tagging stays searchable.
      */
     private String labelLanguage = "";
+
+    /**
+     * Named graphs an endpoint query is restricted to, via SPARQL {@code FROM <graph>} dataset clauses.
+     * <p>
+     * A Fuseki dataset that serves its data as <em>named graphs</em> (as the reference-ontology image
+     * built from {@code docker/fuseki/Dockerfile} does — Schema.org, BFO, BBO and sBPMN each in its own
+     * graph) has an <b>empty default graph</b>.  Without these clauses an unscoped {@code ?s ?p ?o}
+     * matches nothing, so the ontology search would always come back empty.  Each listed graph is added
+     * to the query's default graph, which SPARQL merges into a set (so a triple shared by two graphs is
+     * returned once).
+     * <p>
+     * Empty (the default) leaves the query unscoped — correct for an endpoint whose data sits in the
+     * default graph (DBpedia, Wikidata, …).  Ignored in local mode: the bundled classpath ontology is a
+     * single unnamed graph, and a {@code FROM} clause there would make Jena try to dereference the URI.
+     */
+    private List<String> defaultGraphs = new ArrayList<>();
 
     /** Whether a remote endpoint is configured. */
     public boolean isRemote() {

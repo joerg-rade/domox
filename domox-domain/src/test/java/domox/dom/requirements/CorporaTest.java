@@ -390,4 +390,47 @@ class CorporaTest {
 
         assertEquals("{\"nodes\":[],\"links\":[],\"legend\":[]}", corpora.ontologyAsD3Graph("Pet"));
     }
+
+    /**
+     * A named-graph endpoint (such as the reference-ontology Fuseki image) has an <b>empty default
+     * graph</b>, so every remote query must carry a {@code FROM <graph>} dataset clause for each
+     * configured graph — otherwise the search silently returns nothing.
+     */
+    @Test
+    void remoteQueriesAreScopedToTheConfiguredNamedGraphs() {
+        final RdfProperties remote = new RdfProperties();
+        remote.setEndpointUrl("https://example.org/sparql");
+        remote.setDefaultGraphs(List.of("https://schema.org/", "http://BPMNbasedOntology"));
+        final Corpora corpora = corporaWith(remote);
+
+        when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class))).thenReturn(List.of());
+
+        corpora.ontologyAsD3Graph("Person");
+
+        final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
+        verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),
+                any(RdfRemoteOptions.class));
+        assertTrue(queries.getAllValues().stream()
+                        .allMatch(query -> query.contains(
+                                "FROM <https://schema.org/> FROM <http://BPMNbasedOntology>")),
+                "every remote query must be scoped to the configured graphs: " + queries.getAllValues());
+    }
+
+    /** With no {@code default-graphs} the query stays unscoped — correct for a single-default-graph endpoint. */
+    @Test
+    void remoteQueriesAreUnscopedWhenNoDefaultGraphsAreConfigured() {
+        final RdfProperties remote = new RdfProperties();
+        remote.setEndpointUrl("https://example.org/sparql");
+        final Corpora corpora = corporaWith(remote);
+
+        when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class))).thenReturn(List.of());
+
+        corpora.ontologyAsD3Graph("Person");
+
+        final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
+        verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),
+                any(RdfRemoteOptions.class));
+        assertTrue(queries.getAllValues().stream().noneMatch(query -> query.contains("FROM <")),
+                "no dataset clause is expected: " + queries.getAllValues());
+    }
 }
