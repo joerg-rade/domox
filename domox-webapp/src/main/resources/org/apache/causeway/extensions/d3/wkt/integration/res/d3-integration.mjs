@@ -35,6 +35,9 @@
 
     var PLACEHOLDER = "<PLACEHOLDER>";
 
+    /** Longest label line before a node name is wrapped (see {@link wrapLabel}). */
+    var LABEL_MAX_CHARS = 40;
+
     /**
      * Draws a UML class diagram from the geometry the model itself stores.
      *
@@ -272,6 +275,45 @@
         });
     }
 
+    /**
+     * Splits a long label into lines of at most `maxChars`, so a literal node — whose name is the
+     * literal's value, often an ontology's own comment running to hundreds of characters — stays a
+     * node instead of a multi-thousand-pixel band across the canvas.
+     *
+     * Breaks on the last blank that fits and, failing that, after the last character that is neither a
+     * letter nor a digit (so punctuation such as `;` or `,` is a break point too).  A run with no break
+     * opportunity at all is hard-broken, which is the only case that splits a word.
+     */
+    function wrapLabel(value, maxChars) {
+        var text = value == null ? '' : String(value);
+        if (text.length <= maxChars) {
+            return [text];
+        }
+        var lines = [];
+        var rest = text;
+        while (rest.length > maxChars) {
+            var cut = lastBreak(rest, maxChars);
+            lines.push(rest.slice(0, cut).replace(/\s+$/, ''));
+            rest = rest.slice(cut).replace(/^\s+/, '');
+        }
+        if (rest.length) {
+            lines.push(rest);
+        }
+        return lines;
+    }
+
+    /** Index just past the last break opportunity in the first `maxChars` characters. */
+    function lastBreak(text, maxChars) {
+        var i;
+        for (i = maxChars; i > 0; i--) {                    // a blank is the preferred break
+            if (/\s/.test(text.charAt(i - 1))) return i;
+        }
+        for (i = maxChars; i > 0; i--) {                    // else after any non-letter/non-digit
+            if (!/[\p{L}\p{N}_]/u.test(text.charAt(i - 1))) return i;
+        }
+        return maxChars;                                    // nothing to break on
+    }
+
     WicketStuff.D3 = {
 
         init: function (config) {
@@ -493,20 +535,27 @@
                 })
                 .text(function (d) { return d.subdomain; });
 
-            // Line 2: candidate name (bold)
-            //   When subdomain is present: dy=1.15em below subdomain tspan baseline
-            //   When subdomain is absent:  dy=0 (first tspan, at text baseline)
-            nodeText.append('tspan')
-                .attr('x', 0)
-                .attr('dy', function (d) {
-                    return d.subdomain ? '1.15em' : '0';
-                })
-                .attr('font-weight', 'bold')
-                .attr('text-decoration', 'underline')
-                .attr('font-size', function (d) {
-                    return clampFont(11 * nodeScale(d));
-                })
-                .text(function (d) { return d.name || d.id; });
+            // Line 2..n: candidate name (bold, underlined) — WRAPPED when it is long.
+            //   A literal's name is the literal's own value (an ontology comment can run to hundreds
+            //   of characters), which would otherwise stretch its node across the whole canvas.
+            //   When subdomain is present the first line sits 1.15em below the subdomain line, and
+            //   when it is absent the first line is at the text baseline; each further line is one
+            //   1.15em below the previous one.
+            //   The click handler is bound to the node <g>, not to the text, so every wrapped line
+            //   stays part of the same clickable node.
+            node.each(function (d) {
+                var label = d3.select(this).select('text');
+                var fontSize = clampFont(11 * nodeScale(d));
+                wrapLabel(d.name || d.id, LABEL_MAX_CHARS).forEach(function (line, index) {
+                    label.append('tspan')
+                        .attr('x', 0)
+                        .attr('dy', index === 0 ? (d.subdomain ? '1.15em' : '0') : '1.15em')
+                        .attr('font-weight', 'bold')
+                        .attr('text-decoration', 'underline')
+                        .attr('font-size', fontSize)
+                        .text(line);
+                });
+            });
 
             // Line 3: POS in double brackets
             // The dy offset scales with the node's size multiplier so the gap
@@ -523,13 +572,20 @@
                 })
                 .text(function (d) { return '<<' + (d.pos || '') + '>>'; });
 
-            // Fit the rectangle around the measured label
+            // Fit the rectangle around the measured label, and CENTRE the (possibly multi-line) label
+            // on the node's own origin.  Both are needed together: a wrapped name makes the text block
+            // far taller than the one-line case the box was originally sized for, so a box that merely
+            // grew (with the label hanging below the origin) would leave the text half outside it.
+            // NOTE: getBBox() ignores the element's own transform, so it is measured once and the same
+            // shift is applied to the box.
             node.each(function (d) {
                 var labelEl = d3.select(this).select('text').node();
                 if (!labelEl) return;
                 var bbox = labelEl.getBBox();
                 var sf = nodeScale(d) || 1;
                 var pad = 7 * sf;
+                var shift = -(bbox.y + bbox.height / 2);
+                d3.select(this).select('text').attr('transform', 'translate(0,' + shift.toFixed(1) + ')');
                 var w = bbox.width + pad * 2;
                 var h = bbox.height + pad * 2;
                 d3.select(this).select('rect')
