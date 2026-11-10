@@ -24,6 +24,7 @@ import java.util.Set;
  *   "nodes": [ {"id","name","subdomain","pos","color","r","approved","isCandidateColumn"} ]
  *   "links": [ {"source","target","label"} ]
  *   "legend":[ {"color","label","description"} ]
+ *   "reSearch": true          (enables the client's node-click drill-down)
  * </pre>
  *
  * <p><b>RDF → diagram mapping</b> (every RDF statement becomes an edge):</p>
@@ -90,6 +91,13 @@ public class RdfGraphDiagrams {
         appendLinks(json, graph, nodes);
         json.append(',');
         appendLegend(json, nodes);
+        // The ontology payload supports drilling down: the client re-runs the ontology search for a
+        // clicked node's label and redraws the graph.  Flagged here so the shared renderer enables that
+        // only for ontology graphs — a CRC candidate diagram's synthetic nodes must not trigger it.  An
+        // empty graph has nothing to click, so it keeps the plain {nodes,links,legend} shape.
+        if (!nodes.isEmpty()) {
+            json.append(",\"reSearch\":true");
+        }
         json.append('}');
         return json.toString();
     }

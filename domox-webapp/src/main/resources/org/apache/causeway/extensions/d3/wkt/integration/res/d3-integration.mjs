@@ -539,16 +539,75 @@
                     .attr('y', -h / 2);
             });
 
-            // Node click handler: open candidate entity page in a new tab
+            // Node click handler
+            //   * a CRC candidate node opens its entity page in a new tab (as before);
+            //   * an ontology node re-runs the ontology search for the node's own label — the text the
+            //     underlined name shows — and redraws the graph in place.  The label is what the user
+            //     clicks, and it is exactly what `Corpora#searchOntologyAsD3Graph` matches on.
+            // The drill-down JSON for a term, from the Wicket-mounted resource
+            // (`OntologyDiagramResourceInitializer`).  The renderer cannot address a Causeway
+            // view-model page directly: its id is a *signed* memento that only the framework can mint,
+            // and the RestfulObjects API answers a page-originated fetch with 401.
+            function reSearchJson(term) {
+                var url = (config.contextPath || '') + '/wicket/ontology-diagram?term='
+                        + encodeURIComponent(term);
+                return fetch(url, { headers: { 'Accept': 'application/json' } })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.text();
+                    });
+            }
+
+            // Redraw this canvas with the clicked node's neighbourhood.
+            function reSearch(term) {
+                return reSearchJson(term).then(function (json) {
+                    // destroy() stops the simulation and clears the canvas; init() then draws the
+                    // drilled-down graph (and re-attaches these handlers, so drilling down again works).
+                    WicketStuff.D3.destroy(config.canvasId);
+                    WicketStuff.D3.init(Object.assign({}, config, { graphData: json }));
+                });
+            }
+
+            // Open the same drill-down in a NEW TAB, as the FULL Causeway object page (Ctrl/Cmd-click,
+            // like a plain link).  The object page cannot be linked to directly — a view-model URL's id
+            // is a signed memento only the framework can mint — so this points at a mount that lets
+            // Causeway mint it and redirects to the object page.
+            function reSearchInNewTab(term) {
+                window.open((config.contextPath || '') + '/wicket/ontology-drilldown?term='
+                        + encodeURIComponent(term), '_blank');
+                return Promise.resolve();
+            }
+
             node.style('cursor', function (d) {
-                    return d.candidateId ? 'pointer' : 'default';
+                    return (d.candidateId && d.objectType) || (data.reSearch && d.name) ? 'pointer' : 'default';
                 })
                 .on('click', function (event, d) {
                     if (event.defaultPrevented) return;
+                    var basePath = config.contextPath || '';
                     if (d.candidateId && d.objectType) {
-                        var basePath = config.contextPath || '';
+                        // A CRC candidate: its entity page, always in a new tab.
                         var entityUrl = basePath + '/wicket/object/' + encodeURIComponent(d.objectType) + ':' + d.candidateId;
                         window.open(entityUrl, '_blank');
+                        return;
+                    }
+                    // Only ontology payloads opt in (`reSearch`): a CRC diagram's synthetic nodes have
+                    // no candidate to open and must not trigger an ontology search.  Ctrl/Cmd-click
+                    // opens the drill-down in a new tab, like a plain link.
+                    if (data.reSearch && d.name) {
+                        var drill = (event.ctrlKey || event.metaKey) ? reSearchInNewTab : reSearch;
+                        drill(d.name).catch(function (e) {
+                            console.error('Ontology re-search for "' + d.name + '" failed:', e);
+                        });
+                    }
+                })
+                .on('auxclick', function (event, d) {
+                    // Middle-click -> new tab, as for any link.
+                    if (event.defaultPrevented || event.button !== 1) return;
+                    if (data.reSearch && d.name && !(d.candidateId && d.objectType)) {
+                        event.preventDefault();
+                        reSearchInNewTab(d.name).catch(function (e) {
+                            console.error('Ontology re-search for "' + d.name + '" failed:', e);
+                        });
                     }
                 });
 
