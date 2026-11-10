@@ -1,6 +1,6 @@
 package domox.adapter.diagram
 
-import org.junit.jupiter.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
@@ -31,7 +31,7 @@ class KrokiTest {
 
     @Test
     @Throws(Exception::class)
-    fun testKrokiContainer() {
+    fun krokiContainer_rendersPlantUmlAsSvg() {
         val krokiUrl = "http://" + kroki.host + ":" + kroki.getMappedPort(PORT) + "/plantuml/svg/"
 
         // Example PlantUML diagram
@@ -46,7 +46,7 @@ class KrokiTest {
             .build()
 
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-        Assertions.assertEquals(200, response.statusCode())
+        assertThat(response.statusCode()).isEqualTo(200)
     }
 
 }

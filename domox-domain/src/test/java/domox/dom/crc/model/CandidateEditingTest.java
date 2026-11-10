@@ -1,13 +1,11 @@
 package domox.dom.crc.model;
-import domox.dom.crc.service.Reviews;
 import org.apache.causeway.applib.annotation.DomainObject;
 import org.apache.causeway.applib.annotation.Editing;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Guardrail test: every concrete {@link Candidate} subclass that participates in the review
@@ -31,14 +29,15 @@ class CandidateEditingTest {
     void everyCandidateSubclassOptsIntoInlineEditing() {
         for (final Class<? extends Candidate> type : CANDIDATE_SUBCLASSES) {
             final DomainObject annotation = type.getAnnotation(DomainObject.class);
-            assertNotNull(annotation,
-                    type.getSimpleName() + " must be annotated @DomainObject");
-            assertEquals(
-                    Editing.ENABLED, annotation.editing(),
-                    type.getSimpleName()
+            assertThat(annotation)
+                    .as(type.getSimpleName() + " must be annotated @DomainObject")
+                    .isNotNull();
+            assertThat(annotation.editing())
+                    .as(type.getSimpleName()
                             + " must declare editing = Editing.ENABLED so properties inherited from "
                             + "Candidate (e.g. Diagram Hop Depth) remain editable; otherwise the whole "
-                            + "object is rendered read-only");
+                            + "object is rendered read-only")
+                    .isEqualTo(Editing.ENABLED);
         }
     }
 }

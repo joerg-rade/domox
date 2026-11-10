@@ -1,6 +1,6 @@
 package domox.adapter.diagram
 
-import org.junit.jupiter.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
@@ -26,7 +26,7 @@ internal class DiagramBuilderTest {
     }
 
     @Test //IntegrationTest
-    fun testBuildLexicalGraphDiagramReturnsPdf() {
+    fun buildLexicalGraphDiagram_returnsAPdf() {
         //given — DOT source (as produced by a lexical graph run), reachable Kroki
         System.setProperty("kroki.host", kroki.host)
         System.setProperty("kroki.port", kroki.getMappedPort(PORT).toString())
@@ -47,10 +47,10 @@ internal class DiagramBuilderTest {
         val pdf: ByteArray = DiagramBuilder().buildLexicalGraphDiagram(dotCode)
 
         //then — a real PDF was produced via Kroki's /graphviz endpoint (not an HTTP 400)
-        assertNotNull(pdf)
-        assertTrue(pdf.isNotEmpty(), "PDF response should not be empty")
+        assertThat(pdf).isNotNull()
+        assertThat(pdf).describedAs("PDF response should not be empty").isNotEmpty()
         val magic = String(pdf, 0, minOf(5, pdf.size), StandardCharsets.ISO_8859_1)
-        assertTrue(magic == "%PDF-", "Response should be a PDF, but began with '$magic'")
+        assertThat(magic).describedAs("Response should be a PDF, but began with '$magic'").isEqualTo("%PDF-")
     }
 
 }

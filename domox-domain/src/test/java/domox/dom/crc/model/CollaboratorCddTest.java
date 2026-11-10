@@ -1,12 +1,13 @@
 package domox.dom.crc.model;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CollaboratorCddTest {
 
@@ -38,28 +39,22 @@ class CollaboratorCddTest {
         return association;
     }
 
-    @Test
-    void mapsAssociationTypeToPlantUmlArrow() {
-        // given
-        final CollaboratorCdd association = associationWith(null);
+    @ParameterizedTest
+    @EnumSource(value = AssociationType.class, mode = EnumSource.Mode.EXCLUDE, names = "SYNONYM")
+    void mapsAssociationTypeToPlantUmlArrow(final AssociationType type) {
+        // given — the arrow the type is expected to render
+        final String expectedArrow = EXPECTED_ARROWS.get(type);
 
         // when
-        final String plantUml = association.toPlantUmlString();
+        final CollaboratorCdd association = associationWith(type);
+        final String rendered = association.toPlantUmlString();
 
-        // then
-        for (final Map.Entry<AssociationType, String> expected : EXPECTED_ARROWS.entrySet()) {
-            final CollaboratorCdd typed = associationWith(expected.getKey());
-            final String rendered = typed.toPlantUmlString();
-            assertTrue(rendered.contains(expected.getValue()),
-                    expected.getKey() + " should render '" + expected.getValue()
-                            + "' arrow but was: " + rendered);
-            assertTrue(rendered.indexOf("PaymentProcessor") < rendered.indexOf(expected.getValue()),
-                    "arrow must appear after the source class: " + rendered);
-            assertTrue(rendered.indexOf(expected.getValue()) < rendered.indexOf("Gateway"),
-                    "arrow must appear before the target class: " + rendered);
-        }
-        // the fallback (null type) renders as a plain association
-        assertTrue(plantUml.contains("->"));
+        // then — the arrow is present and sits between the source and target classes
+        assertThat(rendered).as(type + " should render '" + expectedArrow + "' arrow").contains(expectedArrow);
+        assertThat(rendered.indexOf("PaymentProcessor")).as("arrow must appear after the source class")
+                .isLessThan(rendered.indexOf(expectedArrow));
+        assertThat(rendered.indexOf(expectedArrow)).as("arrow must appear before the target class")
+                .isLessThan(rendered.indexOf("Gateway"));
     }
 
     @Test
@@ -71,8 +66,7 @@ class CollaboratorCddTest {
         final String plantUml = association.toPlantUmlString();
 
         // then
-        assertEquals(-1, plantUml.indexOf("..|>"),
-                "Association arrow should be used when type is null");
-        assertTrue(plantUml.contains("->"));
+        assertThat(plantUml.indexOf("..|>")).as("Association arrow should be used when type is null").isEqualTo(-1);
+        assertThat(plantUml).contains("->");
     }
 }

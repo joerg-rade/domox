@@ -9,10 +9,8 @@ import domox.dom.rules.TypedDependencyRule
 import domox.port.RdfFormat
 import domox.port.RdfRemoteOptions
 import org.json.JSONObject
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Assertions.fail
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.net.InetSocketAddress
@@ -72,17 +70,13 @@ class JenaRdfAdapterTest {
     fun `loads the sample ontology with its prefixes`() {
         val graph = rdf.load(SAMPLE)
 
-        assertTrue(graph.size() > 100, "expected a non-trivial graph, got ${graph.size()} triples")
-        assertTrue(graph.prefixes().containsKey("dbr"), "prefix declarations should be preserved")
-        assertTrue(graph.prefixes().containsKey("dbo"), "prefix declarations should be preserved")
-        assertTrue(
-            graph.triples().count { it.predicate() == DBO + "wikiPageWikiLink" } > 50,
-            "the export is a page-links graph: the hub has many incoming links"
-        )
-        assertTrue(
-            graph.triples().any { it.literal() && it.predicate() == DBO + "description" },
-            "literals keep their lexical form"
-        )
+        assertThat(graph.size() > 100).describedAs("expected a non-trivial graph, got ${graph.size()} triples").isTrue()
+        assertThat(graph.prefixes().containsKey("dbr")).describedAs("prefix declarations should be preserved").isTrue()
+        assertThat(graph.prefixes().containsKey("dbo")).describedAs("prefix declarations should be preserved").isTrue()
+        assertThat(graph.triples().count { it.predicate() == DBO + "wikiPageWikiLink" } > 50)
+            .describedAs("the export is a page-links graph: the hub has many incoming links").isTrue()
+        assertThat(graph.triples().any { it.literal() && it.predicate() == DBO + "description" })
+            .describedAs("literals keep their lexical form").isTrue()
     }
 
     @Test
@@ -96,8 +90,8 @@ class JenaRdfAdapterTest {
             """.trimIndent()
         )
 
-        assertTrue(incoming.size() > 50, "expected the hub's incoming links, got ${incoming.size()}")
-        assertTrue(incoming.triples().all { it.objectValue() == HUB }, "only the requested sub-graph")
+        assertThat(incoming.size() > 50).describedAs("expected the hub's incoming links, got ${incoming.size()}").isTrue()
+        assertThat(incoming.triples().all { it.objectValue() == HUB }).describedAs("only the requested sub-graph").isTrue()
     }
 
     @Test
@@ -110,18 +104,18 @@ class JenaRdfAdapterTest {
             """.trimIndent()
         )
 
-        assertFalse(rows.isEmpty())
-        assertTrue(rows.all { it.containsKey("s") && it.containsKey("o") })
-        assertTrue(rows.any { it["o"] == HUB }, "the hub is among the link targets")
+        assertThat(rows.isEmpty()).isFalse()
+        assertThat(rows.all { it.containsKey("s") && it.containsKey("o") }).isTrue()
+        assertThat(rows.any { it["o"] == HUB }).describedAs("the hub is among the link targets").isTrue()
 
         val subjects = rows.mapNotNull { it["s"] }
-        assertEquals(subjects.sorted(), subjects, "ORDER BY ?s is honoured")
+        assertThat(subjects).describedAs("ORDER BY ?s is honoured").isEqualTo(subjects.sorted())
     }
 
     @Test
     fun `serializes to turtle and json-ld`() {
-        assertTrue(rdf.serialize(SAMPLE, RdfFormat.TURTLE).contains("wikiPageWikiLink"))
-        assertTrue(rdf.serialize(SAMPLE, RdfFormat.JSON_LD).trimStart().startsWith("{"))
+        assertThat(rdf.serialize(SAMPLE, RdfFormat.TURTLE).contains("wikiPageWikiLink")).isTrue()
+        assertThat(rdf.serialize(SAMPLE, RdfFormat.JSON_LD).trimStart().startsWith("{")).isTrue()
     }
 
     @Test
@@ -132,8 +126,8 @@ class JenaRdfAdapterTest {
         val nodes = root.getJSONArray("nodes")
         val links = root.getJSONArray("links")
 
-        assertTrue(nodes.length() > 50, "expected many nodes, got ${nodes.length()}")
-        assertTrue(links.length() > 50, "expected many links, got ${links.length()}")
+        assertThat(nodes.length() > 50).describedAs("expected many nodes, got ${nodes.length()}").isTrue()
+        assertThat(links.length() > 50).describedAs("expected many links, got ${links.length()}").isTrue()
 
         fun nodeWithId(id: String): JSONObject =
             (0 until nodes.length())
@@ -142,19 +136,19 @@ class JenaRdfAdapterTest {
 
         // the hub is an individual (rdf:type owl:Thing), so it is grouped by that type
         val hub = nodeWithId(HUB)
-        assertEquals("Individual", hub.getString("pos"))
-        assertEquals("Thing", hub.getString("subdomain"))
+        assertThat(hub.getString("pos")).isEqualTo("Individual")
+        assertThat(hub.getString("subdomain")).isEqualTo("Thing")
 
         // every RDF statement is an edge, labelled with the predicate's local name
         val labels = (0 until links.length()).map { links.getJSONObject(it).getString("label") }
-        assertTrue(labels.contains("wikiPageWikiLink"))
-        assertTrue(labels.contains("sameAs"))
+        assertThat(labels.contains("wikiPageWikiLink")).isTrue()
+        assertThat(labels.contains("sameAs")).isTrue()
 
         // the export declares no owl:Class / rdfs:subClassOf, so only two node kinds occur
         val legend = (0 until root.getJSONArray("legend").length())
             .map { root.getJSONArray("legend").getJSONObject(it).getString("label") }
-        assertTrue(legend.contains("Individual"), "legend: $legend")
-        assertTrue(legend.contains("Literal"), "legend: $legend")
+        assertThat(legend.contains("Individual")).describedAs("legend: $legend").isTrue()
+        assertThat(legend.contains("Literal")).describedAs("legend: $legend").isTrue()
     }
 
     /**
@@ -168,12 +162,12 @@ class JenaRdfAdapterTest {
         val root = JSONObject(corporaWithRdf(dbpediaFixture()).ontologyAsD3Graph(LEAF))
         val ids = nodeIds(root)
 
-        assertTrue(ids.contains(LEAF), "the matched resource is a node: $ids")
-        assertTrue(ids.contains("Pet_store"), "the resource it links to is one hop away: $ids")
+        assertThat(ids.contains(LEAF)).describedAs("the matched resource is a node: $ids").isTrue()
+        assertThat(ids.contains("Pet_store")).describedAs("the resource it links to is one hop away: $ids").isTrue()
 
         val links = root.getJSONArray("links")
         val labels = (0 until links.length()).map { links.getJSONObject(it).getString("label") }
-        assertTrue(labels.contains("wikiPageWikiLink"), "the edge is kept: $labels")
+        assertThat(labels.contains("wikiPageWikiLink")).describedAs("the edge is kept: $labels").isTrue()
     }
 
     /**
@@ -185,12 +179,12 @@ class JenaRdfAdapterTest {
     fun `search restricts the graph to the matching neighbourhood`() {
         val ids = nodeIds(JSONObject(corporaWithRdf(dbpediaFixture()).ontologyAsD3Graph(LEAF)))
 
-        assertTrue(ids.contains(LEAF), "the match itself: $ids")
-        assertTrue(ids.contains("Pet_store"), "the one hop it reaches: $ids")
+        assertThat(ids.contains(LEAF)).describedAs("the match itself: $ids").isTrue()
+        assertThat(ids.contains("Pet_store")).describedAs("the one hop it reaches: $ids").isTrue()
 
-        assertFalse(ids.contains("Tony_Silva"), "an unrelated page leaked in: $ids")
-        assertFalse(ids.contains("Pixel_Chix"), "an unrelated page leaked in: $ids")
-        assertTrue(ids.size <= 4, "expected a one-edge neighbourhood, got ${ids.size}: $ids")
+        assertThat(ids.contains("Tony_Silva")).describedAs("an unrelated page leaked in: $ids").isFalse()
+        assertThat(ids.contains("Pixel_Chix")).describedAs("an unrelated page leaked in: $ids").isFalse()
+        assertThat(ids.size <= 4).describedAs("expected a one-edge neighbourhood, got ${ids.size}: $ids").isTrue()
     }
 
     /**
@@ -216,21 +210,22 @@ class JenaRdfAdapterTest {
         val file = File.createTempFile("focus-decoys-", ".ttl")
         file.writeText(decoys)
         try {
-            assertEquals(listOf("http://example.org/petshop#Pet"), focusOf(file, Corpora.focusQuery("Pet")),
-                "only the exact concept must resolve")
+            assertThat(focusOf(file, Corpora.focusQuery("Pet")))
+                .describedAs("only the exact concept must resolve")
+                .isEqualTo(listOf("http://example.org/petshop#Pet"))
 
             val word = focusOf(file, Corpora.wordMatchQuery("Pet", ""))
-            assertTrue(word.contains("http://example.org/petshop#Pet"), "$word")
-            assertFalse(word.contains("http://example.org/petshop#Petit"),
-                "the fallback must not match 'Petit' — there is no word boundary between pet/it: $word")
-            assertFalse(word.contains("http://example.org/petshop#petit"), "$word")
+            assertThat(word.contains("http://example.org/petshop#Pet")).describedAs("$word").isTrue()
+            assertThat(word.contains("http://example.org/petshop#Petit"))
+                .describedAs("the fallback must not match 'Petit' — there is no word boundary between pet/it: $word")
+                .isFalse()
+            assertThat(word.contains("http://example.org/petshop#petit")).describedAs("$word").isFalse()
             // NOTE: 'PetShow' (label "Pet Show") legitimately matches the *word* "Pet" — that is the
             // intended, forgiving behaviour of the fallback; it only runs when nothing matches exactly.
 
-            assertEquals(
-                listOf("http://example.org/petshop#GoldRetriever"),
-                focusOf(file, Corpora.wordMatchQuery("Golden Retriever", "")),
-                "a partial phrase resolves on word boundaries")
+            assertThat(focusOf(file, Corpora.wordMatchQuery("Golden Retriever", "")))
+                .describedAs("a partial phrase resolves on word boundaries")
+                .isEqualTo(listOf("http://example.org/petshop#GoldRetriever"))
         } finally {
             file.delete()
         }
@@ -245,8 +240,8 @@ class JenaRdfAdapterTest {
     fun `blank search renders the whole ontology`() {
         val root = JSONObject(corporaWithRdf().ontologyAsD3Graph())
 
-        assertTrue(root.getJSONArray("nodes").length() > 50,
-            "expected the whole export, got ${root.getJSONArray("nodes").length()} nodes")
+        assertThat(root.getJSONArray("nodes").length() > 50)
+            .describedAs("expected the whole export, got ${root.getJSONArray("nodes").length()} nodes").isTrue()
     }
 
     /**
@@ -258,11 +253,11 @@ class JenaRdfAdapterTest {
     fun `the search action returns a view model that renders the graph`() {
         val viewModel = corporaWithRdf(dbpediaFixture()).searchOntologyAsD3Graph(LEAF)
 
-        assertEquals(LEAF, viewModel.searchTerm)
-        assertTrue(viewModel.title().startsWith("Ontology:"), viewModel.title())
+        assertThat(viewModel.searchTerm).isEqualTo(LEAF)
+        assertThat(viewModel.title().startsWith("Ontology:")).describedAs(viewModel.title()).isTrue()
 
-        assertTrue(nodeIds(JSONObject(viewModel.diagram)).contains(LEAF),
-            "the graph is pre-rendered: ${viewModel.diagram.take(200)}")
+        assertThat(nodeIds(JSONObject(viewModel.diagram)).contains(LEAF))
+            .describedAs("the graph is pre-rendered: ${viewModel.diagram.take(200)}").isTrue()
     }
 
     // -- the UML/OntoUML vocabulary -------------------------------------------
@@ -271,18 +266,13 @@ class JenaRdfAdapterTest {
     fun `loads the OntoUML model with its classes`() {
         val graph = rdf.load(ONTOUML)
 
-        assertTrue(graph.size() > 1_000, "expected the whole model, got ${graph.size()} triples")
-        assertTrue(graph.prefixes().containsKey("ontouml"), "prefix declarations should be preserved")
-        assertTrue(
-            graph.triples().count { it.predicate() == RDF_TYPE && it.objectValue() == OU + "Class" } > 100,
-            "a UML model types its classes as ontouml:Class"
-        )
-        assertTrue(
-            graph.triples().none {
-                it.predicate() == RDF_TYPE && it.objectValue() == "http://www.w3.org/2002/07/owl#Class"
-            },
-            "…and declares no owl:Class at all — which is exactly why the mapper needs the ontouml: rules"
-        )
+        assertThat(graph.size() > 1_000).describedAs("expected the whole model, got ${graph.size()} triples").isTrue()
+        assertThat(graph.prefixes().containsKey("ontouml")).describedAs("prefix declarations should be preserved").isTrue()
+        assertThat(graph.triples().count { it.predicate() == RDF_TYPE && it.objectValue() == OU + "Class" } > 100)
+            .describedAs("a UML model types its classes as ontouml:Class").isTrue()
+        assertThat(graph.triples().none {
+            it.predicate() == RDF_TYPE && it.objectValue() == "http://www.w3.org/2002/07/owl#Class"
+        }).describedAs("…and declares no owl:Class at all — which is exactly why the mapper needs the ontouml: rules").isTrue()
     }
 
     /**
@@ -295,17 +285,17 @@ class JenaRdfAdapterTest {
         val root = JSONObject(RdfGraphDiagrams().renderDiagram(rdf.load(ONTOUML)))
 
         val concept = nodesNamed(root, ONTOUML_CONCEPT)
-        assertTrue(concept.isNotEmpty(), "ontouml:name must become the node label")
+        assertThat(concept.isNotEmpty()).describedAs("ontouml:name must become the node label").isTrue()
         // the concept is a *Class* node carrying its human name and clustering under its parent's name
         // (the same name also appears as a Literal node — every statement becomes an edge)
         val klass = concept.singleOrNull { it.getString("pos") == "Class" }
-        assertTrue(klass != null, "an ontouml:Class must be a Class node: $concept")
-        assertTrue(klass!!.getString("subdomain").isNotBlank(),
-            "it clusters under the name of its super-class: $klass")
+        assertThat(klass != null).describedAs("an ontouml:Class must be a Class node: $concept").isTrue()
+        assertThat(klass!!.getString("subdomain").isNotBlank())
+            .describedAs("it clusters under the name of its super-class: $klass").isTrue()
 
         val legend = (0 until root.getJSONArray("legend").length())
             .map { root.getJSONArray("legend").getJSONObject(it).getString("label") }
-        assertTrue(legend.contains("Class"), "legend: $legend")
+        assertThat(legend.contains("Class")).describedAs("legend: $legend").isTrue()
     }
 
     /**
@@ -318,9 +308,9 @@ class JenaRdfAdapterTest {
         val root = JSONObject(corporaWithRdf().ontologyAsD3Graph(ONTOUML_CONCEPT))
         val names = nodeNames(root)
 
-        assertTrue(names.contains(ONTOUML_CONCEPT), "the named concept is a node: $names")
-        assertTrue(root.getJSONArray("links").length() > 0, "its neighbourhood must bring edges along")
-        assertTrue(names.size < 100, "a one-concept neighbourhood, not the whole model: ${names.size}")
+        assertThat(names.contains(ONTOUML_CONCEPT)).describedAs("the named concept is a node: $names").isTrue()
+        assertThat(root.getJSONArray("links").length() > 0).describedAs("its neighbourhood must bring edges along").isTrue()
+        assertThat(names.size < 100).describedAs("a one-concept neighbourhood, not the whole model: ${names.size}").isTrue()
     }
 
     /**
@@ -356,8 +346,8 @@ class JenaRdfAdapterTest {
 
             val ids = nodeIds(JSONObject(corporaWithRdf(properties).ontologyAsD3Graph("Custom_shop")))
 
-            assertTrue(ids.contains("Custom_shop"), "the file on disk is the source: $ids")
-            assertTrue(ids.contains("Custom_thing"), "its neighbourhood comes along: $ids")
+            assertThat(ids.contains("Custom_shop")).describedAs("the file on disk is the source: $ids").isTrue()
+            assertThat(ids.contains("Custom_thing")).describedAs("its neighbourhood comes along: $ids").isTrue()
         } finally {
             file.delete()
         }
@@ -390,9 +380,9 @@ class JenaRdfAdapterTest {
 
             val rows = rdf.selectRemote(endpoint, "SELECT ?focus WHERE { ?focus a <http://x/Cat> }")
 
-            assertEquals(1, rows.size)
-            assertEquals("http://example.org/petshop#Buddy", rows.single()["focus"])
-            assertTrue(seen.get().contains("SELECT"), "a SPARQL query must be sent: ${seen.get()}")
+            assertThat(rows.size).isEqualTo(1)
+            assertThat(rows.single()["focus"]).isEqualTo("http://example.org/petshop#Buddy")
+            assertThat(seen.get().contains("SELECT")).describedAs("a SPARQL query must be sent: ${seen.get()}").isTrue()
         } finally {
             server.stop(0)
         }
@@ -410,8 +400,8 @@ class JenaRdfAdapterTest {
                 "SELECT ?focus WHERE { ?focus ?p ?o }",
                 RdfRemoteOptions(Duration.ofSeconds(5), "domox-test/1"))
 
-            assertTrue(seenUserAgent.get().contains("domox-test/1"),
-                "User-Agent must be sent, was '${seenUserAgent.get()}'")
+            assertThat(seenUserAgent.get().contains("domox-test/1"))
+                .describedAs("User-Agent must be sent, was '${seenUserAgent.get()}'").isTrue()
         } finally {
             server.stop(0)
         }
@@ -435,7 +425,7 @@ class JenaRdfAdapterTest {
                 fail("expected the request to be abandoned at the timeout")
             } catch (expected: RuntimeException) {
                 val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
-                assertTrue(elapsedMs < 1_500, "must abort at the timeout, but took ${elapsedMs}ms")
+                assertThat(elapsedMs < 1_500).describedAs("must abort at the timeout, but took ${elapsedMs}ms").isTrue()
             }
         } finally {
             server.stop(0)

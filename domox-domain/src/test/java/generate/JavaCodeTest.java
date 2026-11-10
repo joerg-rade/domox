@@ -10,14 +10,16 @@ import domox.dom.crc.model.SubDomain;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(MockitoExtension.class)
 public class JavaCodeTest {
 
     private DomainModels classUnderTest;
@@ -32,7 +34,7 @@ public class JavaCodeTest {
     }
 
     @Test
-    void testGenerateJavaCode() {
+    void generateJavaCode_fallsBackToLowercasedClassNameAsPackage() {
         // given
         final List<AttributeCdd> attributeList = new ArrayList<>();
         final AttributeCdd property1 = new AttributeCdd("property1", "int");
@@ -62,16 +64,14 @@ public class JavaCodeTest {
         // when — no SubDomain assigned: generateJavaCode must not crash
         final String javaCode = classUnderTest.generateJavaCode(clazz1);
         // then
-        assertNotNull(javaCode, "Generated code must not be null");
-        assertTrue(javaCode.startsWith("package "),
-                "Generated code must start with a package declaration");
-        assertTrue(javaCode.contains("package alice;"),
-                "Missing subDomain must fall back to the lowercased candidate name as package");
-        System.out.println(javaCode);
+        assertThat(javaCode).as("Generated code must not be null").isNotNull();
+        assertThat(javaCode).as("Generated code must start with a package declaration").startsWith("package ");
+        assertThat(javaCode).as("Missing subDomain must fall back to the lowercased candidate name as package")
+                .contains("package alice;");
     }
 
     @Test
-    void testGenerateJavaCodeUsesSubDomainAsPackage() {
+    void generateJavaCode_usesAssignedSubDomainAsPackage() {
         // given — a ClassCdd with an assigned SubDomain (set by the reviewer)
         final ClassCdd clazz = new ClassCdd("Alice", List.of(), List.of(), List.of());
         final SubDomain subDomain = new SubDomain();
@@ -82,9 +82,9 @@ public class JavaCodeTest {
         final String javaCode = classUnderTest.generateJavaCode(clazz);
 
         // then
-        assertNotNull(javaCode, "Generated code must not be null");
-        assertTrue(javaCode.startsWith("package pets;"),
-                "Assigned subDomain name must be used as the package declaration");
+        assertThat(javaCode).as("Generated code must not be null").isNotNull();
+        assertThat(javaCode).as("Assigned subDomain name must be used as the package declaration")
+                .startsWith("package pets;");
     }
 
 }

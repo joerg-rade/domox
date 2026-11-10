@@ -10,10 +10,8 @@ import java.util.Map;
 
 import static domox.port.RdfTripleTO.literal;
 import static domox.port.RdfTripleTO.resource;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit-level guardrail for the UML-layout reconstruction: an OntoUML export's view/layout resources
@@ -81,7 +79,7 @@ class UmlLayoutDiagramsTest {
 
     @Test
     void namesTheDiagramsTheExportShips() {
-        assertEquals(List.of("Demo"), diagrams.diagramNames(sampleGraph()));
+        assertThat(diagrams.diagramNames(sampleGraph())).isEqualTo(List.of("Demo"));
     }
 
     /**
@@ -92,11 +90,11 @@ class UmlLayoutDiagramsTest {
     void reconstructsBoxesAtTheirStoredCoordinates() {
         final String json = diagrams.renderLayout(sampleGraph(), "Demo");
 
-        assertTrue(json.contains("\"layout\":\"uml\""), json);
-        assertTrue(json.contains("\"title\":\"Demo\""), json);
-        assertTrue(json.contains("\"canvas\":{\"width\":608,\"height\":358}"), json);
-        assertTrue(json.contains("\"name\":\"A\",\"kind\":\"Class\",\"x\":24,\"y\":24,\"w\":200,\"h\":60"), json);
-        assertTrue(json.contains("\"name\":\"B\",\"kind\":\"Class\",\"x\":424,\"y\":274,\"w\":160,\"h\":60"), json);
+        assertThat(json).contains("\"layout\":\"uml\"");
+        assertThat(json).contains("\"title\":\"Demo\"");
+        assertThat(json).contains("\"canvas\":{\"width\":608,\"height\":358}");
+        assertThat(json).contains("\"name\":\"A\",\"kind\":\"Class\",\"x\":24,\"y\":24,\"w\":200,\"h\":60");
+        assertThat(json).contains("\"name\":\"B\",\"kind\":\"Class\",\"x\":424,\"y\":274,\"w\":160,\"h\":60");
     }
 
     /**
@@ -108,25 +106,25 @@ class UmlLayoutDiagramsTest {
     void routesEachConnectorFromTheTargetBoxToTheSourceBox() {
         final String json = diagrams.renderLayout(sampleGraph(), "Demo");
 
-        assertTrue(json.contains("\"kind\":\"generalization\""), json);
-        assertTrue(json.contains("\"points\":[[504,274],[504,254],[124,254],[124,108],[124,84]]"),
-                "the route leaves the sub-class's top middle and enters the super-class's bottom: " + json);
+        assertThat(json).contains("\"kind\":\"generalization\"");
+        assertThat(json).as("the route leaves the sub-class's top middle and enters the super-class's bottom")
+                .contains("\"points\":[[504,274],[504,254],[124,254],[124,108],[124,84]]");
     }
 
     /** A blank name picks the richest diagram rather than failing. */
     @Test
     void blankNamePicksTheRichestDiagram() {
-        assertTrue(diagrams.renderLayout(sampleGraph(), " ").contains("\"title\":\"Demo\""));
+        assertThat(diagrams.renderLayout(sampleGraph(), " ")).contains("\"title\":\"Demo\"");
     }
 
     @Test
     void rejectsAnUnknownDiagramName() {
         final RdfGraphTO graph = sampleGraph();
-        final IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> diagrams.renderLayout(graph, "nope"));
 
-        assertTrue(ex.getMessage().contains("nope"), ex.getMessage());
-        assertTrue(ex.getMessage().contains("Demo"), "the message lists what is available: " + ex.getMessage());
+        assertThatThrownBy(() -> diagrams.renderLayout(graph, "nope"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("nope")
+                .hasMessageContaining("Demo");
     }
 
     /** A plain OWL graph has no views, so there is no stored picture to reconstruct. */
@@ -135,8 +133,9 @@ class UmlLayoutDiagramsTest {
         final RdfGraphTO plain = new RdfGraphTO(List.of(
                 resource(M + "Cat", RDF_TYPE, "http://www.w3.org/2002/07/owl#Class")), Map.of());
 
-        assertTrue(diagrams.diagramNames(plain).isEmpty());
-        assertThrows(IllegalArgumentException.class, () -> diagrams.renderLayout(plain, ""));
+        assertThat(diagrams.diagramNames(plain)).isEmpty();
+        assertThatThrownBy(() -> diagrams.renderLayout(plain, ""))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     /**
@@ -172,9 +171,8 @@ class UmlLayoutDiagramsTest {
 
         final String json = diagrams.renderLayout(graph, "Demo");
 
-        assertTrue(json.contains("\"name\":\"A\""), json);
-        assertTrue(json.contains("\"links\":[]"),
-                "the undrawable connector is skipped: " + json);
+        assertThat(json).contains("\"name\":\"A\"");
+        assertThat(json).as("the undrawable connector is skipped").contains("\"links\":[]");
     }
 
     /** The legend names what the drawing shows, and every entry says which swatch to draw. */
@@ -182,10 +180,10 @@ class UmlLayoutDiagramsTest {
     void explainsTheLineKindsInItsLegend() {
         final String json = diagrams.renderLayout(sampleGraph(), "Demo");
 
-        assertTrue(json.contains("{\"kind\":\"node\",\"color\":\"#3498DB\""), json);
-        assertTrue(json.contains("{\"kind\":\"association\",\"color\":\"#7f8c8d\""), json);
-        assertTrue(json.contains("{\"kind\":\"generalization\",\"color\":\"#e67e22\""), json);
-        assertTrue(json.contains("super-class"), "the generalization is explained, not just named: " + json);
+        assertThat(json).contains("{\"kind\":\"node\",\"color\":\"#3498DB\"");
+        assertThat(json).contains("{\"kind\":\"association\",\"color\":\"#7f8c8d\"");
+        assertThat(json).contains("{\"kind\":\"generalization\",\"color\":\"#e67e22\"");
+        assertThat(json).as("the generalization is explained, not just named").contains("super-class");
     }
 
     /**
@@ -249,11 +247,11 @@ class UmlLayoutDiagramsTest {
 
         final String json = diagrams.renderLayout(graph, "Demo");
 
-        assertTrue(json.contains("\"canvas\":{\"width\":848,\"height\":428}"), json);
+        assertThat(json).contains("\"canvas\":{\"width\":848,\"height\":428}");
         // The route leaves the middle of A's top edge — (200,100), going up 20 units before it turns — and
         // runs down B's top edge's normal for 24 units (the trunk) before entering it at (800,400).
-        assertTrue(json.contains("\"points\":[[124,44],[124,24],[724,24],[724,320],[724,344]]"),
-                "the route leaves the sub-class's top middle and enters the super-class's top: " + json);
+        assertThat(json).as("the route leaves the sub-class's top middle and enters the super-class's top")
+                .contains("\"points\":[[124,44],[124,24],[724,24],[724,320],[724,344]]");
     }
 
     /**
@@ -310,8 +308,8 @@ class UmlLayoutDiagramsTest {
 
         final String json = diagrams.renderLayout(graph, "Demo");
 
-        assertTrue(json.contains("\"points\":[[424,254],[424,54],[224,54]]"),
-                "the degenerate path is replaced by an orthogonal route between the box edges: " + json);
+        assertThat(json).as("the degenerate path is replaced by an orthogonal route between the box edges")
+                .contains("\"points\":[[424,254],[424,54],[224,54]]");
     }
 
     /**
@@ -369,10 +367,10 @@ class UmlLayoutDiagramsTest {
 
         final String json = diagrams.renderLayout(graph, "Demo");
 
-        assertTrue(json.contains("\"points\":[[424,254],[124,254],[124,84]]"),
-                "the out-of-drawing bend is dropped and the route made orthogonal: " + json);
-        assertTrue(json.contains("\"canvas\":{\"width\":648,\"height\":308}"),
-                "the canvas is the drawing, not the stray point: " + json);
+        assertThat(json).as("the out-of-drawing bend is dropped and the route made orthogonal")
+                .contains("\"points\":[[424,254],[124,254],[124,84]]");
+        assertThat(json).as("the canvas is the drawing, not the stray point")
+                .contains("\"canvas\":{\"width\":648,\"height\":308}");
     }
 
     /**
@@ -429,8 +427,8 @@ class UmlLayoutDiagramsTest {
         final String json = diagrams.renderLayout(graph, "Demo");
 
         // (200,300) is B's top edge and (200,160) is A's bottom edge; translated by (-76,-76)
-        assertTrue(json.contains("\"points\":[[124,224],[124,84]]"),
-                "both ends are pulled out to the box edges: " + json);
+        assertThat(json).as("both ends are pulled out to the box edges")
+                .contains("\"points\":[[124,224],[124,84]]");
     }
 
     /**
@@ -492,8 +490,8 @@ class UmlLayoutDiagramsTest {
 
         // C spans x 150..250, so a route straight down the middle (x = 200) would run through it.  The
         // route instead goes round C's left edge, at x = 150.
-        assertTrue(json.contains("\"points\":[[124,424],[74,424],[74,84],[124,84]]"),
-                "the route goes around C instead of through it: " + json);
+        assertThat(json).as("the route goes around C instead of through it")
+                .contains("\"points\":[[124,424],[74,424],[74,84],[124,84]]");
     }
 
     /**
@@ -530,10 +528,10 @@ class UmlLayoutDiagramsTest {
 
         // S is at (100,100) 200x60 and the drawing starts at the padding, so its bottom edge — the one
         // facing the sub-classes — runs at y=84 with its middle at x=124.
-        assertEquals(2, json.split("\\[124,84\\]\\]", -1).length - 1,
-                "both connectors arrive at the middle of the super-class edge: " + json);
-        assertTrue(json.contains("\"arrow\":true"), json);
-        assertTrue(json.contains("\"arrow\":false"), "only one of them draws the arrowhead: " + json);
+        assertThat(json.split("\\[124,84\\]\\]", -1).length - 1)
+                .as("both connectors arrive at the middle of the super-class edge").isEqualTo(2);
+        assertThat(json).contains("\"arrow\":true");
+        assertThat(json).as("only one of them draws the arrowhead").contains("\"arrow\":false");
     }
 
     /**
@@ -581,12 +579,12 @@ class UmlLayoutDiagramsTest {
 
         // A's right edge runs from y=100 to y=160, so a third of the way is y=120 and two thirds is y=140 —
         // translated by (-76,-76).  Neither is the middle (y=130), where both would have started.
-        assertTrue(json.contains("\"points\":[[224,44]"),
-                "one association leaves A's right edge a third of the way down: " + json);
-        assertTrue(json.contains("\"points\":[[224,64]"),
-                "and the other two thirds of the way down: " + json);
-        assertFalse(json.contains("\"points\":[[224,54]"),
-                "they must not share the middle of the edge: " + json);
+        assertThat(json).as("one association leaves A's right edge a third of the way down")
+                .contains("\"points\":[[224,44]");
+        assertThat(json).as("and the other two thirds of the way down")
+                .contains("\"points\":[[224,64]");
+        assertThat(json).as("they must not share the middle of the edge")
+                .doesNotContain("\"points\":[[224,54]");
     }
 
     /** The triples for one class view: the class, its view, and the view's rectangle. */

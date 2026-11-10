@@ -24,7 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests for TypedDependency Rules (TDR1-TDR37)
@@ -231,7 +231,7 @@ public class TypedDependencyRulesTest {
      * Rule fires: Entity should be added for the subject noun
      */
     @Test
-    public void testTDR1_SubjectEntityExtraction() {
+    public void tdr1_extractsTheSubjectEntity() {
         Sentence sentence = new Sentence();
         addToken(0, "created", PartOfSpeechType.VB);
         addToken(1, "document", PartOfSpeechType.NN);
@@ -246,15 +246,15 @@ public class TypedDependencyRulesTest {
         tdr1.previousTd = previousTd;
         tdr1.nextTd = null;
 
-        assertTrue(tdr1.when(), "TDR1 should fire for nsubj(created, document)");
+        assertThat(tdr1.when()).as("TDR1 should fire for nsubj(created, document)").isTrue();
         tdr1.then(); // records the match
 
         List<RuleMatch> matches = tdr1.ruleMatches.findByRuleClassName("TDR1");
-        assertFalse(matches.isEmpty(), "TDR1 should have created a RuleMatch");
+        assertThat(matches.isEmpty()).as("TDR1 should have created a RuleMatch").isFalse();
         RuleMatch match = matches.getLast();
-        assertEquals("DraftDocument", match.getCandidateName());
-        assertEquals("ClassCdd", match.getCandidateType());
-        assertNotNull(match.getDescription());
+        assertThat(match.getCandidateName()).isEqualTo("DraftDocument");
+        assertThat(match.getCandidateType()).isEqualTo("ClassCdd");
+        assertThat(match.getDescription()).isNotNull();
     }
 
     /**
@@ -262,7 +262,7 @@ public class TypedDependencyRulesTest {
      * Rule fires: Attribute should be added instead of entity
      */
     @Test
-    public void testTDR2_AttributeExtraction() {
+    public void tdr2_extractsTheAttribute() {
         Sentence sentence = new Sentence();
         addToken(0, "created", PartOfSpeechType.VB);
         addToken(1, "name", PartOfSpeechType.NN);
@@ -276,10 +276,10 @@ public class TypedDependencyRulesTest {
         tdr2.previousTd = previousTd;
         tdr2.nextTd = nextTd;
 
-        assertTrue(tdr2.when(), "TDR2 should identify when nsubj has basic attribute noun");
+        assertThat(tdr2.when()).as("TDR2 should identify when nsubj has basic attribute noun").isTrue();
 
         tdr2.then();
-        assertNotNull(tdr2, "TDR2 bean should not be null after executing then()");
+        assertThat(tdr2).as("TDR2 bean should not be null after executing then()").isNotNull();
     }
 
     /**
@@ -287,7 +287,7 @@ public class TypedDependencyRulesTest {
      * Tests possessive relationships: "has" relationships between entity and attribute
      */
     @Test
-    public void testTDR6_PossessiveRelationship() {
+    public void tdr6_recognisesPossessiveRelationship() {
         Sentence sentence = new Sentence();
         addToken(0, "name", PartOfSpeechType.NN);
         addToken(1, "document", PartOfSpeechType.NN);
@@ -301,10 +301,10 @@ public class TypedDependencyRulesTest {
         tdr6.previousTd = previousTd;
         tdr6.nextTd = nextTd;
 
-        assertTrue(tdr6.when(), "TDR6 should identify nmod:of relationships");
+        assertThat(tdr6.when()).as("TDR6 should identify nmod:of relationships").isTrue();
 
         tdr6.then();
-        assertNotNull(tdr6, "TDR6 bean should not be null");
+        assertThat(tdr6).as("TDR6 bean should not be null").isNotNull();
     }
 
     /**
@@ -312,7 +312,7 @@ public class TypedDependencyRulesTest {
      * nsubj(verb, E1) & dobj(verb, E2) -> E1 (verb) E2
      */
     @Test
-    public void testTDR14_SubjectObjectRelationship() {
+    public void tdr14_recognisesSubjectObjectRelationship() {
         Sentence sentence = new Sentence();
         addToken(0, "creates", PartOfSpeechType.VB);
         addToken(1, "user", PartOfSpeechType.NN);
@@ -327,10 +327,10 @@ public class TypedDependencyRulesTest {
         tdr14.previousTd = previousTd;
         tdr14.nextTd = nextTd;
 
-        assertTrue(tdr14.when(), "TDR14 should identify subject-object relationships");
+        assertThat(tdr14.when()).as("TDR14 should identify subject-object relationships").isTrue();
 
         tdr14.then();
-        assertNotNull(tdr14, "TDR14 bean should not be null");
+        assertThat(tdr14).as("TDR14 bean should not be null").isNotNull();
     }
 
     /**
@@ -338,7 +338,7 @@ public class TypedDependencyRulesTest {
      * amod(Entity, adjective) -> descriptor.add(Entity, adjective)
      */
     @Test
-    public void testTDR24_DescriptorFromAdjective() {
+    public void tdr24_buildsDescriptorFromAdjective() {
         Sentence sentence = new Sentence();
         addToken(0, "users", PartOfSpeechType.NN);
         addToken(1, "multiple", PartOfSpeechType.JJ);
@@ -352,10 +352,10 @@ public class TypedDependencyRulesTest {
         tdr24.previousTd = previousTd;
         tdr24.nextTd = nextTd;
 
-        assertTrue(tdr24.when(), "TDR24 should identify descriptor adjectives");
+        assertThat(tdr24.when()).as("TDR24 should identify descriptor adjectives").isTrue();
 
         tdr24.then();
-        assertNotNull(tdr24, "TDR24 bean should not be null");
+        assertThat(tdr24).as("TDR24 bean should not be null").isNotNull();
     }
 
     /**
@@ -363,7 +363,7 @@ public class TypedDependencyRulesTest {
      * Identifies data being input by verbs like "enter", "fill", "select"
      */
     @Test
-    public void testTDR27_InputDataExtraction() {
+    public void tdr27_extractsInputData() {
         Sentence sentence = new Sentence();
         addToken(0, "enter", PartOfSpeechType.VB);
         addToken(1, "name", PartOfSpeechType.NN);
@@ -377,10 +377,10 @@ public class TypedDependencyRulesTest {
         tdr27.previousTd = previousTd;
         tdr27.nextTd = nextTd;
 
-        assertTrue(tdr27.when(), "TDR27 should identify input data scenarios");
+        assertThat(tdr27.when()).as("TDR27 should identify input data scenarios").isTrue();
 
         tdr27.then();
-        assertNotNull(tdr27, "TDR27 bean should not be null");
+        assertThat(tdr27).as("TDR27 bean should not be null").isNotNull();
     }
 
     /**
@@ -388,7 +388,7 @@ public class TypedDependencyRulesTest {
      * xcomp/amod/neg with error/fail/invalid terms -> exceptions
      */
     @Test
-    public void testTDR34_ExceptionHandling() {
+    public void tdr34_recognisesExceptionCondition() {
         Sentence sentence = new Sentence();
         addToken(0, "validation", PartOfSpeechType.NN);
         addToken(1, "invalid", PartOfSpeechType.JJ);
@@ -402,17 +402,17 @@ public class TypedDependencyRulesTest {
         tdr34.previousTd = previousTd;
         tdr34.nextTd = nextTd;
 
-        assertTrue(tdr34.when(), "TDR34 should identify exception conditions");
+        assertThat(tdr34.when()).as("TDR34 should identify exception conditions").isTrue();
 
         tdr34.then();
-        assertNotNull(tdr34, "TDR34 bean should not be null");
+        assertThat(tdr34).as("TDR34 bean should not be null").isNotNull();
     }
 
     /**
      * Test TDR10: possessive pronoun (PRP$) with no adjectival modifier.
      */
     @Test
-    public void testTDR10_PossessivePronoun_PropertyOnResolvedPossessor() {
+    public void tdr10_placesPropertyOnResolvedPossessor() {
         Sentence sentence = new Sentence();
         addToken(0, "train", PartOfSpeechType.VB);
         addToken(1, "owners", PartOfSpeechType.NNS);
@@ -423,7 +423,7 @@ public class TypedDependencyRulesTest {
         tdr10.currentTd = td;
         tdr10.previousTd = null;
         tdr10.nextTd = null;
-        assertTrue(tdr10.when(), "TDR10 should fire for nmod:poss(pets, their)");
+        assertThat(tdr10.when()).as("TDR10 should fire for nmod:poss(pets, their)").isTrue();
         tdr10.then();
         List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
         RuleMatch propertyMatch = matches.stream()
@@ -431,10 +431,11 @@ public class TypedDependencyRulesTest {
                         && "PropertyCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(propertyMatch, "TDR10 should have created a AttributeCdd");
-        assertEquals("pets", propertyMatch.getCandidateName());
-        assertEquals("Owners", propertyMatch.getRelatedCandidateName(),
-                "Pronominal possessor should resolve to the nsubj entity");
+        assertThat(propertyMatch).as("TDR10 should have created a AttributeCdd").isNotNull();
+        assertThat(propertyMatch.getCandidateName()).isEqualTo("pets");
+        assertThat(propertyMatch.getRelatedCandidateName())
+                .as("Pronominal possessor should resolve to the nsubj entity")
+                .isEqualTo("Owners");
     }
 
     /**
@@ -444,7 +445,7 @@ public class TypedDependencyRulesTest {
      * Rule fires: enriched AttributeCdd "beloved pets" on ClassCdd "Owners".
      */
     @Test
-    public void testTDR10_PossessivePronoun_EnrichedPropertyName() {
+    public void tdr10_enrichesThePropertyName() {
         Sentence sentence = new Sentence();
         addToken(0, "train", PartOfSpeechType.VB);
         addToken(1, "owners", PartOfSpeechType.NNS);
@@ -457,7 +458,7 @@ public class TypedDependencyRulesTest {
         tdr10.currentTd = td;
         tdr10.previousTd = null;
         tdr10.nextTd = null;
-        assertTrue(tdr10.when(), "TDR10 should fire for nmod:poss(pets, their)");
+        assertThat(tdr10.when()).as("TDR10 should fire for nmod:poss(pets, their)").isTrue();
         tdr10.then();
         List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
         RuleMatch propertyMatch = matches.stream()
@@ -465,10 +466,11 @@ public class TypedDependencyRulesTest {
                         && "PropertyCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(propertyMatch, "TDR10 should have created a AttributeCdd");
-        assertEquals("beloved pets", propertyMatch.getCandidateName(),
-                "Property name should be enriched with the amod modifier");
-        assertEquals("Owners", propertyMatch.getRelatedCandidateName());
+        assertThat(propertyMatch).as("TDR10 should have created a AttributeCdd").isNotNull();
+        assertThat(propertyMatch.getCandidateName())
+                .as("Property name should be enriched with the amod modifier")
+                .isEqualTo("beloved pets");
+        assertThat(propertyMatch.getRelatedCandidateName()).isEqualTo("Owners");
     }
 
     /**
@@ -478,7 +480,7 @@ public class TypedDependencyRulesTest {
      * Rule fires: AttributeCdd "beloved pets" on ClassCdd "Owners" (not a standalone entity).
      */
     @Test
-    public void testTDR11_AmodVBG_PossessedNoun_PropertyOnPossessor() {
+    public void tdr11_placesPossessedNounPropertyOnPossessor() {
         Sentence sentence = new Sentence();
         addToken(0, "owners", PartOfSpeechType.NNS);
         addToken(1, "love", PartOfSpeechType.VBP);
@@ -497,7 +499,7 @@ public class TypedDependencyRulesTest {
         tdr11.previousTd = null;
         tdr11.nextTd = null;
 
-        assertTrue(tdr11.when(), "TDR11 should fire for amod(pets, beloved) with VBG modifier");
+        assertThat(tdr11.when()).as("TDR11 should fire for amod(pets, beloved) with VBG modifier").isTrue();
         tdr11.then();
 
         List<RuleMatch> matches = tdr11.ruleMatches.findByRuleClassName("TDR11");
@@ -506,9 +508,9 @@ public class TypedDependencyRulesTest {
                         && "PropertyCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(propertyMatch, "TDR11 should have created a AttributeCdd for the possessed noun");
-        assertEquals("beloved pets", propertyMatch.getCandidateName());
-        assertEquals("Owners", propertyMatch.getRelatedCandidateName());
+        assertThat(propertyMatch).as("TDR11 should have created a AttributeCdd for the possessed noun").isNotNull();
+        assertThat(propertyMatch.getCandidateName()).isEqualTo("beloved pets");
+        assertThat(propertyMatch.getRelatedCandidateName()).isEqualTo("Owners");
     }
 
     /**
@@ -516,7 +518,7 @@ public class TypedDependencyRulesTest {
      * "the active order" → amod(order, active) with active=JJ.
      */
     @Test
-    public void testTDR11_Amod_NoPossession_StillEntity() {
+    public void tdr11_withoutPossessionStaysAnEntity() {
         Sentence sentence = new Sentence();
         addToken(0, "active", PartOfSpeechType.JJ);
         addToken(1, "order", PartOfSpeechType.NN);
@@ -528,7 +530,7 @@ public class TypedDependencyRulesTest {
         tdr11.previousTd = null;
         tdr11.nextTd = null;
 
-        assertTrue(tdr11.when(), "TDR11 should fire for amod(order, active)");
+        assertThat(tdr11.when()).as("TDR11 should fire for amod(order, active)").isTrue();
         tdr11.then();
 
         List<RuleMatch> matches = tdr11.ruleMatches.findByRuleClassName("TDR11");
@@ -537,48 +539,48 @@ public class TypedDependencyRulesTest {
                         && "ClassCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(entityMatch, "TDR11 should have created a ClassCdd for a non-possessed noun");
-        assertEquals("Order", entityMatch.getCandidateName());
+        assertThat(entityMatch).as("TDR11 should have created a ClassCdd for a non-possessed noun").isNotNull();
+        assertThat(entityMatch.getCandidateName()).isEqualTo("Order");
     }
 
     /**
      * Test that all rules are loaded and registered
      */
     @Test
-    public void testAllRulesAreRegistered() {
+    public void allRuleBeansAreRegistered() {
         // This is a simple smoke test to ensure rules package is scanned
         // If this fails, it means rules are not being properly scanned
-        assertNotNull(ruleBook, "RuleBook runner should be initialized");
+        assertThat(ruleBook).as("RuleBook runner should be initialized").isNotNull();
     }
 
     /**
      * Test that RuleBook can find and execute any rules at all
      */
     @Test
-    public void testRuleBookRunnerCanExecuteRules() {
+    public void ruleBookRunnerCanExecuteRules() {
         // Verify that the injected RuleBook is not null and can be used
-        assertNotNull(ruleBook, "RuleBook should be injected from Spring context");
+        assertThat(ruleBook).as("RuleBook should be injected from Spring context").isNotNull();
 
         // Verify that Spring has discovered and scanned the rule beans
-        assertNotNull(tdr1, "TDR1 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr2, "TDR2 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr6, "TDR6 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr14, "TDR14 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr24, "TDR24 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr27, "TDR27 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr34, "TDR34 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr35, "TDR35 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr36, "TDR36 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr38, "TDR38 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr39, "TDR39 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr40, "TDR40 bean should be discoverable through Spring component scanning");
-        assertNotNull(tdr41, "TDR41 bean should be discoverable through Spring component scanning");
+        assertThat(tdr1).as("TDR1 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr2).as("TDR2 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr6).as("TDR6 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr14).as("TDR14 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr24).as("TDR24 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr27).as("TDR27 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr34).as("TDR34 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr35).as("TDR35 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr36).as("TDR36 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr38).as("TDR38 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr39).as("TDR39 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr40).as("TDR40 bean should be discoverable through Spring component scanning").isNotNull();
+        assertThat(tdr41).as("TDR41 bean should be discoverable through Spring component scanning").isNotNull();
     }
 
     // ======== TDR36 Tests: Validation operations (nsubj with "validate") ========
 
     @Test
-    public void testTDR36_ResponsibilityCddNamedAfterVerbNotSubject() {
+    public void tdr36_namesResponsibilityAfterVerbNotSubject() {
         Sentence sentence = new Sentence();
         addToken(0, "validate", PartOfSpeechType.VB);
         addToken(1, "system", PartOfSpeechType.NN);
@@ -590,7 +592,7 @@ public class TypedDependencyRulesTest {
         tdr36.previousTd = null;
         tdr36.nextTd = null;
 
-        assertTrue(tdr36.when(), "TDR36 should fire for nsubj(validate, system)");
+        assertThat(tdr36.when()).as("TDR36 should fire for nsubj(validate, system)").isTrue();
         tdr36.then();
 
         List<RuleMatch> matches = tdr36.ruleMatches.findByRuleClassName("TDR36");
@@ -599,19 +601,23 @@ public class TypedDependencyRulesTest {
                         && "ActionCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(match, "TDR36 should have created an ResponsibilityCdd match");
-        assertEquals("validate", match.getCandidateName(),
-                "TDR36 should name the ResponsibilityCdd after the verb, uncapitalized");
-        assertNotEquals("Validate", match.getCandidateName(),
-                "TDR36 action candidate names are verbs and must not be capitalized");
-        assertNotEquals("System", match.getCandidateName(),
-                "TDR36 must not name the ResponsibilityCdd after the subject");
-        assertEquals("System_Actions.add(System validate)", match.getDescription(),
-                "TDR36 description should capitalize the noun subject but leave the verb lowercase");
+        assertThat(match).as("TDR36 should have created an ResponsibilityCdd match").isNotNull();
+        assertThat(match.getCandidateName())
+                .as("TDR36 should name the ResponsibilityCdd after the verb, uncapitalized")
+                .isEqualTo("validate");
+        assertThat(match.getCandidateName())
+                .as("TDR36 action candidate names are verbs and must not be capitalized")
+                .isNotEqualTo("Validate");
+        assertThat(match.getCandidateName())
+                .as("TDR36 must not name the ResponsibilityCdd after the subject")
+                .isNotEqualTo("System");
+        assertThat(match.getDescription())
+                .as("TDR36 description should capitalize the noun subject but leave the verb lowercase")
+                .isEqualTo("System_Actions.add(System validate)");
     }
 
     @Test
-    public void testTDR36_DoesNotFire_ForNonValidateVerb() {
+    public void tdr36_doesNotFireForNonValidateVerb() {
         Sentence sentence = new Sentence();
         addToken(0, "process", PartOfSpeechType.VB);
         addToken(1, "system", PartOfSpeechType.NN);
@@ -622,13 +628,13 @@ public class TypedDependencyRulesTest {
         tdr36.previousTd = null;
         tdr36.nextTd = null;
 
-        assertFalse(tdr36.when(), "TDR36 should NOT fire for nsubj(process, system)");
+        assertThat(tdr36.when()).as("TDR36 should NOT fire for nsubj(process, system)").isFalse();
     }
 
     // ======== TDR35 Tests: Conditional logic (advcl/mark with if/then/else) ========
 
     @Test
-    public void testTDR35_ResponsibilityCddNamedAfterVerbNotKeywordSubject() {
+    public void tdr35_namesResponsibilityAfterVerbNotKeywordSubject() {
         Sentence sentence = new Sentence();
         addToken(0, "notify", PartOfSpeechType.VB);
         addToken(1, "restock", PartOfSpeechType.NN);
@@ -640,7 +646,7 @@ public class TypedDependencyRulesTest {
         tdr35.previousTd = null;
         tdr35.nextTd = null;
 
-        assertTrue(tdr35.when(), "TDR35 should fire for advcl(notify, restock)");
+        assertThat(tdr35.when()).as("TDR35 should fire for advcl(notify, restock)").isTrue();
         tdr35.then();
 
         List<RuleMatch> matches = tdr35.ruleMatches.findByRuleClassName("TDR35");
@@ -649,19 +655,23 @@ public class TypedDependencyRulesTest {
                         && "ActionCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(match, "TDR35 should have created an ResponsibilityCdd match");
-        assertEquals("notify", match.getCandidateName(),
-                "TDR35 should name the ResponsibilityCdd after the verb, uncapitalized");
-        assertNotEquals("Ifrestock", match.getCandidateName(),
-                "TDR35 must not concatenate the keyword with the condition");
-        assertNotEquals("Restock", match.getCandidateName(),
-                "TDR35 must not name the ResponsibilityCdd after the condition");
-        assertEquals("System_Actions.add(\"if\" + Restock + notify)", match.getDescription(),
-                "TDR35 description should capitalize the condition noun but leave the verb lowercase");
+        assertThat(match).as("TDR35 should have created an ResponsibilityCdd match").isNotNull();
+        assertThat(match.getCandidateName())
+                .as("TDR35 should name the ResponsibilityCdd after the verb, uncapitalized")
+                .isEqualTo("notify");
+        assertThat(match.getCandidateName())
+                .as("TDR35 must not concatenate the keyword with the condition")
+                .isNotEqualTo("Ifrestock");
+        assertThat(match.getCandidateName())
+                .as("TDR35 must not name the ResponsibilityCdd after the condition")
+                .isNotEqualTo("Restock");
+        assertThat(match.getDescription())
+                .as("TDR35 description should capitalize the condition noun but leave the verb lowercase")
+                .isEqualTo("System_Actions.add(\"if\" + Restock + notify)");
     }
 
     @Test
-    public void testTDR35_DoesNotFire_ForNonConditionalAdvmod() {
+    public void tdr35_doesNotFireForNonConditionalAdvmod() {
         Sentence sentence = new Sentence();
         addToken(0, "notify", PartOfSpeechType.VB);
         addToken(1, "timely", PartOfSpeechType.RB);
@@ -671,13 +681,13 @@ public class TypedDependencyRulesTest {
         tdr35.previousTd = null;
         tdr35.nextTd = null;
 
-        assertFalse(tdr35.when(), "TDR35 should NOT fire for advmod(notify, timely)");
+        assertThat(tdr35.when()).as("TDR35 should NOT fire for advmod(notify, timely)").isFalse();
     }
 
     // ======== TDR38 Tests: Copula-based generalization ("X is a Y") ========
 
     @Test
-    public void testTDR38_SimpleCopula_IsA() {
+    public void tdr38_recognisesSimpleCopulaIsA() {
         Sentence sentence = new Sentence();
         addToken(0, "dog", PartOfSpeechType.NN);
         addToken(1, "is", PartOfSpeechType.VBZ);
@@ -693,7 +703,7 @@ public class TypedDependencyRulesTest {
         tdr38.previousTd = null;
         tdr38.nextTd = null;
 
-        assertTrue(tdr38.when(), "TDR38 should fire for nsubj(animal, dog) with cop+det");
+        assertThat(tdr38.when()).as("TDR38 should fire for nsubj(animal, dog) with cop+det").isTrue();
         tdr38.then();
 
         List<RuleMatch> matches = tdr38.ruleMatches.findByRuleClassName("TDR38");
@@ -702,13 +712,13 @@ public class TypedDependencyRulesTest {
                         && "GeneralizationCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(genMatch, "TDR38 should have created a GeneralizationCdd match");
-        assertEquals("Dog", genMatch.getCandidateName());
-        assertEquals("Animal", genMatch.getRelatedCandidateName());
+        assertThat(genMatch).as("TDR38 should have created a GeneralizationCdd match").isNotNull();
+        assertThat(genMatch.getCandidateName()).isEqualTo("Dog");
+        assertThat(genMatch.getRelatedCandidateName()).isEqualTo("Animal");
     }
 
     @Test
-    public void testTDR38_DoesNotFire_WithoutCopula() {
+    public void tdr38_doesNotFireWithoutCopula() {
         Sentence sentence = new Sentence();
         addToken(0, "dog", PartOfSpeechType.NN);
         addToken(1, "animal", PartOfSpeechType.NN);
@@ -719,11 +729,11 @@ public class TypedDependencyRulesTest {
         tdr38.previousTd = null;
         tdr38.nextTd = null;
 
-        assertFalse(tdr38.when(), "TDR38 should NOT fire without cop+det dependencies");
+        assertThat(tdr38.when()).as("TDR38 should NOT fire without cop+det dependencies").isFalse();
     }
 
     @Test
-    public void testTDR38_SkipsKindTypeSort() {
+    public void tdr38_skipsKindTypeSort() {
         Sentence sentence = new Sentence();
         addToken(0, "service", PartOfSpeechType.NN);
         addToken(1, "is", PartOfSpeechType.VBZ);
@@ -739,13 +749,13 @@ public class TypedDependencyRulesTest {
         tdr38.previousTd = null;
         tdr38.nextTd = null;
 
-        assertFalse(tdr38.when(), "TDR38 should NOT fire for 'type' governor — reserved for TDR39");
+        assertThat(tdr38.when()).as("TDR38 should NOT fire for 'type' governor — reserved for TDR39").isFalse();
     }
 
     // ======== TDR39 Tests: Kind-of/Type-of generalization ========
 
     @Test
-    public void testTDR39_KindOf() {
+    public void tdr39_recognisesKindOf() {
         Sentence sentence = new Sentence();
         addToken(0, "suv", PartOfSpeechType.NN);
         addToken(1, "is", PartOfSpeechType.VBZ);
@@ -765,7 +775,7 @@ public class TypedDependencyRulesTest {
         tdr39.previousTd = null;
         tdr39.nextTd = null;
 
-        assertTrue(tdr39.when(), "TDR39 should fire for nmod:of(kind, car)");
+        assertThat(tdr39.when()).as("TDR39 should fire for nmod:of(kind, car)").isTrue();
         tdr39.then();
 
         List<RuleMatch> matches = tdr39.ruleMatches.findByRuleClassName("TDR39");
@@ -774,13 +784,13 @@ public class TypedDependencyRulesTest {
                         && "GeneralizationCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(genMatch, "TDR39 should have created a GeneralizationCdd match");
-        assertEquals("Suv", genMatch.getCandidateName());
-        assertEquals("Car", genMatch.getRelatedCandidateName());
+        assertThat(genMatch).as("TDR39 should have created a GeneralizationCdd match").isNotNull();
+        assertThat(genMatch.getCandidateName()).isEqualTo("Suv");
+        assertThat(genMatch.getRelatedCandidateName()).isEqualTo("Car");
     }
 
     @Test
-    public void testTDR39_DoesNotFire_WithoutKindType() {
+    public void tdr39_doesNotFireWithoutKindOrType() {
         Sentence sentence = new Sentence();
         addToken(0, "dog", PartOfSpeechType.NN);
         addToken(1, "leash", PartOfSpeechType.NN);
@@ -791,13 +801,13 @@ public class TypedDependencyRulesTest {
         tdr39.previousTd = null;
         tdr39.nextTd = null;
 
-        assertFalse(tdr39.when(), "TDR39 should NOT fire for non-kind/type governor");
+        assertThat(tdr39.when()).as("TDR39 should NOT fire for non-kind/type governor").isFalse();
     }
 
     // ======== TDR40 Tests: Adjectival classifier generalization ========
 
     @Test
-    public void testTDR40_ClassifierAmod() {
+    public void tdr40_recognisesClassifierAmod() {
         Sentence sentence = new Sentence();
         addToken(0, "linked", PartOfSpeechType.JJ);
         addToken(1, "device", PartOfSpeechType.NN);
@@ -809,7 +819,7 @@ public class TypedDependencyRulesTest {
         tdr40.previousTd = null;
         tdr40.nextTd = null;
 
-        assertTrue(tdr40.when(), "TDR40 should fire for amod(device, linked)");
+        assertThat(tdr40.when()).as("TDR40 should fire for amod(device, linked)").isTrue();
         tdr40.then();
 
         List<RuleMatch> matches = tdr40.ruleMatches.findByRuleClassName("TDR40");
@@ -818,13 +828,13 @@ public class TypedDependencyRulesTest {
                         && "GeneralizationCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(genMatch, "TDR40 should have created a GeneralizationCdd match");
-        assertEquals("LinkedDevice", genMatch.getCandidateName());
-        assertEquals("Device", genMatch.getRelatedCandidateName());
+        assertThat(genMatch).as("TDR40 should have created a GeneralizationCdd match").isNotNull();
+        assertThat(genMatch.getCandidateName()).isEqualTo("LinkedDevice");
+        assertThat(genMatch.getRelatedCandidateName()).isEqualTo("Device");
     }
 
     @Test
-    public void testTDR40_DoesNotFire_ForEvaluativeAdjective() {
+    public void tdr40_doesNotFireForEvaluativeAdjective() {
         Sentence sentence = new Sentence();
         addToken(0, "valid", PartOfSpeechType.JJ);
         addToken(1, "input", PartOfSpeechType.NN);
@@ -835,7 +845,7 @@ public class TypedDependencyRulesTest {
         tdr40.previousTd = null;
         tdr40.nextTd = null;
 
-        assertFalse(tdr40.when(), "TDR40 should NOT fire for evaluative adjective (valid)");
+        assertThat(tdr40.when()).as("TDR40 should NOT fire for evaluative adjective (valid)").isFalse();
     }
 
     // ======== TDR41 Tests: Synonym identification ========
@@ -845,7 +855,7 @@ public class TypedDependencyRulesTest {
      * (POS-Matching, SYNONYMS.md §2). Fires and records a SynonymCdd match.
      */
     @Test
-    public void testTDR41_Appositive_Synonym() {
+    public void tdr41_recognisesAppositiveSynonym() {
         Sentence sentence = new Sentence();
         addToken(0, "store", PartOfSpeechType.NN);
         addToken(1, "shop", PartOfSpeechType.NN);
@@ -857,7 +867,7 @@ public class TypedDependencyRulesTest {
         tdr41.previousTd = null;
         tdr41.nextTd = null;
 
-        assertTrue(tdr41.when(), "TDR41 should fire for appos(store, shop) with two nouns");
+        assertThat(tdr41.when()).as("TDR41 should fire for appos(store, shop) with two nouns").isTrue();
         tdr41.then();
 
         List<RuleMatch> matches = tdr41.ruleMatches.findByRuleClassName("TDR41");
@@ -866,9 +876,9 @@ public class TypedDependencyRulesTest {
                         && "SynonymCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(synMatch, "TDR41 should have created a SynonymCdd match");
-        assertEquals("Store", synMatch.getCandidateName());
-        assertEquals("Shop", synMatch.getRelatedCandidateName());
+        assertThat(synMatch).as("TDR41 should have created a SynonymCdd match").isNotNull();
+        assertThat(synMatch.getCandidateName()).isEqualTo("Store");
+        assertThat(synMatch.getRelatedCandidateName()).isEqualTo("Shop");
     }
 
     /**
@@ -876,7 +886,7 @@ public class TypedDependencyRulesTest {
      * heuristic: synonyms must share the same part of speech).
      */
     @Test
-    public void testTDR41_Appos_DoesNotFire_WhenNotBothNouns() {
+    public void tdr41_doesNotFireWhenNotBothNouns() {
         Sentence sentence = new Sentence();
         addToken(0, "store", PartOfSpeechType.NN);
         addToken(1, "online", PartOfSpeechType.JJ);
@@ -886,14 +896,14 @@ public class TypedDependencyRulesTest {
         tdr41.previousTd = null;
         tdr41.nextTd = null;
 
-        assertFalse(tdr41.when(), "TDR41 should NOT fire when the appositive is not a noun");
+        assertThat(tdr41.when()).as("TDR41 should NOT fire when the appositive is not a noun").isFalse();
     }
 
     /**
      * Apposition must NOT fire when head and alias are the same word.
      */
     @Test
-    public void testTDR41_Appos_DoesNotFire_WhenSameLemma() {
+    public void tdr41_doesNotFireWhenSameLemma() {
         Sentence sentence = new Sentence();
         addToken(0, "store", PartOfSpeechType.NN);
         addToken(1, "store", PartOfSpeechType.NN);
@@ -902,7 +912,7 @@ public class TypedDependencyRulesTest {
         tdr41.previousTd = null;
         tdr41.nextTd = null;
 
-        assertFalse(tdr41.when(), "TDR41 should NOT fire for appos(store, store)");
+        assertThat(tdr41.when()).as("TDR41 should NOT fire for appos(store, store)").isFalse();
     }
 
     /**
@@ -910,7 +920,7 @@ public class TypedDependencyRulesTest {
      * obl:as(known, paracetamol). Fires and records the synonym pair.
      */
     @Test
-    public void testTDR41_AlsoKnownAs_Synonym() {
+    public void tdr41_recognisesAlsoKnownAsSynonym() {
         Sentence sentence = new Sentence();
         addToken(0, "acetaminophen", PartOfSpeechType.NN);
         addToken(1, "also", PartOfSpeechType.RB);
@@ -927,7 +937,7 @@ public class TypedDependencyRulesTest {
         tdr41.previousTd = null;
         tdr41.nextTd = null;
 
-        assertTrue(tdr41.when(), "TDR41 should fire for acl:relcl with a synonym marker verb");
+        assertThat(tdr41.when()).as("TDR41 should fire for acl:relcl with a synonym marker verb").isTrue();
         tdr41.then();
 
         List<RuleMatch> matches = tdr41.ruleMatches.findByRuleClassName("TDR41");
@@ -936,9 +946,9 @@ public class TypedDependencyRulesTest {
                         && "SynonymCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertNotNull(synMatch, "TDR41 should have created a SynonymCdd match");
-        assertEquals("Acetaminophen", synMatch.getCandidateName());
-        assertEquals("Paracetamol", synMatch.getRelatedCandidateName());
+        assertThat(synMatch).as("TDR41 should have created a SynonymCdd match").isNotNull();
+        assertThat(synMatch.getCandidateName()).isEqualTo("Acetaminophen");
+        assertThat(synMatch.getRelatedCandidateName()).isEqualTo("Paracetamol");
     }
 
     /**
@@ -946,7 +956,7 @@ public class TypedDependencyRulesTest {
      * synonym-marker vocabulary must NOT fire.
      */
     @Test
-    public void testTDR41_DoesNotFire_WhenMarkerNotConfigured() {
+    public void tdr41_doesNotFireWhenMarkerNotConfigured() {
         Sentence sentence = new Sentence();
         addToken(0, "device", PartOfSpeechType.NN);
         addToken(1, "described", PartOfSpeechType.VBN);
@@ -956,7 +966,7 @@ public class TypedDependencyRulesTest {
         tdr41.previousTd = null;
         tdr41.nextTd = null;
 
-        assertFalse(tdr41.when(), "TDR41 should NOT fire for a marker verb not in the vocabulary");
+        assertThat(tdr41.when()).as("TDR41 should NOT fire for a marker verb not in the vocabulary").isFalse();
     }
 
     // Holds part-of-speech for each token index, aligned with the sentence's token list

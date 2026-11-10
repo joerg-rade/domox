@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Verifies that the {@code ruleMatches} list on every candidate type
@@ -29,8 +28,8 @@ class CandidateTest {
         candidate.addMatchingRule(second);
 
         // then — only one rule match is kept
-        assertEquals(1, candidate.getRuleMatches().size());
-        assertTrue(candidate.getRuleMatches().contains(first));
+        assertThat(candidate.getRuleMatches()).hasSize(1);
+        assertThat(candidate.getRuleMatches()).contains(first);
     }
 
     @Test
@@ -45,7 +44,7 @@ class CandidateTest {
         candidate.addMatchingRule(second);
 
         // then — both are kept
-        assertEquals(2, candidate.getRuleMatches().size());
+        assertThat(candidate.getRuleMatches()).hasSize(2);
     }
 
     @Test
@@ -64,9 +63,9 @@ class CandidateTest {
         candidate.addMatchingRule(distinct);
 
         // then — legacy duplicates are collapsed, distinct ones remain
-        assertEquals(2, candidate.getRuleMatches().size());
-        assertTrue(candidate.getRuleMatches().contains(legacyA));
-        assertTrue(candidate.getRuleMatches().contains(distinct));
+        assertThat(candidate.getRuleMatches()).hasSize(2);
+        assertThat(candidate.getRuleMatches()).contains(legacyA);
+        assertThat(candidate.getRuleMatches()).contains(distinct);
     }
 
     @Test
@@ -84,9 +83,9 @@ class CandidateTest {
         candidate.deduplicateRuleMatches();
 
         // then — duplicate signature collapsed, distinct kept
-        assertEquals(2, candidate.getRuleMatches().size());
-        assertTrue(candidate.getRuleMatches().contains(a));
-        assertTrue(candidate.getRuleMatches().contains(c));
+        assertThat(candidate.getRuleMatches()).hasSize(2);
+        assertThat(candidate.getRuleMatches()).contains(a);
+        assertThat(candidate.getRuleMatches()).contains(c);
     }
 
     // --- all candidate types share the same de-duplication ---
@@ -97,19 +96,19 @@ class CandidateTest {
         final ClassCdd clazz = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         clazz.addMatchingRule(match("ClassCdd", "Customer", "TDR10", null, null, null));
         clazz.addMatchingRule(match("ClassCdd", "Customer", "TDR10", null, null, null));
-        assertEquals(1, clazz.getRuleMatches().size(), "ClassCdd");
+        assertThat(clazz.getRuleMatches()).as("ClassCdd").hasSize(1);
 
         // ResponsibilityCdd
         final ResponsibilityCdd action = new ResponsibilityCdd("process", new ArrayList<>(), "void");
         action.addMatchingRule(match("ActionCdd", "process", "TDR12", "Customer", null, null));
         action.addMatchingRule(match("ActionCdd", "process", "TDR12", "Customer", null, null));
-        assertEquals(1, action.getRuleMatches().size(), "ActionCdd");
+        assertThat(action.getRuleMatches()).as("ActionCdd").hasSize(1);
 
         // AttributeCdd
         final AttributeCdd property = new AttributeCdd("name", "String");
         property.addMatchingRule(match("PropertyCdd", "name", "TDR10", "Customer", null, null));
         property.addMatchingRule(match("PropertyCdd", "name", "TDR10", "Customer", null, null));
-        assertEquals(1, property.getRuleMatches().size(), "PropertyCdd");
+        assertThat(property.getRuleMatches()).as("PropertyCdd").hasSize(1);
 
         // CollaboratorCdd
         final ClassCdd source = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
@@ -117,7 +116,7 @@ class CandidateTest {
         final CollaboratorCdd association = new CollaboratorCdd("places", source, target);
         association.addMatchingRule(match("AssociationCdd", "places", "TDR24", "Customer", "Order", null));
         association.addMatchingRule(match("AssociationCdd", "places", "TDR24", "Customer", "Order", null));
-        assertEquals(1, association.getRuleMatches().size(), "AssociationCdd");
+        assertThat(association.getRuleMatches()).as("AssociationCdd").hasSize(1);
     }
 
     @Test
@@ -129,7 +128,7 @@ class CandidateTest {
         candidate.addMatchingRule(null);
 
         // then
-        assertTrue(candidate.getRuleMatches().isEmpty());
+        assertThat(candidate.getRuleMatches()).isEmpty();
     }
 
     // -- object type (CRC rename guardrail)
@@ -151,15 +150,15 @@ class CandidateTest {
         final ResponsibilityParameter parameter = new ResponsibilityParameter("qty", "int");
 
         // when / then — objectType is the persisted (pinned) Causeway object type
-        assertEquals("domox.ClassCdd", classCdd.getObjectType());
-        assertEquals("domox.ActionCdd", responsibility.getObjectType());
-        assertEquals("domox.PropertyCdd", attribute.getObjectType());
-        assertEquals("domox.AssociationCdd", collaborator.getObjectType());
-        assertEquals("domox.ParameterCdd", parameter.getObjectType());
+        assertThat(classCdd.getObjectType()).isEqualTo("domox.ClassCdd");
+        assertThat(responsibility.getObjectType()).isEqualTo("domox.ActionCdd");
+        assertThat(attribute.getObjectType()).isEqualTo("domox.PropertyCdd");
+        assertThat(collaborator.getObjectType()).isEqualTo("domox.AssociationCdd");
+        assertThat(parameter.getObjectType()).isEqualTo("domox.ParameterCdd");
 
         // and it is NOT derived from the (renamed) simple class name
-        assertEquals("ResponsibilityCdd", responsibility.getClass().getSimpleName());
-        assertTrue(!"domox.ResponsibilityCdd".equals(responsibility.getObjectType()));
+        assertThat(responsibility.getClass().getSimpleName()).isEqualTo("ResponsibilityCdd");
+        assertThat(responsibility.getObjectType()).isNotEqualTo("domox.ResponsibilityCdd");
     }
 
     // -- helper

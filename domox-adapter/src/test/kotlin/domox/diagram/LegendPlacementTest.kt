@@ -1,8 +1,7 @@
 package domox.adapter.diagram
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.Test
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
@@ -53,17 +52,17 @@ internal class LegendPlacementTest {
         // dy = (background.minY + 12) - legend.minY = (-184.68 + 12) - (-81.75) = -90.93
         val transform = Regex("""id="node3"[^>]*transform="translate\(([0-9.-]+) ([0-9.-]+)\)"""")
             .find(out)?.groupValues
-        assertTrue(transform != null, "legend group must carry a translate transform:\n$out")
-        assertEquals(8.0, transform!![1].toDouble(), 0.001)
-        assertEquals(-90.93, transform[2].toDouble(), 0.001)
+        assertThat(transform).describedAs("legend group must carry a translate transform:\n$out").isNotNull()
+        assertThat(transform!![1].toDouble()).isCloseTo(8.0, within(0.001))
+        assertThat(transform[2].toDouble()).isCloseTo(-90.93, within(0.001))
 
         // everything else survives the DOM round-trip untouched
-        assertTrue(out.contains("""<title>shop_nn</title>"""), "graph nodes must be preserved:\n$out")
-        assertTrue(out.contains("cx=\"234.95\""), "graph node geometry must be preserved:\n$out")
-        assertTrue(out.contains("Noun"), "legend content must be preserved:\n$out")
+        assertThat(out).describedAs("graph nodes must be preserved:\n$out").contains("""<title>shop_nn</title>""")
+        assertThat(out).describedAs("graph node geometry must be preserved:\n$out").contains("cx=\"234.95\"")
+        assertThat(out).describedAs("legend content must be preserved:\n$out").contains("Noun")
 
         // and the result is still well-formed XML
-        assertTrue(parseable(out), "output must be valid XML")
+        assertThat(parseable(out)).describedAs("output must be valid XML").isTrue()
     }
 
     @Test
@@ -71,24 +70,24 @@ internal class LegendPlacementTest {
         val out = DiagramBuilder().relocateLegendToTopLeft(svg)
 
         // full-width backgrounds (box + header) become fill="none" so an overlapped node shows through
-        assertTrue(!out.contains("""fill="#ffffff""""), "box background must be transparent:\n$out")
-        assertTrue(!out.contains("""fill="#e2e8f0""""), "header background must be transparent:\n$out")
+        assertThat(out).describedAs("box background must be transparent:\n$out").doesNotContain("""fill="#ffffff"""")
+        assertThat(out).describedAs("header background must be transparent:\n$out").doesNotContain("""fill="#e2e8f0"""")
 
         // the small colour-key swatch keeps its fill
-        assertTrue(out.contains("""fill="#3498db""""), "colour swatch must keep its fill:\n$out")
+        assertThat(out).describedAs("colour swatch must keep its fill:\n$out").contains("""fill="#3498db"""")
     }
 
     @Test
     fun `returns input unchanged when there is no legend`() {
         val noLegend = svg.replace("""<title>Legend</title>""", """<title>NotALegend</title>""")
-        assertEquals(noLegend, DiagramBuilder().relocateLegendToTopLeft(noLegend))
+        assertThat(DiagramBuilder().relocateLegendToTopLeft(noLegend)).isEqualTo(noLegend)
     }
 
     @Test
     fun `returns input unchanged when background polygon is missing`() {
         val noBackground = svg.replace("""fill="white"""", """fill="white2"""")
-        assertNotEquals(svg, noBackground) // guard: the fixture actually changed
-        assertEquals(noBackground, DiagramBuilder().relocateLegendToTopLeft(noBackground))
+        assertThat(noBackground).isNotEqualTo(svg) // guard: the fixture actually changed
+        assertThat(DiagramBuilder().relocateLegendToTopLeft(noBackground)).isEqualTo(noBackground)
     }
 
     private fun parseable(xml: String): Boolean = try {

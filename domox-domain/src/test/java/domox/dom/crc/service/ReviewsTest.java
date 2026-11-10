@@ -21,9 +21,7 @@ import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.List;
 
-import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
-import static org.apache.causeway.commons.internal.assertions._Assert.assertNotNull;
-import static org.apache.causeway.commons.internal.assertions._Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -54,7 +52,7 @@ class ReviewsTest {
     }
 
     @Test
-    void testCreate() {
+    void create_attachesReviewToCandidateWithUserAndTimestamp() {
         // given
         final AttributeCdd candidate = new AttributeCdd("speed", "int");
         when(mockUserService.currentUserNameElseNobody()).thenReturn("testUser");
@@ -66,17 +64,17 @@ class ReviewsTest {
         final Review result = classUnderTest.create(candidate);
 
         // then
-        assertEquals(candidate, result.getCandidate());
-        assertEquals("testUser", result.getUser());
-        assertNotNull(result.getCreatedAt(), "createdAt must be set");
-        assertNull(result.getStatus(), "status must be null on creation");
+        assertThat(result.getCandidate()).isEqualTo(candidate);
+        assertThat(result.getUser()).isEqualTo("testUser");
+        assertThat(result.getCreatedAt()).as("createdAt must be set").isNotNull();
+        assertThat(result.getStatus()).as("status must be null on creation").isNull();
         verify(mockRepositoryService).persist(review);
-        assertEquals(1, candidate.getReviews().size(), "candidate must contain the new review");
-        assertEquals(review, candidate.getReviews().getFirst());
+        assertThat(candidate.getReviews()).as("candidate must contain the new review").hasSize(1);
+        assertThat(candidate.getReviews().getFirst()).isEqualTo(review);
     }
 
     @Test
-    void testApprove() {
+    void approve_setsStatusApprovedAndClearsRationale() {
         // given
         final Review review = new Review();
         review.setCreatedAt(Timestamp.valueOf("2026-01-01 00:00:00"));
@@ -85,14 +83,14 @@ class ReviewsTest {
         final Review result = classUnderTest.approve(review);
 
         // then
-        assertEquals(ReviewStatus.APPROVED, result.getStatus());
-        assertNull(result.getRationale(), "rationale should be null after approval");
-        assertNotNull(result.getUpdatedAt(), "updatedAt must be set");
+        assertThat(result.getStatus()).isEqualTo(ReviewStatus.APPROVED);
+        assertThat(result.getRationale()).as("rationale should be null after approval").isNull();
+        assertThat(result.getUpdatedAt()).as("updatedAt must be set").isNotNull();
         verify(mockRepositoryService).persist(review);
     }
 
     @Test
-    void testReject() {
+    void reject_setsStatusRejectedWithRationale() {
         // given
         final Review review = new Review();
         review.setCreatedAt(Timestamp.valueOf("2026-01-01 00:00:00"));
@@ -101,14 +99,14 @@ class ReviewsTest {
         final Review result = classUnderTest.reject(review, ReviewRationale.DUPLICATE);
 
         // then
-        assertEquals(ReviewStatus.REJECTED, result.getStatus());
-        assertEquals(ReviewRationale.DUPLICATE, result.getRationale());
-        assertNotNull(result.getUpdatedAt(), "updatedAt must be set");
+        assertThat(result.getStatus()).isEqualTo(ReviewStatus.REJECTED);
+        assertThat(result.getRationale()).isEqualTo(ReviewRationale.DUPLICATE);
+        assertThat(result.getUpdatedAt()).as("updatedAt must be set").isNotNull();
         verify(mockRepositoryService).persist(review);
     }
 
     @Test
-    void testResubmit() {
+    void resubmit_clearsStatusAndRationale() {
         // given
         final Review review = new Review();
         review.setCreatedAt(Timestamp.valueOf("2026-01-01 00:00:00"));
@@ -120,16 +118,16 @@ class ReviewsTest {
         final Review result = classUnderTest.resubmit(review);
 
         // then
-        assertNull(result.getStatus(), "status must be cleared on resubmit");
-        assertNull(result.getRationale(), "rationale must be cleared on resubmit");
-        assertNotNull(result.getUpdatedAt(), "updatedAt must be updated");
+        assertThat(result.getStatus()).as("status must be cleared on resubmit").isNull();
+        assertThat(result.getRationale()).as("rationale must be cleared on resubmit").isNull();
+        assertThat(result.getUpdatedAt()).as("updatedAt must be updated").isNotNull();
         verify(mockRepositoryService).persist(review);
     }
 
     // --- Automated (LLM/MCP) review workflow ---
 
     @Test
-    void testFindOrCreateReviewForAgent_createsWithAgentUser() {
+    void findOrCreateReviewForAgent_createsReviewOwnedByAgentUser() {
         // given
         final AttributeCdd candidate = new AttributeCdd("speed", "int");
         final Review review = new Review();
@@ -139,16 +137,16 @@ class ReviewsTest {
         final Review result = classUnderTest.findOrCreateReviewForAgent(candidate);
 
         // then
-        assertEquals(candidate, result.getCandidate());
-        assertEquals(Reviews.AGENT_USER, result.getUser());
-        assertNotNull(result.getCreatedAt(), "createdAt must be set");
-        assertNull(result.getStatus(), "status must be null on fresh agent review");
+        assertThat(result.getCandidate()).isEqualTo(candidate);
+        assertThat(result.getUser()).isEqualTo(Reviews.AGENT_USER);
+        assertThat(result.getCreatedAt()).as("createdAt must be set").isNotNull();
+        assertThat(result.getStatus()).as("status must be null on fresh agent review").isNull();
         verify(mockRepositoryService).persist(review);
-        assertEquals(1, candidate.getReviews().size(), "candidate must contain the agent review");
+        assertThat(candidate.getReviews()).as("candidate must contain the agent review").hasSize(1);
     }
 
     @Test
-    void testFindOrCreateReviewForAgent_isIdempotent() {
+    void findOrCreateReviewForAgent_reusesExistingReview() {
         // given
         final AttributeCdd candidate = new AttributeCdd("speed", "int");
         final Review review = new Review();
@@ -159,13 +157,13 @@ class ReviewsTest {
         final Review second = classUnderTest.findOrCreateReviewForAgent(candidate);
 
         // then
-        assertEquals(first, second, "second call must reuse the same review");
-        assertEquals(1, candidate.getReviews().size(), "only one review row must be created");
+        assertThat(second).as("second call must reuse the same review").isEqualTo(first);
+        assertThat(candidate.getReviews()).as("only one review row must be created").hasSize(1);
         verify(mockRepositoryService, times(1)).persist(review);
     }
 
     @Test
-    void testApproveAsAgent_reusesExistingAgentReview() {
+    void approveAsAgent_reusesExistingAgentReview() {
         // given
         final AttributeCdd candidate = new AttributeCdd("speed", "int");
         final Review review = new Review();
@@ -177,15 +175,15 @@ class ReviewsTest {
         final Review result = classUnderTest.approveAsAgent(candidate);
 
         // then
-        assertEquals(ReviewStatus.APPROVED, result.getStatus());
-        assertEquals(Reviews.AGENT_USER, result.getUser());
-        assertNotNull(result.getUpdatedAt(), "updatedAt must be set");
+        assertThat(result.getStatus()).isEqualTo(ReviewStatus.APPROVED);
+        assertThat(result.getUser()).isEqualTo(Reviews.AGENT_USER);
+        assertThat(result.getUpdatedAt()).as("updatedAt must be set").isNotNull();
         verify(mockRepositoryService).persist(review);
-        assertEquals(1, candidate.getReviews().size(), "no duplicate review row");
+        assertThat(candidate.getReviews()).as("no duplicate review row").hasSize(1);
     }
 
     @Test
-    void testApproveAsAgent_createsReviewIfMissing() {
+    void approveAsAgent_createsReviewWhenMissing() {
         // given
         final AttributeCdd candidate = new AttributeCdd("speed", "int");
         final Review review = new Review();
@@ -195,14 +193,14 @@ class ReviewsTest {
         final Review result = classUnderTest.approveAsAgent(candidate);
 
         // then
-        assertEquals(ReviewStatus.APPROVED, result.getStatus());
-        assertEquals(Reviews.AGENT_USER, result.getUser());
-        assertEquals(1, candidate.getReviews().size(), "must create exactly one review");
+        assertThat(result.getStatus()).isEqualTo(ReviewStatus.APPROVED);
+        assertThat(result.getUser()).isEqualTo(Reviews.AGENT_USER);
+        assertThat(candidate.getReviews()).as("must create exactly one review").hasSize(1);
         verify(mockRepositoryService, atLeastOnce()).persist(review);
     }
 
     @Test
-    void testRejectAsAgent_reusesExistingAgentReview() {
+    void rejectAsAgent_reusesExistingAgentReview() {
         // given
         final AttributeCdd candidate = new AttributeCdd("speed", "int");
         final Review review = new Review();
@@ -214,26 +212,26 @@ class ReviewsTest {
         final Review result = classUnderTest.rejectAsAgent(candidate, ReviewRationale.DUPLICATE);
 
         // then
-        assertEquals(ReviewStatus.REJECTED, result.getStatus());
-        assertEquals(ReviewRationale.DUPLICATE, result.getRationale());
-        assertEquals(Reviews.AGENT_USER, result.getUser());
-        assertNotNull(result.getUpdatedAt(), "updatedAt must be set");
+        assertThat(result.getStatus()).isEqualTo(ReviewStatus.REJECTED);
+        assertThat(result.getRationale()).isEqualTo(ReviewRationale.DUPLICATE);
+        assertThat(result.getUser()).isEqualTo(Reviews.AGENT_USER);
+        assertThat(result.getUpdatedAt()).as("updatedAt must be set").isNotNull();
         verify(mockRepositoryService).persist(review);
     }
 
     @Test
-    void testFindByUniqueId_noMatch_returnsNull() {
+    void findByUniqueId_returnsNullForUnknownId() {
         // given
         when(mockRepositoryService.allInstances(any())).thenReturn(List.of());
 
         // when / then
-        assertNull(classUnderTest.findByUniqueId(123L), "unknown id must yield null");
+        assertThat(classUnderTest.findByUniqueId(123L)).as("unknown id must yield null").isNull();
     }
 
     // --- Workflow: next-unprocessed candidate (type-restricted) ---
 
     @Test
-    void testNextUnprocessedOfType_restrictsToGivenType() {
+    void nextUnprocessedOfType_restrictsToTheGivenType() {
         // given: a lower-priority ClassCdd and a higher-priority AttributeCdd; when restricted
         // to ClassCdd the AttributeCdd must be ignored even though it would win the ordering
         final ClassCdd processedClass = new ClassCdd("Customer", List.of(), List.of(), List.of());
@@ -253,11 +251,11 @@ class ReviewsTest {
         final Candidate result = classUnderTest.nextUnprocessedOfType(ClassCdd.class);
 
         // then: must pick the next ClassCdd, not the higher-priority AttributeCdd
-        assertEquals(unprocessedClass, result, "must choose the next ClassCdd, never a different type");
+        assertThat(result).as("must choose the next ClassCdd, never a different type").isEqualTo(unprocessedClass);
     }
 
     @Test
-    void testNextUnprocessed_considersAllTypes() {
+    void nextUnprocessed_considersEveryCandidateType() {
         // given: a lower-priority ClassCdd and a higher-priority AttributeCdd
         final ClassCdd cls = new ClassCdd("Order", List.of(), List.of(), List.of());
         setId(cls, 20L);
@@ -274,7 +272,7 @@ class ReviewsTest {
         final Candidate result = classUnderTest.nextUnprocessed();
 
         // then: higher rule-match count across types must win
-        assertEquals(highPriorityProperty, result, "unrestricted lookup must consider every type");
+        assertThat(result).as("unrestricted lookup must consider every type").isEqualTo(highPriorityProperty);
     }
 
     /** Assigns the private JPA {@code id} field (normally set by the sequence generator). */

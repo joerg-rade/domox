@@ -16,8 +16,7 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
-import static org.apache.causeway.commons.internal.assertions._Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class DomainModelsTest {
@@ -33,7 +32,7 @@ class DomainModelsTest {
     }
 
     @Test
-    void testGenerateUml() {
+    void generateUmlDiagramRendersClassesAndAssociations() {
         // given
         final List<AttributeCdd> attributeList = new ArrayList<>();
         final AttributeCdd property1 = new AttributeCdd("property1", "int");
@@ -78,10 +77,9 @@ class DomainModelsTest {
         // when
         final String plantUml = classUnderTest.generateUmlDiagram(domainModel);
         // then
-        assertEquals(2, domainModel.getClassList().size());
-        assertTrue(plantUml.startsWith("@startuml"), "@startuml tag missing");
-        assertTrue(plantUml.endsWith("@enduml"), "@enduml tag missing");
-        assertTrue(plantUml.contains("class \"Alice"));
-        System.out.println(plantUml);
+        assertThat(domainModel.getClassList()).hasSize(2);
+        assertThat(plantUml).as("@startuml tag missing").startsWith("@startuml");
+        assertThat(plantUml).as("@enduml tag missing").endsWith("@enduml");
+        assertThat(plantUml).contains("class \"Alice");
     }
 }

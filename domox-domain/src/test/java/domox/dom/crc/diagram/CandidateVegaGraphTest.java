@@ -23,7 +23,7 @@ import org.mockito.Mock;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -62,7 +62,7 @@ class CandidateVegaGraphTest {
 
     @Test
     void returnsNullWhenCandidateIsNull() {
-        assertNull(service.renderGraph(null));
+        assertThat(service.renderGraph(null)).isNull();
     }
 
     @Test
@@ -70,7 +70,7 @@ class CandidateVegaGraphTest {
         stubEmptyLists();
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
-        assertNotNull(service.renderGraph(candidate));
+        assertThat(service.renderGraph(candidate)).isNotNull();
     }
 
     @Test
@@ -79,7 +79,7 @@ class CandidateVegaGraphTest {
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
         candidate.setRuleMatches(null);
-        assertNotNull(service.renderGraph(candidate));
+        assertThat(service.renderGraph(candidate)).isNotNull();
     }
 
     @Test
@@ -87,7 +87,7 @@ class CandidateVegaGraphTest {
         stubEmptyLists();
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType(null);
-        assertNotNull(service.renderGraph(candidate));
+        assertThat(service.renderGraph(candidate)).isNotNull();
     }
 
     @Test
@@ -95,7 +95,7 @@ class CandidateVegaGraphTest {
         stubEmptyLists();
         final ClassCdd candidate = new ClassCdd(null, List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
-        assertNotNull(service.renderGraph(candidate));
+        assertThat(service.renderGraph(candidate)).isNotNull();
     }
 
     // ============ schema / structure ============
@@ -106,12 +106,11 @@ class CandidateVegaGraphTest {
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
         final Vega vega = service.renderGraph(candidate);
-        assertNotNull(vega);
-        assertSame(Vega.Schema.VEGA, vega.getSchema(),
-                "Must be classified VEGA (not NONE) — NONE renders nothing in the Wicket viewer");
+        assertThat(vega).isNotNull();
+        assertThat(vega.getSchema()).as("Must be classified VEGA (not NONE) — NONE renders nothing in the Wicket viewer")
+                .isSameAs(Vega.Schema.VEGA);
         final String json = vega.getJson();
-        assertTrue(json.contains("https://vega.github.io/schema/vega/v6.json"),
-                "Schema URL must point to Vega v6");
+        assertThat(json).as("Schema URL must point to Vega v6").contains("https://vega.github.io/schema/vega/v6.json");
     }
 
     @Test
@@ -120,17 +119,17 @@ class CandidateVegaGraphTest {
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
         final String json = service.renderGraph(candidate).getJson();
-        assertTrue(json.startsWith("{"), "Vega spec must be a JSON object");
-        assertTrue(json.endsWith("}"), "Vega spec must be a JSON object");
-        assertTrue(json.contains("\"force\""), "Spec must contain the force transform");
-        assertTrue(json.contains("\"node-data\""), "Spec must define node-data");
-        assertTrue(json.contains("\"link-data\""), "Spec must define link-data");
-        assertTrue(json.indexOf("\"link-data\"") < json.indexOf("\"node-data\""),
-                "link-data must appear before node-data in the data array so Vega " +
-                "processes it before the force transform in node-data references it");
-        assertTrue(json.contains("\"type\": \"rect\""), "Spec must contain rect marks for rounded-square nodes");
-        assertFalse(json.contains("vconcat"), "Spec must not use vconcat (bar-chart structure)");
-        assertFalse(json.contains("vega-lite"), "Spec must not reference Vega-Lite");
+        assertThat(json).as("Vega spec must be a JSON object").startsWith("{");
+        assertThat(json).as("Vega spec must be a JSON object").endsWith("}");
+        assertThat(json).as("Spec must contain the force transform").contains("\"force\"");
+        assertThat(json).as("Spec must define node-data").contains("\"node-data\"");
+        assertThat(json).as("Spec must define link-data").contains("\"link-data\"");
+        assertThat(json.indexOf("\"link-data\"")).as("link-data must appear before node-data in the data array so Vega "
+                + "processes it before the force transform in node-data references it")
+                .isLessThan(json.indexOf("\"node-data\""));
+        assertThat(json).as("Spec must contain rect marks for rounded-square nodes").contains("\"type\": \"rect\"");
+        assertThat(json).as("Spec must not use vconcat (bar-chart structure)").doesNotContain("vconcat");
+        assertThat(json).as("Spec must not reference Vega-Lite").doesNotContain("vega-lite");
     }
 
     @Test
@@ -139,8 +138,7 @@ class CandidateVegaGraphTest {
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
         final String json = service.renderGraph(candidate).getJson();
-        assertTrue(json.contains("ClassCdd: Pet"),
-                "Title should be '<candidateType>: <candidateName>'");
+        assertThat(json).as("Title should be '<candidateType>: <candidateName>'").contains("ClassCdd: Pet");
     }
 
     // ============ candidate neighbourhood ============
@@ -151,10 +149,8 @@ class CandidateVegaGraphTest {
         final ClassCdd candidate = new ClassCdd("Pet", List.of(), List.of(), List.of());
         candidate.setCandidateType("ClassCdd");
         final String json = service.renderGraph(candidate).getJson();
-        assertTrue(json.contains("\"id\":\"pet\""),
-                "Node-data must contain the candidate's lemma as a node");
-        assertFalse(json.contains("\"source\":"),
-                "No link-data when there are no typed dependencies");
+        assertThat(json).as("Node-data must contain the candidate's lemma as a node").contains("\"id\":\"pet\"");
+        assertThat(json).as("No link-data when there are no typed dependencies").doesNotContain("\"source\":");
     }
 
     @Test
@@ -176,16 +172,11 @@ class CandidateVegaGraphTest {
         when(collaboratorCandidates.listAll()).thenReturn(List.of());
 
         final String json = service.renderGraph(customer).getJson();
-        assertTrue(json.contains("\"source\":\"purchase\""),
-                "Link source must be the governor lemma");
-        assertTrue(json.contains("\"target\":\"customer\""),
-                "Link target must be the dependent lemma");
-        assertTrue(json.contains("\"label\":\"nsubj\""),
-                "Link must carry the TdType code as label");
-        assertTrue(json.contains("\"name\":\"Purchase\""),
-                "Node-data must include the linked candidate 'Purchase'");
-        assertTrue(json.contains("\"name\":\"Customer\""),
-                "Node-data must include the linked candidate 'Customer'");
+        assertThat(json).as("Link source must be the governor lemma").contains("\"source\":\"purchase\"");
+        assertThat(json).as("Link target must be the dependent lemma").contains("\"target\":\"customer\"");
+        assertThat(json).as("Link must carry the TdType code as label").contains("\"label\":\"nsubj\"");
+        assertThat(json).as("Node-data must include the linked candidate 'Purchase'").contains("\"name\":\"Purchase\"");
+        assertThat(json).as("Node-data must include the linked candidate 'Customer'").contains("\"name\":\"Customer\"");
     }
 
     @Test
@@ -210,12 +201,9 @@ class CandidateVegaGraphTest {
         when(collaboratorCandidates.listAll()).thenReturn(List.of());
 
         final String json = service.renderGraph(customer).getJson();
-        assertTrue(json.contains("\"source\":\"purchase\""),
-                "The candidate-word link purchase→customer must be present");
-        assertTrue(json.contains("\"target\":\"customer\""),
-                "The candidate-word link purchase→customer must be present");
-        assertFalse(json.contains("\"catalog\""),
-                "Non-candidate word 'catalog' must be excluded from the graph");
+        assertThat(json).as("The candidate-word link purchase→customer must be present").contains("\"source\":\"purchase\"");
+        assertThat(json).as("The candidate-word link purchase→customer must be present").contains("\"target\":\"customer\"");
+        assertThat(json).as("Non-candidate word 'catalog' must be excluded from the graph").doesNotContain("\"catalog\"");
     }
 
     @Test
@@ -245,12 +233,9 @@ class CandidateVegaGraphTest {
         when(collaboratorCandidates.listAll()).thenReturn(List.of());
 
         final String json = service.renderGraph(customer).getJson();
-        assertTrue(json.contains("\"name\":\"Order\""),
-                "Second-level candidate 'Order' should surface at hop depth 2");
-        assertTrue(json.contains("\"source\":\"purchase\""),
-                "The purchase→order link must be present");
-        assertTrue(json.contains("\"target\":\"order\""),
-                "The purchase→order link must be present");
+        assertThat(json).as("Second-level candidate 'Order' should surface at hop depth 2").contains("\"name\":\"Order\"");
+        assertThat(json).as("The purchase→order link must be present").contains("\"source\":\"purchase\"");
+        assertThat(json).as("The purchase→order link must be present").contains("\"target\":\"order\"");
     }
 
     @Test
@@ -280,8 +265,8 @@ class CandidateVegaGraphTest {
         when(collaboratorCandidates.listAll()).thenReturn(List.of());
 
         final String json = service.renderGraph(customer).getJson();
-        assertFalse(json.contains("\"name\":\"Order\""),
-                "Second-level candidate 'Order' must NOT appear at the default depth of 1");
+        assertThat(json).as("Second-level candidate 'Order' must NOT appear at the default depth of 1")
+                .doesNotContain("\"name\":\"Order\"");
     }
 
     @Test
@@ -310,12 +295,10 @@ class CandidateVegaGraphTest {
         when(collaboratorCandidates.listAll()).thenReturn(List.of(coverageAge));
 
         final String json = service.renderGraph(coverage).getJson();
-        assertTrue(json.contains("\"source\":\"coverage\""),
-                "The kept link coverage→age must have source 'coverage'");
-        assertTrue(json.contains("\"target\":\"age\""),
-                "The kept link coverage→age must have target 'age'");
-        assertFalse(json.contains("coverage_age"),
-                "The synthetic compound lemma 'coverage_age' must be excluded from the graph");
+        assertThat(json).as("The kept link coverage→age must have source 'coverage'").contains("\"source\":\"coverage\"");
+        assertThat(json).as("The kept link coverage→age must have target 'age'").contains("\"target\":\"age\"");
+        assertThat(json).as("The synthetic compound lemma 'coverage_age' must be excluded from the graph")
+                .doesNotContain("coverage_age");
     }
 
     // ============ node metadata ============
@@ -342,10 +325,8 @@ class CandidateVegaGraphTest {
         when(collaboratorCandidates.listAll()).thenReturn(List.of());
 
         final String json = service.renderGraph(customer).getJson();
-        assertTrue(json.contains("\"approved\":true"),
-                "Approved candidate must have 'approved': true");
-        assertTrue(json.contains("\"approved\":false"),
-                "Non-approved candidate must have 'approved': false");
+        assertThat(json).as("Approved candidate must have 'approved': true").contains("\"approved\":true");
+        assertThat(json).as("Non-approved candidate must have 'approved': false").contains("\"approved\":false");
     }
 
     @Test
@@ -367,12 +348,12 @@ class CandidateVegaGraphTest {
         when(collaboratorCandidates.listAll()).thenReturn(List.of());
 
         final String json = service.renderGraph(customer).getJson();
-        assertTrue(json.contains("\"Noun\""), "Scale domain must include 'Noun' for NN");
-        assertTrue(json.contains("\"Verb\""), "Scale domain must include 'Verb' for VBZ");
-        assertTrue(json.contains("#3498DB"), "Range must include the Noun colour");
-        assertTrue(json.contains("#E74C3C"), "Range must include the Verb colour");
-        assertTrue(json.contains("\"legends\""), "Spec must declare a top-level legends array");
-        assertTrue(json.contains("Part of Speech"), "Legend title must be 'Part of Speech'");
+        assertThat(json).as("Scale domain must include 'Noun' for NN").contains("\"Noun\"");
+        assertThat(json).as("Scale domain must include 'Verb' for VBZ").contains("\"Verb\"");
+        assertThat(json).as("Range must include the Noun colour").contains("#3498DB");
+        assertThat(json).as("Range must include the Verb colour").contains("#E74C3C");
+        assertThat(json).as("Spec must declare a top-level legends array").contains("\"legends\"");
+        assertThat(json).as("Legend title must be 'Part of Speech'").contains("Part of Speech");
     }
 
     // ============ helper factories ============

@@ -1,7 +1,7 @@
 package domox.adapter.diagram
 
 import domox.GraphvizUtils
-import org.junit.jupiter.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
@@ -26,7 +26,7 @@ internal class GraphvizUtilsTest {
     }
 
     @Test //IntegrationTest
-    fun testGenerateGraphvizDiagram() {
+    fun generateDiagram_returnsAnSvg() {
         //given
         val dotCode = "digraph { a -> b }"
         //when
@@ -36,9 +36,8 @@ internal class GraphvizUtilsTest {
             port = kroki.getMappedPort(PORT)
         )
         //then
-        assertNotNull(svg)
-        assertTrue(svg.isNotEmpty(), "SVG response should not be empty")
-        assertTrue(svg.contains("svg") || svg.contains("<svg"), "Response should be SVG format")
+        assertThat(svg).isNotNull()
+        assertThat(svg).describedAs("Response should be SVG format").contains("<svg")
     }
 
 }

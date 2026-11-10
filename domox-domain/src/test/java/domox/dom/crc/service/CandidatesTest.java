@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,7 +58,7 @@ class CandidatesTest {
         final List<ClassCdd> result = classUnderTest.listAllClasses();
 
         // then
-        org.junit.jupiter.api.Assertions.assertEquals(List.of(clazz), result);
+        assertThat(result).isEqualTo(List.of(clazz));
         verify(mockClassCandidates).listAll();
         verify(mockResponsibilityCandidates, never()).listAll();
         verify(mockAttributeCandidates, never()).listAll();
@@ -74,7 +75,7 @@ class CandidatesTest {
         final List<ResponsibilityCdd> result = classUnderTest.listAllResponsibilities();
 
         // then
-        org.junit.jupiter.api.Assertions.assertEquals(List.of(action), result);
+        assertThat(result).isEqualTo(List.of(action));
         verify(mockResponsibilityCandidates).listAll();
         verify(mockClassCandidates, never()).listAll();
     }
@@ -89,7 +90,7 @@ class CandidatesTest {
         final List<AttributeCdd> result = classUnderTest.listAllAttributes();
 
         // then
-        org.junit.jupiter.api.Assertions.assertEquals(List.of(property), result);
+        assertThat(result).isEqualTo(List.of(property));
         verify(mockAttributeCandidates).listAll();
     }
 
@@ -105,7 +106,7 @@ class CandidatesTest {
         final List<CollaboratorCdd> result = classUnderTest.listAllCollaborators();
 
         // then
-        org.junit.jupiter.api.Assertions.assertEquals(List.of(association), result);
+        assertThat(result).isEqualTo(List.of(association));
         verify(mockCollaboratorCandidates).listAll();
     }
 }

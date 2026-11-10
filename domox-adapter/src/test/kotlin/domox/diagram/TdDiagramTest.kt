@@ -2,7 +2,7 @@ package domox.adapter.diagram
 
 import domox.port.DocumentTO
 import domox.adapter.nlp.StanfordCoreNlpAPI
-import org.junit.jupiter.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Container
@@ -21,27 +21,26 @@ internal class TdDiagramTest {
     }
 
     @Test
-    fun testBuild() {
+    fun build_rendersTokensAndDependenciesAsPlantUml() {
         //given
         val scheme = "http"
         val host = coreNlp.host
         val port = coreNlp.getMappedPort(9000)
         val text = "A language tape has a title language and level."
         val coreDocument: DocumentTO = StanfordCoreNlpAPI(scheme, host, port).annotate(text)
-        assertNotNull(coreDocument)
+        assertThat(coreDocument).isNotNull()
         val coreSentence = coreDocument.sentences.first()
         //when
         val pumlCode = TdDiagram.build(coreSentence)
         //then
-        assertTrue(pumlCode.contains("rectangle \"A\" as W1"))
-        assertTrue(pumlCode.contains("card \"DT\" as D1"))
-        assertTrue(pumlCode.contains("D1 -d-( W1"))
-        assertTrue(pumlCode.contains("D9 -r-> D10"))
-        assertEquals(4, countOccurrencesOfIn("D1 ", pumlCode))
-        assertEquals(4, countOccurrencesOfIn("D10 ", pumlCode))
-        assertEquals(5, countOccurrencesOfIn("NN", pumlCode))
-        assertEquals(2, countOccurrencesOfIn("compound", pumlCode))
-        System.out.println(pumlCode)
+        assertThat(pumlCode).contains("rectangle \"A\" as W1")
+        assertThat(pumlCode).contains("card \"DT\" as D1")
+        assertThat(pumlCode).contains("D1 -d-( W1")
+        assertThat(pumlCode).contains("D9 -r-> D10")
+        assertThat(countOccurrencesOfIn("D1 ", pumlCode)).isEqualTo(4)
+        assertThat(countOccurrencesOfIn("D10 ", pumlCode)).isEqualTo(4)
+        assertThat(countOccurrencesOfIn("NN", pumlCode)).isEqualTo(5)
+        assertThat(countOccurrencesOfIn("compound", pumlCode)).isEqualTo(2)
     }
 
     private fun countOccurrencesOfIn(needle: String, haystack: String): Int {

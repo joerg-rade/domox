@@ -2,7 +2,7 @@ package domox.adapter.rdf
 
 import domox.dom.rdf.UmlLayoutDiagrams
 import org.json.JSONObject
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
 import kotlin.math.abs
@@ -35,8 +35,7 @@ class UmlLayoutIntegrityTest {
     fun `the bundled export renders every diagram without geometry violations`() {
         val problems = renderAll().flatMap { (name, payload) -> problemsIn(name, payload) }
 
-        assertTrue(problems.isEmpty(),
-            "UML layout invariants violated:\n  " + problems.joinToString("\n  "))
+        assertThat(problems).describedAs("UML layout invariants violated:\n  " + problems.joinToString("\n  ")).isEmpty()
     }
 
     /**
@@ -60,7 +59,7 @@ class UmlLayoutIntegrityTest {
     private fun renderAll(): Map<String, JSONObject> {
         val graph = rdf.load(ONTOUML)
         val names = diagrams.diagramNames(graph)
-        assertTrue(names.isNotEmpty(), "the bundled export ships no diagrams at all")
+        assertThat(names).describedAs("the bundled export ships no diagrams at all").isNotEmpty()
         return names.associateWith { JSONObject(diagrams.renderLayout(graph, it)) }
     }
 
@@ -100,7 +99,7 @@ class UmlLayoutIntegrityTest {
         val problems = mutableListOf<String>()
         val boxes = boxesOf(root)
         val names = namesOf(root)
-        assertTrue(boxes.isNotEmpty(), "$title has no boxes")
+        assertThat(boxes).describedAs("$title has no boxes").isNotEmpty()
 
         // Every box is widened to fit its label, so the whole diagram keeps one font size.  A box with no
         // room to grow — a neighbour on either side — keeps its width, and the client shrinks that one

@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Guardrail for {@link ReviewAdvisor} — the advisory suggestion behind the {@code suggestReview} MCP
@@ -60,10 +59,10 @@ class ReviewAdvisorTest {
         final ReviewAdvisor.Suggestion suggestion = advisor.suggest(
                 classCandidate("Person"), lookupOf(term(OntologyTerm.Kind.CLASS)), List.of());
 
-        assertEquals(ReviewAdvisor.Decision.APPROVE, suggestion.decision());
-        assertEquals(ReviewAdvisor.Confidence.MEDIUM, suggestion.confidence());
-        assertEquals(null, suggestion.rationale());
-        assertTrue(suggestion.reasons().get(0).contains("Ontology agrees"), suggestion.reasons().toString());
+        assertThat(suggestion.decision()).isEqualTo(ReviewAdvisor.Decision.APPROVE);
+        assertThat(suggestion.confidence()).isEqualTo(ReviewAdvisor.Confidence.MEDIUM);
+        assertThat(suggestion.rationale()).isNull();
+        assertThat(suggestion.reasons().getFirst()).as(suggestion.reasons().toString()).contains("Ontology agrees");
     }
 
     @Test
@@ -71,15 +70,16 @@ class ReviewAdvisorTest {
         final ReviewAdvisor.Suggestion suggestion = advisor.suggest(
                 classCandidate("Person"), lookupOf(term(OntologyTerm.Kind.PROPERTY)), List.of());
 
-        assertEquals(ReviewAdvisor.Decision.REJECT, suggestion.decision());
-        assertEquals(ReviewRationale.WRONG_CANDIDATE_TYPE, suggestion.rationale());
-        assertEquals(ReviewAdvisor.Confidence.MEDIUM, suggestion.confidence());
+        assertThat(suggestion.decision()).isEqualTo(ReviewAdvisor.Decision.REJECT);
+        assertThat(suggestion.rationale()).isEqualTo(ReviewRationale.WRONG_CANDIDATE_TYPE);
+        assertThat(suggestion.confidence()).isEqualTo(ReviewAdvisor.Confidence.MEDIUM);
     }
 
     @Test
     void aPropertyCandidateTheOntologyKnowsAsAPropertyAgrees() {
-        assertEquals(ReviewAdvisor.Agreement.AGREES, advisor.agreement(
-                attributeCandidate("Person"), lookupOf(term(OntologyTerm.Kind.PROPERTY))));
+        assertThat(advisor.agreement(
+                attributeCandidate("Person"), lookupOf(term(OntologyTerm.Kind.PROPERTY))))
+                .isEqualTo(ReviewAdvisor.Agreement.AGREES);
     }
 
     @Test
@@ -87,9 +87,9 @@ class ReviewAdvisorTest {
         final ReviewAdvisor.Suggestion suggestion = advisor.suggest(
                 classCandidate("Pet"), lookupOf(term(OntologyTerm.Kind.CLASS)), List.of(classCandidate("Pet")));
 
-        assertEquals(ReviewAdvisor.Decision.REJECT, suggestion.decision());
-        assertEquals(ReviewRationale.DUPLICATE, suggestion.rationale());
-        assertEquals(ReviewAdvisor.Confidence.HIGH, suggestion.confidence());
+        assertThat(suggestion.decision()).isEqualTo(ReviewAdvisor.Decision.REJECT);
+        assertThat(suggestion.rationale()).isEqualTo(ReviewRationale.DUPLICATE);
+        assertThat(suggestion.confidence()).isEqualTo(ReviewAdvisor.Confidence.HIGH);
     }
 
     @Test
@@ -97,11 +97,11 @@ class ReviewAdvisorTest {
         final ReviewAdvisor.Suggestion suggestion = advisor.suggest(
                 classCandidate("PetGroomingBundle"), noMatch(), List.of());
 
-        assertEquals(ReviewAdvisor.Decision.UNCERTAIN, suggestion.decision());
-        assertEquals(null, suggestion.rationale());
-        assertEquals(ReviewAdvisor.Confidence.LOW, suggestion.confidence());
-        assertTrue(suggestion.reasons().stream().anyMatch(r -> r.contains("NOT evidence against")),
-                suggestion.reasons().toString());
+        assertThat(suggestion.decision()).isEqualTo(ReviewAdvisor.Decision.UNCERTAIN);
+        assertThat(suggestion.rationale()).isNull();
+        assertThat(suggestion.confidence()).isEqualTo(ReviewAdvisor.Confidence.LOW);
+        assertThat(suggestion.reasons()).as(suggestion.reasons().toString())
+                .anyMatch(r -> r.contains("NOT evidence against"));
     }
 
     @Test
@@ -109,24 +109,24 @@ class ReviewAdvisorTest {
         final ReviewAdvisor.Suggestion suggestion = advisor.suggest(
                 classCandidate("Pet"), unavailable(), List.of());
 
-        assertEquals(ReviewAdvisor.Decision.UNCERTAIN, suggestion.decision());
-        assertTrue(suggestion.reasons().stream().anyMatch(r -> r.contains("unavailable")),
-                suggestion.reasons().toString());
+        assertThat(suggestion.decision()).isEqualTo(ReviewAdvisor.Decision.UNCERTAIN);
+        assertThat(suggestion.reasons()).as(suggestion.reasons().toString())
+                .anyMatch(r -> r.contains("unavailable"));
     }
 
     @Test
     void expectedKindMapsOnlyTheTypesTheOntologiesModel() {
-        assertEquals(OntologyTerm.Kind.CLASS, advisor.expectedKind(classCandidate("Pet")));
-        assertEquals(OntologyTerm.Kind.PROPERTY, advisor.expectedKind(attributeCandidate("age")));
+        assertThat(advisor.expectedKind(classCandidate("Pet"))).isEqualTo(OntologyTerm.Kind.CLASS);
+        assertThat(advisor.expectedKind(attributeCandidate("age"))).isEqualTo(OntologyTerm.Kind.PROPERTY);
     }
 
     @Test
     void agreementIsUnknownWhenThereIsNothingToCompare() {
         // no matches at all
-        assertEquals(ReviewAdvisor.Agreement.UNKNOWN,
-                advisor.agreement(classCandidate("Pet"), noMatch()));
+        assertThat(advisor.agreement(classCandidate("Pet"), noMatch()))
+                .isEqualTo(ReviewAdvisor.Agreement.UNKNOWN);
         // matches, but the source could not be queried
-        assertEquals(ReviewAdvisor.Agreement.UNKNOWN,
-                advisor.agreement(classCandidate("Pet"), unavailable()));
+        assertThat(advisor.agreement(classCandidate("Pet"), unavailable()))
+                .isEqualTo(ReviewAdvisor.Agreement.UNKNOWN);
     }
 }

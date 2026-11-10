@@ -1,7 +1,6 @@
 package domox.dom.rules;
 
 import domox.dom.nlp.TypedDependency;
-import org.apache.causeway.commons.internal.assertions._Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,17 +26,17 @@ class TDR2Test {
     }
 
     @Test
-    void testDetermineClassName() {
+    void determineClassName_capitalizesTheGovernorLemma() {
         when(currentTd.getA()).thenReturn("customer");
-        _Assert.assertEquals("Customer", tdr2.determineClassName());
+        assertThat(tdr2.determineClassName()).isEqualTo("Customer");
     }
 
     @Test
-    void testDetermineType() {
+    void determineType_mapsKnownAttributeNamesToJavaTypes() {
         when(currentTd.getB()).thenReturn("name");
-        _Assert.assertEquals("String", tdr2.determineType());
+        assertThat(tdr2.determineType()).isEqualTo("String");
 
         when(currentTd.getB()).thenReturn("age");
-        _Assert.assertEquals("int", tdr2.determineType());
+        assertThat(tdr2.determineType()).isEqualTo("int");
     }
 }

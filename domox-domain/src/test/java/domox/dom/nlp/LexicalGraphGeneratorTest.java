@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Verifies {@link LexicalGraphGenerator}: the Graphviz (DOT) lexical dependency graph
@@ -26,20 +25,20 @@ class LexicalGraphGeneratorTest {
         final String dot = generator.generateGraphvizGraph(sampleDependencies());
 
         // document framing
-        assertTrue(dot.startsWith("digraph LexicalDependencyGraph {"));
-        assertTrue(dot.trim().endsWith("}"));
+        assertThat(dot).startsWith("digraph LexicalDependencyGraph {");
+        assertThat(dot.trim()).endsWith("}");
 
         // node declarations use the lowercased lemma and the POS code as a second label line,
         // coloured by POS and unscaled (no rule matches -> width/height and font at base size)
-        assertTrue(dot.contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];"));
-        assertTrue(dot.contains("\"artificial\" [label=\"artificial\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350, fontsize=10];"));
-        assertTrue(dot.contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350, fontsize=10];"));
+        assertThat(dot).contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];");
+        assertThat(dot).contains("\"artificial\" [label=\"artificial\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350, fontsize=10];");
+        assertThat(dot).contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350, fontsize=10];");
 
         // directed relationships from the typed dependencies (governor -> dependent)
-        assertTrue(dot.contains("\"intelligence\" -> \"artificial\" [label=\"amod\"];"));
-        assertTrue(dot.contains("\"transform\" -> \"intelligence\" [label=\"nsubj\"];"));
-        assertTrue(dot.contains("\"technology\" -> \"modern\" [label=\"amod\"];"));
-        assertTrue(dot.contains("\"transform\" -> \"technology\" [label=\"obj\"];"));
+        assertThat(dot).contains("\"intelligence\" -> \"artificial\" [label=\"amod\"];");
+        assertThat(dot).contains("\"transform\" -> \"intelligence\" [label=\"nsubj\"];");
+        assertThat(dot).contains("\"technology\" -> \"modern\" [label=\"amod\"];");
+        assertThat(dot).contains("\"transform\" -> \"technology\" [label=\"obj\"];");
     }
 
     @Test
@@ -55,8 +54,8 @@ class LexicalGraphGeneratorTest {
         final int graphStart = dot.indexOf("graph [");
         final int graphEnd = dot.indexOf("];", graphStart);
         final String graphBlock = dot.substring(graphStart, graphEnd);
-        assertTrue(graphBlock.contains("layout = neato"),
-                "generator's graph block must use the 'neato' engine for Kroki compatibility:\n" + graphBlock);
+        assertThat(graphBlock).as("generator's graph block must use the 'neato' engine for Kroki compatibility")
+                .contains("layout = neato");
     }
 
     @Test
@@ -70,10 +69,10 @@ class LexicalGraphGeneratorTest {
 
         final String dot = generator.generateGraphvizGraph(deps);
 
-        assertTrue(dot.contains("\"shop_nn\" [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];"));
-        assertTrue(dot.contains("\"shop_vb\" [label=\"shop\\n«VB»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350, fontsize=10];"));
-        assertTrue(dot.contains("\"arrive\" -> \"shop_nn\" [label=\"obl:at\"];"));
-        assertTrue(dot.contains("\"shop_vb\" -> \"customer\" [label=\"nsubj\"];"));
+        assertThat(dot).contains("\"shop_nn\" [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];");
+        assertThat(dot).contains("\"shop_vb\" [label=\"shop\\n«VB»\", fillcolor=\"#E74C3C\", width=0.900, height=0.350, fontsize=10];");
+        assertThat(dot).contains("\"arrive\" -> \"shop_nn\" [label=\"obl:at\"];");
+        assertThat(dot).contains("\"shop_vb\" -> \"customer\" [label=\"nsubj\"];");
     }
 
     @Test
@@ -95,10 +94,10 @@ class LexicalGraphGeneratorTest {
 
         // maximum count (3, for transform and intelligence) maps to scale 4, scaling both
         // dimensions and the font size by the same factor
-        assertTrue(dot.contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=3.600, height=1.400, fontsize=40];"));
-        assertTrue(dot.contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=3.600, height=1.400, fontsize=40];"));
+        assertThat(dot).contains("\"transform\" [label=\"transform\\n«VBZ»\", fillcolor=\"#E74C3C\", width=3.600, height=1.400, fontsize=40];");
+        assertThat(dot).contains("\"intelligence\" [label=\"intelligence\\n«NN»\", fillcolor=\"#3498DB\", width=3.600, height=1.400, fontsize=40];");
         // a count of 1 leaves the node at its base size (no enlargement)
-        assertTrue(dot.contains("\"modern\" [label=\"modern\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350, fontsize=10];"));
+        assertThat(dot).contains("\"modern\" [label=\"modern\\n«JJ»\", fillcolor=\"#2ECC71\", width=0.900, height=0.350, fontsize=10];");
     }
 
 
@@ -115,10 +114,10 @@ class LexicalGraphGeneratorTest {
 
         final String dot = generator.generateGraphvizGraph(deps);
 
-        assertTrue(dot.contains("\"data-center\" [label=\"data-center\\n«NN»\", fillcolor=\"#3498DB\""), dot);
-        assertTrue(dot.contains("\"data-center\" -> \"node\" [label=\"amod\"];"), dot);
-        assertTrue(dot.contains("\"123abc\" [label=\"123abc\\n«NNP»\", fillcolor=\"#85C1E9\""), dot);
-        assertTrue(dot.contains("\"123abc\" -> \"data-center\" [label=\"nsubj\"];"), dot);
+        assertThat(dot).contains("\"data-center\" [label=\"data-center\\n«NN»\", fillcolor=\"#3498DB\"");
+        assertThat(dot).contains("\"data-center\" -> \"node\" [label=\"amod\"];");
+        assertThat(dot).contains("\"123abc\" [label=\"123abc\\n«NNP»\", fillcolor=\"#85C1E9\"");
+        assertThat(dot).contains("\"123abc\" -> \"data-center\" [label=\"nsubj\"];");
     }
 
     @Test
@@ -126,26 +125,26 @@ class LexicalGraphGeneratorTest {
         final String dot = generator.generateGraphvizGraph(sampleDependencies());
 
         // 'the' (DT) is not a content word -> no node and no edge referencing it
-        assertFalse(dot.contains("the\\n«DT»"));
-        assertFalse(dot.contains("-> the"));
+        assertThat(dot).doesNotContain("the\\n«DT»");
+        assertThat(dot).doesNotContain("-> the");
 
         // the ROOT pseudo-token (index 0) has no governor lemma -> no root edge
-        assertFalse(dot.contains("ROOT"));
+        assertThat(dot).doesNotContain("ROOT");
     }
 
     @Test
     void emptyDependencyListYieldsBareDiagram() {
         final String dot = generator.generateGraphvizGraph(List.of());
 
-        assertTrue(dot.startsWith("digraph LexicalDependencyGraph {"));
-        assertTrue(dot.trim().endsWith("}"));
+        assertThat(dot).startsWith("digraph LexicalDependencyGraph {");
+        assertThat(dot.trim()).endsWith("}");
         // no content-node declarations are emitted for an empty list
         final int nodesStart = dot.indexOf("// Node Declarations");
         final int nodesEnd = dot.indexOf("// Relationships (Edges)");
-        assertFalse(dot.substring(nodesStart, nodesEnd).contains("[label="),
-                "empty list -> no content node declarations");
+        assertThat(dot.substring(nodesStart, nodesEnd)).as("empty list -> no content node declarations")
+                .doesNotContain("[label=");
         // ... but the explanatory legend is still rendered
-        assertTrue(dot.contains("Legend ["), "empty list -> legend still emitted");
+        assertThat(dot).as("empty list -> legend still emitted").contains("Legend [");
     }
 
     @Test
@@ -156,10 +155,10 @@ class LexicalGraphGeneratorTest {
                 List.of(approvedClassCandidate("Store")));
 
         // the approved term ('Store', matched case-insensitively) gets a bold border ...
-        assertTrue(dot.contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, penwidth=3.000];"), dot);
+        assertThat(dot).contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, penwidth=3.000];");
         // ... while a node without an approved candidate keeps the plain declaration
-        assertTrue(dot.contains("\"customer\" [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];"), dot);
-        assertFalse(dataSection(dot).contains("dashed"), "approved alone must not produce a dashed border:\n" + dot);
+        assertThat(dot).contains("\"customer\" [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];");
+        assertThat(dataSection(dot)).as("approved alone must not produce a dashed border").doesNotContain("dashed");
     }
 
     @Test
@@ -175,8 +174,8 @@ class LexicalGraphGeneratorTest {
                         2, "customer", PartOfSpeechType.NN)),
                 List.of(store));
 
-        assertTrue(dot.contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];"), dot);
-        assertFalse(dataSection(dot).contains("penwidth"), "a REJECTED review must not emphasise the border:\n" + dot);
+        assertThat(dot).contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10];");
+        assertThat(dataSection(dot)).as("a REJECTED review must not emphasise the border").doesNotContain("penwidth");
     }
 
     @Test
@@ -187,9 +186,9 @@ class LexicalGraphGeneratorTest {
                 List.of(synonymClassCandidate("Shop", "Store")));
 
         // both members of the synonym pair ('Shop' == 'Store') get a dashed border
-        assertTrue(dot.contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\"];"), dot);
-        assertTrue(dot.contains("\"shop\" [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\"];"), dot);
-        assertFalse(dataSection(dot).contains("penwidth"), "synonym alone must not produce a bold border:\n" + dot);
+        assertThat(dot).contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\"];");
+        assertThat(dot).contains("\"shop\" [label=\"shop\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\"];");
+        assertThat(dataSection(dot)).as("synonym alone must not produce a bold border").doesNotContain("penwidth");
     }
 
     @Test
@@ -203,22 +202,22 @@ class LexicalGraphGeneratorTest {
                 List.of(store));
 
         // an approved synonym member carries both the dashed style and the bold penwidth
-        assertTrue(dot.contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\", penwidth=3.000];"), dot);
+        assertThat(dot).contains("\"store\" [label=\"store\\n«NN»\", fillcolor=\"#3498DB\", width=0.900, height=0.350, fontsize=10, style=\"rounded,filled,dashed\", penwidth=3.000];");
     }
 
     @Test
     void noCandidateSnapshotLeavesNodesUnstyled() {
         final String plain = generator.generateGraphvizGraph(sampleDependencies());
         final String plainData = dataSection(plain);
-        assertFalse(plainData.contains("penwidth"), "plain graph must not emit border emphasis:\n" + plain);
-        assertFalse(plainData.contains("dashed"), "plain graph must not emit a dashed border style:\n" + plain);
+        assertThat(plainData).as("plain graph must not emit border emphasis").doesNotContain("penwidth");
+        assertThat(plainData).as("plain graph must not emit a dashed border style").doesNotContain("dashed");
         // the legend still explains the border semantics even without a candidate snapshot
-        assertTrue(plain.contains("Legend ["), plain);
-        assertTrue(plain.contains("Part of a synonym pair"), plain);
+        assertThat(plain).contains("Legend [");
+        assertThat(plain).contains("Part of a synonym pair");
 
         final String withSnapshot = generator.generateGraphvizGraph(
                 sampleDependencies(), List.of(approvedClassCandidate("Intelligence")));
-        assertTrue(dataSection(withSnapshot).contains("penwidth=3.000"), withSnapshot);
+        assertThat(dataSection(withSnapshot)).contains("penwidth=3.000");
     }
 
     @Test
@@ -226,39 +225,39 @@ class LexicalGraphGeneratorTest {
         final String dot = generator.generateGraphvizGraph(sampleDependencies());
 
         // the legend is a single HTML-table node labelled "Node Type Legend"
-        assertTrue(dot.contains("Legend ["), dot);
-        assertTrue(dot.contains("shape = plain"), dot);
-        assertTrue(dot.contains("Node Type Legend"), dot);
+        assertThat(dot).contains("Legend [");
+        assertThat(dot).contains("shape = plain");
+        assertThat(dot).contains("Node Type Legend");
 
         // size semantics
-        assertTrue(dot.contains("Node size"), dot);
+        assertThat(dot).contains("Node size");
 
         // border semantics: dashed (synonym), bold (approved) and the combined case
-        assertTrue(dot.contains("Dashed border"), dot);
-        assertTrue(dot.contains("Part of a synonym pair"), dot);
-        assertTrue(dot.contains("Bold border"), dot);
-        assertTrue(dot.contains("Approved candidate"), dot);
-        assertTrue(dot.contains("Bold + dashed"), dot);
-        assertTrue(dot.contains("Approved synonym member"), dot);
+        assertThat(dot).contains("Dashed border");
+        assertThat(dot).contains("Part of a synonym pair");
+        assertThat(dot).contains("Bold border");
+        assertThat(dot).contains("Approved candidate");
+        assertThat(dot).contains("Bold + dashed");
+        assertThat(dot).contains("Approved synonym member");
 
         // colour swatches: a representative sample with their POS tags
-        assertTrue(dot.contains("Entities and objects («NN», «NNS»)"), dot);
-        assertTrue(dot.contains("Named entities («NNP», «NNPS»)"), dot);
-        assertTrue(dot.contains("Actions and predicates («VB», «VBZ»)"), dot);
-        assertTrue(dot.contains("Descriptors and modifiers («JJ», «JJR», «JJS»)"), dot);
-        assertTrue(dot.contains("bgcolor=\"#3498DB\""), dot);
-        assertTrue(dot.contains("bgcolor=\"#85C1E9\""), dot);
-        assertTrue(dot.contains("bgcolor=\"#E74C3C\""), dot);
-        assertTrue(dot.contains("bgcolor=\"#2ECC71\""), dot);
-        assertFalse(dot.contains("Pronoun / wh-word"), "colour rows reduced to the four POS families:\n" + dot);
-        assertFalse(dot.contains("Punctuation"), "colour rows reduced to the four POS families:\n" + dot);
-        assertFalse(dot.contains("Adverb"), "colour rows reduced to the four POS families:\n" + dot);
+        assertThat(dot).contains("Entities and objects («NN», «NNS»)");
+        assertThat(dot).contains("Named entities («NNP», «NNPS»)");
+        assertThat(dot).contains("Actions and predicates («VB», «VBZ»)");
+        assertThat(dot).contains("Descriptors and modifiers («JJ», «JJR», «JJS»)");
+        assertThat(dot).contains("bgcolor=\"#3498DB\"");
+        assertThat(dot).contains("bgcolor=\"#85C1E9\"");
+        assertThat(dot).contains("bgcolor=\"#E74C3C\"");
+        assertThat(dot).contains("bgcolor=\"#2ECC71\"");
+        assertThat(dot).as("colour rows reduced to the four POS families").doesNotContain("Pronoun / wh-word");
+        assertThat(dot).as("colour rows reduced to the four POS families").doesNotContain("Punctuation");
+        assertThat(dot).as("colour rows reduced to the four POS families").doesNotContain("Adverb");
 
         // The corner placement is handled by the renderer's SVG post-processing (not by DOT):
         // neato can't place a node in a known corner, so no pinned `pos` and no dot-only
         // `rank = sink` idiom are emitted.
-        assertFalse(dot.contains("pos ="), "no pinned `pos` — corner placement is the renderer's job:\n" + dot);
-        assertFalse(dot.contains("rank = sink"), dot);
+        assertThat(dot).as("no pinned `pos` — corner placement is the renderer's job").doesNotContain("pos =");
+        assertThat(dot).doesNotContain("rank = sink");
     }
 
     /** The data region of the DOT: everything up to (but excluding) the legend node. */

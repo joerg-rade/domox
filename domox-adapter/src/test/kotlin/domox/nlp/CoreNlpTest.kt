@@ -1,6 +1,6 @@
 package domox.adapter.nlp
 
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Container
@@ -19,9 +19,8 @@ class CoreNLPTest {
     }
 
     @Test
-    fun `test CoreNLP container`() {
-        val coreNlpUrl = "http://${coreNlpContainer.host}:${coreNlpContainer.getMappedPort(9000)}/"
-        println("CoreNLP running at: $coreNlpUrl")
-        assertNotNull(coreNlpUrl)
+    fun `starts the CoreNLP container`() {
+        assertThat(coreNlpContainer.isRunning).isTrue()
+        assertThat(coreNlpContainer.getMappedPort(9000)).isPositive()
     }
 }

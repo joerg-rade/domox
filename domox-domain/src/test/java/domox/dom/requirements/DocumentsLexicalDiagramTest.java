@@ -24,10 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,21 +94,21 @@ class DocumentsLexicalDiagramTest {
         final Blob result = documents.renderDiagram(document);
 
         // then — diagram built from the candidate-restricted dependencies
-        assertNotNull(result);
-        assertTrue(result.mimeType().toString().contains("application/pdf"));
+        assertThat(result).isNotNull();
+        assertThat(result.mimeType().toString()).contains("application/pdf");
 
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
-        assertTrue(dot.contains("\"customer\" [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\""),
-                "strong class word should be kept");
-        assertTrue(dot.contains("\"purchase\" [label=\"purchase\\n«VBZ»\", fillcolor=\"#E74C3C\""),
-                "action candidate word should be kept");
-        assertFalse(dot.contains("currency"),
-                "weak class word should be dropped by the default threshold");
-        assertFalse(dot.contains("«DT»"),
-                "non-candidate word ('the', a determiner) should be dropped");
+        assertThat(dot).as("strong class word should be kept")
+                .contains("\"customer\" [label=\"customer\\n«NN»\", fillcolor=\"#3498DB\"");
+        assertThat(dot).as("action candidate word should be kept")
+                .contains("\"purchase\" [label=\"purchase\\n«VBZ»\", fillcolor=\"#E74C3C\"");
+        assertThat(dot).as("weak class word should be dropped by the default threshold")
+                .doesNotContain("currency");
+        assertThat(dot).as("non-candidate word ('the', a determiner) should be dropped")
+                .doesNotContain("«DT»");
     }
 
     @Test
@@ -121,7 +118,7 @@ class DocumentsLexicalDiagramTest {
 
         final Blob result = documents.renderDiagram(document);
 
-        assertNull(result, "no model -> no diagram");
+        assertThat(result).as("no model -> no diagram").isNull();
     }
 
     private static ClassCdd classCandidate(final String name, final int ruleMatches) {

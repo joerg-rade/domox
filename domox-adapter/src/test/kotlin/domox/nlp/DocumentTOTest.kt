@@ -2,16 +2,17 @@ package domox.adapter.nlp
 
 import domox.util.FileUtil
 import domox.port.DocumentTO
-import org.junit.jupiter.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class DocumentTOTest {
     @Test
-    fun shouldBeValid() {
-        val to = readFromFile("TheQuickBrownFoxJumpedOverTheLazyDuck.json")
-        Assertions.assertNotNull(to)
-        val to2 = readFromFile("PetShopUseCases.json")
-        Assertions.assertNotNull(to2)
+    fun `parses the bundled CoreNLP fixtures into sentences`() {
+        val quickBrownFox = readFromFile("TheQuickBrownFoxJumpedOverTheLazyDuck.json")
+        assertThat(quickBrownFox.sentences).describedAs("TheQuickBrownFox fixture").isNotEmpty()
+
+        val petShop = readFromFile("PetShopUseCases.json")
+        assertThat(petShop.sentences).describedAs("PetShopUseCases fixture").isNotEmpty()
     }
 
     private fun readFromFile(fileName: String): DocumentTO {

@@ -12,9 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -70,21 +68,21 @@ class OntologyTermsTest {
 
         final OntologyLookup lookup = termsWith(remote()).lookup("Person");
 
-        assertTrue(lookup.sourceAvailable(), lookup.message());
-        assertEquals(1, lookup.terms().size());
-        final OntologyTerm term = lookup.terms().get(0);
-        assertEquals("https://schema.org/", term.graph());
-        assertEquals("Person", term.label());
-        assertEquals(OntologyTerm.Kind.CLASS, term.kind());
-        assertEquals("Thing", term.superClass());
-        assertEquals("A person.", term.definition());
+        assertThat(lookup.sourceAvailable()).as(lookup.message()).isTrue();
+        assertThat(lookup.terms()).hasSize(1);
+        final OntologyTerm term = lookup.terms().getFirst();
+        assertThat(term.graph()).isEqualTo("https://schema.org/");
+        assertThat(term.label()).isEqualTo("Person");
+        assertThat(term.kind()).isEqualTo(OntologyTerm.Kind.CLASS);
+        assertThat(term.superClass()).isEqualTo("Thing");
+        assertThat(term.definition()).isEqualTo("A person.");
 
         // the focus query must carry the FROM clause, or a named-graph dataset matches nothing
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),
                 any(RdfRemoteOptions.class));
-        assertTrue(queries.getAllValues().stream().anyMatch(q -> q.contains("FROM <https://schema.org/>")),
-                "the focus query must be scoped to the configured graphs: " + queries.getAllValues());
+        assertThat(queries.getAllValues()).as("the focus query must be scoped to the configured graphs")
+                .anyMatch(q -> q.contains("FROM <https://schema.org/>"));
     }
 
     @Test
@@ -97,13 +95,13 @@ class OntologyTermsTest {
 
         final OntologyLookup lookup = termsWith(new RdfProperties()).lookup("Cat");
 
-        assertEquals(OntologyTerm.Kind.CLASS, lookup.terms().get(0).kind());
-        assertEquals("Cat", lookup.terms().get(0).label(), "no label -> the IRI's local name");
+        assertThat(lookup.terms().getFirst().kind()).isEqualTo(OntologyTerm.Kind.CLASS);
+        assertThat(lookup.terms().getFirst().label()).as("no label -> the IRI's local name").isEqualTo("Cat");
 
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
         verify(rdfPort, atLeastOnce()).select(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), queries.capture());
-        assertTrue(queries.getAllValues().stream().noneMatch(q -> q.contains("GRAPH ?g")),
-                "the bundled ontology is a single unnamed graph: " + queries.getAllValues());
+        assertThat(queries.getAllValues()).as("the bundled ontology is a single unnamed graph")
+                .noneMatch(q -> q.contains("GRAPH ?g"));
     }
 
     @Test
@@ -113,9 +111,9 @@ class OntologyTermsTest {
 
         final OntologyLookup lookup = termsWith(new RdfProperties()).lookup("Cat");
 
-        assertFalse(lookup.sourceAvailable());
-        assertTrue(lookup.terms().isEmpty());
-        assertTrue(lookup.message().contains("connection refused"), lookup.message());
+        assertThat(lookup.sourceAvailable()).isFalse();
+        assertThat(lookup.terms()).isEmpty();
+        assertThat(lookup.message()).as(lookup.message()).contains("connection refused");
     }
 
     @Test
@@ -124,21 +122,21 @@ class OntologyTermsTest {
 
         final OntologyLookup lookup = termsWith(new RdfProperties()).lookup("Nope");
 
-        assertTrue(lookup.sourceAvailable());
-        assertFalse(lookup.hasMatches());
-        assertTrue(lookup.message().contains("No ontology term matches"), lookup.message());
+        assertThat(lookup.sourceAvailable()).isTrue();
+        assertThat(lookup.hasMatches()).isFalse();
+        assertThat(lookup.message()).as(lookup.message()).contains("No ontology term matches");
     }
 
     @Test
     void describeQueriesUseTheValuesClauseAndTheNamedGraph() {
         final String remote = OntologyTerms.describeRemoteQuery(List.of("http://x/A"));
-        assertTrue(remote.contains("GRAPH ?g"), remote);
-        assertTrue(remote.contains("VALUES ?term { <http://x/A> }"), remote);
-        assertTrue(remote.contains("isLiteral(?value) AS ?lit"), remote);
+        assertThat(remote).contains("GRAPH ?g");
+        assertThat(remote).contains("VALUES ?term { <http://x/A> }");
+        assertThat(remote).contains("isLiteral(?value) AS ?lit");
 
         final String local = OntologyTerms.describeLocalQuery(List.of("http://x/A"));
-        assertFalse(local.contains("GRAPH"), local);
-        assertTrue(local.contains("VALUES ?term { <http://x/A> }"), local);
+        assertThat(local).doesNotContain("GRAPH");
+        assertThat(local).contains("VALUES ?term { <http://x/A> }");
     }
 
     @Test
@@ -146,6 +144,6 @@ class OntologyTermsTest {
         final String query = OntologyTerms.describeLocalQuery(
                 List.of("http://x/A> } UNION { ?s ?p ?o"));
 
-        assertFalse(query.contains("UNION"), query);
+        assertThat(query).doesNotContain("UNION");
     }
 }

@@ -4,7 +4,7 @@ import domox.port.DocumentTO
 import domox.port.ExtendedDependencyFactory
 import domox.port.SentenceTO
 import domox.adapter.nlp.StanfordCoreNlpAPI
-import org.junit.jupiter.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Container
@@ -30,34 +30,32 @@ class ColoredPlantUmlMindmapGeneratorTest {
         val coreDocument: DocumentTO = StanfordCoreNlpAPI(scheme, host, port).annotate(text)
 
         val sentence = coreDocument.sentences[0]
-        logDependencies(sentence)
         return sentence
     }
 
     @Test
-    fun testBuildPetPhotography() {
+    fun buildPetPhotography_mindmapContainsEveryToken() {
         //given
         val text =
             "11 ) Pet photography : Some pet shops offer pet photography services to capture memorable moments with pets ."
         val sentence: SentenceTO = invokeCoreNlp(text)
         //then
-        assertNotNull(sentence.enhancedPlusPlusDependencies)
+        assertThat(sentence.enhancedPlusPlusDependencies).isNotNull()
 
         //when
         val actualPuml = ColoredPlantUmlMindmapGenerator(ExtendedDependencyFactory(sentence).getDependencies()).generateMindmap()
-        println(actualPuml)
         //then
-        assertEquals(2, countOccurrencesOfIn("Pet", actualPuml))
-        assertEquals(4, countOccurrencesOfIn("photography", actualPuml))
-        assertEquals(2, countOccurrencesOfIn("Some", actualPuml))
-        assertEquals(6, countOccurrencesOfIn("pet", actualPuml))
-        assertEquals(2, countOccurrencesOfIn("pets", actualPuml))
-        assertEquals(2, countOccurrencesOfIn("shops", actualPuml))
-        assertEquals(2, countOccurrencesOfIn("offer", actualPuml))
-        assertEquals(2, countOccurrencesOfIn("services", actualPuml))
-        assertEquals(2, countOccurrencesOfIn("capture", actualPuml))
-        assertEquals(2, countOccurrencesOfIn("memorable", actualPuml))
-        assertEquals(2, countOccurrencesOfIn("moments", actualPuml))
+        assertThat(countOccurrencesOfIn("Pet", actualPuml)).isEqualTo(2)
+        assertThat(countOccurrencesOfIn("photography", actualPuml)).isEqualTo(4)
+        assertThat(countOccurrencesOfIn("Some", actualPuml)).isEqualTo(2)
+        assertThat(countOccurrencesOfIn("pet", actualPuml)).isEqualTo(6)
+        assertThat(countOccurrencesOfIn("pets", actualPuml)).isEqualTo(2)
+        assertThat(countOccurrencesOfIn("shops", actualPuml)).isEqualTo(2)
+        assertThat(countOccurrencesOfIn("offer", actualPuml)).isEqualTo(2)
+        assertThat(countOccurrencesOfIn("services", actualPuml)).isEqualTo(2)
+        assertThat(countOccurrencesOfIn("capture", actualPuml)).isEqualTo(2)
+        assertThat(countOccurrencesOfIn("memorable", actualPuml)).isEqualTo(2)
+        assertThat(countOccurrencesOfIn("moments", actualPuml)).isEqualTo(2)
         //assertEquals(3, countOccurrencesOfIn("punct", actualPuml)) including the legend, it's 4
     }
 
@@ -65,59 +63,49 @@ class ColoredPlantUmlMindmapGeneratorTest {
         return haystack.windowed(needle.length).count { it == needle }
     }
 
-    private fun logDependencies(sentence: SentenceTO) {
-        val dependencies = sentence.enhancedPlusPlusDependencies
-        for (dep in dependencies) {
-            println(dep)
-        }
-    }
-
     @Test
-    fun testKuhn() {
+    fun buildsMindmapForTheKuhnSentence() {
         //given
         val text =
             "Though a new paradigm may possess few or none of the capabilities of its predecessor, it nevertheless preserves a large part of the concrete problem-solving activity that science has gained through its predecessors."
         val sentence: SentenceTO = invokeCoreNlp(text)
         //then
-        assertNotNull(sentence.enhancedPlusPlusDependencies)
+        assertThat(sentence.enhancedPlusPlusDependencies).isNotNull()
 
         //when
         val actualPuml = ColoredPlantUmlMindmapGenerator(ExtendedDependencyFactory(sentence).getDependencies()).generateMindmap()
-        println(actualPuml)
         //then
-        assertTrue(actualPuml.contains("paradigm"))
+        assertThat(actualPuml).contains("paradigm")
     }
 
     @Test
-    fun testSkinner() {
+    fun buildsMindmapForTheSkinnerSentence() {
         //given
         val text =
             "Men act upon the world, and change it, and are changed in turn by the consequences of their actions."
         val sentence: SentenceTO = invokeCoreNlp(text)
         //then
-        assertNotNull(sentence.enhancedPlusPlusDependencies)
+        assertThat(sentence.enhancedPlusPlusDependencies).isNotNull()
 
         //when
         val actualPuml = ColoredPlantUmlMindmapGenerator(ExtendedDependencyFactory(sentence).getDependencies()).generateMindmap()
-        println(actualPuml)
         //then
-        assertTrue(actualPuml.contains("consequences"))
+        assertThat(actualPuml).contains("consequences")
     }
 
     @Test
-    fun testMarx() {
+    fun buildsMindmapForTheMarxSentence() {
         //given
         val text =
             "The wealth of those societies in which the capitalist mode of production prevails, presents itself as an immense accumulation of commodities; the individual commodity appears as its elementary form ."
         val sentence: SentenceTO = invokeCoreNlp(text)
         //then
-        assertNotNull(sentence.enhancedPlusPlusDependencies)
+        assertThat(sentence.enhancedPlusPlusDependencies).isNotNull()
 
         //when
         val actualPuml = ColoredPlantUmlMindmapGenerator(ExtendedDependencyFactory(sentence).getDependencies()).generateMindmap()
-        println(actualPuml)
         //then
-        assertTrue(actualPuml.contains("production"))
+        assertThat(actualPuml).contains("production")
     }
 
 }

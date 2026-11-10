@@ -22,10 +22,7 @@ import org.mockito.Mock;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -91,18 +88,18 @@ class CandidateDiagramsTest {
         final Blob result = candidateDiagrams.renderDiagram(customer);
 
         // then — diagram built from the candidate-restricted dependencies
-        assertNotNull(result);
-        assertTrue(result.mimeType().toString().contains("application/pdf"));
+        assertThat(result).isNotNull();
+        assertThat(result.mimeType().toString()).contains("application/pdf");
 
         final ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
-        assertTrue(dot.contains("\"customer\""), "the candidate itself should be kept");
-        assertTrue(dot.contains("\"purchase\""), "related candidate 'purchase' should be kept");
-        assertTrue(dot.contains("\"currency\""), "related candidate 'currency' should be kept");
-        assertFalse(dot.contains("\"catalog\""),
-                "content word that is not a candidate ('catalog') should be dropped");
+        assertThat(dot).as("the candidate itself should be kept").contains("\"customer\"");
+        assertThat(dot).as("related candidate 'purchase' should be kept").contains("\"purchase\"");
+        assertThat(dot).as("related candidate 'currency' should be kept").contains("\"currency\"");
+        assertThat(dot).as("content word that is not a candidate ('catalog') should be dropped")
+                .doesNotContain("\"catalog\"");
     }
 
     @Test
@@ -140,12 +137,12 @@ class CandidateDiagramsTest {
         verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
-        assertTrue(dot.contains("\"customer\""), "the candidate itself should be kept");
-        assertTrue(dot.contains("\"purchase\""), "directly connected candidate 'purchase' should be kept");
-        assertFalse(dot.contains("\"order\""),
-                "second-level candidate 'order' should be dropped at the default hop depth (1)");
-        assertFalse(dot.contains("\"receipt\""),
-                "content word that is not a candidate ('receipt') should be dropped at any depth");
+        assertThat(dot).as("the candidate itself should be kept").contains("\"customer\"");
+        assertThat(dot).as("directly connected candidate 'purchase' should be kept").contains("\"purchase\"");
+        assertThat(dot).as("second-level candidate 'order' should be dropped at the default hop depth (1)")
+                .doesNotContain("\"order\"");
+        assertThat(dot).as("content word that is not a candidate ('receipt') should be dropped at any depth")
+                .doesNotContain("\"receipt\"");
     }
 
     @Test
@@ -184,16 +181,16 @@ class CandidateDiagramsTest {
         verify(diagramPort).buildLexicalGraphDiagram(captor.capture());
         final String dot = captor.getValue();
 
-        assertTrue(dot.contains("\"order\""),
-                "second-level candidate 'order' should surface once the hop depth is raised to 2");
-        assertFalse(dot.contains("\"receipt\""),
-                "content word that is not a candidate ('receipt') should be dropped at any depth");
+        assertThat(dot).as("second-level candidate 'order' should surface once the hop depth is raised to 2")
+                .contains("\"order\"");
+        assertThat(dot).as("content word that is not a candidate ('receipt') should be dropped at any depth")
+                .doesNotContain("\"receipt\"");
     }
 
     @Test
     void returnsNullWhenCandidateIsNull() {
         final Blob result = candidateDiagrams.renderDiagram(null);
-        assertNull(result, "null candidate -> no diagram");
+        assertThat(result).as("null candidate -> no diagram").isNull();
     }
 
     private static RuleMatch ruleMatchWith(final TypedDependency td) {

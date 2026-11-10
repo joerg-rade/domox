@@ -25,8 +25,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.causeway.commons.internal.assertions._Assert.assertEquals;
-import static org.apache.causeway.commons.internal.assertions._Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -96,10 +95,10 @@ class CorporaTest {
         final String json = classUnderTest.ontologyAsD3Graph("Buddy");
 
         // then — the neighbourhood is rendered as D3 JSON
-        assertTrue(json.contains("\"nodes\":["), json);
-        assertTrue(json.contains("\"id\":\"" + PS + "Buddy\""), json);
-        assertTrue(json.contains("\"source\":\"" + PS + "Buddy\""), json);
-        assertTrue(json.contains("\"name\":\"Buddy\""), json);
+        assertThat(json).contains("\"nodes\":[");
+        assertThat(json).contains("\"id\":\"" + PS + "Buddy\"");
+        assertThat(json).contains("\"source\":\"" + PS + "Buddy\"");
+        assertThat(json).contains("\"name\":\"Buddy\"");
     }
 
     @Test
@@ -112,7 +111,7 @@ class CorporaTest {
         final String json = classUnderTest.ontologyAsD3Graph("does-not-exist");
 
         // then — an empty (but well-formed) graph, not the whole ontology
-        assertEquals("{\"nodes\":[],\"links\":[],\"legend\":[]}", json);
+        assertThat(json).isEqualTo("{\"nodes\":[],\"links\":[],\"legend\":[]}");
         // ...and BOTH passes ran: the exact query, then the word-boundary fallback
         verify(rdfPort, times(2)).select(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), anyString());
     }
@@ -130,8 +129,8 @@ class CorporaTest {
         final String json = classUnderTest.ontologyAsD3Graph();
 
         // then
-        assertTrue(json.contains("\"id\":\"" + PS + "Dog\""), json);
-        assertTrue(json.contains("\"legend\":["), json);
+        assertThat(json).contains("\"id\":\"" + PS + "Dog\"");
+        assertThat(json).contains("\"legend\":[");
     }
 
     /**
@@ -150,9 +149,9 @@ class CorporaTest {
         final OntologyDiagram viewModel = classUnderTest.searchOntologyAsD3Graph("");
 
         // then — the graph is already rendered, i.e. no injected collaborator is needed to display it
-        assertEquals("", viewModel.getSearchTerm());
-        assertTrue(viewModel.title().startsWith("Ontology:"), viewModel.title());
-        assertTrue(viewModel.getDiagram().contains("\"id\":\"" + PS + "Dog\""), viewModel.getDiagram());
+        assertThat(viewModel.getSearchTerm()).isEmpty();
+        assertThat(viewModel.title()).startsWith("Ontology:");
+        assertThat(viewModel.getDiagram()).contains("\"id\":\"" + PS + "Dog\"");
     }
 
     /** Editing the search term invalidates the cached graph so the next render re-derives it. */
@@ -165,24 +164,24 @@ class CorporaTest {
                         Map.of("ps", PS)));
 
         final OntologyDiagram viewModel = classUnderTest.searchOntologyAsD3Graph("");
-        assertTrue(viewModel.getDiagram().contains("\"id\":\"" + PS + "Dog\""), "first render");
+        assertThat(viewModel.getDiagram()).as("first render").contains("\"id\":\"" + PS + "Dog\"");
 
         // when
         viewModel.setSearchTerm("Whiskers");
 
         // then — the stale cache was dropped; no injected service is present here, so the
         //        re-derivation cannot run and the empty fallback is returned
-        assertEquals("{\"nodes\":[],\"links\":[],\"legend\":[]}", viewModel.getDiagram());
+        assertThat(viewModel.getDiagram()).isEqualTo("{\"nodes\":[],\"links\":[],\"legend\":[]}");
     }
 
     @Test
     void neighbourhoodQueryRestrictsEachUnionBranchWithValues() {
         final String sparql = Corpora.neighbourhoodQuery(List.of("http://x/A", "http://x/B"));
 
-        assertTrue(sparql.contains("CONSTRUCT { ?s ?p ?o }"), sparql);
+        assertThat(sparql).contains("CONSTRUCT { ?s ?p ?o }");
         // the VALUES must be INSIDE each branch — in front of the union it binds nothing there
-        assertTrue(sparql.contains("{ VALUES ?s { <http://x/A> <http://x/B> } ?s ?p ?o }"), sparql);
-        assertTrue(sparql.contains("{ VALUES ?o { <http://x/A> <http://x/B> } ?s ?p ?o }"), sparql);
+        assertThat(sparql).contains("{ VALUES ?s { <http://x/A> <http://x/B> } ?s ?p ?o }");
+        assertThat(sparql).contains("{ VALUES ?o { <http://x/A> <http://x/B> } ?s ?p ?o }");
     }
 
     /**
@@ -193,10 +192,10 @@ class CorporaTest {
     void focusQueryMatchesTheConceptExactlyNotBySubstring() {
         final String sparql = Corpora.focusQuery("Pet");
 
-        assertTrue(sparql.contains("SELECT DISTINCT ?focus"), sparql);
-        assertTrue(sparql.contains("LCASE(REPLACE(STR(?focus), \"^.*[/#]\", \"\")) = \"pet\""), sparql);
-        assertTrue(sparql.contains("LCASE(STR(?l)) = \"pet\""), sparql);
-        assertTrue(!sparql.contains("REGEX("), "the exact query must not use substring matching: " + sparql);
+        assertThat(sparql).contains("SELECT DISTINCT ?focus");
+        assertThat(sparql).contains("LCASE(REPLACE(STR(?focus), \"^.*[/#]\", \"\")) = \"pet\"");
+        assertThat(sparql).contains("LCASE(STR(?l)) = \"pet\"");
+        assertThat(sparql).as("the exact query must not use substring matching").doesNotContain("REGEX(");
     }
 
     /** Labels may come from {@code skos:prefLabel} as well as {@code rdfs:label}. */
@@ -204,7 +203,7 @@ class CorporaTest {
     void focusQueryConsidersSkosPrefLabels() {
         final String sparql = Corpora.focusQuery("Pet");
 
-        assertTrue(sparql.contains("?labelPred = rdfs:label || ?labelPred = skos:prefLabel"), sparql);
+        assertThat(sparql).contains("?labelPred = rdfs:label || ?labelPred = skos:prefLabel");
     }
 
     /**
@@ -218,18 +217,18 @@ class CorporaTest {
     void focusQueryConsidersOntoumlNames() {
         final String sparql = Corpora.focusQuery("Commitment");
 
-        assertTrue(sparql.contains("PREFIX ontouml: <https://w3id.org/ontouml#>"), sparql);
-        assertTrue(sparql.contains("?labelPred = ontouml:name"), sparql);
+        assertThat(sparql).contains("PREFIX ontouml: <https://w3id.org/ontouml#>");
+        assertThat(sparql).contains("?labelPred = ontouml:name");
     }
 
     /** A configured label language restricts label matching to that tag (or untagged labels). */
     @Test
     void focusQueryAppliesTheConfiguredLabelLanguage() {
-        assertTrue(!Corpora.focusQuery("Pet", "").contains("LANG(?l)"),
-                "no language configured -> no language filter");
+        assertThat(Corpora.focusQuery("Pet", "")).as("no language configured -> no language filter")
+                .doesNotContain("LANG(?l)");
 
         final String english = Corpora.focusQuery("Pet", "en");
-        assertTrue(english.contains("LANG(?l) = \"en\" || LANG(?l) = \"\""), english);
+        assertThat(english).contains("LANG(?l) = \"en\" || LANG(?l) = \"\"");
     }
 
     /**
@@ -240,16 +239,16 @@ class CorporaTest {
     void wordMatchQueryMatchesOnWordBoundaries() {
         final String sparql = Corpora.wordMatchQuery("Golden Retriever", "");
 
-        assertTrue(sparql.contains("REGEX("), sparql);
-        assertTrue(sparql.contains("(^|"), "must anchor on a leading boundary: " + sparql);
-        assertTrue(sparql.contains("|$)"), "must anchor on a trailing boundary: " + sparql);
-        assertTrue(sparql.contains("\\Q"), "the term must be quoted literally: " + sparql);
+        assertThat(sparql).contains("REGEX(");
+        assertThat(sparql).as("must anchor on a leading boundary").contains("(^|");
+        assertThat(sparql).as("must anchor on a trailing boundary").contains("|$)");
+        assertThat(sparql).as("the term must be quoted literally").contains("\\Q");
     }
 
     @Test
     void escapeSparqlStringNeutralisesQuotesAndBackslashes() {
-        assertEquals("a \\\"b\\\"", Corpora.escapeSparqlString("a \"b\""));
-        assertEquals("C:\\\\path", Corpora.escapeSparqlString("C:\\path"));
+        assertThat(Corpora.escapeSparqlString("a \"b\"")).isEqualTo("a \\\"b\\\"");
+        assertThat(Corpora.escapeSparqlString("C:\\path")).isEqualTo("C:\\\\path");
     }
 
     /**
@@ -275,9 +274,9 @@ class CorporaTest {
         final String json = corpora.ontologyAsD3Graph("Whiskers");
 
         // the rows were rebuilt into a graph: an IRI object stays a resource, a literal stays a literal
-        assertTrue(json.contains("\"id\":\"" + PS + "Whiskers\""), json);
-        assertTrue(json.contains("\"id\":\"" + PS + "Cat\""), json);
-        assertTrue(json.contains("\"name\":\"Whiskers the Siamese\""), json);
+        assertThat(json).contains("\"id\":\"" + PS + "Whiskers\"");
+        assertThat(json).contains("\"id\":\"" + PS + "Cat\"");
+        assertThat(json).contains("\"name\":\"Whiskers the Siamese\"");
 
         verify(rdfPort, never()).select(anyString(), anyString());
         verify(rdfPort, never()).construct(anyString(), anyString());
@@ -298,8 +297,8 @@ class CorporaTest {
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),
                 any(RdfRemoteOptions.class));
-        assertTrue(queries.getAllValues().stream().allMatch(query -> query.contains("LIMIT 42")),
-                "every remote query must be bounded: " + queries.getAllValues());
+        assertThat(queries.getAllValues()).as("every remote query must be bounded")
+                .allMatch(query -> query.contains("LIMIT 42"));
     }
 
     /**
@@ -319,7 +318,7 @@ class CorporaTest {
 
         final String json = corpora.ontologyAsD3Graph("");
 
-        assertTrue(json.contains("\"id\":\"" + PS + "Dog\""), json);
+        assertThat(json).contains("\"id\":\"" + PS + "Dog\"");
         verify(rdfPort, never()).construct(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), anyString());
     }
 
@@ -353,8 +352,8 @@ class CorporaTest {
 
         final ArgumentCaptor<RdfRemoteOptions> options = ArgumentCaptor.forClass(RdfRemoteOptions.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), anyString(), options.capture());
-        assertEquals(Duration.ofSeconds(7), options.getValue().timeout());
-        assertEquals("domox-test/9", options.getValue().userAgent());
+        assertThat(options.getValue().timeout()).isEqualTo(Duration.ofSeconds(7));
+        assertThat(options.getValue().userAgent()).isEqualTo("domox-test/9");
     }
 
     /**
@@ -372,10 +371,10 @@ class CorporaTest {
 
         final OntologyDiagram viewModel = corpora.searchOntologyAsD3Graph("Pet");
 
-        assertEquals("Could not query https://example.org/sparql: 502 Bad Gateway",
-                viewModel.getMessage(), "the root cause and the source are reported");
-        assertEquals("{\"nodes\":[],\"links\":[],\"legend\":[]}", viewModel.getDiagram());
-        assertTrue(viewModel.title().contains("source unavailable"), viewModel.title());
+        assertThat(viewModel.getMessage()).as("the root cause and the source are reported")
+                .isEqualTo("Could not query https://example.org/sparql: 502 Bad Gateway");
+        assertThat(viewModel.getDiagram()).isEqualTo("{\"nodes\":[],\"links\":[],\"legend\":[]}");
+        assertThat(viewModel.title()).contains("source unavailable");
     }
 
     /** The derived property ({@code Corpus#getOntologyDiagram}) must never throw. */
@@ -388,7 +387,7 @@ class CorporaTest {
         when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class)))
                 .thenThrow(new RuntimeException("boom"));
 
-        assertEquals("{\"nodes\":[],\"links\":[],\"legend\":[]}", corpora.ontologyAsD3Graph("Pet"));
+        assertThat(corpora.ontologyAsD3Graph("Pet")).isEqualTo("{\"nodes\":[],\"links\":[],\"legend\":[]}");
     }
 
     /**
@@ -410,10 +409,9 @@ class CorporaTest {
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),
                 any(RdfRemoteOptions.class));
-        assertTrue(queries.getAllValues().stream()
-                        .allMatch(query -> query.contains(
-                                "FROM <https://schema.org/> FROM <http://BPMNbasedOntology>")),
-                "every remote query must be scoped to the configured graphs: " + queries.getAllValues());
+        assertThat(queries.getAllValues()).as("every remote query must be scoped to the configured graphs")
+                .allMatch(query -> query.contains(
+                        "FROM <https://schema.org/> FROM <http://BPMNbasedOntology>"));
     }
 
     /** With no {@code default-graphs} the query stays unscoped — correct for a single-default-graph endpoint. */
@@ -430,7 +428,7 @@ class CorporaTest {
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),
                 any(RdfRemoteOptions.class));
-        assertTrue(queries.getAllValues().stream().noneMatch(query -> query.contains("FROM <")),
-                "no dataset clause is expected: " + queries.getAllValues());
+        assertThat(queries.getAllValues()).as("no dataset clause is expected")
+                .noneMatch(query -> query.contains("FROM <"));
     }
 }

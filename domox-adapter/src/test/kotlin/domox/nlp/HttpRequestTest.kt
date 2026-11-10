@@ -1,7 +1,7 @@
 package domox.adapter.nlp
 
 import domox.HttpRequest
-import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Container
@@ -20,13 +20,12 @@ class HttpRequestTest {
     }
 
     @Test
-    fun testInvokeCoreNLP() {
+    fun invokeCoreNLP_returnsANonEmptyResponse() {
         val host = coreNlp.host
         val port = coreNlp.getMappedPort(9000)
         val parameters = "{\"annotators\":\"depparse\",\"outputFormat\":\"json\"}"
         // Assuming HttpRequest.invokeCoreNLP_Fuel can accept host and port
         val responseStr = HttpRequest().invokeCoreNLP_Fuel(SampleText.QBF, parameters, host, port)
-        assertNotEquals("", responseStr)
-        println(responseStr)
+        assertThat(responseStr).describedAs("CoreNLP depparse JSON").contains("\"sentences\"")
     }
 }

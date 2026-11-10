@@ -1,7 +1,7 @@
 package domox.adapter.diagram
 
 import domox.UmlUtils
-import org.junit.jupiter.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
@@ -26,7 +26,7 @@ internal class UmlUtilsTest {
     }
 
     @Test //IntegrationTest
-    fun testGenerateDiagram() {
+    fun generateDiagram_returnsAnSvg() {
         //given
         val pumlCode = "\"" +
                 "participant BOB [[https://en.wiktionary.org/wiki/best_of_breed]]\\n" +
@@ -38,9 +38,8 @@ internal class UmlUtilsTest {
         val port = kroki.getMappedPort(PORT)
         val svg: String = UmlUtils().generateDiagram(pumlCode, host, port)
         //then
-        assertNotNull(svg)
-        assertTrue(svg.isNotEmpty(), "SVG response should not be empty")
-        assertTrue(svg.contains("svg") || svg.contains("<svg"), "Response should be SVG format")
+        assertThat(svg).isNotNull()
+        assertThat(svg).describedAs("Response should be SVG format").contains("<svg")
     }
 
 }

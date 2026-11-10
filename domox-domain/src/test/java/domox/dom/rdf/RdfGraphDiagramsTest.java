@@ -7,9 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit-level guardrail for the RDF → D3 JSON mapping.  The end-to-end path over a real ontology
@@ -46,25 +44,25 @@ class RdfGraphDiagramsTest {
 
         final String json = diagrams.renderDiagram(graph);
 
-        assertTrue(json.startsWith("{"), json);
-        assertTrue(json.contains("\"nodes\":["), json);
-        assertTrue(json.contains("\"links\":["), json);
-        assertTrue(json.contains("\"legend\":["), json);
+        assertThat(json).startsWith("{");
+        assertThat(json).contains("\"nodes\":[");
+        assertThat(json).contains("\"links\":[");
+        assertThat(json).contains("\"legend\":[");
 
         // a class clusters under its super-class; an individual under its rdf:type
-        assertTrue(json.contains(
-                "\"id\":\"" + PS + "Dog\",\"name\":\"Dog\",\"subdomain\":\"Pet\",\"pos\":\"Class\""), json);
-        assertTrue(json.contains(
-                "\"id\":\"" + PS + "Buddy\",\"name\":\"Buddy\",\"subdomain\":\"Dog\",\"pos\":\"Individual\""), json);
+        assertThat(json).contains(
+                "\"id\":\"" + PS + "Dog\",\"name\":\"Dog\",\"subdomain\":\"Pet\",\"pos\":\"Class\"");
+        assertThat(json).contains(
+                "\"id\":\"" + PS + "Buddy\",\"name\":\"Buddy\",\"subdomain\":\"Dog\",\"pos\":\"Individual\"");
 
         // every statement becomes an edge, labelled with the predicate's local name
-        assertTrue(json.contains(
-                "\"source\":\"" + PS + "Dog\",\"target\":\"" + PS + "Pet\",\"label\":\"subClassOf\""), json);
+        assertThat(json).contains(
+                "\"source\":\"" + PS + "Dog\",\"target\":\"" + PS + "Pet\",\"label\":\"subClassOf\"");
 
         // all three node kinds occur -> one legend entry each
-        assertTrue(json.contains("\"label\":\"Class\""), json);
-        assertTrue(json.contains("\"label\":\"Individual\""), json);
-        assertTrue(json.contains("\"label\":\"Literal\""), json);
+        assertThat(json).contains("\"label\":\"Class\"");
+        assertThat(json).contains("\"label\":\"Individual\"");
+        assertThat(json).contains("\"label\":\"Literal\"");
     }
 
     @Test
@@ -76,11 +74,9 @@ class RdfGraphDiagramsTest {
 
         final String json = diagrams.renderDiagram(graph);
 
-        assertTrue(json.contains("\"id\":\"" + PS + "Cat\""),
-                "the object resource must become a node: " + json);
-        assertTrue(json.contains("\"target\":\"" + PS + "Cat\""),
-                "…otherwise the edge is silently dropped: " + json);
-        assertTrue(json.contains("\"label\":\"type\""), json);
+        assertThat(json).as("the object resource must become a node").contains("\"id\":\"" + PS + "Cat\"");
+        assertThat(json).as("…otherwise the edge is silently dropped").contains("\"target\":\"" + PS + "Cat\"");
+        assertThat(json).contains("\"label\":\"type\"");
     }
 
     @Test
@@ -92,8 +88,8 @@ class RdfGraphDiagramsTest {
 
         final String json = diagrams.renderDiagram(graph);
 
-        assertTrue(json.contains("\"name\":\"a \\\"quoted\\\" label\""), json);
-        assertTrue(json.contains("\"subdomain\":\"\""), "a root class has no cluster group: " + json);
+        assertThat(json).contains("\"name\":\"a \\\"quoted\\\" label\"");
+        assertThat(json).as("a root class has no cluster group").contains("\"subdomain\":\"\"");
     }
 
     /**
@@ -119,13 +115,13 @@ class RdfGraphDiagramsTest {
         final String json = diagrams.renderDiagram(graph);
 
         // ontouml:Class is a class, and its label is the ontouml:name (not the opaque IRI local name)
-        assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
-                + "\"subdomain\":\"Social Relator\",\"pos\":\"Class\""), json);
+        assertThat(json).contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
+                + "\"subdomain\":\"Social Relator\",\"pos\":\"Class\"");
         // the parent of the reified generalization is a root class: a class, but no cluster group
-        assertTrue(json.contains("\"id\":\"" + OU + "SocialRelator\",\"name\":\"Social Relator\","
-                + "\"subdomain\":\"\",\"pos\":\"Class\""), json);
+        assertThat(json).contains("\"id\":\"" + OU + "SocialRelator\",\"name\":\"Social Relator\","
+                + "\"subdomain\":\"\",\"pos\":\"Class\"");
         // …so the Class kind is present in the legend
-        assertTrue(json.contains("\"label\":\"Class\""), json);
+        assertThat(json).contains("\"label\":\"Class\"");
     }
 
     /** An explicit {@code rdfs:label} wins over an {@code ontouml:name} on the same resource. */
@@ -140,18 +136,17 @@ class RdfGraphDiagramsTest {
         final String json = diagrams.renderDiagram(graph);
 
         // the *resource* is labelled "Pet" — the ontouml:name did not override it
-        assertTrue(json.contains("\"id\":\"" + PS + "Pet\",\"name\":\"Pet\",\"subdomain\":\"\",\"pos\":\"Class\""),
-                json);
+        assertThat(json).contains("\"id\":\"" + PS + "Pet\",\"name\":\"Pet\",\"subdomain\":\"\",\"pos\":\"Class\"");
         // (the ontouml:name is still present as its own Literal node — every statement becomes an edge)
-        assertTrue(json.contains("\"label\":\"name\""), json);
+        assertThat(json).contains("\"label\":\"name\"");
     }
 
     @Test
     void localNameHandlesHashSlashAndMissingIris() {
-        assertEquals("Dog", RdfGraphDiagrams.localName(PS + "Dog"));
-        assertEquals("Class", RdfGraphDiagrams.localName(OWL_CLASS));
-        assertEquals("index.html", RdfGraphDiagrams.localName("http://example.org/index.html"));
-        assertEquals("", RdfGraphDiagrams.localName(null));
+        assertThat(RdfGraphDiagrams.localName(PS + "Dog")).isEqualTo("Dog");
+        assertThat(RdfGraphDiagrams.localName(OWL_CLASS)).isEqualTo("Class");
+        assertThat(RdfGraphDiagrams.localName("http://example.org/index.html")).isEqualTo("index.html");
+        assertThat(RdfGraphDiagrams.localName(null)).isEmpty();
     }
 
     /**
@@ -161,25 +156,25 @@ class RdfGraphDiagramsTest {
     @Test
     void distinguishesOpaqueIdsFromHumanNames() {
         // opaque tool ids (letters and digits alternate at least twice, no whitespace)
-        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("ykj3OGFS_j2pB_5"));
-        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("02kj3OGFS_j2pCNa"));
-        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("02kj3OGFS_j2pCNa_path_point_0"));
-        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("092b46b9-c5e1-428c-9e20-4343e235985b"));
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("ykj3OGFS_j2pB_5")).isTrue();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("02kj3OGFS_j2pCNa")).isTrue();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("02kj3OGFS_j2pCNa_path_point_0")).isTrue();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("092b46b9-c5e1-428c-9e20-4343e235985b")).isTrue();
 
         // human names — a phrase, a plain word, a leading/trailing number, a pure value
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("Feather Cat Toy"));
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("Sale 4711"));
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("Social Relator"));
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("Pet"));
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("actions"));
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("cl_hiredprovider"));
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("AssociationClass1"));
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("1st Order Entities"));
-        assertFalse(RdfGraphDiagrams.looksLikeOpaqueId("507"));
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("Feather Cat Toy")).isFalse();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("Sale 4711")).isFalse();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("Social Relator")).isFalse();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("Pet")).isFalse();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("actions")).isFalse();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("cl_hiredprovider")).isFalse();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("AssociationClass1")).isFalse();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("1st Order Entities")).isFalse();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("507")).isFalse();
 
         // a missing name is treated as opaque (nothing to display)
-        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId(null));
-        assertTrue(RdfGraphDiagrams.looksLikeOpaqueId("  "));
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId(null)).isTrue();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("  ")).isTrue();
     }
 
     /**
@@ -204,11 +199,9 @@ class RdfGraphDiagramsTest {
 
         final String json = diagrams.renderDiagram(graph);
 
-        assertFalse(json.contains("ykj3OGFS_j2pB_5"),
-                "the opaque-id node (and the edge to it) must be gone: " + json);
-        assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\""),
-                "a human-named node stays: " + json);
-        assertTrue(json.contains("\"label\":\"specific\""), "the named nodes keep their edge: " + json);
+        assertThat(json).as("the opaque-id node (and the edge to it) must be gone").doesNotContain("ykj3OGFS_j2pB_5");
+        assertThat(json).as("a human-named node stays").contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\"");
+        assertThat(json).as("the named nodes keep their edge").contains("\"label\":\"specific\"");
     }
 
     /**
@@ -228,8 +221,8 @@ class RdfGraphDiagramsTest {
 
         final String json = diagrams.renderDiagram(graph);
 
-        assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
-                + "\"subdomain\":\"\",\"pos\":\"Class\""), json);
+        assertThat(json).contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
+                + "\"subdomain\":\"\",\"pos\":\"Class\"");
     }
 
     /**
@@ -249,10 +242,8 @@ class RdfGraphDiagramsTest {
 
         final String json = diagrams.renderDiagram(graph);
 
-        assertTrue(json.contains("\"name\":\"B2B\""),
-                "a named node is kept even though its name looks like an id: " + json);
-        assertFalse(json.contains("ykj3OGFS_j2pB_5"),
-                "the unnamed layout node is still dropped: " + json);
+        assertThat(json).as("a named node is kept even though its name looks like an id").contains("\"name\":\"B2B\"");
+        assertThat(json).as("the unnamed layout node is still dropped").doesNotContain("ykj3OGFS_j2pB_5");
     }
 
     /**
@@ -272,7 +263,7 @@ class RdfGraphDiagramsTest {
 
         final String json = diagrams.renderDiagram(graph);
 
-        assertTrue(json.contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
-                + "\"subdomain\":\"B2B\",\"pos\":\"Class\""), json);
+        assertThat(json).contains("\"id\":\"" + OU + "Commitment\",\"name\":\"Commitment\","
+                + "\"subdomain\":\"B2B\",\"pos\":\"Class\"");
     }
 }

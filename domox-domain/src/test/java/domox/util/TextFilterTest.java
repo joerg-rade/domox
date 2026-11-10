@@ -2,7 +2,7 @@ package domox.util;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link TextFilter#stripMarkdownRegex(String)}.
@@ -22,34 +22,34 @@ class TextFilterTest {
 
     @Test
     void boldTopicLabel_hasMarkersStripped() {
-        assertEquals("Source sentence:", filter.stripMarkdownRegex("**Source sentence**:"));
+        assertThat(filter.stripMarkdownRegex("**Source sentence**:")).isEqualTo("Source sentence:");
     }
 
     @Test
     void headingWithNumber_keepsOnlyThePlainHeadingText() {
-        assertEquals("Metadata", filter.stripMarkdownRegex("## 1. Metadata"));
+        assertThat(filter.stripMarkdownRegex("## 1. Metadata")).isEqualTo("Metadata");
     }
 
     @Test
     void tableHeaderRow_isReducedToItsCellWords() {
-        assertEquals("Field Value", filter.stripMarkdownRegex("| Field               | Value |"));
+        assertThat(filter.stripMarkdownRegex("| Field               | Value |")).isEqualTo("Field Value");
     }
 
     @Test
     void tableSeparatorRow_isRemovedEntirely() {
-        assertEquals("", filter.stripMarkdownRegex("|---------------------|-------|"));
+        assertThat(filter.stripMarkdownRegex("|---------------------|-------|")).isEmpty();
     }
 
     @Test
     void singleStarEmphasis_isStripped() {
-        assertEquals("End of Use Case UC-01", filter.stripMarkdownRegex("*End of Use Case UC-01*"));
+        assertThat(filter.stripMarkdownRegex("*End of Use Case UC-01*")).isEqualTo("End of Use Case UC-01");
     }
 
     @Test
     void provenanceAnnotation_boldStrippedButInlineCodeKept() {
         // Inline code (backticks) is not handled by this filter, so it is preserved.
-        assertEquals("Created from: `PetShop_UseCases.txt` — Sentence 1",
-                filter.stripMarkdownRegex("**Created from**: `PetShop_UseCases.txt` — Sentence 1"));
+        assertThat(filter.stripMarkdownRegex("**Created from**: `PetShop_UseCases.txt` — Sentence 1"))
+                .isEqualTo("Created from: `PetShop_UseCases.txt` — Sentence 1");
     }
 
     // -----------------------------------------------------------------
@@ -58,27 +58,27 @@ class TextFilterTest {
 
     @Test
     void codeBlock_isRemoved() {
-        assertEquals("rest", filter.stripMarkdownRegex("```java\nint x = 1;\n```\nrest"));
+        assertThat(filter.stripMarkdownRegex("```java\nint x = 1;\n```\nrest")).isEqualTo("rest");
     }
 
     @Test
     void inlineLink_isReplacedByItsLabel() {
-        assertEquals("Click here", filter.stripMarkdownRegex("[Click here](https://example.com)"));
+        assertThat(filter.stripMarkdownRegex("[Click here](https://example.com)")).isEqualTo("Click here");
     }
 
     @Test
     void image_isRemovedEntirely() {
-        assertEquals("", filter.stripMarkdownRegex("![alt text](img/petshop.png)"));
+        assertThat(filter.stripMarkdownRegex("![alt text](img/petshop.png)")).isEmpty();
     }
 
     @Test
     void bulletListMarkers_areStrippedFromEachLine() {
-        assertEquals("item\nitem2", filter.stripMarkdownRegex("* item\n- item2"));
+        assertThat(filter.stripMarkdownRegex("* item\n- item2")).isEqualTo("item\nitem2");
     }
 
     @Test
     void numberedListMarkers_areStrippedFromEachLine() {
-        assertEquals("First\nSecond", filter.stripMarkdownRegex("1. First\n2. Second"));
+        assertThat(filter.stripMarkdownRegex("1. First\n2. Second")).isEqualTo("First\nSecond");
     }
 
     // -----------------------------------------------------------------
@@ -87,21 +87,21 @@ class TextFilterTest {
 
     @Test
     void blankLine_isCollapsedToASingleNewline() {
-        assertEquals("line1\nline2", filter.stripMarkdownRegex("line1\n\nline2"));
+        assertThat(filter.stripMarkdownRegex("line1\n\nline2")).isEqualTo("line1\nline2");
     }
 
     @Test
     void repeatedWhitespaceInsideLine_isCollapsed() {
-        assertEquals("a b c", filter.stripMarkdownRegex("a    b\t\tc"));
+        assertThat(filter.stripMarkdownRegex("a    b\t\tc")).isEqualTo("a b c");
     }
 
     @Test
     void emptyInput_returnsEmpty() {
-        assertEquals("", filter.stripMarkdownRegex(""));
+        assertThat(filter.stripMarkdownRegex("")).isEmpty();
     }
 
     @Test
     void surroundingWhitespace_isTrimmed() {
-        assertEquals("content", filter.stripMarkdownRegex("   content\n"));
+        assertThat(filter.stripMarkdownRegex("   content\n")).isEqualTo("content");
     }
 }

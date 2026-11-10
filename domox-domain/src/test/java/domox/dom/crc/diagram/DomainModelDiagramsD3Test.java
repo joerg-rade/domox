@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Verifies {@link DomainModelDiagramsD3#renderDiagram(DomainModel)}:
@@ -37,13 +37,13 @@ class DomainModelDiagramsD3Test {
 
     @Test
     void returnsNullWhenModelIsNull() {
-        assertNull(service.renderDiagram(null));
+        assertThat(service.renderDiagram(null)).isNull();
     }
 
     @Test
     void returnsNullWhenModelHasNoCandidates() {
         final DomainModel model = new DomainModel();
-        assertNull(service.renderDiagram(model));
+        assertThat(service.renderDiagram(model)).isNull();
     }
 
     @Test
@@ -56,7 +56,7 @@ class DomainModelDiagramsD3Test {
         final String result = service.renderDiagram(model);
 
         // then
-        assertNull(result, "no approved candidates → no diagram");
+        assertThat(result).as("no approved candidates → no diagram").isNull();
     }
 
     // ============ approved node inclusion ============
@@ -70,9 +70,9 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — a JSON object with the approved node and an empty links array
-        assertNotNull(json);
-        assertTrue(json.startsWith("{"), "must be a JSON object");
-        assertTrue(json.endsWith("}"), "must be a JSON object");
+        assertThat(json).isNotNull();
+        assertThat(json).as("must be a JSON object").startsWith("{");
+        assertThat(json).as("must be a JSON object").endsWith("}");
         assertContains(json, "\"id\":\"store\"");
         assertContains(json, "\"name\":\"Store\"");
         assertContains(json, "\"approved\":true");
@@ -91,7 +91,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — all three approved lemmas appear as nodes
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"id\":\"store\"");
         assertContains(json, "\"id\":\"browse\"");
         assertContains(json, "\"id\":\"name\"");
@@ -106,7 +106,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — the 'name' field preserves original casing, 'id' is lowercased
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"id\":\"onlinestore\"");
         assertContains(json, "\"name\":\"OnlineStore\"");
     }
@@ -132,7 +132,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — both nodes appear with a labelled edge between them
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"id\":\"customer\"");
         assertContains(json, "\"id\":\"purchase\"");
         assertContains(json, "\"source\":\"purchase\"");
@@ -155,7 +155,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — the customer node exists but the link to 'unknown_word' is dropped
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"id\":\"customer\"");
         assertContains(json, "\"links\":[]", "non-candidate endpoint → link dropped");
     }
@@ -181,7 +181,7 @@ class DomainModelDiagramsD3Test {
 
         // then — the unapproved 'purchase' still appears as a node (it's a dependency
         // endpoint) but with "approved":false
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"id\":\"customer\"");
         assertContains(json, "\"approved\":true");
         assertContains(json, "\"id\":\"purchase\"");
@@ -204,7 +204,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — the synthetic compound is excluded; the real lemmas remain
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"id\":\"store\"");
         assertContains(json, "\"id\":\"onlinestore\"");
         assertDoesNotContain(json, "onlinestore_store",
@@ -224,7 +224,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — "contains" has no underscore, so it is NOT filtered as an artifact
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"id\":\"contains\"");
     }
 
@@ -244,7 +244,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — the node carries a "subdomain" field
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"subdomain\":\"Inventory\"");
     }
 
@@ -257,7 +257,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — no "subdomain" key appears for the node
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertDoesNotContain(json, "\"subdomain\"");
     }
 
@@ -281,7 +281,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — legend includes Noun (NN → #3498DB) and Verb (VBZ → #E74C3C)
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"color\":\"#3498DB\"", "Noun legend entry");
         assertContains(json, "\"color\":\"#E74C3C\"", "Verb legend entry");
         assertDoesNotContain(json, "#2ECC71", "Adjective legend should NOT appear (no JJ/JJR/JJS)");
@@ -296,7 +296,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — the legend array is empty
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"legend\":[]", "no dependencies → no POS codes → empty legend");
     }
 
@@ -324,7 +324,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — purchase node has a larger radius than store
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         // Both are present; the actual radius values depend on the exact count scaling.
         // At minimum we verify that both nodes have an "r" field.
         assertContains(json, "\"id\":\"store\"");
@@ -346,7 +346,7 @@ class DomainModelDiagramsD3Test {
 
         // when — no approved candidates exist (the null element is skipped in the stream)
         final String result = service.renderDiagram(model);
-        assertNull(result, "no approved candidates → null");
+        assertThat(result).as("no approved candidates → null").isNull();
     }
 
     // ============ JSON structure ============
@@ -360,7 +360,7 @@ class DomainModelDiagramsD3Test {
         final String json = service.renderDiagram(model);
 
         // then — the JSON has the three top-level keys
-        assertNotNull(json);
+        assertThat(json).isNotNull();
         assertContains(json, "\"nodes\"");
         assertContains(json, "\"links\"");
         assertContains(json, "\"legend\"");
@@ -431,30 +431,30 @@ class DomainModelDiagramsD3Test {
 
     /** Asserts that {@code json} contains {@code substring}. */
     private static void assertContains(String json, String substring) {
-        assertTrue(json.contains(substring),
-                () -> "Expected JSON to contain \"" + substring
-                        + "\" but it was not found.\nJSON: " + abbreviate(json));
+        assertThat(json)
+                .as("Expected JSON to contain \"%s\" but it was not found.%nJSON: %s", substring, abbreviate(json))
+                .contains(substring);
     }
 
     /** Asserts that {@code json} contains {@code substring}, with a custom message. */
     private static void assertContains(String json, String substring, String message) {
-        assertTrue(json.contains(substring),
-                () -> message + "\nExpected \"" + substring
-                        + "\" but it was not found.\nJSON: " + abbreviate(json));
+        assertThat(json)
+                .as("%s%nExpected \"%s\" but it was not found.%nJSON: %s", message, substring, abbreviate(json))
+                .contains(substring);
     }
 
     /** Asserts that {@code json} does NOT contain {@code substring}. */
     private static void assertDoesNotContain(String json, String substring) {
-        assertFalse(json.contains(substring),
-                () -> "Expected JSON to NOT contain \"" + substring
-                        + "\" but it was found.\nJSON: " + abbreviate(json));
+        assertThat(json)
+                .as("Expected JSON to NOT contain \"%s\" but it was found.%nJSON: %s", substring, abbreviate(json))
+                .doesNotContain(substring);
     }
 
     /** Asserts that {@code json} does NOT contain {@code substring}, with a custom message. */
     private static void assertDoesNotContain(String json, String substring, String message) {
-        assertFalse(json.contains(substring),
-                () -> message + "\nExpected to NOT find \"" + substring
-                        + "\" but it was found.\nJSON: " + abbreviate(json));
+        assertThat(json)
+                .as("%s%nExpected to NOT find \"%s\" but it was found.%nJSON: %s", message, substring, abbreviate(json))
+                .doesNotContain(substring);
     }
 
     /** Truncates long JSON for readable assertion messages. */

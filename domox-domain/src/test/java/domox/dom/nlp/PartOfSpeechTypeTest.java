@@ -1,39 +1,53 @@
 package domox.dom.nlp;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class PartOfSpeechTypeTest {
 
-    @Test
-    void fromCode_resolvesAllKnownPennTreebankTags() {
-        assertEquals(PartOfSpeechType.FW, PartOfSpeechType.fromCode("FW"));
-        assertEquals(PartOfSpeechType.LQUOTE, PartOfSpeechType.fromCode("``"));
-        assertEquals(PartOfSpeechType.RQUOTE, PartOfSpeechType.fromCode("''"));
-        assertEquals(PartOfSpeechType.SYM, PartOfSpeechType.fromCode("SYM"));
-        assertEquals(PartOfSpeechType.LRB, PartOfSpeechType.fromCode("-LRB-"));
-        assertEquals(PartOfSpeechType.RRB, PartOfSpeechType.fromCode("-RRB-"));
-        assertEquals(PartOfSpeechType.RP, PartOfSpeechType.fromCode("RP"));
-        assertEquals(PartOfSpeechType.RBS, PartOfSpeechType.fromCode("RBS"));
-        assertEquals(PartOfSpeechType.POS, PartOfSpeechType.fromCode("POS"));
+    @ParameterizedTest
+    @MethodSource("knownPennTreebankTags")
+    void fromCode_resolvesAllKnownPennTreebankTags(final String code, final PartOfSpeechType expected) {
+        assertThat(PartOfSpeechType.fromCode(code)).isEqualTo(expected);
+    }
+
+    /** The full set of Penn Treebank tags the enum maps, paired with the code that resolves to it. */
+    static Stream<Arguments> knownPennTreebankTags() {
+        return Stream.of(
+                arguments("FW", PartOfSpeechType.FW),
+                arguments("``", PartOfSpeechType.LQUOTE),
+                arguments("''", PartOfSpeechType.RQUOTE),
+                arguments("SYM", PartOfSpeechType.SYM),
+                arguments("-LRB-", PartOfSpeechType.LRB),
+                arguments("-RRB-", PartOfSpeechType.RRB),
+                arguments("RP", PartOfSpeechType.RP),
+                arguments("RBS", PartOfSpeechType.RBS),
+                arguments("POS", PartOfSpeechType.POS));
     }
 
     @Test
     void fromCode_trimsWhitespace() {
-        assertEquals(PartOfSpeechType.NN, PartOfSpeechType.fromCode("  NN  "));
+        assertThat(PartOfSpeechType.fromCode("  NN  ")).isEqualTo(PartOfSpeechType.NN);
     }
 
-    @Test
-    void fromCode_returnsNullForNullAndBlank() {
-        assertNull(PartOfSpeechType.fromCode(null));
-        assertNull(PartOfSpeechType.fromCode(""));
-        assertNull(PartOfSpeechType.fromCode("  "));
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"  "})
+    void fromCode_returnsNullForNullAndBlank(final String code) {
+        assertThat(PartOfSpeechType.fromCode(code)).isNull();
     }
 
     @Test
     void fromCode_returnsNullForUnknown() {
-        assertNull(PartOfSpeechType.fromCode("NOT_A_TAG"));
+        assertThat(PartOfSpeechType.fromCode("NOT_A_TAG")).isNull();
     }
 }
