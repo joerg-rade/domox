@@ -188,6 +188,8 @@ public abstract class Candidate extends AbstractEntity {
         return ruleMatches.stream()
                 .map(RuleMatch::getRuleClassName)
                 .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
                 .collect(Collectors.joining(", "));
     }
 
