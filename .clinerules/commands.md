@@ -76,7 +76,7 @@ Cline rules directory, loaded for every project.
 - **Inspecting the running app** → Wicket pages need a session and the sign-in form is an Ajax form
   that curl cannot drive. Use the RestfulObjects API with basic auth instead (users in `shiro.ini`,
   e.g. `sven:pass`) — or better, `scripts/ro.py`:
-  `ro.py invoke <service> <action> [k=v…]` (e.g. `ro.py invoke domox.Corpora searchOntologyAsD3Graph searchTerm=Pet`,
+  `ro.py invoke <service> <action> [k=v…]` (e.g. `ro.py invoke domox.OntologyDiagrams searchOntologyAsD3Graph searchTerm=Pet`,
   then it dumps the returned object's members), `ro.py property <objectRef> <member>`,
   `ro.py layout <objectRef>` (top-level columns with their span — the fastest way to see whether a
   layout XML was actually applied), `ro.py members|object <objectRef>`. It reads `DOMOX_URL`

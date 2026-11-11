@@ -1,7 +1,6 @@
 package domox.dom.rdf;
 
 import domox.DomainModule;
-import domox.dom.requirements.Corpora;
 import domox.port.RdfPort;
 import domox.port.RdfRemoteOptions;
 import jakarta.annotation.Priority;
@@ -29,14 +28,14 @@ import java.util.stream.Collectors;
  * property or an instance — and what does it say it is?".  The MCP reviewer tools build on it.</p>
  *
  * <p><b>Two-step query, like the diagram.</b>  A <em>focus</em> {@code SELECT} resolves the term to
- * IRIs — reusing {@link Corpora#focusQuery} / {@link Corpora#wordMatchQuery} verbatim, so the
+ * IRIs — reusing {@link OntologyQueries#focusQuery(String)} / {@link OntologyQueries#wordMatchQuery} verbatim, so the
  * evidence matches exactly what the ontology diagram shows (equality first, word-boundary fallback) —
  * and a second {@code SELECT} fetches those IRIs' labels, comments, super-classes and synonyms.</p>
  *
  * <p><b>Named graphs.</b>  The reference-ontology image serves each vocabulary in its own named graph,
  * so the detail query reads them with {@code GRAPH ?g { … }} — which both spans the graphs and tells
  * us <em>which</em> ontology a match came from (a {@code FROM} clause would merge them and lose that).
- * The focus query is scoped with {@code FROM} instead, because it reuses {@link Corpora}'s
+ * The focus query is scoped with {@code FROM} instead, because it reuses {@link OntologyQueries}'s
  * graph-agnostic query text.</p>
  *
  * <p><b>Never throws.</b>  An unreachable endpoint yields an empty result plus a message — the caller
@@ -65,7 +64,7 @@ public class OntologyTerms {
     private static final String SKOS_DEFINITION = "http://www.w3.org/2004/02/skos/core#definition";
     /** A UML/OntoUML export types its classes this way and carries no {@code owl:Class} at all. */
     private static final String ONTOUML_CLASS = "https://w3id.org/ontouml#Class";
-    /** OntoUML names its elements with this instead of {@code rdfs:label} (see {@code Corpora}). */
+    /** OntoUML names its elements with this instead of {@code rdfs:label} (see {@link OntologyQueries}). */
     private static final String ONTOUML_NAME = "https://w3id.org/ontouml#name";
 
     private static final String PREFIXES = """
@@ -126,9 +125,9 @@ public class OntologyTerms {
      */
     private List<String> focusIris(final String term) {
         final String language = rdfProperties.getLabelLanguage();
-        final List<String> exact = runFocus(Corpora.focusQuery(term, language));
+        final List<String> exact = runFocus(OntologyQueries.focusQuery(term, language));
         return exact.isEmpty()
-                ? runFocus(Corpora.wordMatchQuery(term, language))
+                ? runFocus(OntologyQueries.wordMatchQuery(term, language))
                 : exact;
     }
 
@@ -280,7 +279,7 @@ public class OntologyTerms {
     /**
      * Scopes an endpoint query to the configured named graphs with {@code FROM <graph>} clauses.
      *
-     * <p>Needed for the <em>focus</em> query only, which reuses {@link Corpora}'s graph-agnostic text:
+     * <p>Needed for the <em>focus</em> query only, which reuses {@link OntologyQueries}'s graph-agnostic text:
      * a dataset that serves its data as named graphs has an empty default graph, so an unscoped
      * {@code ?focus ?p ?o} would match nothing.</p>
      */
@@ -324,7 +323,7 @@ public class OntologyTerms {
     private String localResource() {
         final String configured = rdfProperties.getLocalResource();
         return configured == null || configured.isBlank()
-                ? Corpora.DEFAULT_ONTOLOGY_RESOURCE
+                ? RdfProperties.DEFAULT_ONTOLOGY_RESOURCE
                 : configured.trim();
     }
 

@@ -1,6 +1,6 @@
 package domox.webapp.config;
 
-import domox.dom.requirements.Corpora;
+import domox.dom.requirements.OntologyDiagrams;
 import org.apache.causeway.viewer.wicket.model.causeway.WicketApplicationInitializer;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.resource.AbstractResource;
@@ -46,10 +46,10 @@ public class OntologyDiagramResourceInitializer implements WicketApplicationInit
     /** Query parameter carrying the term to search for. */
     static final String TERM_PARAM = "term";
 
-    private final Corpora corpora;
+    private final OntologyDiagrams ontologyDiagrams;
 
-    public OntologyDiagramResourceInitializer(final Corpora corpora) {
-        this.corpora = corpora;
+    public OntologyDiagramResourceInitializer(final OntologyDiagrams ontologyDiagrams) {
+        this.ontologyDiagrams = ontologyDiagrams;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class OntologyDiagramResourceInitializer implements WicketApplicationInit
                         final StringValue term = attributes.getRequest().getQueryParameters()
                                 .getParameterValue(TERM_PARAM);
                         // Never throws: a failing endpoint degrades to an empty (but well-formed) graph.
-                        final String json = corpora.ontologyAsD3Graph(term.toString(""));
+                        final String json = ontologyDiagrams.ontologyAsD3Graph(term.toString(""));
 
                         final ResourceResponse response = new ResourceResponse();
                         response.setContentType("application/json");

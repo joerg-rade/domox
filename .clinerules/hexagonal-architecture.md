@@ -153,11 +153,11 @@ The domain service receives the port via constructor injection and knows **only 
 ```java
 // In domox-domain — does NOT import any adapter class
 @DomainService
-public class Corpora {
+public class CorpusIngestion {
     private final NlpPort nlpPort;
 
     @Inject
-    public Corpora(..., NlpPort nlpPort) {
+    public CorpusIngestion(..., NlpPort nlpPort) {
         this.nlpPort = nlpPort;
     }
 }

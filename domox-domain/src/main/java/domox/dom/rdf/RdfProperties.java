@@ -25,6 +25,13 @@ import java.util.List;
 public class RdfProperties {
 
     /**
+     * Classpath name of the ontology bundled in {@code domox-domain}'s resources — the default for
+     * {@link #getLocalResource() local-resource}, i.e. the offline / deterministic fallback used while
+     * no endpoint is configured (and what the integration tests pin).
+     */
+    public static final String DEFAULT_ONTOLOGY_RESOURCE = "ontology.ttl";
+
+    /**
      * SPARQL endpoint the ontology diagram is queried from.
      * <p>
      * Blank (the default) keeps everything local: the bundled classpath ontology

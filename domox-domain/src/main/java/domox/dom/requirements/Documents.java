@@ -67,17 +67,17 @@ public class Documents {
     }
 
     /**
-     * Mutually-injected collaborator: {@link Corpora} constructor-injects {@code Documents}
+     * Mutually-injected collaborator: {@link CorpusIngestion} constructor-injects {@code Documents}
      * (its analyse pipeline creates {@link Document}s and {@link Sentence}s), while the
      * {@code Documents} menu delegates its single- and batch-load actions
      * ({@link #loadUcDocument(String)}.
      * Constructor injection would therefore be an unresolvable Spring cycle, so the
      * dependency is field-injected and flagged {@code @Lazy}: Spring injects a proxy that
-     * resolves to the real {@code Corpora} bean only when an action invokes it at runtime.
+     * resolves to the real {@code CorpusIngestion} bean only when an action invokes it at runtime.
      */
     @Lazy
     @Inject
-    private Corpora corpora;
+    private CorpusIngestion corpusIngestion;
 
     @ActionLayout(sequence = "1")
     @Action(semantics = SemanticsOf.SAFE)
@@ -125,7 +125,7 @@ public class Documents {
     @MemberSupport
     public String default0FindByFileName() {
         final List<String> filenames = UcResources.listUcFilenames();
-        return filenames.isEmpty() ? null : filenames.get(0);
+        return filenames.isEmpty() ? null : filenames.getFirst();
     }
 
     /**
@@ -142,7 +142,7 @@ public class Documents {
     @ActionLayout(sequence = "5", cssClassFa = "file-import")
     public List<RuleMatch> loadUcDocument(
             @ParameterLayout(named = "UC Document") final String filename) {
-        if (corpora.loadUcDocument(filename)) {
+        if (corpusIngestion.loadUcDocument(filename)) {
             log.info("Loaded UC document '{}'.", filename);
         } else {
             messageService.informUser("Document '" + filename + "' has already been analysed; skipping duplicate.");

@@ -1,19 +1,12 @@
 package domox.dom.requirements;
 
-import domox.dom.crc.service.ClassArchetypeClassifier;
-import domox.dom.crc.service.DomainModels;
 import domox.dom.rdf.RdfGraphDiagrams;
 import domox.dom.rdf.RdfProperties;
 import domox.dom.rdf.UmlLayoutDiagrams;
-import domox.dom.rules.CandidateResolver;
-import domox.dom.rules.RuleMatches;
-import domox.port.NlpPort;
 import domox.port.RdfGraphTO;
 import domox.port.RdfPort;
 import domox.port.RdfRemoteOptions;
 import domox.port.RdfTripleTO;
-import org.apache.causeway.applib.services.factory.FactoryService;
-import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,57 +30,46 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit-level guardrail for the RDF/OWL → D3 ontology search on {@link Corpora}.
+ * Unit-level guardrail for the RDF/OWL → D3 ontology search on {@link OntologyDiagrams}.
  * <p>
  * The end-to-end path over a real ontology (Jena load → SPARQL → JSON) is covered by
  * {@code JenaRdfAdapterTest} in {@code domox-adapter} (the module that has Jena on the classpath);
- * this one pins the generated SPARQL and the empty-graph behaviour without a Semantic-Web
- * dependency.
+ * this one pins the local/remote execution and the empty-graph behaviour without a Semantic-Web
+ * dependency.  The SPARQL <em>text</em> itself is pinned by {@code OntologyQueriesTest}.
  */
 @ExtendWith(MockitoExtension.class)
-class CorporaTest {
+class OntologyDiagramsTest {
 
     private static final String PS = "http://example.org/petshop#";
     private static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     private static final String RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label";
 
-    @Mock RepositoryService repositoryService;
-    @Mock FactoryService factoryService;
-    @Mock RuleMatches ruleMatches;
-    @Mock Documents documents;
-    @Mock DomainModels domainModels;
-    @Mock ClassArchetypeClassifier archetypeClassifier;
-    @Mock CandidateResolver candidateResolver;
-    @Mock NlpPort nlpPort;
     @Mock RdfPort rdfPort;
 
-    private Corpora classUnderTest;
+    private OntologyDiagrams classUnderTest;
 
     /** Local mode by default: no endpoint configured, so the bundled ontology is queried. */
     private final RdfProperties rdfProperties = new RdfProperties();
 
     @BeforeEach
     void setUp() {
-        classUnderTest = corporaWith(rdfProperties);
+        classUnderTest = ontologyDiagramsWith(rdfProperties);
     }
 
-    private Corpora corporaWith(final RdfProperties properties) {
-        return new Corpora(
-                repositoryService, factoryService, ruleMatches, documents, List.of(),
-                domainModels, archetypeClassifier, candidateResolver, nlpPort,
-                rdfPort, new RdfGraphDiagrams(), new UmlLayoutDiagrams(), properties);
+    private OntologyDiagrams ontologyDiagramsWith(final RdfProperties properties) {
+        return new OntologyDiagrams(rdfPort, new RdfGraphDiagrams(), new UmlLayoutDiagrams(), properties);
     }
 
     @Test
     void ontologyAsD3GraphRendersTheSearchNeighbourhood() {
         // given — the port reports one focus IRI and returns that resource's neighbourhood
-        when(rdfPort.select(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), contains("\"buddy\"")))
+        when(rdfPort.select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("\"buddy\"")))
                 .thenReturn(List.of(Map.of("focus", PS + "Buddy")));
         final RdfGraphTO graph = new RdfGraphTO(List.of(
                 RdfTripleTO.resource(PS + "Buddy", RDF_TYPE, PS + "Dog"),
                 RdfTripleTO.literal(PS + "Buddy", RDFS_LABEL, "Buddy")
         ), Map.of("ps", PS));
-        when(rdfPort.construct(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE),
+        when(rdfPort.construct(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE),
                 contains("VALUES ?s { <" + PS + "Buddy> }")))
                 .thenReturn(graph);
 
@@ -104,7 +86,7 @@ class CorporaTest {
     @Test
     void searchOntologyWithoutMatchesRendersEmptyGraph() {
         // given — the focus query finds nothing
-        when(rdfPort.select(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), contains("does-not-exist")))
+        when(rdfPort.select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("does-not-exist")))
                 .thenReturn(List.of());
 
         // when
@@ -113,13 +95,13 @@ class CorporaTest {
         // then — an empty (but well-formed) graph, not the whole ontology
         assertThat(json).isEqualTo("{\"nodes\":[],\"links\":[],\"legend\":[]}");
         // ...and BOTH passes ran: the exact query, then the word-boundary fallback
-        verify(rdfPort, times(2)).select(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), anyString());
+        verify(rdfPort, times(2)).select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), anyString());
     }
 
     @Test
     void ontologyAsD3GraphRendersTheWholeOntology() {
         // given — the parameterless entry point takes the "all triples" path (no SELECT issued)
-        when(rdfPort.construct(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE),
+        when(rdfPort.construct(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE),
                 contains("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }")))
                 .thenReturn(new RdfGraphTO(List.of(
                         RdfTripleTO.resource(PS + "Dog", RDF_TYPE, "http://www.w3.org/2002/07/owl#Class")),
@@ -140,7 +122,7 @@ class CorporaTest {
     @Test
     void searchActionReturnsAViewModelCarryingTheRenderedGraph() {
         // given — a blank term takes the "all triples" path
-        when(rdfPort.construct(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), contains("CONSTRUCT { ?s ?p ?o }")))
+        when(rdfPort.construct(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("CONSTRUCT { ?s ?p ?o }")))
                 .thenReturn(new RdfGraphTO(List.of(
                         RdfTripleTO.resource(PS + "Dog", RDF_TYPE, "http://www.w3.org/2002/07/owl#Class")),
                         Map.of("ps", PS)));
@@ -158,7 +140,7 @@ class CorporaTest {
     @Test
     void editingTheSearchTermInvalidatesTheCachedGraph() {
         // given — a blank term takes the "all triples" path, so only CONSTRUCT is needed
-        when(rdfPort.construct(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), contains("CONSTRUCT { ?s ?p ?o }")))
+        when(rdfPort.construct(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("CONSTRUCT { ?s ?p ?o }")))
                 .thenReturn(new RdfGraphTO(List.of(
                         RdfTripleTO.resource(PS + "Dog", RDF_TYPE, "http://www.w3.org/2002/07/owl#Class")),
                         Map.of("ps", PS)));
@@ -174,83 +156,6 @@ class CorporaTest {
         assertThat(viewModel.getDiagram()).isEqualTo("{\"nodes\":[],\"links\":[],\"legend\":[]}");
     }
 
-    @Test
-    void neighbourhoodQueryRestrictsEachUnionBranchWithValues() {
-        final String sparql = Corpora.neighbourhoodQuery(List.of("http://x/A", "http://x/B"));
-
-        assertThat(sparql).contains("CONSTRUCT { ?s ?p ?o }");
-        // the VALUES must be INSIDE each branch — in front of the union it binds nothing there
-        assertThat(sparql).contains("{ VALUES ?s { <http://x/A> <http://x/B> } ?s ?p ?o }");
-        assertThat(sparql).contains("{ VALUES ?o { <http://x/A> <http://x/B> } ?s ?p ?o }");
-    }
-
-    /**
-     * The focus query must compare for <b>equality</b>: a substring {@code REGEX} is what made a
-     * search for {@code Pet} also return {@code Petit}, {@code PetShow}, {@code competition}, …
-     */
-    @Test
-    void focusQueryMatchesTheConceptExactlyNotBySubstring() {
-        final String sparql = Corpora.focusQuery("Pet");
-
-        assertThat(sparql).contains("SELECT DISTINCT ?focus");
-        assertThat(sparql).contains("LCASE(REPLACE(STR(?focus), \"^.*[/#]\", \"\")) = \"pet\"");
-        assertThat(sparql).contains("LCASE(STR(?l)) = \"pet\"");
-        assertThat(sparql).as("the exact query must not use substring matching").doesNotContain("REGEX(");
-    }
-
-    /** Labels may come from {@code skos:prefLabel} as well as {@code rdfs:label}. */
-    @Test
-    void focusQueryConsidersSkosPrefLabels() {
-        final String sparql = Corpora.focusQuery("Pet");
-
-        assertThat(sparql).contains("?labelPred = rdfs:label || ?labelPred = skos:prefLabel");
-    }
-
-    /**
-     * A UML/OntoUML export names its elements with {@code ontouml:name} and carries no
-     * {@code rdfs:label} at all, so the focus query must consider that predicate too — otherwise
-     * every search over such a model resolves nothing and renders an empty diagram.
-     *
-     * @see domox.dom.rdf.RdfGraphDiagrams for the matching node-classification rules
-     */
-    @Test
-    void focusQueryConsidersOntoumlNames() {
-        final String sparql = Corpora.focusQuery("Commitment");
-
-        assertThat(sparql).contains("PREFIX ontouml: <https://w3id.org/ontouml#>");
-        assertThat(sparql).contains("?labelPred = ontouml:name");
-    }
-
-    /** A configured label language restricts label matching to that tag (or untagged labels). */
-    @Test
-    void focusQueryAppliesTheConfiguredLabelLanguage() {
-        assertThat(Corpora.focusQuery("Pet", "")).as("no language configured -> no language filter")
-                .doesNotContain("LANG(?l)");
-
-        final String english = Corpora.focusQuery("Pet", "en");
-        assertThat(english).contains("LANG(?l) = \"en\" || LANG(?l) = \"\"");
-    }
-
-    /**
-     * The fallback is a <b>word-boundary</b> match, so a partial phrase still resolves while
-     * {@code Pet} cannot reach {@code Petit} (no boundary between "pet" and "it").
-     */
-    @Test
-    void wordMatchQueryMatchesOnWordBoundaries() {
-        final String sparql = Corpora.wordMatchQuery("Golden Retriever", "");
-
-        assertThat(sparql).contains("REGEX(");
-        assertThat(sparql).as("must anchor on a leading boundary").contains("(^|");
-        assertThat(sparql).as("must anchor on a trailing boundary").contains("|$)");
-        assertThat(sparql).as("the term must be quoted literally").contains("\\Q");
-    }
-
-    @Test
-    void escapeSparqlStringNeutralisesQuotesAndBackslashes() {
-        assertThat(Corpora.escapeSparqlString("a \"b\"")).isEqualTo("a \\\"b\\\"");
-        assertThat(Corpora.escapeSparqlString("C:\\path")).isEqualTo("C:\\\\path");
-    }
-
     /**
      * With an endpoint configured the whole pipeline goes remote: the focus query AND the triple
      * fetch are issued through {@link RdfPort#selectRemote}, and the local
@@ -260,7 +165,7 @@ class CorporaTest {
     void remoteEndpointIsQueriedInsteadOfTheBundledOntology() {
         final RdfProperties remote = new RdfProperties();
         remote.setEndpointUrl("https://example.org/sparql");
-        final Corpora corpora = corporaWith(remote);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(remote);
 
         when(rdfPort.selectRemote(eq("https://example.org/sparql"), contains("SELECT DISTINCT ?focus"),
                 any(RdfRemoteOptions.class)))
@@ -271,7 +176,7 @@ class CorporaTest {
                         Map.of("s", PS + "Whiskers", "p", RDF_TYPE, "o", PS + "Cat", "lit", "false"),
                         Map.of("s", PS + "Whiskers", "p", RDFS_LABEL, "o", "Whiskers the Siamese", "lit", "true")));
 
-        final String json = corpora.ontologyAsD3Graph("Whiskers");
+        final String json = diagrams.ontologyAsD3Graph("Whiskers");
 
         // the rows were rebuilt into a graph: an IRI object stays a resource, a literal stays a literal
         assertThat(json).contains("\"id\":\"" + PS + "Whiskers\"");
@@ -288,11 +193,11 @@ class CorporaTest {
         final RdfProperties remote = new RdfProperties();
         remote.setEndpointUrl("https://example.org/sparql");
         remote.setQueryLimit(42);
-        final Corpora corpora = corporaWith(remote);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(remote);
 
         when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class))).thenReturn(List.of());
 
-        corpora.ontologyAsD3Graph("anything");
+        diagrams.ontologyAsD3Graph("anything");
 
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),
@@ -309,17 +214,17 @@ class CorporaTest {
     void localResourceOverridesTheBundledOntology() {
         final RdfProperties local = new RdfProperties();
         local.setLocalResource("/opt/ontologies/custom.ttl");
-        final Corpora corpora = corporaWith(local);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(local);
 
         when(rdfPort.construct(eq("/opt/ontologies/custom.ttl"), contains("CONSTRUCT { ?s ?p ?o }")))
                 .thenReturn(new RdfGraphTO(List.of(
                         RdfTripleTO.resource(PS + "Dog", RDF_TYPE, "http://www.w3.org/2002/07/owl#Class")),
                         Map.of("ps", PS)));
 
-        final String json = corpora.ontologyAsD3Graph("");
+        final String json = diagrams.ontologyAsD3Graph("");
 
         assertThat(json).contains("\"id\":\"" + PS + "Dog\"");
-        verify(rdfPort, never()).construct(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), anyString());
+        verify(rdfPort, never()).construct(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), anyString());
     }
 
     /** A blank {@code local-resource} falls back to the bundled ontology. */
@@ -327,14 +232,14 @@ class CorporaTest {
     void blankLocalResourceUsesTheBundledOntology() {
         final RdfProperties local = new RdfProperties();
         local.setLocalResource("   ");
-        final Corpora corpora = corporaWith(local);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(local);
 
-        when(rdfPort.construct(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), contains("CONSTRUCT { ?s ?p ?o }")))
+        when(rdfPort.construct(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("CONSTRUCT { ?s ?p ?o }")))
                 .thenReturn(new RdfGraphTO(List.of(), Map.of()));
 
-        corpora.ontologyAsD3Graph("");
+        diagrams.ontologyAsD3Graph("");
 
-        verify(rdfPort).construct(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), anyString());
+        verify(rdfPort).construct(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), anyString());
     }
 
     /** The configured timeout and User-Agent must reach the port — an endpoint must not hang us. */
@@ -344,11 +249,11 @@ class CorporaTest {
         remote.setEndpointUrl("https://example.org/sparql");
         remote.setQueryTimeoutSeconds(7);
         remote.setUserAgent("domox-test/9");
-        final Corpora corpora = corporaWith(remote);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(remote);
 
         when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class))).thenReturn(List.of());
 
-        corpora.ontologyAsD3Graph("anything");
+        diagrams.ontologyAsD3Graph("anything");
 
         final ArgumentCaptor<RdfRemoteOptions> options = ArgumentCaptor.forClass(RdfRemoteOptions.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), anyString(), options.capture());
@@ -364,12 +269,12 @@ class CorporaTest {
     void aFailingEndpointIsReportedOnTheViewModelInsteadOfThrowing() {
         final RdfProperties remote = new RdfProperties();
         remote.setEndpointUrl("https://example.org/sparql");
-        final Corpora corpora = corporaWith(remote);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(remote);
 
         when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class)))
                 .thenThrow(new RuntimeException(new IllegalStateException("502 Bad Gateway")));
 
-        final OntologyDiagram viewModel = corpora.searchOntologyAsD3Graph("Pet");
+        final OntologyDiagram viewModel = diagrams.searchOntologyAsD3Graph("Pet");
 
         assertThat(viewModel.getMessage()).as("the root cause and the source are reported")
                 .isEqualTo("Could not query https://example.org/sparql: 502 Bad Gateway");
@@ -382,12 +287,12 @@ class CorporaTest {
     void aFailingEndpointYieldsAnEmptyGraphForTheDerivedProperty() {
         final RdfProperties remote = new RdfProperties();
         remote.setEndpointUrl("https://example.org/sparql");
-        final Corpora corpora = corporaWith(remote);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(remote);
 
         when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class)))
                 .thenThrow(new RuntimeException("boom"));
 
-        assertThat(corpora.ontologyAsD3Graph("Pet")).isEqualTo("{\"nodes\":[],\"links\":[],\"legend\":[]}");
+        assertThat(diagrams.ontologyAsD3Graph("Pet")).isEqualTo("{\"nodes\":[],\"links\":[],\"legend\":[]}");
     }
 
     /**
@@ -401,11 +306,11 @@ class CorporaTest {
         final RdfProperties remote = new RdfProperties();
         remote.setEndpointUrl("https://example.org/sparql");
         remote.setDefaultGraphs(List.of("https://schema.org/", "http://BPMNbasedOntology"));
-        final Corpora corpora = corporaWith(remote);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(remote);
 
         when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class))).thenReturn(List.of());
 
-        corpora.ontologyAsD3Graph("Person");
+        diagrams.ontologyAsD3Graph("Person");
 
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),
@@ -429,7 +334,7 @@ class CorporaTest {
         final RdfProperties remote = new RdfProperties();
         remote.setEndpointUrl("https://example.org/sparql");
         remote.setDefaultGraphs(List.of(gistGraph));
-        final Corpora corpora = corporaWith(remote);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(remote);
 
         when(rdfPort.selectRemote(eq("https://example.org/sparql"), contains("SELECT DISTINCT ?focus"),
                 any(RdfRemoteOptions.class)))
@@ -443,7 +348,7 @@ class CorporaTest {
                         "o", "http://www.w3.org/2002/07/owl#Class",
                         "lit", "false")));
 
-        final String json = corpora.ontologyAsD3Graph("Agreement");
+        final String json = diagrams.ontologyAsD3Graph("Agreement");
 
         assertThat(json).contains("\"ontology\":\"gist\"");
     }
@@ -453,11 +358,11 @@ class CorporaTest {
     void remoteQueriesAreUnscopedWhenNoDefaultGraphsAreConfigured() {
         final RdfProperties remote = new RdfProperties();
         remote.setEndpointUrl("https://example.org/sparql");
-        final Corpora corpora = corporaWith(remote);
+        final OntologyDiagrams diagrams = ontologyDiagramsWith(remote);
 
         when(rdfPort.selectRemote(anyString(), anyString(), any(RdfRemoteOptions.class))).thenReturn(List.of());
 
-        corpora.ontologyAsD3Graph("Person");
+        diagrams.ontologyAsD3Graph("Person");
 
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
         verify(rdfPort, atLeastOnce()).selectRemote(eq("https://example.org/sparql"), queries.capture(),

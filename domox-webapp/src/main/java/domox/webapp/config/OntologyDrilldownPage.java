@@ -1,6 +1,6 @@
 package domox.webapp.config;
 
-import domox.dom.requirements.Corpora;
+import domox.dom.requirements.OntologyDiagrams;
 import domox.dom.requirements.OntologyDiagram;
 import org.apache.causeway.core.metamodel.context.MetaModelContext;
 import org.apache.causeway.core.metamodel.object.ManagedObject;
@@ -32,7 +32,7 @@ public class OntologyDrilldownPage extends WebPageBase {
         final MetaModelContext metaModelContext = MetaModelContext.instanceElseFail();
         final String term = parameters.get(TERM_PARAM).toString("");
         final OntologyDiagram viewModel = metaModelContext.getServiceRegistry()
-                .lookupServiceElseFail(Corpora.class)
+                .lookupServiceElseFail(OntologyDiagrams.class)
                 .ontologyDiagram(term);
         final ManagedObject adapter = metaModelContext.getObjectManager().adapt(viewModel);
         setResponsePage(DomainObjectPage.forAdapter(adapter));

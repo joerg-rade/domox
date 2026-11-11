@@ -16,7 +16,7 @@ import domox.dom.requirements.Corpus;
 /**
  * Guards {@link Corpus#getOntologyDiagram()} — the derived (transient) RDF/OWL → D3 property.
  * <p>
- * Proves the injected {@code Corpora} collaborator really is wired on a persisted entity (a
+ * Proves the injected {@code OntologyDiagrams} collaborator really is wired on a persisted entity (a
  * {@code null} service would silently yield the empty-graph fallback) and that the property renders
  * the bundled ontology (a UML/OntoUML export) rather than an empty graph.
  */

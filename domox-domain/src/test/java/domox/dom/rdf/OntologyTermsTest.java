@@ -1,6 +1,5 @@
 package domox.dom.rdf;
 
-import domox.dom.requirements.Corpora;
 import domox.port.RdfPort;
 import domox.port.RdfRemoteOptions;
 import org.junit.jupiter.api.Test;
@@ -87,9 +86,9 @@ class OntologyTermsTest {
 
     @Test
     void localLookupUsesTheBundledOntologyWithoutGraphScoping() {
-        when(rdfPort.select(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), contains("SELECT DISTINCT ?focus")))
+        when(rdfPort.select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("SELECT DISTINCT ?focus")))
                 .thenReturn(List.of(Map.of("focus", "http://x/Cat")));
-        when(rdfPort.select(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), contains("VALUES ?term")))
+        when(rdfPort.select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("VALUES ?term")))
                 .thenReturn(List.of(Map.of("term", "http://x/Cat", "predicate", RDF_TYPE,
                         "value", RDFS_CLASS, "lit", "false")));
 
@@ -99,7 +98,7 @@ class OntologyTermsTest {
         assertThat(lookup.terms().getFirst().label()).as("no label -> the IRI's local name").isEqualTo("Cat");
 
         final ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
-        verify(rdfPort, atLeastOnce()).select(eq(Corpora.DEFAULT_ONTOLOGY_RESOURCE), queries.capture());
+        verify(rdfPort, atLeastOnce()).select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), queries.capture());
         assertThat(queries.getAllValues()).as("the bundled ontology is a single unnamed graph")
                 .noneMatch(q -> q.contains("GRAPH ?g"));
     }

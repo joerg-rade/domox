@@ -7,7 +7,9 @@ import domox.adapter.nlp.StanfordCoreNlpAdapter;
 import domox.adapter.rdf.JenaRdfAdapter;
 import domox.dom.crc.diagram.CandidateDiagrams;
 import domox.dom.nlp.Sentences;
+import domox.dom.requirements.CorpusIngestion;
 import domox.dom.requirements.Corpora;
+import domox.dom.requirements.OntologyDiagrams;
 import domox.dom.requirements.Documents;
 import domox.port.DiagramPort;
 import domox.port.NlpPort;
@@ -53,6 +55,12 @@ class HexagonalPortWiringIntegTest extends ApplicationIntegTestAbstract {
     @Autowired
     private Corpora corpora;
 
+    @Autowired
+    private OntologyDiagrams ontologyDiagrams;
+
+    @Autowired
+    private CorpusIngestion corpusIngestion;
+
     @Test
     void diagramPort_isWiredToKrokiDiagramAdapter() {
         // the domain port must resolve to the adapter implementation, not be absent
@@ -72,12 +80,14 @@ class HexagonalPortWiringIntegTest extends ApplicationIntegTestAbstract {
 
     @Test
     void domainServices_dependingOnPorts_areManagedBeans() {
-        // CandidateDiagrams/Documents/Sentences/Corpora are the domain services that inject
-        // the ports; if the wiring is broken the context would fail before these assertions.
+        // CorpusIngestion (NlpPort) and OntologyDiagrams (RdfPort) are the domain services that
+        // inject the ports; if the wiring is broken the context would fail before these assertions.
         assertThat(candidateDiagrams).isNotNull();
         assertThat(documents).isNotNull();
         assertThat(sentences).isNotNull();
         assertThat(corpora).isNotNull();
+        assertThat(ontologyDiagrams).isNotNull();
+        assertThat(corpusIngestion).isNotNull();
     }
 
     }

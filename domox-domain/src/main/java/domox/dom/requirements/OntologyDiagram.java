@@ -21,7 +21,7 @@ import org.apache.causeway.applib.annotation.Where;
 import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 
 /**
- * View model returned by {@link Corpora#searchOntologyAsD3Graph(String)}: it carries the search
+ * View model returned by {@link OntologyDiagrams#searchOntologyAsD3Graph(String)}: it carries the search
  * term as ordinary state and exposes the rendered ontology as a {@link D3Graph} <b>property</b>.
  *
  * <p><b>Why a view model rather than a {@code String} result.</b>  {@code @D3Graph} is a
@@ -44,7 +44,7 @@ public class OntologyDiagram {
     private static final String EMPTY_GRAPH = "{\"nodes\":[],\"links\":[],\"legend\":[]}";
 
     /**
-     * Injected {@link Corpora} service that does the SPARQL work.
+     * Injected {@link OntologyDiagrams} service that does the SPARQL work.
      * <p>
      * Hidden from the metamodel: an injected collaborator is <em>not</em> a property, and exposing
      * it would trip the metamodel veto (see {@code CODING_STANDARDS.md} §1).  It is only a
@@ -56,7 +56,7 @@ public class OntologyDiagram {
     @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Corpora corporaService;
+    private OntologyDiagrams ontologyDiagrams;
 
     /**
      * The term the ontology is filtered by; blank means "the whole ontology".
@@ -74,7 +74,7 @@ public class OntologyDiagram {
     private String searchTerm;
 
     /**
-     * The rendered graph JSON, computed by {@link Corpora} when the action creates the view model.
+     * The rendered graph JSON, computed by {@link OntologyDiagrams} when the action creates the view model.
      * <p>
      * Deliberately not a metamodel member (no accessor): the graph is exposed only through
      * {@link #getDiagram()}, and this field is an implementation detail / cache.
@@ -84,7 +84,7 @@ public class OntologyDiagram {
     /**
      * Reason the graph could not be produced — {@code null} while everything is fine.
      * <p>
-     * Set by {@link Corpora#searchOntologyAsD3Graph(String)} when the configured source cannot be
+     * Set by {@link OntologyDiagrams#searchOntologyAsD3Graph(String)} when the configured source cannot be
      * queried (an unreachable or overloaded SPARQL endpoint, a timeout, …), so the viewer shows a
      * short explanation instead of a stack trace.
      */
@@ -150,8 +150,8 @@ public class OntologyDiagram {
      * the failure, and {@link #getMessage()}/{@link #hideMessage()} must see the reason to report it.
      */
     private void ensureDerived() {
-        if (diagramJson == null && error == null && corporaService != null) {
-            final OntologyDiagram rederived = corporaService.ontologyDiagram(searchTerm);
+        if (diagramJson == null && error == null && ontologyDiagrams != null) {
+            final OntologyDiagram rederived = ontologyDiagrams.ontologyDiagram(searchTerm);
             this.diagramJson = rederived.diagramJson;
             this.error = rederived.error;
         }
@@ -170,7 +170,7 @@ public class OntologyDiagram {
     }
 
     /**
-     * Factory used by {@link Corpora#searchOntologyAsD3Graph(String)}; the caller then supplies the
+     * Factory used by {@link OntologyDiagrams#searchOntologyAsD3Graph(String)}; the caller then supplies the
      * rendered graph (or the failure reason) via {@link #render}/{@link #fail}.
      */
     static OntologyDiagram of(final String searchTerm) {

@@ -94,7 +94,7 @@ The **default graph is empty** (the ontologies live in named graphs); query them
 
 ## Step 4 - Point DoMoX at it
 
-The app's ontology search (`Corpora.searchOntologyAsD3Graph`) can query these graphs — but because
+The app's ontology search (`OntologyDiagrams.searchOntologyAsD3Graph`) can query these graphs — but because
 the data lives in **named graphs** (so the default graph is empty), the app must be told which
 graphs to merge into each query. That is `domox.rdf.default-graphs`, which emits a SPARQL
 `FROM <graph>` dataset clause per entry, and is already set in
@@ -176,7 +176,7 @@ curl -s -G http://localhost:3030/ds/sparql \
 - **Default graph instead of named graphs.** Drop `--graph="${graph}"` from the
   `tdb2.tdbloader` call to merge the five vocabularies into the default graph. You can then drop
   `domox.rdf.default-graphs` from the app config as well.
-- **Searching from the app.** `Corpora#searchOntologyAsD3Graph` scopes each endpoint query with the
+- **Searching from the app.** `OntologyDiagrams#searchOntologyAsD3Graph` scopes each endpoint query with the
   `domox.rdf.default-graphs` list (one SPARQL `FROM <graph>` clause per entry). Without it the
   named-graph data is invisible and every search returns nothing.
 

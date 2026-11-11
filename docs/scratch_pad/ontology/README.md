@@ -16,13 +16,13 @@ All of these live in `domox-domain/src/main/resources/`:
 The ontology diagram reads from the SPARQL endpoint in `domox.rdf.endpoint-url` — by default the
 local **Fuseki** server (`http://localhost:3030/ds/sparql`; see `docker/fuseki/`).  When that is
 blank it falls back to the **bundled default** `ontology.ttl`
-(`Corpora.DEFAULT_ONTOLOGY_RESOURCE`); swap that per deployment with `domox.rdf.local-resource`
+(`RdfProperties.DEFAULT_ONTOLOGY_RESOURCE`); swap that per deployment with `domox.rdf.local-resource`
 (a classpath name or a file path).
 
 The diagram understands **both class vocabularies**: a plain OWL/RDFS ontology
 (`owl:Class` + `rdfs:subClassOf` + `rdfs:label`) and the OntoUML one (`ontouml:Class`,
 `ontouml:name`, and generalization reified as `ontouml:Generalization` /
-`ontouml:general` + `ontouml:specific`) — see `RdfGraphDiagrams` and `Corpora.focusQuery`.
+`ontouml:general` + `ontouml:specific`) — see `RdfGraphDiagrams` and `OntologyQueries.focusQuery`.
 
 A node with **no name of its own** — the OntoUML export's diagram *layout* resources (`Point`, `Path`,
 `Rectangle`, `ClassView`, …) carry no `ontouml:name`, so they fall back to the IRI's local name, an
@@ -33,7 +33,7 @@ label instead.  See `RdfGraphDiagrams.hasName` / `looksLikeOpaqueId`.
 
 The **stored diagram layout is reusable too**: `UmlLayoutDiagrams` turns an `ontouml:Diagram`'s
 `ClassView` rectangles and `RelationView`/`GeneralizationView` polylines back into boxes and
-connectors, so `Corpora#openUmlDiagram` redraws one of the 10 diagrams *as the model's author drew it*
+connectors, so `OntologyDiagrams#openUmlDiagram` redraws one of the 10 diagrams *as the model's author drew it*
 (a static D3 rendering — see `docker/fuseki/README.md` for serving the model).  The force-layout
 search above is for *exploring*; this is for *reproducing*.
 

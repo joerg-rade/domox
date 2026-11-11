@@ -2,7 +2,6 @@ package domox.dom.crc.model;
 import domox.dom.AbstractEntity;
 import domox.DomainModule;
 import domox.dom.crc.diagram.CandidateD3Graph;
-import domox.dom.crc.diagram.CandidateDiagrams;
 import domox.dom.crc.service.Reviews;
 import domox.dom.rules.RuleMatch;
 import jakarta.inject.Inject;

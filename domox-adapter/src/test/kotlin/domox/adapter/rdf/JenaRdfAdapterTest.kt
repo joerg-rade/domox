@@ -1,11 +1,11 @@
 package domox.adapter.rdf
 
 import com.sun.net.httpserver.HttpServer
+import domox.dom.rdf.OntologyQueries
 import domox.dom.rdf.RdfGraphDiagrams
 import domox.dom.rdf.RdfProperties
 import domox.dom.rdf.UmlLayoutDiagrams
-import domox.dom.requirements.Corpora
-import domox.dom.rules.TypedDependencyRule
+import domox.dom.requirements.OntologyDiagrams
 import domox.port.RdfFormat
 import domox.port.RdfRemoteOptions
 import org.json.JSONObject
@@ -152,14 +152,14 @@ class JenaRdfAdapterTest {
     }
 
     /**
-     * End-to-end search: `Corpora.ontologyAsD3Graph` issues its SPARQL through the real adapter, so
+     * End-to-end search: `OntologyDiagrams.ontologyAsD3Graph` issues its SPARQL through the real adapter, so
      * this proves the generated query is valid ARQ and that a match brings its neighbourhood along.
      * <p>{@code Fancy_rat} is a <em>leaf</em>: it links to the hub and nothing links to it, so its
      * neighbourhood is exactly one edge.</p>
      */
     @Test
     fun `search renders the matching neighbourhood as D3 JSON`() {
-        val root = JSONObject(corporaWithRdf(dbpediaFixture()).ontologyAsD3Graph(LEAF))
+        val root = JSONObject(ontologyDiagramsWith(dbpediaFixture()).ontologyAsD3Graph(LEAF))
         val ids = nodeIds(root)
 
         assertThat(ids.contains(LEAF)).describedAs("the matched resource is a node: $ids").isTrue()
@@ -177,7 +177,7 @@ class JenaRdfAdapterTest {
      */
     @Test
     fun `search restricts the graph to the matching neighbourhood`() {
-        val ids = nodeIds(JSONObject(corporaWithRdf(dbpediaFixture()).ontologyAsD3Graph(LEAF)))
+        val ids = nodeIds(JSONObject(ontologyDiagramsWith(dbpediaFixture()).ontologyAsD3Graph(LEAF)))
 
         assertThat(ids.contains(LEAF)).describedAs("the match itself: $ids").isTrue()
         assertThat(ids.contains("Pet_store")).describedAs("the one hop it reaches: $ids").isTrue()
@@ -210,11 +210,11 @@ class JenaRdfAdapterTest {
         val file = File.createTempFile("focus-decoys-", ".ttl")
         file.writeText(decoys)
         try {
-            assertThat(focusOf(file, Corpora.focusQuery("Pet")))
+            assertThat(focusOf(file, OntologyQueries.focusQuery("Pet")))
                 .describedAs("only the exact concept must resolve")
                 .isEqualTo(listOf("http://example.org/petshop#Pet"))
 
-            val word = focusOf(file, Corpora.wordMatchQuery("Pet", ""))
+            val word = focusOf(file, OntologyQueries.wordMatchQuery("Pet", ""))
             assertThat(word.contains("http://example.org/petshop#Pet")).describedAs("$word").isTrue()
             assertThat(word.contains("http://example.org/petshop#Petit"))
                 .describedAs("the fallback must not match 'Petit' — there is no word boundary between pet/it: $word")
@@ -223,7 +223,7 @@ class JenaRdfAdapterTest {
             // NOTE: 'PetShow' (label "Pet Show") legitimately matches the *word* "Pet" — that is the
             // intended, forgiving behaviour of the fallback; it only runs when nothing matches exactly.
 
-            assertThat(focusOf(file, Corpora.wordMatchQuery("Golden Retriever", "")))
+            assertThat(focusOf(file, OntologyQueries.wordMatchQuery("Golden Retriever", "")))
                 .describedAs("a partial phrase resolves on word boundaries")
                 .isEqualTo(listOf("http://example.org/petshop#GoldRetriever"))
         } finally {
@@ -238,7 +238,7 @@ class JenaRdfAdapterTest {
     /** A blank search term is the "show me everything" case. */
     @Test
     fun `blank search renders the whole ontology`() {
-        val root = JSONObject(corporaWithRdf().ontologyAsD3Graph())
+        val root = JSONObject(ontologyDiagramsWith().ontologyAsD3Graph())
 
         assertThat(root.getJSONArray("nodes").length() > 50)
             .describedAs("expected the whole export, got ${root.getJSONArray("nodes").length()} nodes").isTrue()
@@ -251,7 +251,7 @@ class JenaRdfAdapterTest {
      */
     @Test
     fun `the search action returns a view model that renders the graph`() {
-        val viewModel = corporaWithRdf(dbpediaFixture()).searchOntologyAsD3Graph(LEAF)
+        val viewModel = ontologyDiagramsWith(dbpediaFixture()).searchOntologyAsD3Graph(LEAF)
 
         assertThat(viewModel.searchTerm).isEqualTo(LEAF)
         assertThat(viewModel.title().startsWith("Ontology:")).describedAs(viewModel.title()).isTrue()
@@ -299,13 +299,13 @@ class JenaRdfAdapterTest {
     }
 
     /**
-     * End-to-end over the UML fixture: `Corpora.ontologyAsD3Graph` must resolve a concept named
+     * End-to-end over the UML fixture: `OntologyDiagrams.ontologyAsD3Graph` must resolve a concept named
      * *only* by `ontouml:name` (the file carries no `rdfs:label`), and bring its neighbourhood along
      * — but only its neighbourhood, not the whole 15 000-statement model.
      */
     @Test
     fun `search resolves an OntoUML concept by its ontouml name`() {
-        val root = JSONObject(corporaWithRdf().ontologyAsD3Graph(ONTOUML_CONCEPT))
+        val root = JSONObject(ontologyDiagramsWith().ontologyAsD3Graph(ONTOUML_CONCEPT))
         val names = nodeNames(root)
 
         assertThat(names.contains(ONTOUML_CONCEPT)).describedAs("the named concept is a node: $names").isTrue()
@@ -320,13 +320,11 @@ class JenaRdfAdapterTest {
     private fun dbpediaFixture(): RdfProperties = RdfProperties().apply { localResource = SAMPLE }
 
     /**
-     * A [Corpora] with only its RDF collaborators wired — enough to exercise the ontology search;
-     * every other constructor argument is unused by `searchOntologyAsD3Graph`/`ontologyAsD3Graph`.
+     * An [OntologyDiagrams] with its RDF collaborators wired — enough to exercise the ontology search.
      * The default [RdfProperties] keeps it in local (bundled ontology) mode.
      */
-    private fun corporaWithRdf(properties: RdfProperties = RdfProperties()): Corpora =
-        Corpora(null, null, null, null, emptyList<TypedDependencyRule>(), null, null, null, null,
-            rdf, RdfGraphDiagrams(), UmlLayoutDiagrams(), properties)
+    private fun ontologyDiagramsWith(properties: RdfProperties = RdfProperties()): OntologyDiagrams =
+        OntologyDiagrams(rdf, RdfGraphDiagrams(), UmlLayoutDiagrams(), properties)
 
     /**
      * `domox.rdf.local-resource` may point at a **file on disk**, so a deployment can swap ontologies
@@ -344,7 +342,7 @@ class JenaRdfAdapterTest {
         try {
             val properties = RdfProperties().apply { localResource = file.absolutePath }
 
-            val ids = nodeIds(JSONObject(corporaWithRdf(properties).ontologyAsD3Graph("Custom_shop")))
+            val ids = nodeIds(JSONObject(ontologyDiagramsWith(properties).ontologyAsD3Graph("Custom_shop")))
 
             assertThat(ids.contains("Custom_shop")).describedAs("the file on disk is the source: $ids").isTrue()
             assertThat(ids.contains("Custom_thing")).describedAs("its neighbourhood comes along: $ids").isTrue()

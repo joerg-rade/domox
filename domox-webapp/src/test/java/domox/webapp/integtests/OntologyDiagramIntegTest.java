@@ -14,12 +14,12 @@ import org.apache.causeway.core.metamodel.objectmanager.ObjectManager;
 import org.apache.causeway.core.metamodel.spec.feature.ObjectMember;
 import org.apache.causeway.extensions.d3.metamodel.facet.D3GraphFacet;
 
-import domox.dom.requirements.Corpora;
+import domox.dom.requirements.OntologyDiagrams;
 import domox.dom.requirements.OntologyDiagram;
 
 /**
  * Guards the {@link OntologyDiagram} view model returned by
- * {@link Corpora#searchOntologyAsD3Graph(String)} — the object the Wicket viewer draws a D3 canvas
+ * {@link OntologyDiagrams#searchOntologyAsD3Graph(String)} — the object the Wicket viewer draws a D3 canvas
  * for.
  *
  * <p>An action returning a bare {@code String} is displayed as text ({@code @D3Graph} is a
@@ -29,7 +29,7 @@ import domox.dom.requirements.OntologyDiagram;
 @Transactional
 class OntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
 
-    @Inject private Corpora corpora;
+    @Inject private OntologyDiagrams ontologyDiagrams;
     @Inject private ObjectManager objectManager;
 
     /**
@@ -41,7 +41,7 @@ class OntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
 
     @Test
     void searchAction_returnsAViewModelCarryingTheRenderedGraph() {
-        final OntologyDiagram viewModel = wrap(corpora).searchOntologyAsD3Graph(SEARCH_TERM);
+        final OntologyDiagram viewModel = wrap(ontologyDiagrams).searchOntologyAsD3Graph(SEARCH_TERM);
 
         assertThat(viewModel.getSearchTerm()).isEqualTo(SEARCH_TERM);
         assertThat(viewModel.getDiagram()).contains(SEARCH_TERM_NAME);
@@ -53,7 +53,7 @@ class OntologyDiagramIntegTest extends ApplicationIntegTestAbstract {
      * search term (or a re-opened bookmark) still re-derives the graph.
      */
     @Test
-    void frameworkInjectsCorpora_soTheGraphIsReDerivedFromTheSearchTerm() {
+    void frameworkInjectsTheService_soTheGraphIsReDerivedFromTheSearchTerm() {
         final OntologyDiagram viewModel =
                 (OntologyDiagram) objectManager.adapt(new OntologyDiagram()).getPojo();
 

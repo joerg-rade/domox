@@ -17,7 +17,7 @@ import domox.dom.crc.repository.ClassCddRepository;
 import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.model.AttributeCdd;
 import domox.dom.crc.repository.AttributeCddRepository;
-import domox.dom.requirements.Corpora;
+import domox.dom.requirements.CorpusIngestion;
 import domox.dom.requirements.Corpus;
 import domox.dom.requirements.CorpusRepository;
 import domox.dom.requirements.DocumentRepository;
@@ -48,7 +48,7 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
     private static final String CORPUS_TITLE = "Pet Shop Use Cases";
 
     @Autowired
-    private Corpora corpora;
+    private CorpusIngestion corpusIngestion;
 
     @Autowired
     private CorpusRepository corpusRepository;
@@ -71,7 +71,7 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
     @Test
     void loadingWholeCorpus_producesExactlyOneCandidatePerName_intoOneSharedDomainModel() {
         // when: run the full analysis over every UC* document of the PetShop corpus
-        final int loaded = corpora.loadSampleFiles();
+        final int loaded = corpusIngestion.loadSampleFiles();
 
         // then: analysis really produced matches and one document per corpus file (15)
         assertThat(loaded).as("all 15 UC* corpus files are newly loaded").isEqualTo(15);
@@ -107,7 +107,7 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
      * Asserts that no candidate name occurs more than once within a single type.
      */
     private static void assertNeverDuplicated(final List<? extends Candidate> candidates) {
-        final String type = candidates.isEmpty() ? "?" : candidates.get(0).getClass().getSimpleName();
+        final String type = candidates.isEmpty() ? "?" : candidates.getFirst().getClass().getSimpleName();
         final List<String> duplicatedNames = candidates.stream()
                 .collect(Collectors.groupingBy(Candidate::getCandidateName, Collectors.counting()))
                 .entrySet().stream()

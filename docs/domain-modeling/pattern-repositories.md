@@ -23,7 +23,7 @@ whether exposing them **via MCP** is a sensible design.
 | Constraint | Evidence |
 |---|---|
 | DoMoX is **deterministic / rule-based**, "Vibe Coding *without* AI" | `README.md`, `docs/application/WHAT_IS_DOMOX.md` |
-| Model creation = **requirements text → CoreNLP → TDR rules → candidates → human/agent review → DomainModel → UML/Causeway code** | `Corpora.java` (Phases 1 / 2 / 2b), `docs/scratch_pad/rules/RULES_REGISTRY.md` |
+| Model creation = **requirements text → CoreNLP → TDR rules → candidates → human/agent review → DomainModel → UML/Causeway code** | `CorpusIngestion.java` (Phases 1 / 2 / 2b), `docs/scratch_pad/rules/RULES_REGISTRY.md` |
 | Candidate types are the CRC vocabulary | `ClassCdd`, `AttributeCdd`, `ResponsibilityCdd`, `CollaboratorCdd` |
 | There is **already one external knowledge source** wired in: reference ontologies over SPARQL | `OntologyTerms`, `RdfPort`, Fuseki image (Schema.org / BFO / gist / BBO / sBPMN) |
 | There is **already a "pattern" classifier** — Coad's four archetypes, hard-coded | `ClassArchetypeClassifier` → `ClassType` (MOMENT_INTERVAL / ROLE / DESCRIPTION / PARTY_PLACE_THING) |

@@ -21,7 +21,7 @@ import org.apache.causeway.applib.annotation.Where;
 import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 
 /**
- * View model returned by {@link Corpora#openUmlDiagram(String)}: it carries the diagram's name and
+ * View model returned by {@link OntologyDiagrams#openUmlDiagram(String)}: it carries the diagram's name and
  * exposes the reconstructed picture as a {@link D3Graph} <b>property</b>.
  *
  * <p><b>Static, not force-directed.</b>  {@link OntologyDiagram} searches a concept and lays the
@@ -43,7 +43,7 @@ public class UmlDiagram {
     private static final String EMPTY_GRAPH = "{\"layout\":\"uml\",\"nodes\":[],\"links\":[],\"legend\":[]}";
 
     /**
-     * Injected {@link Corpora} service that reads the export.
+     * Injected {@link OntologyDiagrams} service that reads the export.
      * <p>
      * Hidden from the metamodel: an injected collaborator is <em>not</em> a property, and exposing it
      * would trip the metamodel veto (see {@code CODING_STANDARDS.md} §1).  It is only a
@@ -55,7 +55,7 @@ public class UmlDiagram {
     @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Corpora corporaService;
+    private OntologyDiagrams ontologyDiagrams;
 
     /**
      * The diagram this view model shows, as named by the export.
@@ -71,7 +71,7 @@ public class UmlDiagram {
     private String diagramName;
 
     /**
-     * The reconstructed picture JSON, computed by {@link Corpora} when the action creates the view
+     * The reconstructed picture JSON, computed by {@link OntologyDiagrams} when the action creates the view
      * model.  Not a metamodel member (no accessor): the graph is exposed only through
      * {@link #getDiagram()}, and this field is an implementation detail / cache.
      */
@@ -140,8 +140,8 @@ public class UmlDiagram {
      * failure, and {@link #getMessage()}/{@link #hideMessage()} must see the reason to report it.
      */
     private void ensureDerived() {
-        if (diagramJson == null && error == null && corporaService != null) {
-            final UmlDiagram rederived = corporaService.umlDiagram(diagramName);
+        if (diagramJson == null && error == null && ontologyDiagrams != null) {
+            final UmlDiagram rederived = ontologyDiagrams.umlDiagram(diagramName);
             this.diagramJson = rederived.diagramJson;
             this.error = rederived.error;
         }
@@ -160,7 +160,7 @@ public class UmlDiagram {
     }
 
     /**
-     * Factory used by {@link Corpora#openUmlDiagram(String)}; the caller then supplies the picture (or
+     * Factory used by {@link OntologyDiagrams#openUmlDiagram(String)}; the caller then supplies the picture (or
      * the failure reason) via {@link #render}/{@link #fail}.
      */
     static UmlDiagram of(final String diagramName) {

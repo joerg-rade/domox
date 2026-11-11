@@ -64,7 +64,7 @@ public class ArchitectureTests {
      * <em>action</em> it is a silent no-op: the action returns its String and the viewer shows text.
      * <p>
      * That is not hypothetical — it is exactly the bug reported against
-     * {@code Corpora#searchOntologyAsD3Graph}, which had to be changed to return a view model whose
+     * {@code OntologyDiagrams#searchOntologyAsD3Graph}, which had to be changed to return a view model whose
      * {@code diagram} property carries the facet.  A property getter is {@code getX()}/{@code isX()};
      * anything else annotated {@code @D3Graph} is an action and will be ignored.
      */

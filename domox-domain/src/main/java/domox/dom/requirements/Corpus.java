@@ -84,14 +84,14 @@ public class Corpus extends AbstractEntity implements Comparable<Corpus> {
     @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Corpora corporaService;
+    private OntologyDiagrams ontologyDiagrams;
 
     /**
      * The configured RDF/OWL ontology rendered as an interactive D3 force-layout graph.
      * <p>
      * <b>Transient and derived</b> — never persisted: the JSON is regenerated on every access from
      * the configured ontology source (the Fuseki SPARQL endpoint, or the classpath ontology in local
-     * mode) via {@link Corpora#ontologyAsD3Graph()}.
+     * mode) via {@link OntologyDiagrams#ontologyAsD3Graph()}.
      * <p>
      * Hidden in tables ({@link Where#ALL_TABLES}): this entity's list view is decorated by
      * {@code TableDecorator.DatatablesNet}, which relocates cell DOM for sorting/paging and would
@@ -105,10 +105,10 @@ public class Corpus extends AbstractEntity implements Comparable<Corpus> {
             sequence = "3",
             hidden = Where.ALL_TABLES)
     public String getOntologyDiagram() {
-        if (corporaService == null) {
+        if (ontologyDiagrams == null) {
             return "{\"nodes\":[],\"links\":[],\"legend\":[]}";
         }
-        return corporaService.ontologyAsD3Graph();
+        return ontologyDiagrams.ontologyAsD3Graph();
     }
 
     //endregion
