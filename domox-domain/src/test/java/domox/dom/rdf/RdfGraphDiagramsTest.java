@@ -182,6 +182,49 @@ class RdfGraphDiagramsTest {
         assertThat(json).contains("\"id\":\"" + PS + "Pet\",\"name\":\"Pet\",\"subdomain\":\"\",\"pos\":\"Class\"");
     }
 
+    /**
+     * A node is labelled with the reference ontology its entry came from — the diagram prints it on
+     * the node's fourth line.  The name is derived from the named graph IRI the triple was read from.
+     */
+    @Test
+    void labelsANodeWithItsSourceOntology() {
+        final String gistGraph = "https://w3id.org/semanticarts/ontology/gistCore";
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(PS + "Dog", RDF_TYPE, OWL_CLASS),
+                RdfTripleTO.literal(PS + "Dog", RDFS_LABEL, "Dog")
+        ), Map.of(), Map.of(PS + "Dog", gistGraph));
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertThat(json).contains("\"id\":\"" + PS + "Dog\",\"name\":\"Dog\",\"subdomain\":\"\",\"pos\":\"Class\"");
+        assertThat(json).contains("\"ontology\":\"gist\"");
+    }
+
+    /** Without graph attribution (a local file / single-default-graph endpoint) the line is blank. */
+    @Test
+    void omitsTheOntologyWhenThereIsNoGraphAttribution() {
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(PS + "Dog", RDF_TYPE, OWL_CLASS),
+                RdfTripleTO.literal(PS + "Dog", RDFS_LABEL, "Dog")
+        ), Map.of());
+
+        assertThat(diagrams.renderDiagram(graph)).contains("\"ontology\":\"\"");
+    }
+
+    /** The graph-IRI → short-name mapping, including the fallback to the IRI's local name. */
+    @Test
+    void mapsKnownGraphIrisToShortOntologyNames() {
+        assertThat(RdfGraphDiagrams.ontologyLabel("https://schema.org/")).isEqualTo("Schema.org");
+        assertThat(RdfGraphDiagrams.ontologyLabel("http://purl.obolibrary.org/obo/bfo.owl")).isEqualTo("BFO");
+        assertThat(RdfGraphDiagrams.ontologyLabel("https://w3id.org/semanticarts/ontology/gistCore")).isEqualTo("gist");
+        assertThat(RdfGraphDiagrams.ontologyLabel("http://BPMNbasedOntology")).isEqualTo("BBO");
+        assertThat(RdfGraphDiagrams.ontologyLabel("https://ntimes404.github.io/sBPMN/")).isEqualTo("sBPMN");
+        // unknown graph → its IRI's local name; no attribution → blank
+        assertThat(RdfGraphDiagrams.ontologyLabel("https://example.org/onto/MyOntology")).isEqualTo("MyOntology");
+        assertThat(RdfGraphDiagrams.ontologyLabel(null)).isEmpty();
+        assertThat(RdfGraphDiagrams.ontologyLabel("  ")).isEmpty();
+    }
+
     @Test
     void localNameHandlesHashSlashAndMissingIris() {
         assertThat(RdfGraphDiagrams.localName(PS + "Dog")).isEqualTo("Dog");

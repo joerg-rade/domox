@@ -3,7 +3,7 @@
 # DoMoX fast-check bundle (local guardrail).
 #
 # Usage:
-#   bash scripts/check.sh            # schema drift + JS syntax + layout XML + dep alignment + unit tests + UI render + webjar + metamodel guardrail
+#   bash scripts/check.sh            # schema drift + JS syntax + layout XML + dep alignment + unit tests + UI/UML/ontology render + webjar + metamodel guardrail
 #   bash scripts/check.sh --quick    # schema drift + layout XML only (both instant, no Maven)
 #
 # This mirrors what CI runs (.github/workflows/ci.yml) but exploits the local dev DB where the
@@ -153,6 +153,20 @@ if UMLOUT=$(bash scripts/verify-uml-render.sh 2>&1); then
 else
   printf '%s\n' "$UMLOUT" | sed 's/^/    /'
   bad "UML render check failed"
+fi
+
+# The force-layout ontology diagram is the other renderer branch: its node label carries the source
+# reference ontology on a fourth line, which no other check can see being drawn.  Same skip behaviour.
+if ONTOUT=$(bash scripts/verify-ontology-render.sh 2>&1); then
+  printf '%s\n' "$ONTOUT" | sed 's/^/    /'
+  if printf '%s' "$ONTOUT" | grep -q 'SKIP:'; then
+    skip "not runnable here (node/chromium/d3 webjar missing — see above)"
+  else
+    ok "ontology node labels render as expected"
+  fi
+else
+  printf '%s\n' "$ONTOUT" | sed 's/^/    /'
+  bad "ontology render check failed"
 fi
 
 # --- 7. Webjar resource check (dev-instance guardrail) ---------------------------------

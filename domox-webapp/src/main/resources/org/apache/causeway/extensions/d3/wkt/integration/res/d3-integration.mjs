@@ -497,7 +497,7 @@
                 return Math.max(6, Math.min(18, Math.round(px)));
             }
 
-            // ---- Nodes (rounded rectangles + 3-line labels) ----
+            // ---- Nodes (rounded rectangles + multi-line labels) ----
             var node = g.append('g')
                 .attr('class', 'd3-nodes')
                 .selectAll('g')
@@ -517,7 +517,7 @@
                     return d.synonym ? '6,4' : null;
                 });
 
-            // 2-3 line label: optional italic subdomain / name / <<POS>>
+            // 2-4 line label: optional italic subdomain / name / <<POS>> / source ontology
             var nodeText = node.append('text')
                 .attr('text-anchor', 'middle')
                 .attr('dominant-baseline', 'central')
@@ -571,6 +571,23 @@
                     return clampFont(7 * nodeScale(d));
                 })
                 .text(function (d) { return '<<' + (d.pos || '') + '>>'; });
+
+            // Line 4: the source reference ontology (gist, sBPMN, BFO, Schema.org, …) — only when the
+            //   payload carries one.  An ontology node's entry was read from a specific named graph, so
+            //   this shows at a glance which vocabulary the concept came from.  Omitted when blank
+            //   (e.g. the bundled single-file ontology), so the CRC candidate graphs are unaffected.
+            nodeText.filter(function (d) { return d.ontology; })
+                .append('tspan')
+                .attr('x', 0)
+                .attr('dy', function (d) {
+                    return (12 * nodeScale(d)).toFixed(1) + 'px';
+                })
+                .attr('font-size', function (d) {
+                    return clampFont(6 * nodeScale(d));
+                })
+                .attr('font-style', 'italic')
+                .attr('opacity', 0.9)
+                .text(function (d) { return d.ontology; });
 
             // Fit the rectangle around the measured label, and CENTRE the (possibly multi-line) label
             // on the node's own origin.  Both are needed together: a wrapped name makes the text block

@@ -37,6 +37,7 @@ import jakarta.inject.Named;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -574,13 +575,29 @@ public class Corpora {
      * {@code FROM} clause there would make Jena try to dereference the URI.</p>
      */
     private String withDataset(final String sparql) {
+        return withDatasetClauses(sparql, false);
+    }
+
+    /**
+     * As {@link #withDataset}, but emitting {@code FROM NAMED <graph>} clauses instead.  A query so
+     * scoped can address each reference ontology <em>by name</em> through {@code GRAPH ?g { … }} and
+     * report which one an entry came from — the graph-attribution queries use this form (see
+     * {@link #triplesFromRemote}).
+     */
+    private String withNamedDataset(final String sparql) {
+        return withDatasetClauses(sparql, true);
+    }
+
+    /** Shared body of {@link #withDataset} / {@link #withNamedDataset}. */
+    private String withDatasetClauses(final String sparql, final boolean named) {
         final List<String> graphs = rdfProperties.getDefaultGraphs();
         if (graphs == null || graphs.isEmpty()) {
             return sparql;
         }
+        final String keyword = named ? "FROM NAMED <" : "FROM <";
         final String clause = graphs.stream()
                 .filter(graph -> graph != null && !graph.isBlank())
-                .map(graph -> "FROM <" + graph.trim() + "> ")
+                .map(graph -> keyword + graph.trim() + "> ")
                 .collect(Collectors.joining());
         if (clause.isEmpty()) {
             return sparql;
@@ -597,15 +614,23 @@ public class Corpora {
         return isRemote() ? "\nLIMIT " + Math.max(1, rdfProperties.getQueryLimit()) : "";
     }
 
-    /** {@code SELECT} form of {@link #ALL_TRIPLES_QUERY}, for a remote endpoint. */
+    /**
+     * {@code SELECT} form of {@link #ALL_TRIPLES_QUERY}, for a remote endpoint.
+     *
+     * <p>Projected with {@code ?g} inside {@code GRAPH ?g { … }} so each row reports the named graph it
+     * came from; paired with {@link #withNamedDataset} and consumed by {@link #triplesFromRemote}.</p>
+     */
     private String allTriplesSelectQuery() {
-        return "SELECT ?s ?p ?o (isLiteral(?o) AS ?lit)\nWHERE { ?s ?p ?o }" + limitClause();
+        return "SELECT ?g ?s ?p ?o (isLiteral(?o) AS ?lit)\nWHERE { GRAPH ?g { ?s ?p ?o } }" + limitClause();
     }
 
-    /** {@code SELECT} form of {@link #neighbourhoodQuery}, for a remote endpoint. */
+    /**
+     * {@code SELECT} form of {@link #neighbourhoodQuery}, for a remote endpoint — same {@code ?g}
+     * projection as {@link #allTriplesSelectQuery}.
+     */
     private String neighbourhoodSelectQuery(final List<String> focusIris) {
-        return "SELECT ?s ?p ?o (isLiteral(?o) AS ?lit)\nWHERE {\n"
-                + neighbourhoodPattern(focusIris) + "\n}" + limitClause();
+        return "SELECT ?g ?s ?p ?o (isLiteral(?o) AS ?lit)\nWHERE {\n  GRAPH ?g {\n"
+                + neighbourhoodPattern(focusIris) + "\n  }\n}" + limitClause();
     }
 
     /**
@@ -617,19 +642,33 @@ public class Corpora {
      * {@code isLiteral(?o)} projection carries the resource/literal distinction that a bare
      * {@code ?o} binding would lose — {@code selectRemote} flattens every binding to its lexical
      * form.</p>
+     *
+     * <p>The {@code ?g} projection records which named graph each IRI was read from, so the diagram
+     * can label a node with its source ontology (gist, BFO, …).  A resource that only ever appears as
+     * an object is attributed to the graph of the statement that mentioned it.</p>
      */
     private RdfGraphTO triplesFromRemote(final String endpointUrl, final String sparql) {
         final List<RdfTripleTO> triples = new ArrayList<>();
-        for (final Map<String, String> row : rdfPort.selectRemote(endpointUrl, withDataset(sparql), remoteOptions())) {
+        final Map<String, String> graphByIri = new LinkedHashMap<>();
+        for (final Map<String, String> row
+                : rdfPort.selectRemote(endpointUrl, withNamedDataset(sparql), remoteOptions())) {
             final String subject = row.get("s");
             final String predicate = row.get("p");
             final String objectValue = row.get("o");
             if (subject == null || predicate == null || objectValue == null) {
                 continue;
             }
-            triples.add(new RdfTripleTO(subject, predicate, objectValue, "true".equals(row.get("lit"))));
+            final boolean literal = "true".equals(row.get("lit"));
+            triples.add(new RdfTripleTO(subject, predicate, objectValue, literal));
+            final String graph = row.get("g");
+            if (graph != null) {
+                graphByIri.putIfAbsent(subject, graph);
+                if (!literal) {
+                    graphByIri.putIfAbsent(objectValue, graph);
+                }
+            }
         }
-        return new RdfGraphTO(triples, Map.of());
+        return new RdfGraphTO(triples, Map.of(), graphByIri);
     }
 
     /**

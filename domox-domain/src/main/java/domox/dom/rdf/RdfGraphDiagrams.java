@@ -42,6 +42,9 @@ import java.util.Set;
  *       {@code Class}, {@code Individual} or {@code Literal}</li>
  *   <li><b>links</b> — one per triple: subject → object, labelled with the predicate's local name
  *       (e.g. {@code subClassOf}, {@code owns}, {@code isVaccinated})</li>
+ *   <li><b>ontology</b> — the reference ontology a node came from ({@code gist}, {@code BFO},
+ *       {@code Schema.org}, …), shown as a fourth label line.  Empty when the source has no named
+ *       graphs — see {@link #ontologyLabel(String)}</li>
  * </ul>
  *
  * <p><b>Two class vocabularies are understood.</b> A plain OWL/RDFS ontology types its classes
@@ -122,6 +125,8 @@ public class RdfGraphDiagrams {
         final Map<String, String> skosPrefLabelByIri = new LinkedHashMap<>();
         final Map<String, String> typeByIri = new LinkedHashMap<>();
         final Map<String, String> superClassByIri = new LinkedHashMap<>();
+        // IRI → the named graph it was read from; empty for a local file / single-default-graph endpoint.
+        final Map<String, String> graphByIri = graph.graphByIri();
         final Set<String> classIris = new LinkedHashSet<>();
         // An OntoUML generalization is reified: g --general--> parent, g --specific--> child.
         // Collected per generalization resource, then folded into superClassByIri after the loop
@@ -170,15 +175,16 @@ public class RdfGraphDiagrams {
 
         final Map<String, Node> nodes = new LinkedHashMap<>();
         for (final RdfTripleTO triple : graph.triples()) {
-            addResourceNode(nodes, triple.subject(), labelByIri, typeByIri, superClassByIri, classIris);
+            addResourceNode(nodes, triple.subject(), labelByIri, typeByIri, superClassByIri, classIris, graphByIri);
 
             if (triple.literal()) {
                 final String literalId = literalId(triple.objectValue());
                 nodes.putIfAbsent(literalId,
                         new Node(literalId, triple.objectValue(),
-                                localName(triple.predicate()), Kind.LITERAL));
+                                localName(triple.predicate()), Kind.LITERAL,
+                                ontologyLabel(graphByIri.get(triple.subject()))));
             } else {
-                addResourceNode(nodes, triple.objectValue(), labelByIri, typeByIri, superClassByIri, classIris);
+                addResourceNode(nodes, triple.objectValue(), labelByIri, typeByIri, superClassByIri, classIris, graphByIri);
             }
         }
         // Drop only the nodes that have NO name to show — an unnamed resource whose sole label is its
@@ -200,7 +206,8 @@ public class RdfGraphDiagrams {
             final Map<String, String> labelByIri,
             final Map<String, String> typeByIri,
             final Map<String, String> superClassByIri,
-            final Set<String> classIris) {
+            final Set<String> classIris,
+            final Map<String, String> graphByIri) {
         if (nodes.containsKey(iri)) {
             return;
         }
@@ -209,7 +216,7 @@ public class RdfGraphDiagrams {
         final String group = kind == Kind.CLASS
                 ? groupOfClass(iri, superClassByIri, labelByIri)
                 : (typeIri != null ? localName(typeIri) : "");
-        nodes.put(iri, new Node(iri, labelOf(iri, labelByIri), group, kind));
+        nodes.put(iri, new Node(iri, labelOf(iri, labelByIri), group, kind, ontologyLabel(graphByIri.get(iri))));
     }
 
     /**
@@ -298,7 +305,8 @@ public class RdfGraphDiagrams {
                     .append("\",\"pos\":\"").append(node.kind().label)
                     .append("\",\"color\":\"").append(node.kind().color)
                     .append("\",\"r\":").append(node.kind().radius)
-                    .append(",\"approved\":true")
+                    .append(",\"ontology\":\"").append(escapeJson(node.ontology()))
+                    .append("\",\"approved\":true")
                     .append(",\"isCandidateColumn\":false}");
         }
         json.append(']');
@@ -368,6 +376,31 @@ public class RdfGraphDiagrams {
         return alternations >= 2;
     }
 
+    /**
+     * A short, human-friendly name for the reference ontology a graph IRI denotes — the label the
+     * diagram prints on a node's fourth line ({@code gist}, {@code BFO}, {@code Schema.org}, …).
+     *
+     * <p>Falls back to the graph IRI's local name for an ontology we do not know, and to an empty
+     * string when there is no attribution at all (a local file, or a single-default-graph endpoint) —
+     * in which case the client simply omits the line.</p>
+     *
+     * <p>Public for the guardrail test; it is a pure function and static, so Causeway does not treat
+     * it as a member (see {@code localName}).</p>
+     */
+    static String ontologyLabel(final String graphIri) {
+        if (graphIri == null || graphIri.isBlank()) {
+            return "";
+        }
+        return switch (graphIri) {
+            case "https://schema.org/" -> "Schema.org";
+            case "http://purl.obolibrary.org/obo/bfo.owl" -> "BFO";
+            case "https://w3id.org/semanticarts/ontology/gistCore" -> "gist";
+            case "http://BPMNbasedOntology" -> "BBO";
+            case "https://ntimes404.github.io/sBPMN/" -> "sBPMN";
+            default -> localName(graphIri);
+        };
+    }
+
     /** Local name of an IRI: after {@code #}, else after the last {@code /}. */
     static String localName(final String iri) {
         if (iri == null || iri.isEmpty()) {
@@ -409,7 +442,7 @@ public class RdfGraphDiagrams {
         return out.toString();
     }
 
-    private record Node(String id, String name, String typeLocalName, Kind kind) {
+    private record Node(String id, String name, String typeLocalName, Kind kind, String ontology) {
     }
 
     /** The three node kinds of an RDF graph, rendered in the {@code <<…>>} label line. */

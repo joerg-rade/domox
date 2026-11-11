@@ -80,6 +80,12 @@ jobs:
       - name: UML render check (headless browser)
         run: bash scripts/verify-uml-render.sh
 
+      # Renders a force-layout ontology payload and asserts the client draws the node label — name,
+      # <<POS>>, and the FOURTH line, the source reference ontology (gist, Schema.org, …) — including
+      # that a node with no ontology draws no fourth line.  Skips itself (exit 0) without a browser.
+      - name: Ontology render check (headless browser)
+        run: bash scripts/verify-ontology-render.sh
+
   integration-test:
     runs-on: ubuntu-latest
     needs: test

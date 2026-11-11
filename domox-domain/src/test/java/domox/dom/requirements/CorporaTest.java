@@ -392,8 +392,9 @@ class CorporaTest {
 
     /**
      * A named-graph endpoint (such as the reference-ontology Fuseki image) has an <b>empty default
-     * graph</b>, so every remote query must carry a {@code FROM <graph>} dataset clause for each
-     * configured graph — otherwise the search silently returns nothing.
+     * graph</b>, so every remote query must be scoped to the configured graphs — otherwise the search
+     * silently returns nothing.  The focus query is scoped with {@code FROM <graph>}; the triple-fetch
+     * queries use {@code FROM NAMED <graph>} so they can also report which graph each row came from.
      */
     @Test
     void remoteQueriesAreScopedToTheConfiguredNamedGraphs() {
@@ -411,7 +412,40 @@ class CorporaTest {
                 any(RdfRemoteOptions.class));
         assertThat(queries.getAllValues()).as("every remote query must be scoped to the configured graphs")
                 .allMatch(query -> query.contains(
-                        "FROM <https://schema.org/> FROM <http://BPMNbasedOntology>"));
+                                "FROM <https://schema.org/> FROM <http://BPMNbasedOntology>")
+                        || query.contains(
+                                "FROM NAMED <https://schema.org/> FROM NAMED <http://BPMNbasedOntology>"));
+    }
+
+    /**
+     * The graph-attribution path: a named-graph endpoint answers the triple query with a {@code ?g}
+     * binding, and the rendered node carries the source ontology's short name — the diagram prints it
+     * on the node's fourth label line.
+     */
+    @Test
+    void remoteTriplesAreAttributedToTheirSourceOntology() {
+        final String gistGraph = "https://w3id.org/semanticarts/ontology/gistCore";
+        final String gist = "https://w3id.org/semanticarts/ns/ontology/gist/";
+        final RdfProperties remote = new RdfProperties();
+        remote.setEndpointUrl("https://example.org/sparql");
+        remote.setDefaultGraphs(List.of(gistGraph));
+        final Corpora corpora = corporaWith(remote);
+
+        when(rdfPort.selectRemote(eq("https://example.org/sparql"), contains("SELECT DISTINCT ?focus"),
+                any(RdfRemoteOptions.class)))
+                .thenReturn(List.of(Map.of("focus", gist + "Agreement")));
+        when(rdfPort.selectRemote(eq("https://example.org/sparql"), contains("isLiteral(?o) AS ?lit"),
+                any(RdfRemoteOptions.class)))
+                .thenReturn(List.of(Map.of(
+                        "g", gistGraph,
+                        "s", gist + "Agreement",
+                        "p", RDF_TYPE,
+                        "o", "http://www.w3.org/2002/07/owl#Class",
+                        "lit", "false")));
+
+        final String json = corpora.ontologyAsD3Graph("Agreement");
+
+        assertThat(json).contains("\"ontology\":\"gist\"");
     }
 
     /** With no {@code default-graphs} the query stays unscoped — correct for a single-default-graph endpoint. */
