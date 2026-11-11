@@ -225,6 +225,58 @@
                     <artifactId>maven-cucumber-reporting</artifactId>
                     <version>${maven-cucumber-reporting.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.pitest</groupId>
+                    <artifactId>pitest-maven</artifactId>
+                    <version>1.30.2</version>
+                    <!-- The JUnit-5 plugin must be a *plugin* dependency; without it pitest reports
+                         "JUnit 5 is on the classpath but the pitest junit 5 plugin is not installed"
+                         and cannot run a single test. -->
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.pitest</groupId>
+                            <artifactId>pitest-junit5-plugin</artifactId>
+                            <version>1.2.3</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <execution>
+                            <id>pitest-run</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>mutationCoverage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <!-- Classes to mutate: `domox.*` matches everything under `domox`
+                             (pitest's `*` spans dots). -->
+                        <targetClasses>
+                            <param>domox.*</param>
+                        </targetClasses>
+                        <!-- Test classes: every JUnit-5 test in the module.  (This used to be the
+                             template placeholder `com.yourcompany.service.*Test`, which matched
+                             nothing — so pitest never found a test to run.) -->
+                        <targetTests>
+                            <param>domox.*Test</param>
+                        </targetTests>
+                        <outputFormats>
+                            <outputFormat>HTML</outputFormat>
+                            <outputFormat>XML</outputFormat>
+                        </outputFormats>
+                        <timestampedReports>false</timestampedReports>
+                        <withHistory>false</withHistory>
+                        <threads>4</threads>
+                        <!-- Minion heap: the default inherited from surefire's argLine (2g) is too tight
+                             for the larger classes, and a minion that dies with MEMORY_ERROR turns its
+                             mutations into noise. -->
+                        <jvmArgs>
+                            <param>-Xmx3g</param>
+                        </jvmArgs>
+                        <!-- A module with nothing to mutate (e.g. the aggregator) must not fail the build. -->
+                        <failWhenNoMutations>false</failWhenNoMutations>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
         <resources>

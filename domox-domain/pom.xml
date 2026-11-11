@@ -255,4 +255,28 @@
         </plugins>
     </build>
 
+    <!--
+      Mutation testing is OPT-IN:  mvn -pl domox-domain verify -Pmutation
+
+      It is deliberately not part of the default build — a full pitest run over the domain module
+      takes minutes and would dominate `mvn verify`.  To make it always-on, move the <plugin> below
+      out of the <profile> into <build><plugins> above.
+
+      The plugin's version, its JUnit-5 plugin dependency and its targetClasses/targetTests live in
+      the root pom's <pluginManagement>, so this module only has to *declare* it.
+    -->
+    <profiles>
+        <profile>
+            <id>mutation</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

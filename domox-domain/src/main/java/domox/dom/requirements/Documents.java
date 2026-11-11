@@ -159,7 +159,7 @@ public class Documents {
     @MemberSupport
     public String default0LoadUcDocument() {
         final List<String> filenames = UcResources.listUcFilenames();
-        return filenames.isEmpty() ? null : filenames.get(0);
+        return filenames.isEmpty() ? null : filenames.getFirst();
     }
 
     /**

@@ -101,6 +101,16 @@ Cline rules directory, loaded for every project.
   `COMPLETION_CHECKLIST.md`, `SYNONYMS.md`, implementation summaries) live in
   `docs/scratch_pad/` — on-demand only; skim with `head` first, never a full read.
 
+- **Mutation testing (pitest)** → **opt-in, per module**: `mvn -o -pl domox-domain verify -Pmutation`
+  (~2 min; report in `domox-domain/target/pit-reports/`, HTML + XML).  It is deliberately *not* part
+  of the default `mvn verify` — a full run over the domain module takes minutes.  The plugin's
+  version, config and **JUnit-5 plugin dependency** live in the root pom's `<pluginManagement>`; the
+  `mutation` profile in `domox-domain/pom.xml` only declares it.  Two traps: the JUnit-5 plugin must
+  be a *plugin* dependency or pitest cannot run a single test, and the minion heap needs
+  `-Xmx3g` (the surefire 2g default produced `MEMORY_ERROR` minions).  Baseline: ~3 800 mutants,
+  ~38 % killed, test strength ~70 %.
+
+
 Quick checks after an entity change: run `bash scripts/check.sh` — bundles schema drift,
 domain unit tests, and the metamodel guardrail (the same checks CI runs in
 `.github/workflows/ci.yml`). For a faster check use `bash scripts/check.sh --quick`

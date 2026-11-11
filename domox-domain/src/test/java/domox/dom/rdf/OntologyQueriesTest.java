@@ -2,9 +2,11 @@ package domox.dom.rdf;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * Unit-level guardrail for the SPARQL <em>text</em> the ontology features issue — the pure builders in
@@ -90,9 +92,48 @@ class OntologyQueriesTest {
         assertThat(OntologyQueries.withNamedDataset(query, null)).isEqualTo(query);
     }
 
+    /** Blank / null entries in the graph list must be skipped, not turned into broken clauses. */
+    @Test
+    void datasetScopingIgnoresBlankGraphEntries() {
+        final String sparql = OntologyQueries.withDataset(
+                "SELECT ?s WHERE { ?s ?p ?o }", Arrays.asList("", "  ", null, "https://x/"));
+
+        assertThat(sparql).contains("FROM <https://x/>");
+        assertThat(sparql).as("exactly one clause is emitted").containsOnlyOnce("FROM <");
+        assertThat(sparql).as("no empty IRI is emitted").doesNotContain("FROM < >");
+    }
+
+    /** A list of nothing but blanks is the same as no graphs at all. */
+    @Test
+    void datasetScopingIsANoOpWhenEveryEntryIsBlank() {
+        final String query = "SELECT ?s WHERE { ?s ?p ?o }";
+
+        assertThat(OntologyQueries.withDataset(query, Arrays.asList("", "  ", null))).isEqualTo(query);
+    }
+
+    /** A query with no {@code WHERE} keyword cannot take a dataset clause — it is returned unchanged. */
+    @Test
+    void datasetScopingLeavesAQueryWithoutWhereUnchanged() {
+        final String ask = "ASK { ?s ?p ?o }";
+
+        assertThat(OntologyQueries.withDataset(ask, List.of("https://x/"))).isEqualTo(ask);
+    }
+
     // ------------------------------------------------------------------
     // focus
     // ------------------------------------------------------------------
+
+    /**
+     * A {@code null} search term must be tolerated (it is treated as the empty string) — the
+     * builders are reached from user-facing paths where the term may be absent.
+     */
+    @Test
+    void nullSearchTermIsTolerated() {
+        assertThatCode(() -> OntologyQueries.wordMatchQuery(null, "")).doesNotThrowAnyException();
+        assertThatCode(() -> OntologyQueries.focusQuery(null, "")).doesNotThrowAnyException();
+        assertThat(OntologyQueries.wordMatchQuery(null, ""))
+                .isEqualTo(OntologyQueries.wordMatchQuery("", ""));
+    }
 
     /**
      * The focus query must compare for <b>equality</b>: a substring {@code REGEX} is what made a

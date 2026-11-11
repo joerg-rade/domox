@@ -150,21 +150,23 @@ class RdfGraphDiagramsTest {
     void skosPrefLabelNamesANode() {
         final String skos = "http://www.w3.org/2004/02/skos/core#prefLabel";
         final String gist = "https://w3id.org/semanticarts/ns/ontology/gist/";
+        // The prefLabels deliberately DIFFER from the IRIs' local names, so the assertions prove the
+        // name comes from skos:prefLabel and not from the IRI fallback.
         final RdfGraphTO graph = new RdfGraphTO(List.of(
-                RdfTripleTO.resource(gist + "Agreement", RDF_TYPE, OWL_CLASS),
-                RdfTripleTO.literal(gist + "Agreement", skos, "Agreement"),
-                RdfTripleTO.resource(gist + "Contract", RDF_TYPE, OWL_CLASS),
-                RdfTripleTO.resource(gist + "Contract", RDFS_SUBCLASS_OF, gist + "Agreement"),
-                RdfTripleTO.literal(gist + "Contract", skos, "Contract")
+                RdfTripleTO.resource(gist + "OrderedCollection", RDF_TYPE, OWL_CLASS),
+                RdfTripleTO.literal(gist + "OrderedCollection", skos, "Ordered Collection"),
+                RdfTripleTO.resource(gist + "OrderedMember", RDF_TYPE, OWL_CLASS),
+                RdfTripleTO.resource(gist + "OrderedMember", RDFS_SUBCLASS_OF, gist + "OrderedCollection"),
+                RdfTripleTO.literal(gist + "OrderedMember", skos, "Ordered Member")
         ), Map.of());
 
         final String json = diagrams.renderDiagram(graph);
 
-        assertThat(json).contains("\"id\":\"" + gist + "Agreement\",\"name\":\"Agreement\","
+        assertThat(json).contains("\"id\":\"" + gist + "OrderedCollection\",\"name\":\"Ordered Collection\","
                 + "\"subdomain\":\"\",\"pos\":\"Class\"");
         assertThat(json).as("the sub-class clusters under its skos:prefLabel-named parent")
-                .contains("\"id\":\"" + gist + "Contract\",\"name\":\"Contract\","
-                        + "\"subdomain\":\"Agreement\",\"pos\":\"Class\"");
+                .contains("\"id\":\"" + gist + "OrderedMember\",\"name\":\"Ordered Member\","
+                        + "\"subdomain\":\"Ordered Collection\",\"pos\":\"Class\"");
     }
 
     /** An explicit {@code rdfs:label} wins over a {@code skos:prefLabel} on the same resource. */
@@ -225,6 +227,74 @@ class RdfGraphDiagramsTest {
         assertThat(RdfGraphDiagrams.ontologyLabel("  ")).isEmpty();
     }
 
+    /** IRI local-name edge cases: a separator at the very end leaves nothing to cut. */
+    @Test
+    void localNameHandlesTrailingSeparatorsAndBareNames() {
+        // "…/#": the '#' is the last character, so the previous '/' wins (its remainder is "#")
+        assertThat(RdfGraphDiagrams.localName("http://example.org/#")).isEqualTo("#");
+        // "…/abc/": both separators sit at the very end, so the whole IRI is returned unchanged
+        assertThat(RdfGraphDiagrams.localName("http://example.org/abc/")).isEqualTo("http://example.org/abc/");
+        // neither '#' nor '/'
+        assertThat(RdfGraphDiagrams.localName("Pet")).isEqualTo("Pet");
+        // a separator at position 0 is still a separator
+        assertThat(RdfGraphDiagrams.localName("#abc")).isEqualTo("abc");
+        assertThat(RdfGraphDiagrams.localName("/abc")).isEqualTo("abc");
+    }
+
+    /** The legend lists only the node kinds that actually occur — no phantom entry. */
+    @Test
+    void theLegendListsOnlyTheKindsThatOccur() {
+        // a class (from rdf:type) and the vocabulary IRI it points at — but no literal
+        final String json = diagrams.renderDiagram(new RdfGraphTO(List.of(
+                RdfTripleTO.resource(PS + "Dog", RDF_TYPE, OWL_CLASS)), Map.of()));
+
+        assertThat(json).contains("\"label\":\"Class\"");
+        assertThat(json).contains("\"label\":\"Individual\"");
+        assertThat(json).as("no literal occurs, so the legend must not mention one")
+                .doesNotContain("\"label\":\"Literal\"");
+    }
+
+    /** A literal becomes a node whose id carries the {@code literal:} prefix. */
+    @Test
+    void literalNodesCarryTheLiteralIdPrefix() {
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.literal(PS + "Buddy", RDFS_LABEL, "Buddy")
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertThat(json).contains("\"id\":\"literal:Buddy\"");
+        assertThat(json).contains("\"pos\":\"Literal\"");
+    }
+
+    /** The drill-down flag is set only for a graph that has something to click. */
+    @Test
+    void reSearchFlagIsSetOnlyOnANonEmptyGraph() {
+        assertThat(diagrams.renderDiagram(new RdfGraphTO(List.of(), Map.of())))
+                .as("an empty graph has nothing to click")
+                .doesNotContain("reSearch");
+
+        assertThat(diagrams.renderDiagram(new RdfGraphTO(List.of(
+                RdfTripleTO.resource(PS + "Dog", RDF_TYPE, OWL_CLASS)), Map.of())))
+                .contains("\"reSearch\":true");
+    }
+
+    /**
+     * The three arrays must stay well formed for the smallest possible graph — the comma handling
+     * uses a "first element" flag, and a stray leading comma would produce unparseable JSON.
+     */
+    @Test
+    void jsonSeparatorsAreWellFormedForAMinimalGraph() {
+        final String json = diagrams.renderDiagram(new RdfGraphTO(List.of(
+                RdfTripleTO.resource(PS + "Dog", RDF_TYPE, OWL_CLASS)), Map.of()));
+
+        assertThat(json).startsWith("{\"nodes\":[{\"id\":");
+        assertThat(json).as("no empty/leading comma inside an array").doesNotContain("[,").doesNotContain(",]");
+        assertThat(json).contains("}],\"links\":[{\"source\":\"");
+        assertThat(json).contains("}],\"legend\":[{\"color\":\"");
+        assertThat(json).endsWith("}");
+    }
+
     @Test
     void localNameHandlesHashSlashAndMissingIris() {
         assertThat(RdfGraphDiagrams.localName(PS + "Dog")).isEqualTo("Dog");
@@ -255,6 +325,10 @@ class RdfGraphDiagramsTest {
         assertThat(RdfGraphDiagrams.looksLikeOpaqueId("AssociationClass1")).isFalse();
         assertThat(RdfGraphDiagrams.looksLikeOpaqueId("1st Order Entities")).isFalse();
         assertThat(RdfGraphDiagrams.looksLikeOpaqueId("507")).isFalse();
+
+        // exactly two letter/digit alternations is still opaque (the threshold is >= 2)
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("a1bc")).isTrue();
+        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("ab1cd")).isTrue();
 
         // a missing name is treated as opaque (nothing to display)
         assertThat(RdfGraphDiagrams.looksLikeOpaqueId(null)).isTrue();
