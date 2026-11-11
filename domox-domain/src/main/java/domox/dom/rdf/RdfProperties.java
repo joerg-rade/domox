@@ -81,7 +81,7 @@ public class RdfProperties {
      * Named graphs an endpoint query is restricted to, via SPARQL {@code FROM <graph>} dataset clauses.
      * <p>
      * A Fuseki dataset that serves its data as <em>named graphs</em> (as the reference-ontology image
-     * built from {@code docker/fuseki/Dockerfile} does — Schema.org, BFO, BBO and sBPMN each in its own
+     * built from {@code docker/fuseki/Dockerfile} does — Schema.org, BFO, gist, BBO and sBPMN each in its own
      * graph) has an <b>empty default graph</b>.  Without these clauses an unscoped {@code ?s ?p ?o}
      * matches nothing, so the ontology search would always come back empty.  Each listed graph is added
      * to the query's default graph, which SPARQL merges into a set (so a triple shared by two graphs is

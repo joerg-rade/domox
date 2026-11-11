@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * it.  The MCP tools expose it so an LLM reviewer can weigh the evidence — it is <em>advice</em>, not
  * a decision, and the reviewer remains free to disagree.</p>
  *
- * <p><b>Why the heuristics are conservative.</b>  The reference vocabularies (Schema.org, BFO, BPMN)
+ * <p><b>Why the heuristics are conservative.</b>  The reference vocabularies (Schema.org, BFO, gist, BPMN)
  * are generic: most domain nouns of a use-case corpus will not appear in them.  Absence of a match is
  * therefore <em>not</em> evidence against a candidate, so it yields {@link Decision#UNCERTAIN} rather
  * than a rejection.  Only two signals are treated as positive grounds for rejection: a same-name

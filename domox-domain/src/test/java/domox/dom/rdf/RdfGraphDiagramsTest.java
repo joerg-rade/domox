@@ -141,6 +141,47 @@ class RdfGraphDiagramsTest {
         assertThat(json).contains("\"label\":\"name\"");
     }
 
+    /**
+     * A SKOS vocabulary names its terms with {@code skos:prefLabel} rather than {@code rdfs:label} —
+     * the shape <b>gist</b> uses.  It is the third name source, after {@code rdfs:label} and
+     * {@code ontouml:name}.
+     */
+    @Test
+    void skosPrefLabelNamesANode() {
+        final String skos = "http://www.w3.org/2004/02/skos/core#prefLabel";
+        final String gist = "https://w3id.org/semanticarts/ns/ontology/gist/";
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(gist + "Agreement", RDF_TYPE, OWL_CLASS),
+                RdfTripleTO.literal(gist + "Agreement", skos, "Agreement"),
+                RdfTripleTO.resource(gist + "Contract", RDF_TYPE, OWL_CLASS),
+                RdfTripleTO.resource(gist + "Contract", RDFS_SUBCLASS_OF, gist + "Agreement"),
+                RdfTripleTO.literal(gist + "Contract", skos, "Contract")
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertThat(json).contains("\"id\":\"" + gist + "Agreement\",\"name\":\"Agreement\","
+                + "\"subdomain\":\"\",\"pos\":\"Class\"");
+        assertThat(json).as("the sub-class clusters under its skos:prefLabel-named parent")
+                .contains("\"id\":\"" + gist + "Contract\",\"name\":\"Contract\","
+                        + "\"subdomain\":\"Agreement\",\"pos\":\"Class\"");
+    }
+
+    /** An explicit {@code rdfs:label} wins over a {@code skos:prefLabel} on the same resource. */
+    @Test
+    void rdfsLabelTakesPrecedenceOverASkosPrefLabel() {
+        final String skos = "http://www.w3.org/2004/02/skos/core#prefLabel";
+        final RdfGraphTO graph = new RdfGraphTO(List.of(
+                RdfTripleTO.resource(PS + "Pet", RDF_TYPE, OWL_CLASS),
+                RdfTripleTO.literal(PS + "Pet", RDFS_LABEL, "Pet"),
+                RdfTripleTO.literal(PS + "Pet", skos, "Haustier")
+        ), Map.of());
+
+        final String json = diagrams.renderDiagram(graph);
+
+        assertThat(json).contains("\"id\":\"" + PS + "Pet\",\"name\":\"Pet\",\"subdomain\":\"\",\"pos\":\"Class\"");
+    }
+
     @Test
     void localNameHandlesHashSlashAndMissingIris() {
         assertThat(RdfGraphDiagrams.localName(PS + "Dog")).isEqualTo("Dog");

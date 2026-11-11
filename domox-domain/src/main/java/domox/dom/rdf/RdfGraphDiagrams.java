@@ -30,10 +30,11 @@ import java.util.Set;
  * <p><b>RDF → diagram mapping</b> (every RDF statement becomes an edge):</p>
  * <ul>
  *   <li><b>node id</b> — the IRI (blank nodes keep their <code>_:label</code>)</li>
- *   <li><b>name</b> — <code>rdfs:label</code> when present, else <code>ontouml:name</code>, else the
- *       IRI's local name.  A node <em>without</em> a name whose fallback local name is an opaque tool
- *       id (e.g. <code>ykj3OGFS_j2pB_5</code>) is dropped; a node carrying a real name is always kept,
- *       however machine-like that name happens to look — see {@link #looksLikeOpaqueId(String)}</li>
+ *   <li><b>name</b> — <code>rdfs:label</code> when present, else <code>ontouml:name</code>, else
+ *       <code>skos:prefLabel</code>, else the IRI's local name.  A node <em>without</em> a name whose
+ *       fallback local name is an opaque tool id (e.g. <code>ykj3OGFS_j2pB_5</code>) is dropped; a node
+ *       carrying a real name is always kept, however machine-like that name happens to look — see
+ *       {@link #looksLikeOpaqueId(String)}</li>
  *   <li><b>subdomain</b> — the cluster group (the client clusters nodes by this field):
  *       a <b>class</b> by its super-class' name (empty for a root class), an <b>individual</b> by its
  *       <code>rdf:type</code>, a <b>literal</b> by its predicate</li>
@@ -60,6 +61,8 @@ public class RdfGraphDiagrams {
     private static final String RDFS_SUBCLASS_OF = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
     private static final String OWL_CLASS = "http://www.w3.org/2002/07/owl#Class";
     private static final String RDFS_CLASS = "http://www.w3.org/2000/01/rdf-schema#Class";
+    // A SKOS vocabulary (e.g. gist) names its terms with `skos:prefLabel` instead of `rdfs:label`.
+    private static final String SKOS_PREF_LABEL = "http://www.w3.org/2004/02/skos/core#prefLabel";
 
     // -- OntoUML vocabulary (https://w3id.org/ontouml#) -------------------------
     //
@@ -116,6 +119,7 @@ public class RdfGraphDiagrams {
     private static Map<String, Node> indexNodes(final RdfGraphTO graph) {
         final Map<String, String> labelByIri = new LinkedHashMap<>();
         final Map<String, String> ontoumlNameByIri = new LinkedHashMap<>();
+        final Map<String, String> skosPrefLabelByIri = new LinkedHashMap<>();
         final Map<String, String> typeByIri = new LinkedHashMap<>();
         final Map<String, String> superClassByIri = new LinkedHashMap<>();
         final Set<String> classIris = new LinkedHashSet<>();
@@ -129,6 +133,8 @@ public class RdfGraphDiagrams {
                 labelByIri.putIfAbsent(triple.subject(), triple.objectValue());
             } else if (ONTOUML_NAME.equals(triple.predicate()) && triple.literal()) {
                 ontoumlNameByIri.putIfAbsent(triple.subject(), triple.objectValue());
+            } else if (SKOS_PREF_LABEL.equals(triple.predicate()) && triple.literal()) {
+                skosPrefLabelByIri.putIfAbsent(triple.subject(), triple.objectValue());
             } else if (RDF_TYPE.equals(triple.predicate()) && !triple.literal()) {
                 typeByIri.putIfAbsent(triple.subject(), triple.objectValue());
                 if (OWL_CLASS.equals(triple.objectValue())
@@ -146,8 +152,10 @@ public class RdfGraphDiagrams {
                 specificOfGeneralization.putIfAbsent(triple.subject(), triple.objectValue());
             }
         }
-        // `ontouml:name` is the OntoUML equivalent of `rdfs:label`; an explicit rdfs:label still wins.
+        // `ontouml:name` is the OntoUML equivalent of `rdfs:label`, and `skos:prefLabel` is the SKOS
+        // one (gist names its classes with it); an explicit `rdfs:label` still wins over both.
         ontoumlNameByIri.forEach(labelByIri::putIfAbsent);
+        skosPrefLabelByIri.forEach(labelByIri::putIfAbsent);
         // A reified generalization carries the same "child is a kind of parent" information that
         // rdfs:subClassOf does, so it feeds the same map (and both ends are classes).
         specificOfGeneralization.forEach((generalization, child) -> {
@@ -227,8 +235,8 @@ public class RdfGraphDiagrams {
     }
 
     /**
-     * Whether the resource behind {@code id} carries an explicit name — an {@code rdfs:label} or an
-     * {@code ontouml:name}.
+     * Whether the resource behind {@code id} carries an explicit name — an {@code rdfs:label}, an
+     * {@code ontouml:name} or a {@code skos:prefLabel}.
      * <p>
      * Only an <em>unnamed</em> resource may be discarded for looking like a generated id: a name the
      * model actually states is authoritative, however machine-like it happens to look.  A literal

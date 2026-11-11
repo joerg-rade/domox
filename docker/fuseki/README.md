@@ -1,13 +1,14 @@
 # Serving reference ontologies on Apache Jena Fuseki
 
 A local [Apache Jena Fuseki](https://jena.apache.org/documentation/fuseki2/) server that
-serves four reference RDF/OWL vocabularies over HTTP, so they can be queried with SPARQL
+serves five reference RDF/OWL vocabularies over HTTP, so they can be queried with SPARQL
 1.1 **without a rebuild**. Each vocabulary lives in its **own named graph**:
 
 | Ontology | Graph IRI | Format |
 | :--- | :--- | :--- |
 | **Schema.org** | `https://schema.org/` | Turtle |
 | **BFO** (ISO 21838-2) | `http://purl.obolibrary.org/obo/bfo.owl` | RDF/XML |
+| **gist** (minimalist enterprise upper ontology) | `https://w3id.org/semanticarts/ontology/gistCore` | Turtle |
 | **BBO** (BPMN 2.0 Based Ontology) | `http://BPMNbasedOntology` | RDF/XML |
 | **sBPMN** (semantic BPMN 2.0) | `https://ntimes404.github.io/sBPMN/` | Turtle |
 
@@ -19,18 +20,20 @@ flowchart LR
     subgraph Upstream["Upstream (downloaded at build, best-effort)"]
         SCHEMA["Schema.org (ttl)"]
         BFO["BFO (owl)"]
+        GIST["gist (ttl)"]
         BBO["BBO / BPMN (owl)"]
         SBPMN["sBPMN (ttl)"]
     end
     subgraph Image["domox-fuseki image"]
         DF["docker/fuseki/Dockerfile"]
         LOADER["tdb2.tdbloader"]
-        DB[("/opt/domox/databases/ds<br/>TDB2 index - named graphs only<br/>schema.org, BFO, BBO, sBPMN")]
+        DB[("/opt/domox/databases/ds<br/>TDB2 index - named graphs only<br/>schema.org, BFO, gist, BBO, sBPMN")]
         FS["fuseki-server<br/>--loc ... /ds"]
     end
     CLIENT["SPARQL client"]
     SCHEMA --> LOADER
     BFO --> LOADER
+    GIST --> LOADER
     BBO --> LOADER
     SBPMN --> LOADER
     DF --> LOADER --> DB --> FS
@@ -40,7 +43,7 @@ flowchart LR
 ## Step 1 - Build the image
 
 `docker/fuseki/Dockerfile` extends the official community image `stain/jena-fuseki:5.1.0`
-and pre-loads the four reference ontologies into a TDB2 index at build time. **Build from the
+and pre-loads the five reference ontologies into a TDB2 index at build time. **Build from the
 repository root**:
 
 ```bash
@@ -121,9 +124,9 @@ The endpoint-only settings (`query-limit`, `query-timeout-seconds`, `user-agent`
 `label-language`, `default-graphs`) then apply; while the endpoint is blank the bundled classpath
 graph is used and those settings are inert.
 
-## Reference ontologies (Schema.org, BFO, BPMN)
+## Reference ontologies (Schema.org, BFO, gist, BPMN)
 
-The build imports four reference vocabularies into **named graphs** of the `/ds` dataset, so
+The build imports five reference vocabularies into **named graphs** of the `/ds` dataset, so
 each stays individually queryable via `GRAPH <iri> { ... }`. The DoMoX OntoUML model is
 **not** imported:
 
@@ -131,6 +134,7 @@ each stays individually queryable via `GRAPH <iri> { ... }`. The DoMoX OntoUML m
 | :--- | :--- | :--- | :--- |
 | **Schema.org** | `https://schema.org/` | Turtle | `SCHEMA_ORG_URL` — <https://schema.org/version/latest/schemaorg-current-https.ttl> |
 | **BFO** (ISO 21838-2, 2019-08-26) | `http://purl.obolibrary.org/obo/bfo.owl` | RDF/XML | `BFO_URL` — <http://purl.obolibrary.org/obo/bfo.owl> |
+| **gist** (minimalist enterprise upper ontology, 14.1.0, CC-BY 4.0) | `https://w3id.org/semanticarts/ontology/gistCore` | Turtle | `GIST_URL` — <https://github.com/semanticarts/gist> |
 | **BBO** (BPMN 2.0 Based Ontology) | `http://BPMNbasedOntology` | RDF/XML | `BBO_URL` — <https://github.com/AminaANNANE/BBO_BPMNbasedOntology> |
 | **sBPMN** (semantic BPMN 2.0) | `https://ntimes404.github.io/sBPMN/` | Turtle | `SBPMN_URL` — <https://github.com/ntimes404/sBPMN> |
 
@@ -166,11 +170,11 @@ curl -s -G http://localhost:3030/ds/sparql \
 - **Persistence / updates.** The server runs with `--update`; runtime edits live in the
   container's writable layer. Mount a volume on `/opt/domox/databases` to keep them.
 - **Read-only endpoint.** Drop `--update` from the `CMD` in the Dockerfile.
-- **Different ontologies.** Point the `SCHEMA_ORG_URL` / `BFO_URL` / `BBO_URL` / `SBPMN_URL`
-  build args at other files, then rebuild. To force a fresh download + re-import, add
+- **Different ontologies.** Point the `SCHEMA_ORG_URL` / `BFO_URL` / `GIST_URL` / `BBO_URL` /
+  `SBPMN_URL` build args at other files, then rebuild. To force a fresh download + re-import, add
   `--no-cache` (otherwise Docker reuses the cached `RUN` layer).
 - **Default graph instead of named graphs.** Drop `--graph="${graph}"` from the
-  `tdb2.tdbloader` call to merge the four vocabularies into the default graph. You can then drop
+  `tdb2.tdbloader` call to merge the five vocabularies into the default graph. You can then drop
   `domox.rdf.default-graphs` from the app config as well.
 - **Searching from the app.** `Corpora#searchOntologyAsD3Graph` scopes each endpoint query with the
   `domox.rdf.default-graphs` list (one SPARQL `FROM <graph>` clause per entry). Without it the

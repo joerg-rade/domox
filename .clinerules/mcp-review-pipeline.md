@@ -29,7 +29,7 @@ The task signature includes any of:
 | MCP config | `domox-webapp/src/main/resources/application.yml` → `spring.ai.mcp.server.*` |
 | Tools exposed | `nextCandidateForReview`, `approveCandidate(candidateId)`, `rejectCandidate(candidateId, rationale)` |
 | Ontology-assisted tools | `ontologySearch(term)`, `ontologyEvidenceForCandidate(candidateId)`, `suggestReview(candidateId)` — `domox-webapp/.../mcp/OntologyReviewMcpTools.java` |
-| Ontology source | the local Fuseki image (`domox.rdf.endpoint-url` + `domox.rdf.default-graphs` = Schema.org / BFO / BBO / sBPMN); a blank endpoint falls back to the bundled `ontology.ttl` |
+| Ontology source | the local Fuseki image (`domox.rdf.endpoint-url` + `domox.rdf.default-graphs` = Schema.org / BFO / gist / BBO / sBPMN); a blank endpoint falls back to the bundled `ontology.ttl` |
 | DB | docker container `domox-db`, user=`postgres`, db=`postgres`, app schema=`domox` |
 | Reviewer | every decision recorded as `username='agent'` (`Reviews.AGENT_USER`) via `findOrCreateReviewForAgent` — **idempotent** |
 | `ReviewStatus` | `APPROVED`, `REJECTED` |
@@ -132,7 +132,7 @@ Everything else REJECTED (statuses: NOT_RELEVANT 66, WRONG_CANDIDATE_TYPE 23, DU
 ### 5.2 Ontology-assisted evidence (optional)
 
 `OntologyReviewMcpTools` grounds a decision in the reference vocabularies the Fuseki image serves
-(Schema.org, BFO, BBO, sBPMN) — the same graphs the ontology diagram reads. Three extra tools:
+(Schema.org, BFO, gist, BBO, sBPMN) — the same graphs the ontology diagram reads. Three extra tools:
 
 | Tool | Returns |
 |---|---|

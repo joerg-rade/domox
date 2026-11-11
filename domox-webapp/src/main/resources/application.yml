@@ -184,8 +184,8 @@ domox:
   # Corpus#getOntologyDiagram).
   #
   # CURRENT SETUP: the graph is served by the local Apache Jena Fuseki container defined in
-  # docker-compose.yml (image built from docker/fuseki/Dockerfile).  It holds four REFERENCE
-  # vocabularies — Schema.org, BFO, BBO and sBPMN — each in its OWN NAMED GRAPH (the DoMoX
+  # docker-compose.yml (image built from docker/fuseki/Dockerfile).  It holds five REFERENCE
+  # vocabularies — Schema.org, BFO, gist, BBO and sBPMN — each in its OWN NAMED GRAPH (the DoMoX
   # OntoUML model is not imported there).  Because a named-graph dataset has an EMPTY default
   # graph, endpoint queries must be scoped with the `default-graphs` list below, or the search
   # would return nothing.  The diagram queries it over SPARQL (RdfPort#selectRemote) through
@@ -225,6 +225,7 @@ domox:
       - http://BPMNbasedOntology
       - http://purl.obolibrary.org/obo/bfo.owl
       - https://ntimes404.github.io/sBPMN/
+      - https://w3id.org/semanticarts/ontology/gistCore
   nlp:
     disabled-rules: TDR30, TDR31
     auxiliary-verbs: be, am, is, are, was, were, been, being, have, has, had, having, do, does, did, doing

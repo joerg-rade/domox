@@ -1,12 +1,13 @@
 # =============================================================================
 #  Apache Jena Fuseki serving reference ontologies as the dataset  /ds
 # =============================================================================
-#  The dataset holds four supplementary reference vocabularies — Schema.org, BFO
-#  and BPMN (BBO + sBPMN) — each in its OWN named graph, so it stays individually
+#  The dataset holds five supplementary reference vocabularies — Schema.org, BFO,
+#  gist and BPMN (BBO + sBPMN) — each in its OWN named graph, so it stays individually
 #  addressable with `GRAPH <iri> { ... }`:
 #
 #      <https://schema.org/>                        Schema.org (Turtle)
 #      <http://purl.obolibrary.org/obo/bfo.owl>     BFO 2019-08-26 (RDF/XML)
+#      <https://w3id.org/semanticarts/ontology/gistCore>   gist 14.1.0 — minimalist enterprise upper ontology (Turtle)
 #      <http://BPMNbasedOntology>                   BBO — BPMN 2.0 Based Ontology (RDF/XML)
 #      <https://ntimes404.github.io/sBPMN/>         sBPMN — semantic BPMN 2.0 (Turtle)
 #
@@ -43,13 +44,14 @@ ENV DOMOX_DATABASE=/opt/domox/databases/ds \
 USER root
 
 # -----------------------------------------------------------------------------
-#  Reference ontologies (Schema.org, BFO, BPMN) — downloaded and imported.
+#  Reference ontologies (Schema.org, BFO, gist, BPMN) — downloaded and imported.
 # -----------------------------------------------------------------------------
 #  Each is loaded into its OWN named graph (never the default graph) so it stays
 #  individually addressable with `GRAPH <iri> { ... }`:
 #
 #      <https://schema.org/>                        Schema.org (Turtle)
 #      <http://purl.obolibrary.org/obo/bfo.owl>     BFO 2019-08-26 (RDF/XML)
+#      <https://w3id.org/semanticarts/ontology/gistCore>   gist 14.1.0 (Turtle)
 #      <http://BPMNbasedOntology>                   BBO — BPMN 2.0 Based Ontology (RDF/XML)
 #      <https://ntimes404.github.io/sBPMN/>         sBPMN — semantic BPMN 2.0 (Turtle)
 #
@@ -60,11 +62,12 @@ USER root
 #        --build-arg SCHEMA_ORG_URL=https://example.org/schemaorg.ttl -t domox-fuseki .
 ARG SCHEMA_ORG_URL=https://schema.org/version/latest/schemaorg-current-https.ttl
 ARG BFO_URL=http://purl.obolibrary.org/obo/bfo.owl
+ARG GIST_URL=https://raw.githubusercontent.com/semanticarts/gist/develop/ontologies/gistCore.ttl
 ARG BBO_URL=https://raw.githubusercontent.com/AminaANNANE/BBO_BPMNbasedOntology/master/BBO.owl
 ARG SBPMN_URL=https://raw.githubusercontent.com/ntimes404/sBPMN/main/ontology.ttl
 
 # Download each reference ontology and bulk-load it into a named graph of the TDB2
-# database.  Repeated tdb2.tdbloader runs against the same --loc APPEND, so all four
+# database.  Repeated tdb2.tdbloader runs against the same --loc APPEND, so all five
 # named graphs coexist in /ds.  NOTE: the database is built OUTSIDE /fuseki — that
 # path is a VOLUME in the base image, and Docker discards build-time writes into it.
 RUN set -eux; \
@@ -83,6 +86,7 @@ RUN set -eux; \
     }; \
     fetch_and_load "Schema.org" "${SCHEMA_ORG_URL}" "schemaorg.ttl" "https://schema.org/"; \
     fetch_and_load "BFO"        "${BFO_URL}"        "bfo.owl"        "http://purl.obolibrary.org/obo/bfo.owl"; \
+    fetch_and_load "gist"       "${GIST_URL}"       "gistCore.ttl"   "https://w3id.org/semanticarts/ontology/gistCore"; \
     fetch_and_load "BBO (BPMN)" "${BBO_URL}"        "bbo.owl"        "http://BPMNbasedOntology"; \
     fetch_and_load "sBPMN"      "${SBPMN_URL}"      "sbpmn.ttl"      "https://ntimes404.github.io/sBPMN/"; \
     chown -R fuseki:fuseki /opt/domox

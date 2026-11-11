@@ -18,7 +18,7 @@ import domox.dom.rdf.OntologyTerms;
 
 /**
  * Ontology-assisted candidate review over MCP: lets an LLM reviewer ground an approve/reject decision
- * in the reference vocabularies (Schema.org, BFO, BBO, sBPMN) served by the Fuseki image, instead of
+ * in the reference vocabularies (Schema.org, BFO, gist, BBO, sBPMN) served by the Fuseki image, instead of
  * relying on its own priors alone.
  *
  * <p>Complements {@link ReviewMcpTools} rather than replacing it: that class owns the queue and the
@@ -56,7 +56,7 @@ public class OntologyReviewMcpTools {
     @McpTool(
             name = "ontologySearch",
             description = """
-                    Look a term up in the reference ontologies (Schema.org, BFO, BPMN) and report what
+                    Look a term up in the reference ontologies (Schema.org, BFO, gist, BPMN) and report what
                     they know about it: which vocabulary it came from, its IRI, label, whether it is a
                     Class, a Property or an Individual, its super-class, the ontology's own definition,
                     and any synonyms. Use this to check whether a candidate name is a real, established

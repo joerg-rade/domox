@@ -564,7 +564,7 @@ public class Corpora {
      * dataset clauses (see {@link RdfProperties#getDefaultGraphs()}).
      *
      * <p><b>Why this is needed.</b>  A Fuseki dataset that serves its data as <em>named graphs</em> (as
-     * the reference-ontology image does — Schema.org, BFO, BBO and sBPMN each in its own graph) has an
+     * the reference-ontology image does — Schema.org, BFO, gist, BBO and sBPMN each in its own graph) has an
      * <b>empty default graph</b>: an unscoped {@code ?s ?p ?o} matches nothing, so every search would
      * come back empty.  {@code FROM <g>} re-bases the query's default graph onto the merge of the listed
      * graphs, so the query bodies stay graph-agnostic and work unchanged against a single-graph endpoint
