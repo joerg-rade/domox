@@ -56,15 +56,6 @@ import java.util.*;
 public class DomainModelDiagramsD3 {
 
     private static final Logger log = LoggerFactory.getLogger(DomainModelDiagramsD3.class);
-/** Base node radius (px) enlarged proportionally to rule-match count. */
-    private static final double NODE_BASE_RADIUS = 8.0;
-
-    /** Rule-match count that maps to scale 1 (no enlargement). */
-    private static final int MIN_MATCH_COUNT = 1;
-
-    /** Rule-match count of the largest node maps to scale 4. */
-    private static final double MAX_SCALE = 4.0;
-
     @Programmatic
     public String renderDiagram(final DomainModel model) {
         if (model == null) {
@@ -99,30 +90,30 @@ public class DomainModelDiagramsD3 {
             // is removed from the lexical diagram.
             final Set<String> artifactLemmas = associationArtifactLemmas(allCandidates, candidateLemmas);
             dependencies.removeIf(td -> td != null && (
-                    artifactLemmas.contains(lower(td.getGovernorLemma())) ||
-                    artifactLemmas.contains(lower(td.getDependentLemma()))));
+                    artifactLemmas.contains(DiagramLemmas.lower(td.getGovernorLemma())) ||
+                    artifactLemmas.contains(DiagramLemmas.lower(td.getDependentLemma()))));
 
             // Build per-lemma metadata: POS tags and rule-match counts.
             final Map<String, Set<String>> posByLemma = new LinkedHashMap<>();
             final Map<String, Integer> countByLemma = new HashMap<>();
             for (final TypedDependency td : dependencies) {
                 if (td == null) continue;
-                accumulatePos(posByLemma, lower(td.getGovernorLemma()), td.getGovernorPos());
-                accumulatePos(posByLemma, lower(td.getDependentLemma()), td.getDependentPos());
+                DiagramLemmas.accumulatePos(posByLemma, DiagramLemmas.lower(td.getGovernorLemma()), td.getGovernorPos());
+                DiagramLemmas.accumulatePos(posByLemma, DiagramLemmas.lower(td.getDependentLemma()), td.getDependentPos());
                 final int matches = td.getRuleMatches() != null ? td.getRuleMatches().size() : 0;
-                countByLemma.merge(lower(td.getGovernorLemma()), matches, Integer::sum);
-                countByLemma.merge(lower(td.getDependentLemma()), matches, Integer::sum);
+                countByLemma.merge(DiagramLemmas.lower(td.getGovernorLemma()), matches, Integer::sum);
+                countByLemma.merge(DiagramLemmas.lower(td.getDependentLemma()), matches, Integer::sum);
             }
 
             // Every lemma that becomes a node: approved seeds plus endpoints of dependencies.
             final Set<String> nodeLemmas = new LinkedHashSet<>();
             for (final Candidate a : approved) {
-                nodeLemmas.add(lower(a.getCandidateName()));
+                nodeLemmas.add(DiagramLemmas.lower(a.getCandidateName()));
             }
             for (final TypedDependency td : dependencies) {
                 if (td == null) continue;
-                nodeLemmas.add(lower(td.getGovernorLemma()));
-                nodeLemmas.add(lower(td.getDependentLemma()));
+                nodeLemmas.add(DiagramLemmas.lower(td.getGovernorLemma()));
+                nodeLemmas.add(DiagramLemmas.lower(td.getDependentLemma()));
             }
             // Association-artifact nodes are excluded from the diagram entirely.
             nodeLemmas.removeAll(artifactLemmas);
@@ -132,7 +123,7 @@ public class DomainModelDiagramsD3 {
 
             // Maximum count for scaling.
             final int maxCount = countByLemma.values().stream()
-                    .mapToInt(Integer::intValue).max().orElse(MIN_MATCH_COUNT);
+                    .mapToInt(Integer::intValue).max().orElse(DiagramNodeSizing.MIN_MATCH_COUNT);
 
             // Map each lemma to its display name (original casing).
             final Map<String, String> displayName = new HashMap<>();
@@ -147,7 +138,7 @@ public class DomainModelDiagramsD3 {
             for (final Candidate c : allCandidates) {
                 if (c instanceof ClassCdd cc && cc.getSubDomain() != null
                         && cc.getSubDomain().getName() != null) {
-                    classSubdomainByLemma.put(lower(c.getCandidateName()),
+                    classSubdomainByLemma.put(DiagramLemmas.lower(c.getCandidateName()),
                             cc.getSubDomain().getName());
                 }
             }
@@ -220,27 +211,26 @@ public class DomainModelDiagramsD3 {
         boolean first = true;
         for (final String lemma : nodeLemmas) {
             if (!first) json.append(',');
-            final String pos = firstPos(posByLemma.get(lemma));
-            final int count = countByLemma.getOrDefault(lemma, MIN_MATCH_COUNT);
-            final double scale = scaleFor(count, maxCount);
-            final int radius = (int) Math.round(scale * NODE_BASE_RADIUS);
+            final String pos = DiagramLemmas.firstPos(posByLemma.get(lemma));
+            final int count = countByLemma.getOrDefault(lemma, DiagramNodeSizing.MIN_MATCH_COUNT);
+            final int radius = DiagramNodeSizing.radiusFor(count, maxCount);
             final boolean approved = approvedLemmas.contains(lemma);
             json.append('{');
-            json.append("\"id\":\"").append(escapeJson(lemma)).append('"');
-            json.append(",\"name\":\"").append(escapeJson(displayName.getOrDefault(lemma, lemma))).append('"');
+            json.append("\"id\":\"").append(DiagramJson.escape(lemma)).append('"');
+            json.append(",\"name\":\"").append(DiagramJson.escape(displayName.getOrDefault(lemma, lemma))).append('"');
             final String sd = subdomainByLemma.getOrDefault(lemma, "");
             if (!sd.isEmpty()) {
-                json.append(",\"subdomain\":\"").append(escapeJson(sd)).append('"');
+                json.append(",\"subdomain\":\"").append(DiagramJson.escape(sd)).append('"');
             }
-            json.append(",\"pos\":\"").append(escapeJson(pos)).append('"');
-            json.append(",\"color\":\"").append(posColor(pos)).append('"');
+            json.append(",\"pos\":\"").append(DiagramJson.escape(pos)).append('"');
+            json.append(",\"color\":\"").append(PosPalette.color(pos)).append('"');
             json.append(",\"r\":").append(radius);
             json.append(",\"approved\":").append(approved);
             final Long candId = candidateIdByLemma.get(lemma);
             final String objType = objectTypeByLemma.get(lemma);
             if (candId != null && objType != null) {
                 json.append(",\"candidateId\":").append(candId);
-                json.append(",\"objectType\":\"").append(escapeJson(objType)).append('"');
+                json.append(",\"objectType\":\"").append(DiagramJson.escape(objType)).append('"');
             }
             json.append('}');
             first = false;
@@ -257,13 +247,13 @@ public class DomainModelDiagramsD3 {
         boolean first = true;
         for (final TypedDependency td : dependencies) {
             if (!first) json.append(',');
-            final String src = lower(td.getGovernorLemma());
-            final String tgt = lower(td.getDependentLemma());
+            final String src = DiagramLemmas.lower(td.getGovernorLemma());
+            final String tgt = DiagramLemmas.lower(td.getDependentLemma());
             json.append('{');
-            json.append("\"source\":\"").append(escapeJson(src)).append('"');
-            json.append(",\"target\":\"").append(escapeJson(tgt)).append('"');
+            json.append("\"source\":\"").append(DiagramJson.escape(src)).append('"');
+            json.append(",\"target\":\"").append(DiagramJson.escape(tgt)).append('"');
             if (td.getType() != null) {
-                json.append(",\"label\":\"").append(escapeJson(td.getType().getCode())).append('"');
+                json.append(",\"label\":\"").append(DiagramJson.escape(td.getType().getCode())).append('"');
             }
             json.append('}');
             first = false;
@@ -340,7 +330,7 @@ public class DomainModelDiagramsD3 {
 
     /**
      * All possible legend entries, ordered by semantic category.  The first matching entry wins.
-     * The POS codes here must stay in sync with {@link #posColor(String)}.
+     * The POS codes here must stay in sync with {@link PosPalette#color(String)}.
      */
     private static final List<LegendEntry> LEGEND_ENTRIES = List.of(
             new LegendEntry("#3498DB", "Noun", "Entities and objects (NN, NNS)", Set.of("NN", "NNS")),
@@ -354,32 +344,13 @@ public class DomainModelDiagramsD3 {
             new LegendEntry("#AAB7B8", "Other", "Other parts of speech", Set.of())
     );
 
-    // ============ Lemma metadata helpers ============
-
-    /** Records a PartOfSpeechType code for a lemma, skipping null. */
-    private static void accumulatePos(final Map<String, Set<String>> posByLemma,
-                                       final String lemma,
-                                       final domox.dom.nlp.PartOfSpeechType pos) {
-        if (pos == null) return;
-        final String code = pos.getCode();
-        if (code != null && !code.isEmpty()) {
-            posByLemma.computeIfAbsent(lemma, k -> new LinkedHashSet<>()).add(code);
-        }
-    }
-
-    /** Returns the first POS code from the set, or empty string if null/empty. */
-    private static String firstPos(final Set<String> posSet) {
-        if (posSet == null || posSet.isEmpty()) return "";
-        return posSet.iterator().next();
-    }
-
     /** Lower-cased lemmas of approved candidates (bold border in D3). */
     private static Set<String> approvedLemmasSet(final List<Candidate> candidates) {
         final Set<String> lemmas = new HashSet<>();
         for (final Candidate c : candidates) {
             if (c != null && c.getReviews() != null
                     && c.getReviews().stream().anyMatch(r -> r != null && r.getStatus() == ReviewStatus.APPROVED)) {
-                lemmas.add(lower(c.getCandidateName()));
+                lemmas.add(DiagramLemmas.lower(c.getCandidateName()));
             }
         }
         return lemmas;
@@ -410,8 +381,8 @@ public class DomainModelDiagramsD3 {
         for (final Candidate c : candidates) {
             if (c == null || c.getCandidateName() == null) continue;
             // Only association-typed candidates are considered synthetic compounds.
-            if (!"Association".equals(typeLabel(c.getCandidateType()))) continue;
-            final String lemma = lower(c.getCandidateName());
+            if (!"Association".equals(DiagramLemmas.typeLabel(c.getCandidateType()))) continue;
+            final String lemma = DiagramLemmas.lower(c.getCandidateName());
             // Compound of the form "X_Y" — split on the (single) underscore separator.
             final int sep = lemma.indexOf('_');
             if (sep <= 0 || sep >= lemma.length() - 1) continue;
@@ -423,36 +394,6 @@ public class DomainModelDiagramsD3 {
             }
         }
         return artifactLemmas;
-    }
-
-    // ============ Node sizing and colour ============
-
-    /** Linear scale: count 1 → 1.0, maxCount → MAX_SCALE. Clamped below 1. */
-    private static double scaleFor(final int count, final int maxCount) {
-        if (maxCount <= MIN_MATCH_COUNT) return 1.0;
-        final int n = Math.max(count, MIN_MATCH_COUNT);
-        return 1.0 + (MAX_SCALE - 1.0) * (n - MIN_MATCH_COUNT) / (maxCount - MIN_MATCH_COUNT);
-    }
-
-    /**
-     * Penn POS code → fill colour. Mirrors {@code LexicalGraphGenerator.posColor}.
-     */
-    private static String posColor(final String pos) {
-        return switch (pos) {
-            case "NN", "NNS" -> "#3498DB";
-            case "VB", "VBZ", "VBD", "VBG", "VBN", "VBP" -> "#E74C3C";
-            case "JJ", "JJR", "JJS" -> "#2ECC71";
-            case "DT" -> "#F39C12";
-            case "PRP", "PRP$" -> "#9B59B6";
-            case "IN" -> "#17A2B8";
-            case "RB" -> "#FFBB28";
-            case "CD" -> "#F1C40F";
-            case "CC" -> "#00C49F";
-            case "WDT", "WP", "WP$", "WRB" -> "#9B59B6";
-            case "NNP", "NNPS" -> "#85C1E9";
-            case ",", ".", "!", "?", ";", ":" -> "#FFFFFF";
-            default -> "#AAB7B8";
-        };
     }
 
     /**
@@ -499,7 +440,7 @@ public class DomainModelDiagramsD3 {
      */
     private static Set<String> candidateLemmas(final List<Candidate> allCandidates) {
         final Set<String> lemmas = new HashSet<>();
-        allCandidates.forEach(c -> lemmas.add(lower(c.getCandidateName())));
+        allCandidates.forEach(c -> lemmas.add(DiagramLemmas.lower(c.getCandidateName())));
         return lemmas;
     }
 
@@ -511,7 +452,7 @@ public class DomainModelDiagramsD3 {
     private static Map<String, List<Candidate>> candidatesByLemma(final List<Candidate> allCandidates) {
         final Map<String, List<Candidate>> byLemma = new HashMap<>();
         allCandidates.forEach(c ->
-                byLemma.computeIfAbsent(lower(c.getCandidateName()), k -> new ArrayList<>()).add(c));
+                byLemma.computeIfAbsent(DiagramLemmas.lower(c.getCandidateName()), k -> new ArrayList<>()).add(c));
         return byLemma;
     }
 
@@ -561,7 +502,7 @@ public class DomainModelDiagramsD3 {
                                               final Map<String, List<Candidate>> candidatesByLemma,
                                               final Set<Candidate> visited,
                                               final Set<Candidate> nextFrontier) {
-        for (final Candidate candidate : candidatesByLemma.getOrDefault(lower(lemma), List.of())) {
+        for (final Candidate candidate : candidatesByLemma.getOrDefault(DiagramLemmas.lower(lemma), List.of())) {
             if (!visited.contains(candidate)) {
                 nextFrontier.add(candidate);
             }
@@ -574,51 +515,7 @@ public class DomainModelDiagramsD3 {
      * {@link domox.dom.requirements.Documents#renderDiagram} and {@link CandidateDiagrams}.
      */
     private static boolean bothEndpointsAreCandidates(final TypedDependency td, final Set<String> candidateLemmas) {
-        return candidateLemmas.contains(lower(td.getGovernorLemma()))
-                && candidateLemmas.contains(lower(td.getDependentLemma()));
-    }
-
-    private static String lower(final String s) {
-        return s == null ? "" : s.toLowerCase(Locale.ROOT);
-    }
-
-    /** Friendly label of a candidate type, e.g. {@code ClassCdd} → {@code Class}. */
-    private static String typeLabel(final String candidateType) {
-        if (candidateType == null || candidateType.isEmpty()) {
-            return "Domain";
-        }
-        return candidateType.endsWith("Cdd")
-                ? candidateType.substring(0, candidateType.length() - 3)
-                : candidateType;
-    }
-
-    /**
-     * Minimal JSON string escaping: backslash, double-quote, and control characters.
-     */
-    private static String escapeJson(final String s) {
-        if (s == null || s.isEmpty()) {
-            return "";
-        }
-        final StringBuilder out = new StringBuilder(s.length() + 8);
-        for (int i = 0; i < s.length(); i++) {
-            final char c = s.charAt(i);
-            switch (c) {
-                case '\\' -> out.append("\\\\");
-                case '"' ->  out.append("\\\"");
-                case '\b' -> out.append("\\b");
-                case '\f' -> out.append("\\f");
-                case '\n' -> out.append("\\n");
-                case '\r' -> out.append("\\r");
-                case '\t' -> out.append("\\t");
-                default -> {
-                    if (c < 0x20) {
-                        out.append(String.format("\\u%04x", (int) c));
-                    } else {
-                        out.append(c);
-                    }
-                }
-            }
-        }
-        return out.toString();
+        return candidateLemmas.contains(DiagramLemmas.lower(td.getGovernorLemma()))
+                && candidateLemmas.contains(DiagramLemmas.lower(td.getDependentLemma()));
     }
 }

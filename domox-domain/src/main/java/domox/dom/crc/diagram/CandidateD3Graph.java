@@ -8,7 +8,6 @@ import domox.dom.crc.service.AttributeCandidates;
 import domox.dom.crc.service.ClassCandidates;
 import domox.dom.crc.service.CollaboratorCandidates;
 import domox.dom.crc.service.ResponsibilityCandidates;
-import domox.dom.nlp.PartOfSpeechType;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
 import jakarta.annotation.Priority;
@@ -71,15 +70,6 @@ public class CandidateD3Graph {
 
     private static final Logger log = LoggerFactory.getLogger(CandidateD3Graph.class);
 
-    /** Base node radius (px), enlarged proportionally to rule-match count. */
-    private static final double NODE_BASE_RADIUS = 8.0;
-
-    /** Rule-match count that maps to scale 1 (no enlargement). */
-    private static final int MIN_MATCH_COUNT = 1;
-
-    /** Rule-match count of the largest node maps to scale 4. */
-    private static final double MAX_SCALE = 4.0;
-
     private final ClassCandidates classCandidates;
     private final ResponsibilityCandidates responsibilityCandidates;
     private final AttributeCandidates attributeCandidates;
@@ -139,41 +129,41 @@ public class CandidateD3Graph {
         // Remove association-artifact edges.
         final Set<String> artifactLemmas = associationArtifactLemmas(allCandidates, candidateLemmas);
         dependencies.removeIf(td -> td != null && (
-                artifactLemmas.contains(lower(td.getGovernorLemma())) ||
-                artifactLemmas.contains(lower(td.getDependentLemma()))));
+                artifactLemmas.contains(DiagramLemmas.lower(td.getGovernorLemma())) ||
+                artifactLemmas.contains(DiagramLemmas.lower(td.getDependentLemma()))));
 
         // Per-lemma metadata: POS codes and rule-match counts.
         final Map<String, Set<String>> posByLemma = new LinkedHashMap<>();
         final Map<String, Integer> countByLemma = new HashMap<>();
         for (final TypedDependency td : dependencies) {
             if (td == null) continue;
-            accumulatePos(posByLemma, lower(td.getGovernorLemma()), td.getGovernorPos());
-            accumulatePos(posByLemma, lower(td.getDependentLemma()), td.getDependentPos());
+            DiagramLemmas.accumulatePos(posByLemma, DiagramLemmas.lower(td.getGovernorLemma()), td.getGovernorPos());
+            DiagramLemmas.accumulatePos(posByLemma, DiagramLemmas.lower(td.getDependentLemma()), td.getDependentPos());
             final int matches = td.getRuleMatches() != null ? td.getRuleMatches().size() : 0;
-            countByLemma.merge(lower(td.getGovernorLemma()), matches, Integer::sum);
-            countByLemma.merge(lower(td.getDependentLemma()), matches, Integer::sum);
+            countByLemma.merge(DiagramLemmas.lower(td.getGovernorLemma()), matches, Integer::sum);
+            countByLemma.merge(DiagramLemmas.lower(td.getDependentLemma()), matches, Integer::sum);
         }
 
         // Every lemma that becomes a node.
         final Set<String> nodeLemmas = new LinkedHashSet<>();
-        nodeLemmas.add(lower(candidate.getCandidateName()));
+        nodeLemmas.add(DiagramLemmas.lower(candidate.getCandidateName()));
         for (final TypedDependency td : dependencies) {
             if (td == null) continue;
-            nodeLemmas.add(lower(td.getGovernorLemma()));
-            nodeLemmas.add(lower(td.getDependentLemma()));
+            nodeLemmas.add(DiagramLemmas.lower(td.getGovernorLemma()));
+            nodeLemmas.add(DiagramLemmas.lower(td.getDependentLemma()));
         }
         nodeLemmas.removeAll(artifactLemmas);
         if (nodeLemmas.isEmpty()) {
-            nodeLemmas.add(lower(candidate.getCandidateName()));
+            nodeLemmas.add(DiagramLemmas.lower(candidate.getCandidateName()));
         }
 
         final int maxCount = countByLemma.values().stream()
-                .mapToInt(Integer::intValue).max().orElse(MIN_MATCH_COUNT);
+                .mapToInt(Integer::intValue).max().orElse(DiagramNodeSizing.MIN_MATCH_COUNT);
 
         // Lemma → display name (original casing).
         final Map<String, String> displayName = new HashMap<>();
         final String seedName = candidate.getCandidateName();
-        displayName.put(lower(seedName), seedName != null ? seedName : "");
+        displayName.put(DiagramLemmas.lower(seedName), seedName != null ? seedName : "");
         for (final String lemma : nodeLemmas) {
             final List<Candidate> cs = candidatesByLemma.get(lemma);
             if (cs != null && !cs.isEmpty()) {
@@ -186,7 +176,7 @@ public class CandidateD3Graph {
         for (final Candidate c : allCandidates) {
             if (c instanceof ClassCdd cc && cc.getSubDomain() != null
                     && cc.getSubDomain().getName() != null) {
-                classSubdomainByLemma.put(lower(c.getCandidateName()), cc.getSubDomain().getName());
+                classSubdomainByLemma.put(DiagramLemmas.lower(c.getCandidateName()), cc.getSubDomain().getName());
             }
         }
         final Map<String, String> subdomainByLemma = new HashMap<>();
@@ -249,27 +239,27 @@ public class CandidateD3Graph {
         boolean first = true;
         for (final String lemma : nodeLemmas) {
             if (!first) json.append(',');
-            final String pos = firstPos(posByLemma.get(lemma));
-            final int count = countByLemma.getOrDefault(lemma, MIN_MATCH_COUNT);
-            final int radius = (int) Math.round(scaleFor(count, maxCount) * NODE_BASE_RADIUS);
+            final String pos = DiagramLemmas.firstPos(posByLemma.get(lemma));
+            final int count = countByLemma.getOrDefault(lemma, DiagramNodeSizing.MIN_MATCH_COUNT);
+            final int radius = DiagramNodeSizing.radiusFor(count, maxCount);
             final boolean approved = approvedLemmas.contains(lemma);
             final boolean hasCandidateLink = candidateIdByLemma.containsKey(lemma)
                     && objectTypeByLemma.containsKey(lemma);
             json.append('{');
-            json.append("\"id\":\"").append(escapeJson(lemma)).append('"');
-            json.append(",\"name\":\"").append(escapeJson(displayName.getOrDefault(lemma, lemma))).append('"');
+            json.append("\"id\":\"").append(DiagramJson.escape(lemma)).append('"');
+            json.append(",\"name\":\"").append(DiagramJson.escape(displayName.getOrDefault(lemma, lemma))).append('"');
             final String sd = subdomainByLemma.getOrDefault(lemma, "");
             if (!sd.isEmpty()) {
-                json.append(",\"subdomain\":\"").append(escapeJson(sd)).append('"');
+                json.append(",\"subdomain\":\"").append(DiagramJson.escape(sd)).append('"');
             }
-            json.append(",\"pos\":\"").append(escapeJson(pos)).append('"');
-            json.append(",\"color\":\"").append(posColor(pos)).append('"');
+            json.append(",\"pos\":\"").append(DiagramJson.escape(pos)).append('"');
+            json.append(",\"color\":\"").append(PosPalette.color(pos)).append('"');
             json.append(",\"r\":").append(radius);
             json.append(",\"approved\":").append(approved);
             json.append(",\"isCandidateColumn\":").append(hasCandidateLink);
             if (hasCandidateLink) {
                 json.append(",\"candidateId\":").append(candidateIdByLemma.get(lemma));
-                json.append(",\"objectType\":\"").append(escapeJson(objectTypeByLemma.get(lemma))).append('"');
+                json.append(",\"objectType\":\"").append(DiagramJson.escape(objectTypeByLemma.get(lemma))).append('"');
             }
             json.append('}');
             first = false;
@@ -287,13 +277,13 @@ public class CandidateD3Graph {
         for (final TypedDependency td : dependencies) {
             if (td == null) continue;
             if (!first) json.append(',');
-            final String src = lower(td.getGovernorLemma());
-            final String tgt = lower(td.getDependentLemma());
+            final String src = DiagramLemmas.lower(td.getGovernorLemma());
+            final String tgt = DiagramLemmas.lower(td.getDependentLemma());
             json.append('{');
-            json.append("\"source\":\"").append(escapeJson(src)).append('"');
-            json.append(",\"target\":\"").append(escapeJson(tgt)).append('"');
+            json.append("\"source\":\"").append(DiagramJson.escape(src)).append('"');
+            json.append(",\"target\":\"").append(DiagramJson.escape(tgt)).append('"');
             if (td.getType() != null) {
-                json.append(",\"label\":\"").append(escapeJson(td.getType().getCode())).append('"');
+                json.append(",\"label\":\"").append(DiagramJson.escape(td.getType().getCode())).append('"');
             }
             json.append('}');
             first = false;
@@ -365,7 +355,7 @@ public class CandidateD3Graph {
 
     /**
      * All possible legend entries, ordered by semantic category.  The first matching entry wins.
-     * The POS codes here must stay in sync with {@link #posColor(String)}.
+     * The POS codes here must stay in sync with {@link PosPalette#color(String)}.
      */
     private static final List<LegendEntry> LEGEND_ENTRIES = List.of(
             new LegendEntry("#3498DB", "Noun", "Entities and objects (NN, NNS)", Set.of("NN", "NNS")),
@@ -401,7 +391,7 @@ public class CandidateD3Graph {
     /** The lower-cased candidate names of the snapshot. */
     private static Set<String> candidateLemmas(final List<Candidate> allCandidates) {
         final Set<String> lemmas = new HashSet<>();
-        allCandidates.forEach(c -> lemmas.add(lower(c.getCandidateName())));
+        allCandidates.forEach(c -> lemmas.add(DiagramLemmas.lower(c.getCandidateName())));
         return lemmas;
     }
 
@@ -409,7 +399,7 @@ public class CandidateD3Graph {
     private static Map<String, List<Candidate>> candidatesByLemma(final List<Candidate> allCandidates) {
         final Map<String, List<Candidate>> byLemma = new HashMap<>();
         allCandidates.forEach(c ->
-                byLemma.computeIfAbsent(lower(c.getCandidateName()), k -> new ArrayList<>()).add(c));
+                byLemma.computeIfAbsent(DiagramLemmas.lower(c.getCandidateName()), k -> new ArrayList<>()).add(c));
         return byLemma;
     }
 
@@ -460,7 +450,7 @@ public class CandidateD3Graph {
             final Map<String, List<Candidate>> candidatesByLemma,
             final Set<Candidate> visited,
             final Set<Candidate> nextFrontier) {
-        for (final Candidate candidate : candidatesByLemma.getOrDefault(lower(lemma), List.of())) {
+        for (final Candidate candidate : candidatesByLemma.getOrDefault(DiagramLemmas.lower(lemma), List.of())) {
             if (!visited.contains(candidate)) {
                 nextFrontier.add(candidate);
             }
@@ -470,8 +460,8 @@ public class CandidateD3Graph {
     /** Keeps only dependencies whose governor and dependent lemma are both candidate words. */
     private static boolean bothEndpointsAreCandidates(final TypedDependency td,
                                                       final Set<String> candidateLemmas) {
-        return candidateLemmas.contains(lower(td.getGovernorLemma()))
-                && candidateLemmas.contains(lower(td.getDependentLemma()));
+        return candidateLemmas.contains(DiagramLemmas.lower(td.getGovernorLemma()))
+                && candidateLemmas.contains(DiagramLemmas.lower(td.getDependentLemma()));
     }
 
     /** Lower-cased lemmas of approved candidates (bold border in the graph). */
@@ -480,7 +470,7 @@ public class CandidateD3Graph {
         for (final Candidate c : candidates) {
             if (c != null && c.getReviews() != null
                     && c.getReviews().stream().anyMatch(r -> r != null && r.getStatus() == ReviewStatus.APPROVED)) {
-                lemmas.add(lower(c.getCandidateName()));
+                lemmas.add(DiagramLemmas.lower(c.getCandidateName()));
             }
         }
         return lemmas;
@@ -496,8 +486,8 @@ public class CandidateD3Graph {
         final Set<String> artifactLemmas = new HashSet<>();
         for (final Candidate c : candidates) {
             if (c == null || c.getCandidateName() == null) continue;
-            if (!"Association".equals(typeLabel(c.getCandidateType()))) continue;
-            final String lemma = lower(c.getCandidateName());
+            if (!"Association".equals(DiagramLemmas.typeLabel(c.getCandidateType()))) continue;
+            final String lemma = DiagramLemmas.lower(c.getCandidateName());
             final int sep = lemma.indexOf('_');
             if (sep <= 0 || sep >= lemma.length() - 1) continue;
             final String left = lemma.substring(0, sep);
@@ -509,97 +499,4 @@ public class CandidateD3Graph {
         return artifactLemmas;
     }
 
-    /** Friendly label of a candidate type, e.g. {@code ClassCdd} → {@code Class}. */
-    private static String typeLabel(final String candidateType) {
-        if (candidateType == null || candidateType.isEmpty()) {
-            return "Domain";
-        }
-        return candidateType.endsWith("Cdd")
-                ? candidateType.substring(0, candidateType.length() - 3)
-                : candidateType;
-    }
-
-    // ============ Node metadata ============
-
-    /** Records a POS code for a lemma, skipping null. */
-    private static void accumulatePos(final Map<String, Set<String>> posByLemma,
-                                      final String lemma,
-                                      final PartOfSpeechType pos) {
-        if (pos == null) return;
-        final String code = pos.getCode();
-        if (code != null && !code.isEmpty()) {
-            posByLemma.computeIfAbsent(lemma, k -> new LinkedHashSet<>()).add(code);
-        }
-    }
-
-    /** First POS code from the set, or empty string when null/empty. */
-    private static String firstPos(final Set<String> posSet) {
-        if (posSet == null || posSet.isEmpty()) return "";
-        return posSet.iterator().next();
-    }
-
-    /** Linear scale: count 1 → 1.0, maxCount → MAX_SCALE. Clamped below 1. */
-    private static double scaleFor(final int count, final int maxCount) {
-        if (maxCount <= MIN_MATCH_COUNT) return 1.0;
-        final int n = Math.max(count, MIN_MATCH_COUNT);
-        return 1.0 + (MAX_SCALE - 1.0) * (n - MIN_MATCH_COUNT) / (maxCount - MIN_MATCH_COUNT);
-    }
-
-    /**
-     * Penn POS code → fill colour. Mirrors the colour mapping in
-     * {@link DomainModelDiagramsD3#posColor(String)}.
-     */
-    private static String posColor(final String pos) {
-        return switch (pos) {
-            case "NN", "NNS" -> "#3498DB";
-            case "VB", "VBZ", "VBD", "VBG", "VBN", "VBP" -> "#E74C3C";
-            case "JJ", "JJR", "JJS" -> "#2ECC71";
-            case "DT" -> "#F39C12";
-            case "PRP", "PRP$" -> "#9B59B6";
-            case "IN" -> "#17A2B8";
-            case "RB" -> "#FFBB28";
-            case "CD" -> "#F1C40F";
-            case "CC" -> "#00C49F";
-            case "WDT", "WP", "WP$", "WRB" -> "#9B59B6";
-            case "NNP", "NNPS" -> "#85C1E9";
-            case ",", ".", "!", "?", ";", ":" -> "#FFFFFF";
-            default -> "#AAB7B8";
-        };
-    }
-
-    // ============ misc helpers ============
-
-    private static String lower(final String s) {
-        return s == null ? "" : s.toLowerCase(Locale.ROOT);
-    }
-
-    /**
-     * Minimal JSON string escaping: backslash, double-quote, and control characters.
-     */
-    private static String escapeJson(final String s) {
-        if (s == null || s.isEmpty()) {
-            return "";
-        }
-        final StringBuilder out = new StringBuilder(s.length() + 8);
-        for (int i = 0; i < s.length(); i++) {
-            final char c = s.charAt(i);
-            switch (c) {
-                case '\\' -> out.append("\\\\");
-                case '"' ->  out.append("\\\"");
-                case '\b' -> out.append("\\b");
-                case '\f' -> out.append("\\f");
-                case '\n' -> out.append("\\n");
-                case '\r' -> out.append("\\r");
-                case '\t' -> out.append("\\t");
-                default -> {
-                    if (c < 0x20) {
-                        out.append(String.format("\\u%04x", (int) c));
-                    } else {
-                        out.append(c);
-                    }
-                }
-            }
-        }
-        return out.toString();
-    }
 }

@@ -10,12 +10,20 @@ hides everything that matters.  The module average was carried for a long time b
 makes that visible, and keeps it visible: the extracted types are the ones a future change is most
 likely to break, since nothing else asserts on their behaviour directly.
 
+The same reasoning covers the second wave of extractions: the diagram collaborators shared by
+`CandidateD3Graph` / `CandidateVegaGraph` / `DomainModelDiagramsD3` (`DiagramNodeSizing`,
+`DiagramJson`, `DiagramLemmas`, `PosPalette`) and the per-vocabulary collaborators carved out of
+`TypedDependencyPredicates` (`BasicAttributeVocabulary`, `BlockedVerbVocabulary`,
+`NounTypeVocabulary`, `ActionVocabulary`, `GeneralizationVocabulary`, `SynonymVocabulary`).  Both
+sets were pulled out of larger classes whose end-to-end tests exercised them only incidentally, so
+they need their own floors for the same reason.
+
 The floors are set just below what the per-collaborator tests achieve, so they fail on a *regression*
 (a new branch left untested, a test deleted) rather than on an unrelated refactor that moves the
 denominator.
 
 Usage:
-  scripts/pitest-floors.py                            # the eight floor classes, exit 0 either way
+  scripts/pitest-floors.py                            # the floor classes, exit 0 either way
   scripts/pitest-floors.py --check                    # exit 1 when any class is below its floor
   scripts/pitest-floors.py --table                    # every class in the report, floor classes marked
   scripts/pitest-floors.py --detail OrthogonalRouter  # the mutants no test killed, with line + mutator
@@ -62,12 +70,13 @@ DEFAULT_REPORT = os.path.join("domox-domain", "target", "pit-reports", "mutation
 SOURCE_ROOTS = (os.path.join("domox-domain", "src"), os.path.join("domox-domain", "pom.xml"), "pom.xml")
 SOURCE_SUFFIXES = (".java", ".kt")
 
-# The extracted UML-layout collaborators, and the kill rate each must keep.  See the module docstring.
+# The extracted collaborators, and the kill rate each must keep.  See the module docstring.
 # Each floor sits a few points below what the per-collaborator tests achieve, so a regression trips it
 # while an unrelated refactor that moves the denominator does not.
 #
-#   class                achieved  floor   (achieved when the floors were set, 2026-11)
+#   class                       achieved  floor   (achieved when the floors were set, 2026-11)
 FLOORS = {
+    # --- the eight UML-layout collaborators extracted from UmlLayoutDiagrams ---
     "RouteScoring": 45,       # 54 %  — the fallback chooser, unreachable from the end-to-end test
     "LabelLayout": 70,        # 78 %
     "LabelMetrics": 85,       # 92 %
@@ -76,6 +85,22 @@ FLOORS = {
     "OrthogonalRouter": 60,   # 67 %
     "DiagramIndex": 75,       # 83 %
     "DiagramJsonWriter": 80,  # 88 %
+
+    # --- the diagram collaborators shared by CandidateD3Graph / CandidateVegaGraph /
+    #     DomainModelDiagramsD3, and the per-vocabulary collaborators carved out of
+    #     TypedDependencyPredicates ---
+    # Each scored 100 % when its per-collaborator test class landed.  The floors sit one or two
+    # mutants below that (e.g. 4 of 5 mutants is 80 %), so one new untested branch trips them.
+    "DiagramNodeSizing": 90,          # 100 %  (11 mutants)
+    "DiagramJson": 85,                # 100 %  (8)
+    "DiagramLemmas": 90,              # 100 %  (15)
+    "PosPalette": 80,                 # 100 %  (1)
+    "BasicAttributeVocabulary": 80,   # 100 %  (5)
+    "BlockedVerbVocabulary": 80,      # 100 %  (6)
+    "NounTypeVocabulary": 80,         # 100 %  (5)
+    "ActionVocabulary": 90,           # 100 %  (13)
+    "GeneralizationVocabulary": 90,   # 100 %  (28)
+    "SynonymVocabulary": 80,          # 100 %  (6)
 }
 
 # Statuses that count as a detected defect.
@@ -155,7 +180,7 @@ def stale_sources(report, roots, suffixes):
 
 
 def print_floor_table(classes):
-    """The eight floor classes and whether each meets its floor.  Returns the below-floor list."""
+    """Every floor class and whether each meets its floor.  Returns the below-floor list."""
     print(f"{'class':<20} {'killed':>7} {'total':>7} {'rate':>6}  {'floor':>5}")
     for name, floor in sorted(FLOORS.items()):
         counts = classes.get(name)

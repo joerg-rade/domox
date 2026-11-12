@@ -1,5 +1,11 @@
 package domox.dom.nlp;
 
+import domox.dom.nlp.vocab.ActionVocabulary;
+import domox.dom.nlp.vocab.BasicAttributeVocabulary;
+import domox.dom.nlp.vocab.BlockedVerbVocabulary;
+import domox.dom.nlp.vocab.GeneralizationVocabulary;
+import domox.dom.nlp.vocab.NounTypeVocabulary;
+import domox.dom.nlp.vocab.SynonymVocabulary;
 import domox.dom.rules.NounType;
 
 import java.util.*;
@@ -29,28 +35,18 @@ public final class TypedDependencyPredicates {
         return td.getGovernorPos() != null && VERB_TYPES.contains(td.getGovernorPos());
     }
 
-    //region BLOCKED_VERBS (populated from config by BlockedVerbCatalog)
-    private static final Set<String> BLOCKED_VERBS = new HashSet<>();
-
-    /**
-     * Reset to empty set (for testing purposes).
-     */
+    //region BLOCKED_VERBS (registry owned by BlockedVerbVocabulary)
+    /** Reset to empty set (for testing purposes). */
     public static void resetBlockedVerbs() {
-        BLOCKED_VERBS.clear();
+        BlockedVerbVocabulary.reset();
     }
 
     public static void registerBlockedVerbs(Collection<String> verbs) {
-        if (verbs != null) {
-            for (String verb : verbs) {
-                if (verb != null) {
-                    BLOCKED_VERBS.add(verb.toLowerCase(Locale.ROOT));
-                }
-            }
-        }
+        BlockedVerbVocabulary.register(verbs);
     }
 
     public static boolean isBlockedVerb(String verb) {
-        return verb != null && BLOCKED_VERBS.contains(verb.toLowerCase(Locale.ROOT));
+        return BlockedVerbVocabulary.contains(verb);
     }
     // endregion
 
@@ -62,44 +58,32 @@ public final class TypedDependencyPredicates {
         return td.getType() == TdType.COMPOUND;
     }
 
-    //region BASIC_ATTRIB (populated from config by BasicAttributeCatalog)
-    private static final Set<String> BASIC_ATTRIB = new HashSet<>();
-
-    /**
-     * Reset to empty set (for testing purposes).
-     */
+    //region BASIC_ATTRIB (registry owned by BasicAttributeVocabulary)
+    /** Reset to empty set (for testing purposes). */
     public static void resetBasicAttributes() {
-        BASIC_ATTRIB.clear();
+        BasicAttributeVocabulary.reset();
     }
 
     public static void registerBasicAttributes(Collection<String> attributes) {
-        if (attributes != null) {
-            BASIC_ATTRIB.addAll(attributes);
-        }
+        BasicAttributeVocabulary.register(attributes);
     }
 
     public static boolean isBasicAttributeA(TypedDependency td) {
-        final String aName = td.getA();
-        if (aName == null) return false;
-        return BASIC_ATTRIB.contains(aName);
+        return BasicAttributeVocabulary.contains(td.getA());
     }
 
     public static boolean isBasicAttributeB(TypedDependency td) {
-        return td.getB() != null && BASIC_ATTRIB.contains(td.getB());
+        return BasicAttributeVocabulary.contains(td.getB());
     }
     // endregion BASIC_ATTRIB
 
-    //region NOUN_TYPE (populated from config by NounTypeLexicon)
-    private static final Map<String, NounType> NOUN_TYPE_LEXICON = new HashMap<>();
-
+    //region NOUN_TYPE (registry owned by NounTypeVocabulary)
     public static void resetNounTypeLexicon() {
-        NOUN_TYPE_LEXICON.clear();
+        NounTypeVocabulary.reset();
     }
 
     public static void registerNounType(String lemma, NounType type) {
-        if (lemma != null && type != null) {
-            NOUN_TYPE_LEXICON.put(lemma.toLowerCase(Locale.ROOT), type);
-        }
+        NounTypeVocabulary.register(lemma, type);
     }
 
     /**
@@ -107,8 +91,7 @@ public final class TypedDependencyPredicates {
      * typed dependency, or {@code null} if the lemma is not in the lexicon.
      */
     public static NounType nounTypeB(TypedDependency td) {
-        if (td == null || td.getB() == null) return null;
-        return NOUN_TYPE_LEXICON.get(td.getB().toLowerCase(Locale.ROOT));
+        return td == null ? null : NounTypeVocabulary.typeOf(td.getB());
     }
 
     /**
@@ -116,8 +99,7 @@ public final class TypedDependencyPredicates {
      * typed dependency, or {@code null} if the lemma is not in the lexicon.
      */
     public static NounType nounTypeA(TypedDependency td) {
-        if (td == null || td.getA() == null) return null;
-        return NOUN_TYPE_LEXICON.get(td.getA().toLowerCase(Locale.ROOT));
+        return td == null ? null : NounTypeVocabulary.typeOf(td.getA());
     }
 
     /**
@@ -150,52 +132,34 @@ public final class TypedDependencyPredicates {
 
     // endregion NOUN_TYPE
 
-    //region ACTION_VERBS & SERVICE_NOUNS (populated from config by ActionVocabularyCatalog)
-    private static final Set<String> ACTION_VERBS = new HashSet<>();
-    private static final Set<String> SERVICE_NOUNS = new HashSet<>();
-
-    /**
-     * Reset to empty sets (for testing purposes).
-     */
+    //region ACTION_VERBS & SERVICE_NOUNS (registries owned by ActionVocabulary)
+    /** Reset to empty sets (for testing purposes). */
     public static void resetActionVocabularies() {
-        ACTION_VERBS.clear();
-        SERVICE_NOUNS.clear();
+        ActionVocabulary.reset();
     }
 
     public static void registerActionVerbs(Collection<String> verbs) {
-        if (verbs != null) {
-            for (String verb : verbs) {
-                if (verb != null) {
-                    ACTION_VERBS.add(verb.toLowerCase(Locale.ROOT));
-                }
-            }
-        }
+        ActionVocabulary.registerActionVerbs(verbs);
     }
 
     public static void registerServiceNouns(Collection<String> nouns) {
-        if (nouns != null) {
-            for (String noun : nouns) {
-                if (noun != null) {
-                    SERVICE_NOUNS.add(noun.toLowerCase(Locale.ROOT));
-                }
-            }
-        }
+        ActionVocabulary.registerServiceNouns(nouns);
     }
 
     public static boolean isActionVerbA(TypedDependency td) {
-        return td.getA() != null && ACTION_VERBS.contains(td.getA().toLowerCase(Locale.ROOT));
+        return ActionVocabulary.containsActionVerb(td.getA());
     }
 
     public static boolean isActionVerbB(TypedDependency td) {
-        return td.getB() != null && ACTION_VERBS.contains(td.getB().toLowerCase(Locale.ROOT));
+        return ActionVocabulary.containsActionVerb(td.getB());
     }
 
     public static boolean isServiceNounA(TypedDependency td) {
-        return td.getA() != null && SERVICE_NOUNS.contains(td.getA().toLowerCase(Locale.ROOT));
+        return ActionVocabulary.containsServiceNoun(td.getA());
     }
 
     public static boolean isServiceNounB(TypedDependency td) {
-        return td.getB() != null && SERVICE_NOUNS.contains(td.getB().toLowerCase(Locale.ROOT));
+        return ActionVocabulary.containsServiceNoun(td.getB());
     }
     // endregion
 
@@ -352,92 +316,55 @@ public final class TypedDependencyPredicates {
     }
 
 
-    //region BE_VERBS (populated from config by GeneralizationCatalog)
-    private static final Set<String> BE_VERBS = new HashSet<>();
-
-    /**
-     * Reset the BE_VERBS set to empty (for testing purposes).
-     */
+    //region BE_VERBS (registry owned by GeneralizationVocabulary)
+    /** Reset the BE_VERBS set to empty (for testing purposes). */
     public static void resetBeVerbs() {
-        BE_VERBS.clear();
+        GeneralizationVocabulary.resetBeVerbs();
     }
 
     public static void registerBeVerbs(Collection<String> verbs) {
-        if (verbs != null) {
-            for (String verb : verbs) {
-                if (verb != null) {
-                    BE_VERBS.add(verb.toLowerCase(Locale.ROOT));
-                }
-            }
-        }
+        GeneralizationVocabulary.registerBeVerbs(verbs);
     }
 
     /**
      * Returns true if the dependent of this dependency is a form of the copular verb "be".
      */
     public static boolean isBeVerbDependent(TypedDependency td) {
-        String lemma = td.getB();
-        if (lemma == null) return false;
-        return BE_VERBS.contains(lemma.toLowerCase(java.util.Locale.ROOT));
+        return GeneralizationVocabulary.containsBeVerb(td.getB());
     }
     // endregion
 
-    //region INDEFINITE_ARTICLES (populated from config by GeneralizationCatalog)
-    private static final Set<String> INDEFINITE_ARTICLES = new HashSet<>();
-
+    //region INDEFINITE_ARTICLES (registry owned by GeneralizationVocabulary)
     public static void resetIndefiniteArticles() {
-        INDEFINITE_ARTICLES.clear();
+        GeneralizationVocabulary.resetIndefiniteArticles();
     }
 
     public static void registerIndefiniteArticles(Collection<String> articles) {
-        if (articles != null) {
-            for (String article : articles) {
-                if (article != null) {
-                    INDEFINITE_ARTICLES.add(article.toLowerCase(Locale.ROOT));
-                }
-            }
-        }
+        GeneralizationVocabulary.registerIndefiniteArticles(articles);
     }
 
     /**
      * Returns true if the dependent B of this dependency is an indefinite article ("a" or "an").
      */
     public static boolean isIndefiniteArticleDependent(TypedDependency td) {
-        String lemma = td.getB();
-        if (lemma == null) return false;
-        return INDEFINITE_ARTICLES.contains(lemma.toLowerCase(java.util.Locale.ROOT));
+        return GeneralizationVocabulary.containsIndefiniteArticle(td.getB());
     }
     // endregion
 
-    //region KIND_TYPE_SORT_TERMS (populated from config by GeneralizationCatalog)
-    private static final Set<String> KIND_TYPE_SORT_TERMS = new HashSet<>();
-
+    //region KIND_TYPE_SORT_TERMS (registry owned by GeneralizationVocabulary)
     public static void resetKindTypeSortTerms() {
-        KIND_TYPE_SORT_TERMS.clear();
+        GeneralizationVocabulary.resetKindTypeSortTerms();
     }
 
     public static void registerKindTypeSortTerms(Collection<String> terms) {
-        if (terms != null) {
-            for (String term : terms) {
-                if (term != null) {
-                    KIND_TYPE_SORT_TERMS.add(term.toLowerCase(Locale.ROOT));
-                }
-            }
-        }
+        GeneralizationVocabulary.registerKindTypeSortTerms(terms);
     }
 
     /**
      * Returns true if the given string contains any registered kind/type/sort term.
      */
     public static boolean containsKindTypeOrSort(String lemma) {
-        if (lemma == null) return false;
-        String lower = lemma.toLowerCase(java.util.Locale.ROOT);
-        for (String term : KIND_TYPE_SORT_TERMS) {
-            if (lower.contains(term)) {
-                return true;
-            }
-        }
-        return false;
+        return GeneralizationVocabulary.containsKindTypeOrSort(lemma);
     }
 
     /**
@@ -455,57 +382,38 @@ public final class TypedDependencyPredicates {
     }
     // endregion
 
-    //region STOP_ADJECTIVES (populated from config by GeneralizationCatalog)
-    private static final Set<String> STOP_ADJECTIVES = new HashSet<>();
-
+    //region STOP_ADJECTIVES (registry owned by GeneralizationVocabulary)
     public static void resetStopAdjectives() {
-        STOP_ADJECTIVES.clear();
+        GeneralizationVocabulary.resetStopAdjectives();
     }
 
     public static void registerStopAdjectives(Collection<String> adjectives) {
-        if (adjectives != null) {
-            for (String adj : adjectives) {
-                if (adj != null) {
-                    STOP_ADJECTIVES.add(adj.toLowerCase(Locale.ROOT));
-                }
-            }
-        }
+        GeneralizationVocabulary.registerStopAdjectives(adjectives);
     }
 
     /**
-     * Convenience reset for all generalization vocabularies (BE_VERBS, INDEFINITE_ARTICLES, KIND_TYPE_SORT_TERMS, STOP_ADJECTIVES).
+     * Convenience reset for all generalization vocabularies
+     * (BE_VERBS, INDEFINITE_ARTICLES, KIND_TYPE_SORT_TERMS, STOP_ADJECTIVES).
      */
     public static void resetGeneralizationVocabularies() {
-        resetBeVerbs();
-        resetIndefiniteArticles();
-        resetKindTypeSortTerms();
-        resetStopAdjectives();
+        GeneralizationVocabulary.resetAll();
     }
 
     /**
      * Returns true if the given adjective lemma is a stop adjective (evaluative/generic).
      */
     public static boolean isStopAdjective(String lemma) {
-        if (lemma == null) return false;
-        return STOP_ADJECTIVES.contains(lemma.toLowerCase(Locale.ROOT));
+        return GeneralizationVocabulary.containsStopAdjective(lemma);
     }
     // endregion
 
-    //region SYNONYM_MARKERS (populated from config by SynonymCatalog)
-    private static final Set<String> SYNONYM_MARKERS = new HashSet<>();
-
+    //region SYNONYM_MARKERS (registry owned by SynonymVocabulary)
     public static void resetSynonymMarkers() {
-        SYNONYM_MARKERS.clear();
+        SynonymVocabulary.reset();
     }
 
     public static void registerSynonymMarkers(Collection<String> markers) {
-        if (markers != null) {
-            for (String marker : markers) {
-                if (marker != null) {
-                    SYNONYM_MARKERS.add(marker.toLowerCase(Locale.ROOT));
-                }
-            }
-        }
+        SynonymVocabulary.register(markers);
     }
 
     /**
@@ -514,15 +422,14 @@ public final class TypedDependencyPredicates {
      * or "X, referred to as Y" (see SYNONYMS.md §1).
      */
     public static boolean isSynonymMarker(String lemma) {
-        if (lemma == null) return false;
-        return SYNONYM_MARKERS.contains(lemma.toLowerCase(Locale.ROOT));
+        return SynonymVocabulary.contains(lemma);
     }
 
     /**
      * Convenience reset for all synonym vocabularies.
      */
     public static void resetSynonymVocabularies() {
-        resetSynonymMarkers();
+        SynonymVocabulary.reset();
     }
     // endregion
 
