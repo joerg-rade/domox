@@ -5,8 +5,8 @@ package domox.dom.crc.diagram;
  * ({@link CandidateD3Graph}, {@link DomainModelDiagramsD3}).
  * <p>
  * The colour must be identical everywhere so the client legend and the rendered nodes agree.
- * {@link CandidateVegaGraph} uses a coarser {@code PosCategory} grouping instead and does not use
- * this palette.
+ * {@link CandidateVegaGraph} colours its nodes from the coarser {@link PosLegend} categories
+ * instead and does not use this palette.
  */
 public final class PosPalette {
 

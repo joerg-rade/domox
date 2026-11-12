@@ -18,6 +18,12 @@ The same reasoning covers the second wave of extractions: the diagram collaborat
 sets were pulled out of larger classes whose end-to-end tests exercised them only incidentally, so
 they need their own floors for the same reason.
 
+A third wave continued the same cleanup: `CandidateNeighbourhood` and `PosLegend` (the algorithm and
+the POS-legend table that the three lexical diagram renderers each carried a private copy of), and
+`CandidateFactory` + `UseCaseBlockedNouns` (the match-to-candidate mapping and the blocked-noun
+predicate carved out of `RuleMatches`).  Each new class gets a floor; the renderers and
+`RuleMatches` keep their own behaviour pinned by the existing end-to-end tests.
+
 The floors are set just below what the per-collaborator tests achieve, so they fail on a *regression*
 (a new branch left untested, a test deleted) rather than on an unrelated refactor that moves the
 denominator.
@@ -101,6 +107,13 @@ FLOORS = {
     "ActionVocabulary": 90,           # 100 %  (13)
     "GeneralizationVocabulary": 90,   # 100 %  (28)
     "SynonymVocabulary": 80,          # 100 %  (6)
+
+    # --- the third wave: the shared candidate-neighbourhood algorithm and POS legend, and the
+    #     candidate factory carved out of RuleMatches ---
+    "CandidateNeighbourhood": 95,     # 100 %  (48 mutants)
+    "PosLegend": 85,                  # 100 %  (17)
+    "CandidateFactory": 95,           # 100 %  (63)
+    "UseCaseBlockedNouns": 85,        # 100 %  (12)
 }
 
 # Statuses that count as a detected defect.

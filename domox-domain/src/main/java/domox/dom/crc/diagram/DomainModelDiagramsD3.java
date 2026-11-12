@@ -77,9 +77,9 @@ public class DomainModelDiagramsD3 {
                 return null;
             }
             log.debug("Domain model #{}: {} approved candidates", id, approved.size());
-            final Set<String> candidateLemmas = candidateLemmas(allCandidates);
-            final Map<String, List<Candidate>> candidatesByLemma = candidatesByLemma(allCandidates);
-            final List<TypedDependency> dependencies = collectDependencies(
+            final Set<String> candidateLemmas = CandidateNeighbourhood.candidateLemmas(allCandidates);
+            final Map<String, List<Candidate>> candidatesByLemma = CandidateNeighbourhood.candidatesByLemma(allCandidates);
+            final List<TypedDependency> dependencies = CandidateNeighbourhood.collectDependencies(
                     approved, candidateLemmas, candidatesByLemma, 1);
 
             // Remove association-artifact candidate nodes — synthetic Association-typed compounds
@@ -88,22 +88,13 @@ public class DomainModelDiagramsD3 {
             // generalization, association rule).  The participant lemmas and their typed
             // dependency link are kept; only the synthetic compound node (with its empty <<>> POS)
             // is removed from the lexical diagram.
-            final Set<String> artifactLemmas = associationArtifactLemmas(allCandidates, candidateLemmas);
-            dependencies.removeIf(td -> td != null && (
-                    artifactLemmas.contains(DiagramLemmas.lower(td.getGovernorLemma())) ||
-                    artifactLemmas.contains(DiagramLemmas.lower(td.getDependentLemma()))));
+            final Set<String> artifactLemmas = CandidateNeighbourhood.associationArtifactLemmas(allCandidates, candidateLemmas);
+            CandidateNeighbourhood.removeArtifactEdges(dependencies, artifactLemmas);
 
             // Build per-lemma metadata: POS tags and rule-match counts.
-            final Map<String, Set<String>> posByLemma = new LinkedHashMap<>();
-            final Map<String, Integer> countByLemma = new HashMap<>();
-            for (final TypedDependency td : dependencies) {
-                if (td == null) continue;
-                DiagramLemmas.accumulatePos(posByLemma, DiagramLemmas.lower(td.getGovernorLemma()), td.getGovernorPos());
-                DiagramLemmas.accumulatePos(posByLemma, DiagramLemmas.lower(td.getDependentLemma()), td.getDependentPos());
-                final int matches = td.getRuleMatches() != null ? td.getRuleMatches().size() : 0;
-                countByLemma.merge(DiagramLemmas.lower(td.getGovernorLemma()), matches, Integer::sum);
-                countByLemma.merge(DiagramLemmas.lower(td.getDependentLemma()), matches, Integer::sum);
-            }
+            final CandidateNeighbourhood.LemmaMetrics metrics = CandidateNeighbourhood.lemmaMetrics(dependencies);
+            final Map<String, Set<String>> posByLemma = metrics.posByLemma();
+            final Map<String, Integer> countByLemma = metrics.matchCountByLemma();
 
             // Every lemma that becomes a node: approved seeds plus endpoints of dependencies.
             final Set<String> nodeLemmas = new LinkedHashSet<>();
@@ -119,7 +110,7 @@ public class DomainModelDiagramsD3 {
             nodeLemmas.removeAll(artifactLemmas);
 
             // Approved lemma set (bold border).
-            final Set<String> approvedLemmas = approvedLemmasSet(allCandidates);
+            final Set<String> approvedLemmas = CandidateNeighbourhood.approvedLemmas(allCandidates);
 
             // Maximum count for scaling.
             final int maxCount = countByLemma.values().stream()
@@ -179,7 +170,7 @@ public class DomainModelDiagramsD3 {
                     usedPosCodes.addAll(posSet);
                 }
             }
-            appendLegend(json, usedPosCodes);
+            PosLegend.appendLegendJson(json, usedPosCodes);
             json.append('}');
 
             final String result = json.toString();
@@ -262,141 +253,6 @@ public class DomainModelDiagramsD3 {
     }
 
     /**
-     * Appends the {@code "legend"} array: colour swatches for each POS-based fill colour that
-     * actually appears in the diagram nodes, plus a catch-all "Other" entry when there are used
-     * POS codes that do not match any specific category.
-     *
-     * @param json         the JSON buffer being built
-     * @param usedPosCodes the set of POS codes that appear in at least one diagram node
-     */
-    private static void appendLegend(final StringBuilder json, final Set<String> usedPosCodes) {
-        json.append("\"legend\":[");
-        boolean first = true;
-        for (final LegendEntry entry : LEGEND_ENTRIES) {
-            // "Other" entry is shown only when there are POS codes not matched by any specific category.
-            if (entry.posCodes.isEmpty()) {
-                if (hasOtherPos(usedPosCodes)) {
-                    appendLegendEntry(json, entry, first);
-                    first = false;
-                }
-                continue;
-            }
-            if (hasAny(usedPosCodes, entry.posCodes)) {
-                appendLegendEntry(json, entry, first);
-                first = false;
-            }
-        }
-        json.append(']');
-    }
-
-    /** True when at least one {@code usedPosCodes} element is not covered by any specific legend entry. */
-    private static boolean hasOtherPos(final Set<String> usedPosCodes) {
-        final Set<String> covered = new HashSet<>();
-        for (final LegendEntry e : LEGEND_ENTRIES) {
-            if (!e.posCodes.isEmpty()) {
-                covered.addAll(e.posCodes);
-            }
-        }
-        for (final String code : usedPosCodes) {
-            if (!covered.contains(code)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** True when the intersection of {@code used} and {@code candidates} is non-empty. */
-    private static boolean hasAny(final Set<String> used, final Set<String> candidates) {
-        for (final String c : candidates) {
-            if (used.contains(c)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** Appends a single JSON legend entry object, preceded by a comma when not the first entry. */
-    private static void appendLegendEntry(final StringBuilder json, final LegendEntry entry, final boolean first) {
-        if (!first) {
-            json.append(',');
-        }
-        json.append("{\"color\":\"").append(entry.color).append('"')
-                .append(",\"label\":\"").append(entry.label).append('"')
-                .append(",\"description\":\"").append(entry.description).append("\"}");
-    }
-
-    /** A single legend row: fill colour, short label, description, and the POS codes that map to it. */
-    private record LegendEntry(String color, String label, String description, Set<String> posCodes) {}
-
-    /**
-     * All possible legend entries, ordered by semantic category.  The first matching entry wins.
-     * The POS codes here must stay in sync with {@link PosPalette#color(String)}.
-     */
-    private static final List<LegendEntry> LEGEND_ENTRIES = List.of(
-            new LegendEntry("#3498DB", "Noun", "Entities and objects (NN, NNS)", Set.of("NN", "NNS")),
-            new LegendEntry("#85C1E9", "Proper noun", "Named entities (NNP, NNPS)", Set.of("NNP", "NNPS")),
-            new LegendEntry("#E74C3C", "Verb", "Actions and predicates (VB, VBZ)", Set.of("VB", "VBZ", "VBD", "VBG", "VBN", "VBP")),
-            new LegendEntry("#2ECC71", "Adjective", "Descriptors and modifiers (JJ, JJR, JJS)", Set.of("JJ", "JJR", "JJS")),
-            new LegendEntry("#F39C12", "Determiner", "Articles and determiners (DT)", Set.of("DT")),
-            new LegendEntry("#9B59B6", "Pronoun", "Pronouns (PRP, PRP$)", Set.of("PRP", "PRP$", "WDT", "WP", "WP$", "WRB")),
-            new LegendEntry("#17A2B8", "Preposition", "Prepositions (IN)", Set.of("IN")),
-            new LegendEntry("#FFBB28", "Adverb", "Adverbs (RB)", Set.of("RB")),
-            new LegendEntry("#AAB7B8", "Other", "Other parts of speech", Set.of())
-    );
-
-    /** Lower-cased lemmas of approved candidates (bold border in D3). */
-    private static Set<String> approvedLemmasSet(final List<Candidate> candidates) {
-        final Set<String> lemmas = new HashSet<>();
-        for (final Candidate c : candidates) {
-            if (c != null && c.getReviews() != null
-                    && c.getReviews().stream().anyMatch(r -> r != null && r.getStatus() == ReviewStatus.APPROVED)) {
-                lemmas.add(DiagramLemmas.lower(c.getCandidateName()));
-            }
-        }
-        return lemmas;
-    }
-
-    /**
-     * Lower-cased lemmas of <em>association-artifact</em> candidates — synthetic
-     * {@code Association}-typed nodes whose name is a compound of two existing candidate lemmas
-     * joined by {@code _} (e.g. {@code Coverage_Age}, {@code OnlineStore_Store}).  Such
-     * candidates are products of the candidate-extraction rules (synonym TDR41, generalization,
-     * or association rules) and are excluded from the D3 diagram because their derived lemma is
-     * uninformative and their POS label is always empty ({@code <<>>}).
-     * <p>
-     * The <em>participant</em> lemmas (e.g. {@code coverage}, {@code age}) are deliberately
-     * <strong>kept</strong> in the diagram together with their typed-dependency link; only the
-     * synthetic association node is removed.  The originating rule is deliberately not consulted
-     * — the compound-name shape is the criterion, so the filter applies uniformly to every rule
-     * family (synonym, generalization, association rule).
-     * <p>
-     * <strong>Presentational scope only:</strong> this filter affects the <em>lexical</em> D3
-     * rendering.  The association candidates themselves remain in the model — they are required
-     * later for UML class-diagram construction, where generalizations and associations are
-     * first-class citizens.
-     */
-    private static Set<String> associationArtifactLemmas(final List<Candidate> candidates,
-                                                         final Set<String> candidateLemmas) {
-        final Set<String> artifactLemmas = new HashSet<>();
-        for (final Candidate c : candidates) {
-            if (c == null || c.getCandidateName() == null) continue;
-            // Only association-typed candidates are considered synthetic compounds.
-            if (!"Association".equals(DiagramLemmas.typeLabel(c.getCandidateType()))) continue;
-            final String lemma = DiagramLemmas.lower(c.getCandidateName());
-            // Compound of the form "X_Y" — split on the (single) underscore separator.
-            final int sep = lemma.indexOf('_');
-            if (sep <= 0 || sep >= lemma.length() - 1) continue;
-            final String left = lemma.substring(0, sep);
-            final String right = lemma.substring(sep + 1);
-            // Both halves must be real candidate lemmas for this to be a derived compound.
-            if (candidateLemmas.contains(left) && candidateLemmas.contains(right)) {
-                artifactLemmas.add(lemma);
-            }
-        }
-        return artifactLemmas;
-    }
-
-    /**
      * Every candidate owned by the model, in a single snapshot.  Mirrors the per-type candidate.
      */
     private static List<Candidate> candidatesOf(final DomainModel model) {
@@ -431,91 +287,5 @@ public class DomainModelDiagramsD3 {
         return candidate.getReviews() != null
                 && candidate.getReviews().stream()
                         .anyMatch(review -> review != null && review.getStatus() == ReviewStatus.APPROVED);
-    }
-
-    /**
-     * The lower-cased candidate names of the snapshot.  The whitelist spans <em>every</em>
-     * candidate of the model (not just the approved seeds) so the expansion can travel through any
-     * candidate word and draw approved candidates together with their un-approved neighbours.
-     */
-    private static Set<String> candidateLemmas(final List<Candidate> allCandidates) {
-        final Set<String> lemmas = new HashSet<>();
-        allCandidates.forEach(c -> lemmas.add(DiagramLemmas.lower(c.getCandidateName())));
-        return lemmas;
-    }
-
-    /**
-     * Lower-case candidate name → every candidate carrying that name.  A single word can exist
-     * more than once (e.g. the same name across candidate types), and each such candidate
-     * contributes its own {@link RuleMatch}es to the expansion.
-     */
-    private static Map<String, List<Candidate>> candidatesByLemma(final List<Candidate> allCandidates) {
-        final Map<String, List<Candidate>> byLemma = new HashMap<>();
-        allCandidates.forEach(c ->
-                byLemma.computeIfAbsent(DiagramLemmas.lower(c.getCandidateName()), k -> new ArrayList<>()).add(c));
-        return byLemma;
-    }
-
-    /**
-     * Breadth-first traversal of the candidate-connection graph starting from the {@code seeds}
-     * (the model's approved candidates), up to {@code maxDepth} hops, returning the <em>distinct</em>
-     * candidate-restricted dependencies.
-     * <p>
-     * Round 0 expands the approved seeds themselves (their direct connections); round 1 expands
-     * each directly-connected candidate (their connections); and so on.  Every dependency kept is
-     * restricted to candidate words, and candidates already expanded in an earlier round are never
-     * re-expanded, which bounds the traversal even when the candidate graph contains cycles.
-     */
-    private static List<TypedDependency> collectDependencies(final List<Candidate> seeds,
-                                                             final Set<String> candidateLemmas,
-                                                             final Map<String, List<Candidate>> candidatesByLemma,
-                                                             final int maxDepth) {
-        final List<TypedDependency> dependencies = new ArrayList<>();
-        final Set<TypedDependency> seen = new HashSet<>();
-        final Set<Candidate> visited = new HashSet<>();
-        Set<Candidate> frontier = new LinkedHashSet<>(seeds);
-        for (int hop = 0; hop < maxDepth && !frontier.isEmpty(); hop++) {
-            final Set<Candidate> nextFrontier = new LinkedHashSet<>();
-            for (final Candidate candidate : frontier) {
-                visited.add(candidate);
-                for (final RuleMatch ruleMatch : candidate.getRuleMatches()) {
-                    final TypedDependency td = ruleMatch.getTypedDependency();
-                    if (td == null || !bothEndpointsAreCandidates(td, candidateLemmas)) {
-                        continue;
-                    }
-                    if (!seen.add(td)) {
-                        continue;
-                    }
-                    dependencies.add(td);
-                    // The counterpart candidates become the next round's frontier.
-                    addCandidatesForLemma(td.getGovernorLemma(), candidatesByLemma, visited, nextFrontier);
-                    addCandidatesForLemma(td.getDependentLemma(), candidatesByLemma, visited, nextFrontier);
-                }
-            }
-            frontier = nextFrontier;
-        }
-        return dependencies;
-    }
-
-    /** Adds every candidate carrying {@code lemma} that has not yet been expanded to the next frontier. */
-    private static void addCandidatesForLemma(final String lemma,
-                                              final Map<String, List<Candidate>> candidatesByLemma,
-                                              final Set<Candidate> visited,
-                                              final Set<Candidate> nextFrontier) {
-        for (final Candidate candidate : candidatesByLemma.getOrDefault(DiagramLemmas.lower(lemma), List.of())) {
-            if (!visited.contains(candidate)) {
-                nextFrontier.add(candidate);
-            }
-        }
-    }
-
-    /**
-     * Keeps only those typed dependencies whose governor <em>and</em> dependent lemma both
-     * correspond to a candidate word — mirroring the candidate-word restriction applied by
-     * {@link domox.dom.requirements.Documents#renderDiagram} and {@link CandidateDiagrams}.
-     */
-    private static boolean bothEndpointsAreCandidates(final TypedDependency td, final Set<String> candidateLemmas) {
-        return candidateLemmas.contains(DiagramLemmas.lower(td.getGovernorLemma()))
-                && candidateLemmas.contains(DiagramLemmas.lower(td.getDependentLemma()));
     }
 }

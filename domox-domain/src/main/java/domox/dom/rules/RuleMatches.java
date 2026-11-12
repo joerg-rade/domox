@@ -5,14 +5,8 @@ import domox.dom.nlp.Sentence;
 import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.requirements.Document;
-import domox.dom.crc.service.ResponsibilityCandidates;
-import domox.dom.crc.service.CollaboratorCandidates;
-import domox.dom.crc.model.AssociationType;
 import domox.dom.crc.model.Candidate;
-import domox.dom.crc.service.ClassCandidates;
-import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.DomainModel;
-import domox.dom.crc.service.AttributeCandidates;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -28,11 +22,16 @@ import org.apache.causeway.applib.annotation.SemanticsOf;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * The {@link RuleMatch} lifecycle: Phase 1 creates and de-duplicates a match record when a TDR rule
+ * fires, and the read actions expose the accumulated matches in the UI.
+ * <p>
+ * The Phase-2 entry points ({@code createCandidatesFrom*}) are thin facades over
+ * {@link CandidateFactory}, which owns the match-to-candidate mapping — that concern used to be part
+ * of this class.
+ */
 @DomainService
 @Named(DomainModule.NAMESPACE + ".RuleMatches")
 @Priority(PriorityPrecedence.EARLY)
@@ -43,11 +42,8 @@ public class RuleMatches {
     private final FactoryService factoryService;
     private final RuleMatchRepository ruleMatchRepository;
     private final SentenceRepository sentenceRepository;
-    private final ClassCandidates classCandidates;
-    private final AttributeCandidates attributeCandidates;
-    private final ResponsibilityCandidates responsibilityCandidates;
-    private final CollaboratorCandidates collaboratorCandidates;
     private final NlpProperties nlpProperties;
+    private final CandidateFactory candidateFactory;
 
     @Inject
     public RuleMatches(
@@ -55,20 +51,14 @@ public class RuleMatches {
             FactoryService factoryService,
             RuleMatchRepository ruleMatchRepository,
             SentenceRepository sentenceRepository,
-            ClassCandidates classCandidates,
-            AttributeCandidates attributeCandidates,
-            ResponsibilityCandidates responsibilityCandidates,
-            CollaboratorCandidates collaboratorCandidates,
-            NlpProperties nlpProperties) {
+            NlpProperties nlpProperties,
+            CandidateFactory candidateFactory) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
         this.ruleMatchRepository = ruleMatchRepository;
         this.sentenceRepository = sentenceRepository;
-        this.classCandidates = classCandidates;
-        this.attributeCandidates = attributeCandidates;
-        this.responsibilityCandidates = responsibilityCandidates;
-        this.collaboratorCandidates = collaboratorCandidates;
         this.nlpProperties = nlpProperties;
+        this.candidateFactory = candidateFactory;
     }
 
     /**
@@ -159,10 +149,13 @@ public class RuleMatches {
     /**
      * Phase 2: Creates actual Candidate objects from all RuleMatch records.
      * After calling this, the processed RuleMatch records can be removed or marked as processed.
+     * <p>
+     * A thin facade over {@link CandidateFactory}: this service owns the {@link RuleMatch}
+     * lifecycle, the factory owns the match-to-candidate mapping.
      */
     @Programmatic
     public List<Candidate> createCandidatesFromMatches() {
-        return createCandidatesFrom(ruleMatchRepository.findAll());
+        return candidateFactory.createCandidatesFrom(ruleMatchRepository.findAll());
     }
 
     /**
@@ -174,199 +167,32 @@ public class RuleMatches {
      */
     @Programmatic
     public List<Candidate> createCandidatesFrom(final List<RuleMatch> matches) {
-        List<Candidate> candidates = new ArrayList<>();
-        if (matches == null) {
-            return candidates;
-        }
-        final Map<String, Candidate> createdClassCandidates = new HashMap<>();
-        for (RuleMatch match : matches) {
-            if (match == null) {
-                continue;
-            }
-            // For classes (entities), only one candidate per name is created;
-            // additional RuleMatches register on the existing candidate.
-            if ("ClassCdd".equals(match.getCandidateType())) {
-                final Candidate existing = createdClassCandidates.get(match.getCandidateName());
-                if (existing != null) {
-                    existing.addMatchingRule(match);
-                    continue;
-                }
-            }
-            final Candidate candidate = createCandidateFromMatch(match);
-            if (candidate != null) {
-                candidate.addMatchingRule(match);
-                if (candidate instanceof ClassCdd) {
-                    createdClassCandidates.put(candidate.getCandidateName(), candidate);
-                }
-                candidates.add(candidate);
-            }
-        }
-        return candidates;
-    }
-
-    @Programmatic
-    public List<Candidate> createCandidatesFrom(final List<RuleMatch> matches, final DomainModel domainModel) {
-        List<Candidate> candidates = new ArrayList<>();
-        if (matches == null) {
-            return candidates;
-        }
-        final Map<String, Candidate> createdClassCandidates = new HashMap<>();
-        for (RuleMatch match : matches) {
-            if (match == null) {
-                continue;
-            }
-            // For classes (entities), only one candidate per name is created;
-            // additional RuleMatches register on the existing candidate.
-            if ("ClassCdd".equals(match.getCandidateType())) {
-                final Candidate existing = createdClassCandidates.get(match.getCandidateName());
-                if (existing != null) {
-                    existing.addMatchingRule(match);
-                    continue;
-                }
-            }
-            final Candidate candidate = createCandidateFromMatch(match, domainModel);
-            if (candidate != null) {
-                candidate.addMatchingRule(match);
-                if (candidate instanceof ClassCdd) {
-                    createdClassCandidates.put(candidate.getCandidateName(), candidate);
-                }
-                candidates.add(candidate);
-            }
-        }
-        return candidates;
+        return candidateFactory.createCandidatesFrom(matches);
     }
 
     /**
-     * Creates a single Candidate from a RuleMatch record.
-     * Dispatches based on candidateType.
+     * Phase 2: Creates actual Candidate objects from the given RuleMatch records, bound to the
+     * given {@link DomainModel}.
+     *
+     * @param matches     the RuleMatch records to process
+     * @param domainModel the model the created candidates belong to
+     * @return the created (or re-used) Candidate objects
      */
     @Programmatic
-    Candidate createCandidateFromMatch(RuleMatch match) {
-        return createCandidateFromMatch(match, null);
-    }
-    @Programmatic
-    Candidate createCandidateFromMatch(RuleMatch match, DomainModel domainModel) {
-        String candidateType = match.getCandidateType();
-        String candidateName = match.getCandidateName();
-        String relatedCandidateName = match.getRelatedCandidateName();
-
-        if ("ClassCdd".equals(candidateType)) {
-            if (relatedCandidateName != null) {
-                // Association between two ClassCdd entities (produced by TDR14–TDR23)
-                if (isBlockedUseCaseNoun(candidateName) || isBlockedUseCaseNoun(relatedCandidateName)) {
-                    return null;
-                }
-                ClassCdd source = classCandidates.findOrCreate(candidateName, domainModel);
-                source.setCandidateName(candidateName);
-                ClassCdd target = classCandidates.findOrCreate(relatedCandidateName, domainModel);
-                target.setCandidateName(relatedCandidateName);
-                String assocName = candidateName + "_" + relatedCandidateName;
-                return collaboratorCandidates.findOrCreate(assocName, source, target, domainModel);
-            }
-            if (isBlockedUseCaseNoun(candidateName)) {
-                return null;
-            }
-            ClassCdd classCdd = classCandidates.findOrCreate(candidateName, domainModel);
-            classCdd.setCandidateName(candidateName);
-            return classCdd;
-        } else if ("GeneralizationCdd".equals(candidateType)) {
-            // Generalization (is-a) between two ClassCdd entities (produced by TDR38–TDR40)
-            // candidateName = child (subclass), relatedCandidateName = parent (superclass)
-            if (relatedCandidateName == null) {
-                return null;
-            }
-            if (isBlockedUseCaseNoun(candidateName) || isBlockedUseCaseNoun(relatedCandidateName)) {
-                return null;
-            }
-            ClassCdd child = classCandidates.findOrCreate(candidateName, domainModel);
-            child.setCandidateName(candidateName);
-            ClassCdd parent = classCandidates.findOrCreate(relatedCandidateName, domainModel);
-            parent.setCandidateName(relatedCandidateName);
-            String assocName = candidateName + "_" + relatedCandidateName;
-            return collaboratorCandidates.findOrCreate(assocName, child, parent, domainModel, AssociationType.GENERALIZATION);
-        } else if ("SynonymCdd".equals(candidateType)) {
-            // Synonym (==) between two ClassCdd entities (produced by TDR41).
-            // candidateName = head term, relatedCandidateName = synonym partner term.
-            if (relatedCandidateName == null) {
-                return null;
-            }
-            if (isBlockedUseCaseNoun(candidateName) || isBlockedUseCaseNoun(relatedCandidateName)) {
-                return null;
-            }
-            ClassCdd head = classCandidates.findOrCreate(candidateName, domainModel);
-            head.setCandidateName(candidateName);
-            ClassCdd partner = classCandidates.findOrCreate(relatedCandidateName, domainModel);
-            partner.setCandidateName(relatedCandidateName);
-            String assocName = candidateName + "_" + relatedCandidateName;
-            return collaboratorCandidates.findOrCreate(assocName, head, partner, domainModel, AssociationType.SYNONYM);
-        } else if ("ActionCdd".equals(candidateType)) {
-            // The related candidate name should be the owning class name;
-            // a blocked use-case noun (e.g. "System") must not become the owner
-            ClassCdd classCdd = (relatedCandidateName != null && !isBlockedUseCaseNoun(relatedCandidateName))
-                    ? classCandidates.findOrCreate(relatedCandidateName, domainModel)
-                    : null;
-            return responsibilityCandidates.findOrCreate(candidateName, classCdd, domainModel);
-        } else if ("PropertyCdd".equals(candidateType)) {
-// A blocked use-case noun as the owning class (e.g. "Condition") must not
-            // produce an orphan property; skip entirely.
-            if (relatedCandidateName != null && isBlockedUseCaseNoun(relatedCandidateName)) {
-                return null;
-            }
-            // The related candidate name should be the owning class name
-            String className = relatedCandidateName != null ? relatedCandidateName : "Unknown";
-            String type = inferType(candidateName);
-            return attributeCandidates.findOrCreate(className, candidateName, type, domainModel);
-        }
-        return null;
+    public List<Candidate> createCandidatesFrom(final List<RuleMatch> matches, final DomainModel domainModel) {
+        return candidateFactory.createCandidatesFrom(matches, domainModel);
     }
 
     /**
-     * Returns {@code true} when {@code candidateName} is a use-case document
-     * meta-noun (template header, narrative scaffolding, or generic result term)
-     * that must never become a {@link ClassCdd} entity.
+     * Returns {@code true} when {@code candidateName} is a use-case document meta-noun (template
+     * header, narrative scaffolding, or generic result term) that must never become a candidate.
      * <p>
-     * The blocked nouns are configured as singular lemmas under
-     * {@code domox.nlp.use-case-blocked-nouns}.  Candidate names are compared
-     * case-insensitively; a simple plural fallback is applied for nouns that
-     * reach Phase 2 without lemmatization.
+     * Delegates to {@link UseCaseBlockedNouns} so this persistence guard and the Phase-2
+     * {@link CandidateFactory} agree on exactly which nouns are blocked.
      */
     @Programmatic
     boolean isBlockedUseCaseNoun(String candidateName) {
-        if (candidateName == null) {
-            return false;
-        }
-        final List<String> blocked = nlpProperties.getUseCaseBlockedNouns();
-        if (blocked == null) {
-            return false;
-        }
-        String lower = candidateName.toLowerCase().trim();
-        if (blocked.contains(lower)) {
-            return true;
-        }
-        // Defensive fallback for un-lemmatized plurals ("Conditions" → "condition")
-        if (lower.endsWith("s") && !lower.endsWith("ss")) {
-            return blocked.contains(lower.substring(0, lower.length() - 1));
-        }
-        return false;
-    }
-
-    /**
-     * Infers the property type from the property name.
-     */
-    @Programmatic
-    String inferType(String propertyName) {
-        if (propertyName == null) return "String";
-        String lower = propertyName.toLowerCase();
-        if (lower.contains("count") || lower.contains("number") || lower.contains("age")) {
-            return "int";
-        } else if (lower.contains("price") || lower.contains("amount")) {
-            return "double";
-        } else if (lower.contains("active") || lower.contains("valid") || lower.contains("enabled")) {
-            return "boolean";
-        } else if (lower.contains("date") || lower.contains("time")) {
-            return "LocalDateTime";
-        }
-        return "String";
+        return UseCaseBlockedNouns.isBlocked(nlpProperties, candidateName);
     }
 
     /**

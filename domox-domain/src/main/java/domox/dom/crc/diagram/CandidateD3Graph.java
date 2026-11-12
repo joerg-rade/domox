@@ -3,7 +3,6 @@ import domox.DomainModule;
 import domox.dom.crc.model.Candidate;
 import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.DomainModel;
-import domox.dom.crc.model.ReviewStatus;
 import domox.dom.crc.service.AttributeCandidates;
 import domox.dom.crc.service.ClassCandidates;
 import domox.dom.crc.service.CollaboratorCandidates;
@@ -119,30 +118,21 @@ public class CandidateD3Graph {
     private String buildD3Json(final Candidate candidate) {
         // Snapshot the candidate set once per render.
         final List<Candidate> allCandidates = allCandidates();
-        final Set<String> candidateLemmas = candidateLemmas(allCandidates);
-        final Map<String, List<Candidate>> candidatesByLemma = candidatesByLemma(allCandidates);
+        final Set<String> candidateLemmas = CandidateNeighbourhood.candidateLemmas(allCandidates);
+        final Map<String, List<Candidate>> candidatesByLemma = CandidateNeighbourhood.candidatesByLemma(allCandidates);
 
         // Breadth-first expansion of the candidate-connection graph.
-        final List<TypedDependency> dependencies = collectDependencies(
-                candidate, candidateLemmas, candidatesByLemma, candidate.getHopDepth());
+        final List<TypedDependency> dependencies = CandidateNeighbourhood.collectDependencies(
+                List.of(candidate), candidateLemmas, candidatesByLemma, candidate.getHopDepth());
 
         // Remove association-artifact edges.
-        final Set<String> artifactLemmas = associationArtifactLemmas(allCandidates, candidateLemmas);
-        dependencies.removeIf(td -> td != null && (
-                artifactLemmas.contains(DiagramLemmas.lower(td.getGovernorLemma())) ||
-                artifactLemmas.contains(DiagramLemmas.lower(td.getDependentLemma()))));
+        final Set<String> artifactLemmas = CandidateNeighbourhood.associationArtifactLemmas(allCandidates, candidateLemmas);
+        CandidateNeighbourhood.removeArtifactEdges(dependencies, artifactLemmas);
 
         // Per-lemma metadata: POS codes and rule-match counts.
-        final Map<String, Set<String>> posByLemma = new LinkedHashMap<>();
-        final Map<String, Integer> countByLemma = new HashMap<>();
-        for (final TypedDependency td : dependencies) {
-            if (td == null) continue;
-            DiagramLemmas.accumulatePos(posByLemma, DiagramLemmas.lower(td.getGovernorLemma()), td.getGovernorPos());
-            DiagramLemmas.accumulatePos(posByLemma, DiagramLemmas.lower(td.getDependentLemma()), td.getDependentPos());
-            final int matches = td.getRuleMatches() != null ? td.getRuleMatches().size() : 0;
-            countByLemma.merge(DiagramLemmas.lower(td.getGovernorLemma()), matches, Integer::sum);
-            countByLemma.merge(DiagramLemmas.lower(td.getDependentLemma()), matches, Integer::sum);
-        }
+        final CandidateNeighbourhood.LemmaMetrics metrics = CandidateNeighbourhood.lemmaMetrics(dependencies);
+        final Map<String, Set<String>> posByLemma = metrics.posByLemma();
+        final Map<String, Integer> countByLemma = metrics.matchCountByLemma();
 
         // Every lemma that becomes a node.
         final Set<String> nodeLemmas = new LinkedHashSet<>();
@@ -198,7 +188,7 @@ public class CandidateD3Graph {
         }
 
         // Lemma → whether it has at least one approved review.
-        final Set<String> approvedLemmas = approvedLemmasSet(allCandidates);
+        final Set<String> approvedLemmas = CandidateNeighbourhood.approvedLemmas(allCandidates);
 
         // Build the JSON document.
         final StringBuilder json = new StringBuilder();
@@ -213,7 +203,7 @@ public class CandidateD3Graph {
         for (final Set<String> posSet : posByLemma.values()) {
             if (posSet != null) usedPosCodes.addAll(posSet);
         }
-        appendLegend(json, usedPosCodes);
+        PosLegend.appendLegendJson(json, usedPosCodes);
         json.append('}');
 
         return json.toString();
@@ -291,212 +281,16 @@ public class CandidateD3Graph {
         json.append(']');
     }
 
-    /**
-     * Appends the {@code "legend"} array: colour swatches for each POS-based fill colour that
-     * actually appears in the diagram nodes, plus a catch-all "Other" entry.
-     */
-    private static void appendLegend(final StringBuilder json, final Set<String> usedPosCodes) {
-        json.append("\"legend\":[");
-        boolean first = true;
-        for (final LegendEntry entry : LEGEND_ENTRIES) {
-            if (entry.posCodes.isEmpty()) {
-                if (hasOtherPos(usedPosCodes)) {
-                    appendLegendEntry(json, entry, first);
-                    first = false;
-                }
-                continue;
-            }
-            if (hasAny(usedPosCodes, entry.posCodes)) {
-                appendLegendEntry(json, entry, first);
-                first = false;
-            }
-        }
-        json.append(']');
-    }
-
-    /** True when at least one used POS code is not covered by any specific legend entry. */
-    private static boolean hasOtherPos(final Set<String> usedPosCodes) {
-        final Set<String> covered = new HashSet<>();
-        for (final LegendEntry e : LEGEND_ENTRIES) {
-            if (!e.posCodes.isEmpty()) {
-                covered.addAll(e.posCodes);
-            }
-        }
-        for (final String code : usedPosCodes) {
-            if (!covered.contains(code)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** True when the intersection of {@code used} and {@code candidates} is non-empty. */
-    private static boolean hasAny(final Set<String> used, final Set<String> candidates) {
-        for (final String c : candidates) {
-            if (used.contains(c)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** Appends a single JSON legend entry object, preceded by a comma when not the first entry. */
-    private static void appendLegendEntry(final StringBuilder json, final LegendEntry entry, final boolean first) {
-        if (!first) {
-            json.append(',');
-        }
-        json.append("{\"color\":\"").append(entry.color).append('"')
-                .append(",\"label\":\"").append(entry.label).append('"')
-                .append(",\"description\":\"").append(entry.description).append("\"}");
-    }
-
-    /** A single legend row: fill colour, short label, description, and the POS codes that map to it. */
-    private record LegendEntry(String color, String label, String description, Set<String> posCodes) {}
-
-    /**
-     * All possible legend entries, ordered by semantic category.  The first matching entry wins.
-     * The POS codes here must stay in sync with {@link PosPalette#color(String)}.
-     */
-    private static final List<LegendEntry> LEGEND_ENTRIES = List.of(
-            new LegendEntry("#3498DB", "Noun", "Entities and objects (NN, NNS)", Set.of("NN", "NNS")),
-            new LegendEntry("#85C1E9", "Proper noun", "Named entities (NNP, NNPS)", Set.of("NNP", "NNPS")),
-            new LegendEntry("#E74C3C", "Verb", "Actions and predicates (VB, VBZ)", Set.of("VB", "VBZ", "VBD", "VBG", "VBN", "VBP")),
-            new LegendEntry("#2ECC71", "Adjective", "Descriptors and modifiers (JJ, JJR, JJS)", Set.of("JJ", "JJR", "JJS")),
-            new LegendEntry("#F39C12", "Determiner", "Articles and determiners (DT)", Set.of("DT")),
-            new LegendEntry("#9B59B6", "Pronoun", "Pronouns (PRP, PRP$)", Set.of("PRP", "PRP$", "WDT", "WP", "WP$", "WRB")),
-            new LegendEntry("#17A2B8", "Preposition", "Prepositions (IN)", Set.of("IN")),
-            new LegendEntry("#FFBB28", "Adverb", "Adverbs (RB)", Set.of("RB")),
-            new LegendEntry("#AAB7B8", "Other", "Other parts of speech", Set.of())
-    );
-
     // ============ Candidate neighbourhood ============
 
     /** All candidates of every type currently present, in a single snapshot. */
     private List<Candidate> allCandidates() {
         final List<Candidate> all = new ArrayList<>();
-        addAll(all, classCandidates.listAll());
-        addAll(all, responsibilityCandidates.listAll());
-        addAll(all, attributeCandidates.listAll());
-        addAll(all, collaboratorCandidates.listAll());
+        CandidateNeighbourhood.addAll(all, classCandidates.listAll());
+        CandidateNeighbourhood.addAll(all, responsibilityCandidates.listAll());
+        CandidateNeighbourhood.addAll(all, attributeCandidates.listAll());
+        CandidateNeighbourhood.addAll(all, collaboratorCandidates.listAll());
         return all;
-    }
-
-    /** Adds a {@code null}-safe candidate-list snapshot to {@code target}. */
-    private static void addAll(final List<Candidate> target, final List<? extends Candidate> source) {
-        if (source != null) {
-            target.addAll(source);
-        }
-    }
-
-    /** The lower-cased candidate names of the snapshot. */
-    private static Set<String> candidateLemmas(final List<Candidate> allCandidates) {
-        final Set<String> lemmas = new HashSet<>();
-        allCandidates.forEach(c -> lemmas.add(DiagramLemmas.lower(c.getCandidateName())));
-        return lemmas;
-    }
-
-    /** Lower-case candidate name → every candidate carrying that name. */
-    private static Map<String, List<Candidate>> candidatesByLemma(final List<Candidate> allCandidates) {
-        final Map<String, List<Candidate>> byLemma = new HashMap<>();
-        allCandidates.forEach(c ->
-                byLemma.computeIfAbsent(DiagramLemmas.lower(c.getCandidateName()), k -> new ArrayList<>()).add(c));
-        return byLemma;
-    }
-
-    /**
-     * Breadth-first traversal of the candidate-connection graph starting from {@code seed},
-     * up to {@code maxDepth} hops, returning the <em>distinct</em> candidate-restricted
-     * dependencies.
-     */
-    private static List<TypedDependency> collectDependencies(
-            final Candidate seed,
-            final Set<String> candidateLemmas,
-            final Map<String, List<Candidate>> candidatesByLemma,
-            final int maxDepth) {
-        final List<TypedDependency> dependencies = new ArrayList<>();
-        final Set<TypedDependency> seen = new HashSet<>();
-        final Set<Candidate> visited = new HashSet<>();
-        Set<Candidate> frontier = new LinkedHashSet<>();
-        frontier.add(seed);
-        for (int hop = 0; hop < maxDepth && !frontier.isEmpty(); hop++) {
-            final Set<Candidate> nextFrontier = new LinkedHashSet<>();
-            for (final Candidate candidate : frontier) {
-                visited.add(candidate);
-                final List<RuleMatch> matches = candidate.getRuleMatches();
-                if (matches == null) {
-                    continue;
-                }
-                for (final RuleMatch ruleMatch : matches) {
-                    final TypedDependency td = ruleMatch.getTypedDependency();
-                    if (td == null || !bothEndpointsAreCandidates(td, candidateLemmas)) {
-                        continue;
-                    }
-                    if (!seen.add(td)) {
-                        continue;
-                    }
-                    dependencies.add(td);
-                    addCandidatesForLemma(td.getGovernorLemma(), candidatesByLemma, visited, nextFrontier);
-                    addCandidatesForLemma(td.getDependentLemma(), candidatesByLemma, visited, nextFrontier);
-                }
-            }
-            frontier = nextFrontier;
-        }
-        return dependencies;
-    }
-
-    /** Adds every candidate carrying {@code lemma} not yet expanded to the next frontier. */
-    private static void addCandidatesForLemma(
-            final String lemma,
-            final Map<String, List<Candidate>> candidatesByLemma,
-            final Set<Candidate> visited,
-            final Set<Candidate> nextFrontier) {
-        for (final Candidate candidate : candidatesByLemma.getOrDefault(DiagramLemmas.lower(lemma), List.of())) {
-            if (!visited.contains(candidate)) {
-                nextFrontier.add(candidate);
-            }
-        }
-    }
-
-    /** Keeps only dependencies whose governor and dependent lemma are both candidate words. */
-    private static boolean bothEndpointsAreCandidates(final TypedDependency td,
-                                                      final Set<String> candidateLemmas) {
-        return candidateLemmas.contains(DiagramLemmas.lower(td.getGovernorLemma()))
-                && candidateLemmas.contains(DiagramLemmas.lower(td.getDependentLemma()));
-    }
-
-    /** Lower-cased lemmas of approved candidates (bold border in the graph). */
-    private static Set<String> approvedLemmasSet(final List<Candidate> candidates) {
-        final Set<String> lemmas = new HashSet<>();
-        for (final Candidate c : candidates) {
-            if (c != null && c.getReviews() != null
-                    && c.getReviews().stream().anyMatch(r -> r != null && r.getStatus() == ReviewStatus.APPROVED)) {
-                lemmas.add(DiagramLemmas.lower(c.getCandidateName()));
-            }
-        }
-        return lemmas;
-    }
-
-    /**
-     * Lower-cased lemmas of synthetic {@code Association}-typed compound candidates ("X_Y").
-     * Such candidates are products of candidate-extraction rules and are excluded from the D3
-     * diagram because their derived lemma is uninformative.
-     */
-    private static Set<String> associationArtifactLemmas(final List<Candidate> candidates,
-                                                         final Set<String> candidateLemmas) {
-        final Set<String> artifactLemmas = new HashSet<>();
-        for (final Candidate c : candidates) {
-            if (c == null || c.getCandidateName() == null) continue;
-            if (!"Association".equals(DiagramLemmas.typeLabel(c.getCandidateType()))) continue;
-            final String lemma = DiagramLemmas.lower(c.getCandidateName());
-            final int sep = lemma.indexOf('_');
-            if (sep <= 0 || sep >= lemma.length() - 1) continue;
-            final String left = lemma.substring(0, sep);
-            final String right = lemma.substring(sep + 1);
-            if (candidateLemmas.contains(left) && candidateLemmas.contains(right)) {
-                artifactLemmas.add(lemma);
-            }
-        }
-        return artifactLemmas;
     }
 
 }

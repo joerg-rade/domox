@@ -135,7 +135,7 @@ Update `then()` methods in existing TDR rules to pass a more specific `candidate
 | TDR18, TDR19, TDR20 | Pass `"DepedencyCdd"` candidateType (or explict `AssociationType.DEPENDENCY`) |
 | TDR21 | Pass `"AggregationCdd"` candidateType (or explict `AssociationType.AGGREGATION`) |
 
-This requires extending `RuleMatches.createCandidateFromMatch()` to accept an optional `AssociationType` parameter and switching on it when `candidateType` is not `"GeneralizationCdd"` — analogous to the existing generalization branch (lines 216–227).
+This requires extending `CandidateFactory.createCandidateFromMatch()` to accept an optional `AssociationType` parameter and switching on it when `candidateType` is not `"GeneralizationCdd"` — analogous to the existing generalization branch (lines 216–227).
 
 ### Phase 2 — New rules
 
