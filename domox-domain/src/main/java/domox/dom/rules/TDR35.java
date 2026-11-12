@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static domox.dom.nlp.TypedDependencyPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
+import static domox.dom.nlp.DependencyVocabularyPredicates.*;
 
 @RuleBean
 @Rule(order = 35)

@@ -1,9 +1,8 @@
 package domox.dom.rules;
 
-import domox.dom.nlp.TypedDependencyPredicates;
+import domox.dom.nlp.vocab.GeneralizationVocabulary;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -23,10 +22,9 @@ import java.util.Set;
  * </ul>
  * </p>
  */
+@Slf4j
 @Service
 public class GeneralizationCatalog {
-
-    private static final Logger LOG = LoggerFactory.getLogger(GeneralizationCatalog.class);
 
     private final Set<String> beVerbs = new HashSet<>();
     private final Set<String> indefiniteArticles = new HashSet<>();
@@ -40,12 +38,12 @@ public class GeneralizationCatalog {
 
     @PostConstruct
     public void init() {
-        addAll(beVerbs, nlpProperties.getCopulaBeVerbs(), TypedDependencyPredicates::registerBeVerbs);
-        addAll(indefiniteArticles, nlpProperties.getIndefiniteArticles(), TypedDependencyPredicates::registerIndefiniteArticles);
-        addAll(kindTypeSortTerms, nlpProperties.getKindTypeSortTerms(), TypedDependencyPredicates::registerKindTypeSortTerms);
-        addAll(stopAdjectives, nlpProperties.getGeneralizationStopAdjectives(), TypedDependencyPredicates::registerStopAdjectives);
+        addAll(beVerbs, nlpProperties.getCopulaBeVerbs(), GeneralizationVocabulary::registerBeVerbs);
+        addAll(indefiniteArticles, nlpProperties.getIndefiniteArticles(), GeneralizationVocabulary::registerIndefiniteArticles);
+        addAll(kindTypeSortTerms, nlpProperties.getKindTypeSortTerms(), GeneralizationVocabulary::registerKindTypeSortTerms);
+        addAll(stopAdjectives, nlpProperties.getGeneralizationStopAdjectives(), GeneralizationVocabulary::registerStopAdjectives);
 
-        LOG.info("GeneralizationCatalog initialised: {} be-verbs, {} indefinite articles, {} kind/type/sort terms, {} stop adjectives",
+        log.info("GeneralizationCatalog initialised: {} be-verbs, {} indefinite articles, {} kind/type/sort terms, {} stop adjectives",
                 beVerbs.size(), indefiniteArticles.size(), kindTypeSortTerms.size(), stopAdjectives.size());
     }
 
@@ -71,19 +69,19 @@ public class GeneralizationCatalog {
     }
 
     public boolean addBeVerb(String lemma) {
-        return add(beVerbs, lemma, TypedDependencyPredicates::registerBeVerbs);
+        return add(beVerbs, lemma, GeneralizationVocabulary::registerBeVerbs);
     }
 
     public boolean addIndefiniteArticle(String lemma) {
-        return add(indefiniteArticles, lemma, TypedDependencyPredicates::registerIndefiniteArticles);
+        return add(indefiniteArticles, lemma, GeneralizationVocabulary::registerIndefiniteArticles);
     }
 
     public boolean addKindTypeSortTerm(String lemma) {
-        return add(kindTypeSortTerms, lemma, TypedDependencyPredicates::registerKindTypeSortTerms);
+        return add(kindTypeSortTerms, lemma, GeneralizationVocabulary::registerKindTypeSortTerms);
     }
 
     public boolean addStopAdjective(String lemma) {
-        return add(stopAdjectives, lemma, TypedDependencyPredicates::registerStopAdjectives);
+        return add(stopAdjectives, lemma, GeneralizationVocabulary::registerStopAdjectives);
     }
 
     private void addAll(Set<String> target, List<String> source, Registrar registrar) {

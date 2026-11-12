@@ -3,6 +3,7 @@ package domox.dom.rules;
 import com.deliveredtechnologies.rulebook.model.RuleBook;
 import com.deliveredtechnologies.rulebook.spring.SpringAwareRuleBookRunner;
 import domox.dom.nlp.*;
+import domox.dom.nlp.vocab.*;
 import domox.dom.crc.service.ResponsibilityCandidates;
 import domox.dom.crc.service.CollaboratorCandidates;
 import domox.dom.crc.service.ClassCandidates;
@@ -203,17 +204,17 @@ public class TypedDependencyRulesTest {
      */
     @BeforeEach
     void setUp() {
-        TypedDependencyPredicates.resetBasicAttributes();
-        TypedDependencyPredicates.resetActionVocabularies();
-        TypedDependencyPredicates.resetGeneralizationVocabularies();
-        TypedDependencyPredicates.registerBasicAttributes(Set.of(
+        BasicAttributeVocabulary.reset();
+        ActionVocabulary.reset();
+        GeneralizationVocabulary.resetAll();
+        BasicAttributeVocabulary.register(Set.of(
                 "name", "number", "type", "address", "level", "date", "time"));
         // Seed generalization vocabularies (mirror what GeneralizationCatalog does at startup)
-        TypedDependencyPredicates.registerBeVerbs(Set.of(
+        GeneralizationVocabulary.registerBeVerbs(Set.of(
                 "am", "is", "are", "was", "were", "be", "been", "being"));
-        TypedDependencyPredicates.registerIndefiniteArticles(Set.of("a", "an"));
-        TypedDependencyPredicates.registerKindTypeSortTerms(Set.of("kind", "type", "sort"));
-        TypedDependencyPredicates.registerStopAdjectives(Set.of(
+        GeneralizationVocabulary.registerIndefiniteArticles(Set.of("a", "an"));
+        GeneralizationVocabulary.registerKindTypeSortTerms(Set.of("kind", "type", "sort"));
+        GeneralizationVocabulary.registerStopAdjectives(Set.of(
                 "good", "bad", "new", "old", "big", "small", "large",
                 "high", "low", "fast", "slow", "simple", "complex",
                 "easy", "hard", "difficult", "important", "necessary",
@@ -221,8 +222,8 @@ public class TypedDependencyRulesTest {
                 "required", "optional", "available", "correct", "incorrect",
                 "true", "false", "first", "last", "next", "previous"));
         // Seed synonym vocabulary (mirror what SynonymCatalog does at startup)
-        TypedDependencyPredicates.resetSynonymMarkers();
-        TypedDependencyPredicates.registerSynonymMarkers(Set.of(
+        SynonymVocabulary.reset();
+        SynonymVocabulary.register(Set.of(
                 "known", "termed", "called", "referred", "named"));
     }
 

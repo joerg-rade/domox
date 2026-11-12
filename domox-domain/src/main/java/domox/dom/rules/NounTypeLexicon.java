@@ -1,9 +1,9 @@
 package domox.dom.rules;
 
-import domox.dom.nlp.TypedDependencyPredicates;
+import domox.dom.nlp.vocab.BasicAttributeVocabulary;
+import domox.dom.nlp.vocab.NounTypeVocabulary;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -22,13 +22,12 @@ import java.util.Set;
  * treatment with finer granularity than the binary
  * {@code isBasicAttribute} check.</p>
  *
- * <p>Registered into {@link TypedDependencyPredicates} at startup so the static
+ * <p>Registered into {@link NounTypeVocabulary} at startup so the static
  * predicate methods used by TDR rules see it.</p>
  */
+@Slf4j
 @Service
 public class NounTypeLexicon {
-
-    private static final Logger LOG = LoggerFactory.getLogger(NounTypeLexicon.class);
 
     private final Map<String, NounType> lexicon = new HashMap<>();
     private final NlpProperties nlpProperties;
@@ -53,13 +52,13 @@ public class NounTypeLexicon {
 
         // Register every lemma into the static predicates for runtime lookup
         for (var entry : lexicon.entrySet()) {
-            TypedDependencyPredicates.registerNounType(entry.getKey(), entry.getValue());
+            NounTypeVocabulary.register(entry.getKey(), entry.getValue());
             if (entry.getValue() == NounType.GENERIC_ATTRIBUTE) {
-                TypedDependencyPredicates.registerBasicAttributes(Set.of(entry.getKey()));
+                BasicAttributeVocabulary.register(Set.of(entry.getKey()));
             }
         }
 
-        LOG.info("NounTypeLexicon initialised: {} entries across {} categories",
+        log.info("NounTypeLexicon initialised: {} entries across {} categories",
                 lexicon.size(), NounType.values().length);
     }
 
@@ -89,7 +88,7 @@ public class NounTypeLexicon {
         String lower = lemma.toLowerCase(Locale.ROOT);
         boolean added = lexicon.put(lower, type) == null;
         if (added && type == NounType.GENERIC_ATTRIBUTE) {
-            TypedDependencyPredicates.registerBasicAttributes(Set.of(lemma));
+            BasicAttributeVocabulary.register(Set.of(lemma));
         }
         return added;
     }

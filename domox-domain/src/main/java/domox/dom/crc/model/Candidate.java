@@ -2,8 +2,9 @@ package domox.dom.crc.model;
 import domox.dom.AbstractEntity;
 import domox.DomainModule;
 import domox.dom.crc.diagram.CandidateD3Graph;
-import domox.dom.crc.service.Reviews;
+import domox.dom.crc.service.CandidateReviewWorkflow;
 import domox.dom.rules.RuleMatch;
+import domox.dom.rules.RuleMatchSignature;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
@@ -11,7 +12,6 @@ import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.*;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.jaxb.PersistentEntityAdapter;
-import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 import org.apache.causeway.persistence.jpa.applib.integration.CausewayEntityListener;
 
@@ -57,11 +57,7 @@ public abstract class Candidate extends AbstractEntity {
 
     @Inject
     @Transient
-    private Reviews reviewsService;
-
-    @Inject
-    @Transient
-    private MessageService messageService;
+    private CandidateReviewWorkflow candidateReviewWorkflow;
 
     // region Diagram
     /**
@@ -234,7 +230,7 @@ public abstract class Candidate extends AbstractEntity {
         // First collapse any pre-existing signature-duplicates already attached to
         // this candidate, then only append if no equivalent match is present.
         deduplicateRuleMatches();
-        if (hasRuleMatchWithSameSignature(match)) {
+        if (RuleMatchSignature.contains(ruleMatches, match)) {
             return;
         }
         ruleMatches.add(match);
@@ -244,61 +240,18 @@ public abstract class Candidate extends AbstractEntity {
      * Removes any {@code RuleMatch} entries sharing the same candidate + rule
      * signature (keeping the first occurrence), so the {@code ruleMatches} list
      * holds no duplicates.  Signature match is defined exactly as in
-     * {@code RuleMatches.create(...)}.
+     * {@code RuleMatches.create(...)}; see {@link RuleMatchSignature}.
      */
     @Programmatic
     public void deduplicateRuleMatches() {
         if (ruleMatches.size() < 2) {
             return;
         }
-        final List<RuleMatch> deduped = new ArrayList<>(ruleMatches.size());
-        for (final RuleMatch current : ruleMatches) {
-            boolean duplicate = false;
-            for (final RuleMatch kept : deduped) {
-                if (sameRuleMatchSignature(current, kept)) {
-                    duplicate = true;
-                    break;
-                }
-            }
-            if (!duplicate) {
-                deduped.add(current);
-            }
-        }
+        final List<RuleMatch> deduped = RuleMatchSignature.deduplicate(ruleMatches);
         if (deduped.size() != ruleMatches.size()) {
             ruleMatches.clear();
             ruleMatches.addAll(deduped);
         }
-    }
-
-    /**
-     * Returns whether any {@code RuleMatch} already attached to this candidate has
-     * the same candidate + rule signature as {@code match}.
-     */
-    private boolean hasRuleMatchWithSameSignature(RuleMatch match) {
-        for (final RuleMatch existing : ruleMatches) {
-            if (sameRuleMatchSignature(existing, match)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Two {@code RuleMatch} records are considered equivalent when all of
-     * {@code ruleClassName}, {@code candidateType}, {@code candidateName},
-     * {@code relatedCandidateType}, {@code relatedCandidateName} and
-     * {@code description} match — the same signature used by
-     * {@code RuleMatches.create(...)} to avoid persisting duplicates.
-     */
-    private boolean sameRuleMatchSignature(RuleMatch a, RuleMatch b) {
-        return a != null
-                && b != null
-                && Objects.equals(a.getRuleClassName(), b.getRuleClassName())
-                && Objects.equals(a.getCandidateType(), b.getCandidateType())
-                && Objects.equals(a.getCandidateName(), b.getCandidateName())
-                && Objects.equals(a.getRelatedCandidateType(), b.getRelatedCandidateType())
-                && Objects.equals(a.getRelatedCandidateName(), b.getRelatedCandidateName())
-                && Objects.equals(a.getDescription(), b.getDescription());
     }
 
     @Programmatic
@@ -322,7 +275,7 @@ public abstract class Candidate extends AbstractEntity {
             position = ActionLayout.Position.PANEL,
             describedAs = "Create a new review for this candidate")
     public Review createReview() {
-        return reviewsService.create(this);
+        return candidateReviewWorkflow.createReview(this);
     }
 
     // --- Review workflow actions ---
@@ -336,13 +289,7 @@ public abstract class Candidate extends AbstractEntity {
             cssClassFa = "check-circle",
             describedAs = "Approve this candidate and go to the next unprocessed one of the same type")
     public Candidate approveAndGoToNext() {
-        Review review = findOrCreatePendingReview();
-        reviewsService.approve(review);
-        Candidate next = reviewsService.nextUnprocessedOfType(this.getClass());
-        if (next == null) {
-            messageService.informUser("All candidates of this type have been reviewed. Nothing left to review.");
-        }
-        return next; // Causeway will navigate to the returned entity (or stay if null)
+        return candidateReviewWorkflow.approveAndNext(this); // Causeway navigates to the returned entity (or stays if null)
     }
 
     @Action(
@@ -354,13 +301,7 @@ public abstract class Candidate extends AbstractEntity {
             cssClassFa = "times-circle",
             describedAs = "Reject this candidate with a rationale and go to the next unprocessed one of the same type")
     public Candidate rejectAndGoToNext(final ReviewRationale rationale) {
-        Review review = findOrCreatePendingReview();
-        reviewsService.reject(review, rationale);
-        Candidate next = reviewsService.nextUnprocessedOfType(this.getClass());
-        if (next == null) {
-            messageService.informUser("All candidates of this type have been reviewed. Nothing left to review.");
-        }
-        return next;
+        return candidateReviewWorkflow.rejectAndNext(this, rationale);
     }
 
     @MemberSupport
@@ -370,12 +311,10 @@ public abstract class Candidate extends AbstractEntity {
 
     /**
      * Returns an existing pending review for this candidate, or creates a new one.
+     * Delegates to {@link CandidateReviewWorkflow}.
      */
     @Programmatic
     public Review findOrCreatePendingReview() {
-        return reviews.stream()
-                .filter(r -> r.getStatus() == null)
-                .findFirst()
-                .orElseGet(() -> reviewsService.create(this));
+        return candidateReviewWorkflow.pendingOrNew(this);
     }
 }

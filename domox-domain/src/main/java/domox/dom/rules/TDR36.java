@@ -9,8 +9,8 @@ import domox.dom.nlp.TypedDependency;
 import java.util.ArrayList;
 import java.util.List;
 
-import static domox.dom.nlp.TypedDependencyPredicates.isBasicAttributeB;
-import static domox.dom.nlp.TypedDependencyPredicates.isNsubj;
+import static domox.dom.nlp.DependencyVocabularyPredicates.isBasicAttributeB;
+import static domox.dom.nlp.DependencyTypePredicates.isNsubj;
 
 @RuleBean
 @Rule(order = 36)

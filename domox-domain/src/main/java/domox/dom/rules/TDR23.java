@@ -6,7 +6,8 @@ import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.TypedDependency;
 
-import static domox.dom.nlp.TypedDependencyPredicates.*;
+import static domox.dom.nlp.DependencyPosPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
 
 @RuleBean
 @Rule(order = 23)

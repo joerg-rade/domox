@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Report — and optionally fail on — the per-class mutation-testing floors of `domox-domain`.
 
-Why: pitest gives one number for the whole module (~39 % killed, ~71 % test strength), and that number
+Why: pitest gives one number for the whole module (~54 % killed, ~79 % test strength), and that number
 hides everything that matters.  The module average was carried for a long time by the ~40
 `TypedDependencyRule` classes and the CRC candidates, while the UML-layout collaborators that were
 *extracted* from `UmlLayoutDiagrams` sat far below it — `RouteScoring` at 2 %, `LabelLayout` at 6 %,
@@ -23,6 +23,17 @@ the POS-legend table that the three lexical diagram renderers each carried a pri
 `CandidateFactory` + `UseCaseBlockedNouns` (the match-to-candidate mapping and the blocked-noun
 predicate carved out of `RuleMatches`).  Each new class gets a floor; the renderers and
 `RuleMatches` keep their own behaviour pinned by the existing end-to-end tests.
+
+A fourth wave split four more over-loaded classes along single responsibilities: `Candidate` (the
+review click-through flow → `CandidateReviewWorkflow`, and the rule-match de-duplication →
+`RuleMatchSignature`), `TypedDependencyPredicates` (its three unrelated predicate families → the
+`DependencyPosPredicates` / `DependencyTypePredicates` / `DependencyVocabularyPredicates` trio),
+`LexicalGraphGenerator` (`DotLiterals`, `LexicalGraphNodes`, `LexicalGraphLegend`,
+`LexicalGraphBorders`) and `RdfGraphDiagrams` (`RdfIriNames`, `RdfGraphIndex`, `RdfDiagramJson`,
+`RdfJson`, plus the `RdfDiagramNode` / `RdfNodeKind` value types, which carry no mutants).  The
+`DependencyTypePredicates` and `DependencyVocabularyPredicates` floors are low by design: they are
+mostly one-line delegations to the vocab registries, so a large share of their mutants are
+`NO_COVERAGE` — the floor is there to catch a *regression*, not to claim strong coverage.
 
 The floors are set just below what the per-collaborator tests achieve, so they fail on a *regression*
 (a new branch left untested, a test deleted) rather than on an unrelated refactor that moves the
@@ -114,6 +125,22 @@ FLOORS = {
     "PosLegend": 85,                  # 100 %  (17)
     "CandidateFactory": 95,           # 100 %  (63)
     "UseCaseBlockedNouns": 85,        # 100 %  (12)
+
+    # --- the fourth wave: the Candidate review workflow and rule-match signature, the split of
+    #     TypedDependencyPredicates, and the lexical-DOT / RDF-diagram collaborators ---
+    "CandidateReviewWorkflow": 90,          # 100 %  (10 mutants)
+    "RuleMatchSignature": 90,               # 100 %  (14)
+    "DependencyPosPredicates": 65,          # 75 %   (12)
+    "DependencyVocabularyPredicates": 45,   # 52 %   (40; 16 no-coverage)
+    "DependencyTypePredicates": 20,         # 25 %   (69; 35 no-coverage — mostly delegation)
+    "DotLiterals": 80,                      # 100 %  (6)
+    "LexicalGraphNodes": 90,                # 98 %   (44)
+    "LexicalGraphLegend": 80,               # 100 %  (3)
+    "LexicalGraphBorders": 85,              # 100 %  (14)
+    "RdfIriNames": 90,                      # 100 %  (36)
+    "RdfGraphIndex": 90,                    # 100 %  (41)
+    "RdfDiagramJson": 90,                   # 100 %  (15)
+    "RdfJson": 85,                          # 100 %  (7)
 }
 
 # Statuses that count as a detected defect.

@@ -6,7 +6,9 @@ import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.TypedDependency;
 
-import static domox.dom.nlp.TypedDependencyPredicates.*;
+import static domox.dom.nlp.DependencyPosPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
+import static domox.dom.nlp.DependencyVocabularyPredicates.*;
 
 /**
  * TDR41 — Synonym identification via apposition and defining constructions.
@@ -61,7 +63,7 @@ public class TDR41 extends TypedDependencyRule {
                 return false;
             }
             final String marker = currentTd.getB();
-            if (marker == null || !isSynonymMarker(marker)) {
+            if (!isSynonymMarker(marker)) {
                 return false;
             }
             final String head = currentTd.getA();

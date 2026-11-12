@@ -6,11 +6,10 @@ import domox.port.RdfRemoteOptions;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -42,12 +41,11 @@ import java.util.stream.Collectors;
  * must be able to tell "the ontology does not know this term" from "the ontology could not be
  * asked".</p>
  */
+@Slf4j
 @DomainService
 @Named(DomainModule.NAMESPACE + ".OntologyTerms")
 @Priority(PriorityPrecedence.LATE)
 public class OntologyTerms {
-
-    private static final Logger log = LoggerFactory.getLogger(OntologyTerms.class);
 
     private static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     private static final String RDF_PROPERTY = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property";
@@ -227,7 +225,7 @@ public class OntologyTerms {
                 }
                 case SKOS_ALT_LABEL -> builder.synonyms.add(value);
                 case OWL_EQUIVALENT_CLASS -> {
-                    if (!literal) builder.synonyms.add(RdfGraphDiagrams.localName(value));
+                    if (!literal) builder.synonyms.add(RdfIriNames.localName(value));
                 }
                 default -> { /* not one of the descriptive predicates */ }
             }
@@ -255,9 +253,9 @@ public class OntologyTerms {
             return new OntologyTerm(
                     graph,
                     iri,
-                    label != null ? label : (prefLabel != null ? prefLabel : RdfGraphDiagrams.localName(iri)),
+                    label != null ? label : (prefLabel != null ? prefLabel : RdfIriNames.localName(iri)),
                     kindOf(types),
-                    superClass != null ? RdfGraphDiagrams.localName(superClass) : null,
+                    superClass != null ? RdfIriNames.localName(superClass) : null,
                     definition,
                     synonyms);
         }

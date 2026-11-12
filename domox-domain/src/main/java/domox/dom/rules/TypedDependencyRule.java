@@ -10,7 +10,8 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static domox.dom.nlp.TypedDependencyPredicates.*;
+import static domox.dom.nlp.DependencyPosPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
 
 public abstract class TypedDependencyRule {
 
@@ -79,7 +80,6 @@ public abstract class TypedDependencyRule {
      */
     @Programmatic
     public void analyzeAndMatch(Sentence sentence) {
-        List<RuleMatch> matches = new java.util.ArrayList<>();
         List<TypedDependency> deps = sentence.getTypedDependencies();
         for (int i = 0; i < deps.size(); i++) {
             TypedDependency dependency = deps.get(i);

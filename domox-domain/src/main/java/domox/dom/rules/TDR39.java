@@ -6,7 +6,9 @@ import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.TypedDependency;
 
-import static domox.dom.nlp.TypedDependencyPredicates.*;
+import static domox.dom.nlp.DependencyPosPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
+import static domox.dom.nlp.DependencyVocabularyPredicates.*;
 
 /**
  * TDR39 — Kind-of/Type-of generalization ("X is a kind/type of Y").

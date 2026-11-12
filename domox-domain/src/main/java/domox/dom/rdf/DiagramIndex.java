@@ -121,7 +121,7 @@ final class DiagramIndex {
 
     String displayNameOf(final String iri) {
         final String explicit = name.get(iri);
-        return explicit != null && !explicit.isBlank() ? explicit : RdfGraphDiagrams.localName(iri);
+        return explicit != null && !explicit.isBlank() ? explicit : RdfIriNames.localName(iri);
     }
 
     /** A view's label is the name of the model element it draws, never the view's own id. */
@@ -236,7 +236,7 @@ final class DiagramIndex {
 
     /** The trailing {@code _<n>} of a path point IRI gives the export's <em>stated</em> order. */
     private static int pointIndex(final String iri) {
-        final String local = RdfGraphDiagrams.localName(iri);
+        final String local = RdfIriNames.localName(iri);
         final int underscore = local.lastIndexOf('_');
         if (underscore < 0 || underscore + 1 >= local.length()) {
             return Integer.MAX_VALUE;

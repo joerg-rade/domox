@@ -1,6 +1,6 @@
 package domox.dom.rules;
 
-import domox.dom.nlp.TypedDependencyPredicates;
+import domox.dom.nlp.vocab.BasicAttributeVocabulary;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -41,9 +41,9 @@ public class BasicAttributeCatalog {
             for (String verb : verbs) {
                 String lower = verb.toLowerCase(Locale.ROOT);
                 attributes.add(lower);
-                // Make the same vocabulary available to TypedDependencyPredicates
+                // Make the same vocabulary available to the basic-attribute predicate
                 // so that static predicate methods (isBasicAttributeA/B) see it.
-                TypedDependencyPredicates.registerBasicAttributes(Set.of(lower));
+                BasicAttributeVocabulary.register(Set.of(lower));
             }
         }
     }
@@ -52,7 +52,7 @@ public class BasicAttributeCatalog {
     public boolean add(String lemma) {
         boolean added = lemma != null && attributes.add(lemma.toLowerCase(Locale.ROOT));
         if (added) {
-            TypedDependencyPredicates.registerBasicAttributes(Set.of(lemma));
+            BasicAttributeVocabulary.register(Set.of(lemma));
         }
         return added;
     }

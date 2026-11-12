@@ -4,7 +4,8 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
-import static domox.dom.nlp.TypedDependencyPredicates.*;
+import static domox.dom.nlp.DependencyPosPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
 
 @RuleBean
 @Rule(order = 8)

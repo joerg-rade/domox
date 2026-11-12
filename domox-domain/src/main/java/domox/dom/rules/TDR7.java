@@ -4,8 +4,8 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 import domox.dom.nlp.TdType;
 
-import static domox.dom.nlp.TypedDependencyPredicates.isNounA;
-import static domox.dom.nlp.TypedDependencyPredicates.isNounB;
+import static domox.dom.nlp.DependencyPosPredicates.isNounA;
+import static domox.dom.nlp.DependencyPosPredicates.isNounB;
 
 @RuleBean
 @Rule(order = 7)

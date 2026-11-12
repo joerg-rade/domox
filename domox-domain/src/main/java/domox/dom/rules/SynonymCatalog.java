@@ -1,9 +1,8 @@
 package domox.dom.rules;
 
-import domox.dom.nlp.TypedDependencyPredicates;
+import domox.dom.nlp.vocab.SynonymVocabulary;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -20,13 +19,12 @@ import java.util.Set;
  *
  * <p>Populated from the {@code domox.nlp.synonym-markers} configuration property
  * so it can be customized per deployment without recompiling the rules. The
- * vocabulary is registered into {@link TypedDependencyPredicates} so the static
+ * vocabulary is registered into {@link SynonymVocabulary} so the static
  * predicate method ({@code isSynonymMarker(...)}) used by the rule sees it.</p>
  */
+@Slf4j
 @Service
 public class SynonymCatalog {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SynonymCatalog.class);
 
     private final Set<String> synonymMarkers = new HashSet<>();
     private final NlpProperties nlpProperties;
@@ -38,8 +36,8 @@ public class SynonymCatalog {
     @PostConstruct
     public void init() {
         addAll(synonymMarkers, nlpProperties.getSynonymMarkers(),
-                TypedDependencyPredicates::registerSynonymMarkers);
-        LOG.info("SynonymCatalog initialised: {} synonym markers", synonymMarkers.size());
+                SynonymVocabulary::register);
+        log.info("SynonymCatalog initialised: {} synonym markers", synonymMarkers.size());
     }
 
     public boolean isSynonymMarker(String lemma) {
@@ -48,7 +46,7 @@ public class SynonymCatalog {
 
     /** Programmatic extension, e.g. from SeedService or tests. */
     public boolean addSynonymMarker(String lemma) {
-        return add(synonymMarkers, lemma, TypedDependencyPredicates::registerSynonymMarkers);
+        return add(synonymMarkers, lemma, SynonymVocabulary::register);
     }
 
     private void addAll(Set<String> target, List<String> source, Registrar registrar) {
@@ -56,7 +54,7 @@ public class SynonymCatalog {
             for (String term : source) {
                 String lower = term.toLowerCase(Locale.ROOT);
                 target.add(lower);
-                // Make the same vocabulary available to TypedDependencyPredicates
+                // Make the same vocabulary available to the synonym predicate
                 // so that the static predicate method sees it.
                 registrar.register(Set.of(lower));
             }

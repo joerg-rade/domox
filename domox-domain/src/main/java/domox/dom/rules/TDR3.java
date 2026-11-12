@@ -4,11 +4,13 @@ import com.deliveredtechnologies.rulebook.annotation.Rule;
 import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import static domox.dom.nlp.TypedDependencyPredicates.*;
+import static domox.dom.nlp.DependencyPosPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
+import static domox.dom.nlp.DependencyVocabularyPredicates.*;
 
+@Slf4j
 @RuleBean
 @Rule(order = 3)
 /*
@@ -24,7 +26,6 @@ import static domox.dom.nlp.TypedDependencyPredicates.*;
  * Candidate Type: ResponsibilityCdd (the verb is an action, not a class).
  */
 public class TDR3 extends TypedDependencyRule {
-    private static final Logger log = LoggerFactory.getLogger(TDR3.class);
 
     @When
     public boolean when() {

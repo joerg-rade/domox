@@ -5,8 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
-import static domox.dom.nlp.TypedDependencyPredicates.isNounA;
-import static domox.dom.nlp.TypedDependencyPredicates.nummod;
+import static domox.dom.nlp.DependencyPosPredicates.isNounA;
+import static domox.dom.nlp.DependencyTypePredicates.nummod;
 
 @RuleBean
 @Rule(order = 25)

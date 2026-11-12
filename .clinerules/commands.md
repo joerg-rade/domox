@@ -117,10 +117,13 @@ Cline rules directory, loaded for every project.
   `domox-domain/pom.xml` only declares it.  A `NO_COVERAGE` mutant means no test *reaches* the code, a
   `SURVIVED` one means a test reaches it but asserts nothing — different fixes.  **Run the mutation
   profile last**: pitest takes the *test* classes as input, so a later test edit leaves a
-  healthy-looking report that describes a suite which is gone.  Baseline: ~3 800 mutants, ~45 % killed,
-  test strength ~76 %; the per-class floors cover the eight extracted UML-layout collaborators
-  (`RouteScoring`, `LabelLayout`, `LabelMetrics`, `RouteGeometry`, `PortLayout`, `OrthogonalRouter`,
-  `DiagramIndex`, `DiagramJsonWriter`).
+  healthy-looking report that describes a suite which is gone.  Baseline: ~3 700 mutants, ~54 % killed,
+  test strength ~79 %; the per-class floors cover the collaborators extracted across the four SRP
+  waves — the UML-layout eight (`RouteScoring`, `LabelLayout`, `LabelMetrics`, `RouteGeometry`,
+  `PortLayout`, `OrthogonalRouter`, `DiagramIndex`, `DiagramJsonWriter`), the diagram/vocabulary
+  extractions, the candidate-neighbourhood/legend wave, and the wave-4 splits
+  (`CandidateReviewWorkflow`, `RuleMatchSignature`, the `Dependency*Predicates` trio, the
+  `LexicalGraph*`/`DotLiterals` group and the `Rdf*` group).
 
 
 Quick checks after an entity change: run `bash scripts/check.sh` — bundles schema drift,

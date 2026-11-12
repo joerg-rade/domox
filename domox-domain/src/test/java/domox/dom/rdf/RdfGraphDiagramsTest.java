@@ -216,29 +216,29 @@ class RdfGraphDiagramsTest {
     /** The graph-IRI → short-name mapping, including the fallback to the IRI's local name. */
     @Test
     void mapsKnownGraphIrisToShortOntologyNames() {
-        assertThat(RdfGraphDiagrams.ontologyLabel("https://schema.org/")).isEqualTo("Schema.org");
-        assertThat(RdfGraphDiagrams.ontologyLabel("http://purl.obolibrary.org/obo/bfo.owl")).isEqualTo("BFO");
-        assertThat(RdfGraphDiagrams.ontologyLabel("https://w3id.org/semanticarts/ontology/gistCore")).isEqualTo("gist");
-        assertThat(RdfGraphDiagrams.ontologyLabel("http://BPMNbasedOntology")).isEqualTo("BBO");
-        assertThat(RdfGraphDiagrams.ontologyLabel("https://ntimes404.github.io/sBPMN/")).isEqualTo("sBPMN");
+        assertThat(RdfIriNames.ontologyLabel("https://schema.org/")).isEqualTo("Schema.org");
+        assertThat(RdfIriNames.ontologyLabel("http://purl.obolibrary.org/obo/bfo.owl")).isEqualTo("BFO");
+        assertThat(RdfIriNames.ontologyLabel("https://w3id.org/semanticarts/ontology/gistCore")).isEqualTo("gist");
+        assertThat(RdfIriNames.ontologyLabel("http://BPMNbasedOntology")).isEqualTo("BBO");
+        assertThat(RdfIriNames.ontologyLabel("https://ntimes404.github.io/sBPMN/")).isEqualTo("sBPMN");
         // unknown graph → its IRI's local name; no attribution → blank
-        assertThat(RdfGraphDiagrams.ontologyLabel("https://example.org/onto/MyOntology")).isEqualTo("MyOntology");
-        assertThat(RdfGraphDiagrams.ontologyLabel(null)).isEmpty();
-        assertThat(RdfGraphDiagrams.ontologyLabel("  ")).isEmpty();
+        assertThat(RdfIriNames.ontologyLabel("https://example.org/onto/MyOntology")).isEqualTo("MyOntology");
+        assertThat(RdfIriNames.ontologyLabel(null)).isEmpty();
+        assertThat(RdfIriNames.ontologyLabel("  ")).isEmpty();
     }
 
     /** IRI local-name edge cases: a separator at the very end leaves nothing to cut. */
     @Test
     void localNameHandlesTrailingSeparatorsAndBareNames() {
         // "…/#": the '#' is the last character, so the previous '/' wins (its remainder is "#")
-        assertThat(RdfGraphDiagrams.localName("http://example.org/#")).isEqualTo("#");
+        assertThat(RdfIriNames.localName("http://example.org/#")).isEqualTo("#");
         // "…/abc/": both separators sit at the very end, so the whole IRI is returned unchanged
-        assertThat(RdfGraphDiagrams.localName("http://example.org/abc/")).isEqualTo("http://example.org/abc/");
+        assertThat(RdfIriNames.localName("http://example.org/abc/")).isEqualTo("http://example.org/abc/");
         // neither '#' nor '/'
-        assertThat(RdfGraphDiagrams.localName("Pet")).isEqualTo("Pet");
+        assertThat(RdfIriNames.localName("Pet")).isEqualTo("Pet");
         // a separator at position 0 is still a separator
-        assertThat(RdfGraphDiagrams.localName("#abc")).isEqualTo("abc");
-        assertThat(RdfGraphDiagrams.localName("/abc")).isEqualTo("abc");
+        assertThat(RdfIriNames.localName("#abc")).isEqualTo("abc");
+        assertThat(RdfIriNames.localName("/abc")).isEqualTo("abc");
     }
 
     /** The legend lists only the node kinds that actually occur — no phantom entry. */
@@ -297,10 +297,10 @@ class RdfGraphDiagramsTest {
 
     @Test
     void localNameHandlesHashSlashAndMissingIris() {
-        assertThat(RdfGraphDiagrams.localName(PS + "Dog")).isEqualTo("Dog");
-        assertThat(RdfGraphDiagrams.localName(OWL_CLASS)).isEqualTo("Class");
-        assertThat(RdfGraphDiagrams.localName("http://example.org/index.html")).isEqualTo("index.html");
-        assertThat(RdfGraphDiagrams.localName(null)).isEmpty();
+        assertThat(RdfIriNames.localName(PS + "Dog")).isEqualTo("Dog");
+        assertThat(RdfIriNames.localName(OWL_CLASS)).isEqualTo("Class");
+        assertThat(RdfIriNames.localName("http://example.org/index.html")).isEqualTo("index.html");
+        assertThat(RdfIriNames.localName(null)).isEmpty();
     }
 
     /**
@@ -310,29 +310,29 @@ class RdfGraphDiagramsTest {
     @Test
     void distinguishesOpaqueIdsFromHumanNames() {
         // opaque tool ids (letters and digits alternate at least twice, no whitespace)
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("ykj3OGFS_j2pB_5")).isTrue();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("02kj3OGFS_j2pCNa")).isTrue();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("02kj3OGFS_j2pCNa_path_point_0")).isTrue();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("092b46b9-c5e1-428c-9e20-4343e235985b")).isTrue();
+        assertThat(RdfIriNames.looksLikeOpaqueId("ykj3OGFS_j2pB_5")).isTrue();
+        assertThat(RdfIriNames.looksLikeOpaqueId("02kj3OGFS_j2pCNa")).isTrue();
+        assertThat(RdfIriNames.looksLikeOpaqueId("02kj3OGFS_j2pCNa_path_point_0")).isTrue();
+        assertThat(RdfIriNames.looksLikeOpaqueId("092b46b9-c5e1-428c-9e20-4343e235985b")).isTrue();
 
         // human names — a phrase, a plain word, a leading/trailing number, a pure value
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("Feather Cat Toy")).isFalse();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("Sale 4711")).isFalse();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("Social Relator")).isFalse();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("Pet")).isFalse();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("actions")).isFalse();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("cl_hiredprovider")).isFalse();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("AssociationClass1")).isFalse();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("1st Order Entities")).isFalse();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("507")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("Feather Cat Toy")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("Sale 4711")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("Social Relator")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("Pet")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("actions")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("cl_hiredprovider")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("AssociationClass1")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("1st Order Entities")).isFalse();
+        assertThat(RdfIriNames.looksLikeOpaqueId("507")).isFalse();
 
         // exactly two letter/digit alternations is still opaque (the threshold is >= 2)
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("a1bc")).isTrue();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("ab1cd")).isTrue();
+        assertThat(RdfIriNames.looksLikeOpaqueId("a1bc")).isTrue();
+        assertThat(RdfIriNames.looksLikeOpaqueId("ab1cd")).isTrue();
 
         // a missing name is treated as opaque (nothing to display)
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId(null)).isTrue();
-        assertThat(RdfGraphDiagrams.looksLikeOpaqueId("  ")).isTrue();
+        assertThat(RdfIriNames.looksLikeOpaqueId(null)).isTrue();
+        assertThat(RdfIriNames.looksLikeOpaqueId("  ")).isTrue();
     }
 
     /**

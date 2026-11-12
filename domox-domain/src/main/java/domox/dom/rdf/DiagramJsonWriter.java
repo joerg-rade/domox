@@ -127,6 +127,6 @@ final class DiagramJsonWriter {
     }
 
     private static String escape(final String value) {
-        return RdfGraphDiagrams.escapeJson(value);
+        return RdfJson.escape(value);
     }
 }

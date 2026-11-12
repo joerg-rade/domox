@@ -5,8 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
-import static domox.dom.nlp.TypedDependencyPredicates.isNsubj;
-import static domox.dom.nlp.TypedDependencyPredicates.xcomp;
+import static domox.dom.nlp.DependencyTypePredicates.isNsubj;
+import static domox.dom.nlp.DependencyTypePredicates.xcomp;
 
 @RuleBean
 @Rule(order = 37)

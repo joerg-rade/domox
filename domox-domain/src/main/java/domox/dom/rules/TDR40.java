@@ -5,7 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
-import static domox.dom.nlp.TypedDependencyPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
+import static domox.dom.nlp.DependencyVocabularyPredicates.*;
 
 /**
  * TDR40 — Adjectival classifier generalization ("Adjective Noun" → subclass).
@@ -37,7 +38,7 @@ public class TDR40 extends TypedDependencyRule {
     /**
      * Evaluative/generic adjectives that should NOT trigger
      * adjectival generalization are now loaded from configuration
-     * via {@link GeneralizationCatalog} into {@code TypedDependencyPredicates.STOP_ADJECTIVES}.
+     * via {@link GeneralizationCatalog} into the stop-adjective vocabulary.
      */
 
     @Override
