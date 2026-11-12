@@ -101,32 +101,32 @@ Cline rules directory, loaded for every project.
   `COMPLETION_CHECKLIST.md`, `SYNONYMS.md`, implementation summaries) live in
   `docs/scratch_pad/` — on-demand only; skim with `head` first, never a full read.
 
-- **Mutation testing (pitest)** → **opt-in, per module**: `mvn -o -pl domox-domain verify -Pmutation`
-  (~2 min; report in `domox-domain/target/pit-reports/`, HTML + XML).  It is deliberately *not* part
-  of the default `mvn verify` — a full run over the domain module takes minutes.  The plugin's
-  version, config and **JUnit-5 plugin dependency** live in the root pom's `<pluginManagement>`; the
-  `mutation` profile in `domox-domain/pom.xml` only declares it.  Two traps: the JUnit-5 plugin must
-  be a *plugin* dependency or pitest cannot run a single test, and the minion heap needs
-  `-Xmx3g` (the surefire 2g default produced `MEMORY_ERROR` minions).  Baseline: ~3 800 mutants,
-  ~45 % killed, test strength ~76 % (was ~39 % / ~71 % before the per-collaborator tests were added).
-  The module average hides the classes that matter, so **per-class floors** are checked separately:
-  `python3 scripts/pitest-floors.py --check` reads that same `mutations.xml` and fails when one of the
-  extracted UML-layout collaborators (`RouteScoring`, `LabelLayout`, `LabelMetrics`, `RouteGeometry`,
-  `PortLayout`, `OrthogonalRouter`, `DiagramIndex`, `DiagramJsonWriter`) drops below its floor.  Run it
-  right after the mutation run; it needs no Maven and no instance.  A `NO_COVERAGE` mutant means no test
-  *reaches* the code; a `SURVIVED` one means a test reaches it but does not assert on it — the two point
-  at different fixes.  **Run the mutation profile last**, because pitest mutates the production classes
-  but takes the *test* classes as input: editing a test afterwards leaves `mutations.xml` looking healthy
-  while its numbers describe a suite that no longer exists.  The script refuses a report older than any
-  file under `domox-domain/src` (or either `pom.xml`) — `--check` then exits **3** instead of reporting a
-  pass, so a stale report can never read as green.  Exit codes: 0 ok, 1 below floor, 2 no report,
-  3 stale (`--allow-stale` bypasses the guard, e.g. when a build cache restored the report).
+- **Mutation testing (pitest)** → **one command**: `bash scripts/check-mutation.sh` (opt-in, ~2 min —
+  it runs `mvn -o -pl domox-domain verify -Pmutation`, then `python3 scripts/pitest-floors.py --check`
+  for you, in that order).  Deliberately *not* in `mvn verify` or `check.sh`.  `--no-run` checks the
+  report already on disk (no Maven); `--allow-stale` accepts one older than `domox-domain/src` (a build
+  cache can restore it with a checkout-fresh mtime).  It exceeds the shell tool's ~30 s cap, so detach
+  and poll: `setsid bash scripts/check-mutation.sh >/tmp/mutation.log 2>&1 </dev/null &`.
+  **To read** the report rather than gate on it: `python3 scripts/pitest-floors.py --table` (every
+  class — killed/total/rate/no-coverage, plus the module total and the `MEMORY_ERROR`/`TIMED_OUT`
+  count) and `--detail <Class>` (each mutant no test killed, with line, method, mutator, description);
+  those two replace hand-parsing `mutations.xml`.  Exit codes: 0 ok, 1 below floor, 2 no report / no
+  such class, 3 stale.  Traps the script cannot tell you: the JUnit-5 plugin must be a *plugin*
+  dependency (or pitest runs no test at all) and the minion heap needs `-Xmx3g`; the plugin's version
+  and config live in the root pom's `<pluginManagement>`, the `mutation` profile in
+  `domox-domain/pom.xml` only declares it.  A `NO_COVERAGE` mutant means no test *reaches* the code, a
+  `SURVIVED` one means a test reaches it but asserts nothing — different fixes.  **Run the mutation
+  profile last**: pitest takes the *test* classes as input, so a later test edit leaves a
+  healthy-looking report that describes a suite which is gone.  Baseline: ~3 800 mutants, ~45 % killed,
+  test strength ~76 %; the per-class floors cover the eight extracted UML-layout collaborators
+  (`RouteScoring`, `LabelLayout`, `LabelMetrics`, `RouteGeometry`, `PortLayout`, `OrthogonalRouter`,
+  `DiagramIndex`, `DiagramJsonWriter`).
 
 
 Quick checks after an entity change: run `bash scripts/check.sh` — bundles schema drift,
 domain unit tests, and the metamodel guardrail (the same checks CI runs in
 `.github/workflows/ci.yml`). For a faster check use `bash scripts/check.sh --quick`
-(drift only).
+(the four instant, Maven-free steps: drift, layout XML, .mjs/.py syntax, dependency alignment).
 
 # Shell Execution Formatting Rules
 

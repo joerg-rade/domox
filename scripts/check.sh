@@ -3,8 +3,8 @@
 # DoMoX fast-check bundle (local guardrail).
 #
 # Usage:
-#   bash scripts/check.sh            # schema drift + JS syntax + layout XML + dep alignment + unit tests + UI/UML/ontology render + webjar + metamodel guardrail
-#   bash scripts/check.sh --quick    # schema drift + layout XML only (both instant, no Maven)
+#   bash scripts/check.sh            # schema drift + JS/Python syntax + layout XML + dep alignment + unit tests + UI/UML/ontology render + webjar + metamodel guardrail
+#   bash scripts/check.sh --quick    # the four instant, Maven-free steps: schema drift + layout XML + script syntax + dep alignment
 #
 # This mirrors what CI runs (.github/workflows/ci.yml) but exploits the local dev DB where the
 # schema-drift guardrail applies. Steps that cannot run right now (e.g. the domox-db container
@@ -52,20 +52,24 @@ else
   bad "layout XML would be discarded by Causeway (see FAIL lines above)"
 fi
 
-if [ "${1:-}" = "--quick" ]; then
-  echo
-  [ $FAILED -eq 0 ] && echo "QUICK CHECK PASSED" || echo "QUICK CHECK FAILED"
-  exit $FAILED
-fi
-
-# --- 3. JavaScript syntax check (hand-edited .mjs files) --------------------------------
-step "3/8  JavaScript syntax check"
+# --- 3. Script syntax check (hand-edited .mjs files, and scripts/*.py) ------------------
+step "3/8  Script syntax check (JS + Python)"
 JSOK=0
 # Source only: a scratch .mjs under target/ (or in venv/) is build output, not something we maintain.
 for f in $(find . \( -name node_modules -o -name target -o -name venv -o -name .git \) -prune -o -name '*.mjs' -print 2>/dev/null); do
   if node --check "$f" 2>/dev/null; then JSOK=$((JSOK+1)); else bad "syntax error in $f"; fi
 done
 [ $JSOK -gt 0 ] && ok "$JSOK .mjs files pass syntax check" || skip "no .mjs files found"
+# scripts/*.py is run by this bundle (pitest-floors.py, uml-diagram-report.py) and by hand (ro.py),
+# but no other guardrail ever compiles them — so a syntax error there only surfaced when the script
+# was finally invoked, which is exactly when it is least convenient.  py_compile is instant, and
+# __pycache__/ is already gitignored.
+PYOK=0
+for f in scripts/*.py; do
+  [ -e "$f" ] || continue
+  if python3 -m py_compile "$f" 2>/dev/null; then PYOK=$((PYOK+1)); else bad "syntax error in $f"; fi
+done
+[ $PYOK -gt 0 ] && ok "$PYOK scripts/*.py files compile" || skip "no scripts/*.py files found"
 
 # --- 4. Dependency alignment (pom vs the Causeway parent chain) -------------------------
 step "4/8  Dependency alignment (pom vs Causeway parent BOM)"
@@ -76,6 +80,14 @@ if bash scripts/check-dependency-alignment.sh; then
   ok "spring-* / spring-boot versions aligned with the parent chain"
 else
   bad "version skew — see the FAIL lines above"
+fi
+
+# --- Quick mode: every step above is instant and Maven-free, so the pre-commit hook can afford
+# them all.  The Maven steps below are what --quick exists to skip.
+if [ "${1:-}" = "--quick" ]; then
+  echo
+  [ $FAILED -eq 0 ] && echo "QUICK CHECK PASSED" || echo "QUICK CHECK FAILED"
+  exit $FAILED
 fi
 
 # --- 5. Unit tests (domox-domain + domox-adapter + domox-webapp unit tests) ------------

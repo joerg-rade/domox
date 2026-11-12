@@ -48,6 +48,14 @@ jobs:
           for f in $(find . -path '*/node_modules' -prune -o -name '*.mjs' -print); do
             node --check "$f" || exit 1
           done
+      # scripts/*.py is run by check.sh (pitest-floors.py, uml-diagram-report.py) and by hand
+      # (ro.py), but nothing else ever compiles them — a syntax error only surfaced when the script
+      # was finally invoked.  Mirrors the .mjs step above.
+      - name: Python syntax check (scripts/*.py)
+        run: |
+          for f in scripts/*.py; do
+            python3 -m py_compile "$f" || exit 1
+          done
       # Causeway silently discards a *.layout.xml that breaks its structural rules (the page then
       # falls back to the span-4 default grid, with only a buried boot-log ERROR as evidence).
       - name: Layout XML structure (unreferencedCollections marker, properties inside fieldSets)
