@@ -3,6 +3,7 @@ import domox.dom.AbstractEntity;
 import domox.DomainModule;
 import domox.dom.crc.diagram.CandidateD3Graph;
 import domox.dom.crc.service.CandidateReviewWorkflow;
+import domox.dom.requirements.OntologyDiagrams;
 import domox.dom.rules.RuleMatch;
 import domox.dom.rules.RuleMatchSignature;
 import jakarta.inject.Inject;
@@ -123,6 +124,20 @@ public abstract class Candidate extends AbstractEntity {
         return candidateD3GraphService != null ? candidateD3GraphService.renderGraph(this) : null;
     }
     // endregion Diagram
+    @Inject
+    @Transient
+    private OntologyDiagrams ontologyDiagrams;
+
+    @D3Graph
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(
+            named = "Ontology Graph",
+            describedAs = "Interactive D3 force-directed node-link graph of this candidate's ontologies",
+            fieldSetId = "ontology",
+            sequence = "5.1")
+    public String getOntologyGraph() {
+        return ontologyDiagrams != null ? ontologyDiagrams.ontologyAsD3Graph(this.candidateName) : null;
+    }
 
     /**
      * The Causeway object type of this candidate — e.g. {@code domox.ActionCdd}.

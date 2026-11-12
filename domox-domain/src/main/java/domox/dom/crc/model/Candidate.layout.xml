@@ -39,11 +39,20 @@
              without hardcoding collection ids that a given subclass may not own. -->
         <bs:col span="8">
             <bs:tabGroup unreferencedCollections="true">
-                <bs:tab name="Dependency Diagram">
+                <bs:tab name="Lexical Graph">
                     <bs:row>
                         <bs:col span="12">
                             <cpt:fieldSet id="content">
                                 <cpt:property id="d3Graph"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+                <bs:tab name="Ontology Graph">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet id="ontology">
+                                <cpt:property id="ontologyGraph"/>
                             </cpt:fieldSet>
                         </bs:col>
                     </bs:row>
