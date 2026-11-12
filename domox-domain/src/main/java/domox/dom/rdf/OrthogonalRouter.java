@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.TreeSet;
 
-import domox.dom.rdf.UmlLayoutDiagrams.Box;
-import domox.dom.rdf.UmlLayoutDiagrams.Pt;
-import domox.dom.rdf.UmlLayoutDiagrams.Segment;
+import domox.dom.rdf.geometry.Box;
+import domox.dom.rdf.geometry.Pt;
+import domox.dom.rdf.geometry.Segment;
 
 /**
  * An <b>orthogonal connector router</b>: the axis-aligned route between two class boxes that never runs

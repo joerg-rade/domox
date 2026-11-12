@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static domox.dom.rdf.UmlLayoutFixture.M;
+import static domox.dom.rdf.UmlLayoutFixture.OU;
+import static domox.dom.rdf.UmlLayoutFixture.RDF_TYPE;
+import static domox.dom.rdf.UmlLayoutFixture.classView;
+import static domox.dom.rdf.UmlLayoutFixture.sampleGraph;
 import static domox.port.RdfTripleTO.literal;
 import static domox.port.RdfTripleTO.resource;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,60 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class UmlLayoutDiagramsTest {
 
-    private static final String OU = "https://w3id.org/ontouml#";
-    private static final String M = "http://example.org/model#";
-    private static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
     private final UmlLayoutDiagrams diagrams = new UmlLayoutDiagrams();
-
-    /**
-     * A small export: one diagram, class A at (100,50) 200x60, class B at (500,300) 160x60, and a
-     * generalization A → B whose path points are deliberately listed <em>out of order</em>.
-     */
-    private static RdfGraphTO sampleGraph() {
-        return new RdfGraphTO(List.of(
-                resource(M + "d1", RDF_TYPE, OU + "Diagram"),
-                literal(M + "d1", OU + "name", "Demo"),
-                resource(M + "d1", OU + "containsView", M + "cvA"),
-                resource(M + "d1", OU + "containsView", M + "cvB"),
-                resource(M + "d1", OU + "containsView", M + "gv1"),
-
-                resource(M + "A", RDF_TYPE, OU + "Class"),
-                literal(M + "A", OU + "name", "A"),
-                resource(M + "cvA", RDF_TYPE, OU + "ClassView"),
-                resource(M + "cvA", OU + "isViewOf", M + "A"),
-                resource(M + "cvA", OU + "shape", M + "rA"),
-                resource(M + "rA", OU + "topLeftPosition", M + "rA_tl"),
-                literal(M + "rA_tl", OU + "xCoordinate", "100"),
-                literal(M + "rA_tl", OU + "yCoordinate", "50"),
-                literal(M + "rA", OU + "width", "200"),
-                literal(M + "rA", OU + "height", "60"),
-
-                resource(M + "B", RDF_TYPE, OU + "Class"),
-                literal(M + "B", OU + "name", "B"),
-                resource(M + "cvB", RDF_TYPE, OU + "ClassView"),
-                resource(M + "cvB", OU + "isViewOf", M + "B"),
-                resource(M + "cvB", OU + "shape", M + "rB"),
-                resource(M + "rB", OU + "topLeftPosition", M + "rB_tl"),
-                literal(M + "rB_tl", OU + "xCoordinate", "500"),
-                literal(M + "rB_tl", OU + "yCoordinate", "300"),
-                literal(M + "rB", OU + "width", "160"),
-                literal(M + "rB", OU + "height", "60"),
-
-                // point _1 is stated before point _0 — the reconstruction must restore the order
-                resource(M + "gv1", RDF_TYPE, OU + "GeneralizationView"),
-                resource(M + "gv1", OU + "sourceView", M + "cvA"),
-                resource(M + "gv1", OU + "targetView", M + "cvB"),
-                resource(M + "gv1", OU + "shape", M + "p1"),
-                resource(M + "p1", OU + "point", M + "p1_pt_1"),
-                resource(M + "p1", OU + "point", M + "p1_pt_0"),
-                // both ends sit ON a box, as the export states them (B's left edge, A's right edge)
-                literal(M + "p1_pt_1", OU + "xCoordinate", "500"),
-                literal(M + "p1_pt_1", OU + "yCoordinate", "330"),
-                literal(M + "p1_pt_0", OU + "xCoordinate", "300"),
-                literal(M + "p1_pt_0", OU + "yCoordinate", "80")
-        ), Map.of());
-    }
 
     @Test
     void namesTheDiagramsTheExportShips() {
@@ -586,22 +538,5 @@ class UmlLayoutDiagramsTest {
         assertThat(json).as("they must not share the middle of the edge")
                 .doesNotContain("\"points\":[[224,54]");
     }
-
-    /** The triples for one class view: the class, its view, and the view's rectangle. */
-    private static List<RdfTripleTO> classView(final String name, final String view, final String rect,
-                                               final double x, final double y, final double w, final double h) {
-        return List.of(
-                resource(M + name, RDF_TYPE, OU + "Class"),
-                literal(M + name, OU + "name", name),
-                resource(M + view, RDF_TYPE, OU + "ClassView"),
-                resource(M + view, OU + "isViewOf", M + name),
-                resource(M + view, OU + "shape", M + rect),
-                resource(M + rect, OU + "topLeftPosition", M + rect + "_tl"),
-                literal(M + rect + "_tl", OU + "xCoordinate", String.valueOf((long) x)),
-                literal(M + rect + "_tl", OU + "yCoordinate", String.valueOf((long) y)),
-                literal(M + rect, OU + "width", String.valueOf((long) w)),
-                literal(M + rect, OU + "height", String.valueOf((long) h)));
-    }
-
 
 }

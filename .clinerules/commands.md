@@ -108,7 +108,19 @@ Cline rules directory, loaded for every project.
   `mutation` profile in `domox-domain/pom.xml` only declares it.  Two traps: the JUnit-5 plugin must
   be a *plugin* dependency or pitest cannot run a single test, and the minion heap needs
   `-Xmx3g` (the surefire 2g default produced `MEMORY_ERROR` minions).  Baseline: ~3 800 mutants,
-  ~38 % killed, test strength ~70 %.
+  ~45 % killed, test strength ~76 % (was ~39 % / ~71 % before the per-collaborator tests were added).
+  The module average hides the classes that matter, so **per-class floors** are checked separately:
+  `python3 scripts/pitest-floors.py --check` reads that same `mutations.xml` and fails when one of the
+  extracted UML-layout collaborators (`RouteScoring`, `LabelLayout`, `LabelMetrics`, `RouteGeometry`,
+  `PortLayout`, `OrthogonalRouter`, `DiagramIndex`, `DiagramJsonWriter`) drops below its floor.  Run it
+  right after the mutation run; it needs no Maven and no instance.  A `NO_COVERAGE` mutant means no test
+  *reaches* the code; a `SURVIVED` one means a test reaches it but does not assert on it — the two point
+  at different fixes.  **Run the mutation profile last**, because pitest mutates the production classes
+  but takes the *test* classes as input: editing a test afterwards leaves `mutations.xml` looking healthy
+  while its numbers describe a suite that no longer exists.  The script refuses a report older than any
+  file under `domox-domain/src` (or either `pom.xml`) — `--check` then exits **3** instead of reporting a
+  pass, so a stale report can never read as green.  Exit codes: 0 ok, 1 below floor, 2 no report,
+  3 stale (`--allow-stale` bypasses the guard, e.g. when a build cache restored the report).
 
 
 Quick checks after an entity change: run `bash scripts/check.sh` — bundles schema drift,
