@@ -28,6 +28,7 @@ import java.util.List;
  */
 @Named(DomainModule.NAMESPACE + ".Corpora")
 @DomainService
+@DomainServiceLayout(named= "Corpora")
 @Priority(PriorityPrecedence.EARLY)
 public class Corpora {
 

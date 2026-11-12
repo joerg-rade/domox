@@ -32,6 +32,7 @@ import java.util.List;
  */
 @Named(DomainModule.NAMESPACE + ".CorpusDeletion")
 @DomainService
+@DomainServiceLayout(named= "Corpora")
 @Priority(PriorityPrecedence.EARLY)
 public class CorpusDeletion {
 
@@ -46,7 +47,7 @@ public class CorpusDeletion {
     }
 
     @Action()
-    @ActionLayout(sequence = "1", cssClassFa = "trash")
+    @ActionLayout(sequence = "4", cssClassFa = "trash")
     public void deleteCorpus(
             @ParameterLayout(named = "Corpus") final Corpus corpus) {
         // Every document of a corpus points at its shared DomainModel via the
