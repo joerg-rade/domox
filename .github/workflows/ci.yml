@@ -117,8 +117,9 @@ jobs:
 
       # CoreNLP-free subset of the *IntegTest classes. ValidateDomainModelIntegTest is the
       # metamodel-veto guardrail (boot-time DomainModelValidator); ReviewMcpToolsIntegTest,
-      # DeleteCorpusIntegTest, Smoke_IntegTest, CorpusOntologyDiagramIntegTest and
-      # OntologyDiagramIntegTest need only Postgres. CorpusCandidateDedupIntegTest is intentionally
+      # DeleteCorpusIntegTest, Smoke_IntegTest, CorpusOntologyDiagramIntegTest,
+      # OntologyDiagramIntegTest and ContextGraphsIntegTest need only Postgres.
+      # CorpusCandidateDedupIntegTest is intentionally
       # NOT here: it calls the real Stanford CoreNLP service (docker domox-nlp-1, localhost:8999)
       # and needs a fresh DB — run it locally with that container up.
       # surefire.failIfNoSpecifiedTests=false keeps the upstream modules (no matching test
@@ -131,5 +132,5 @@ jobs:
       - name: Run webapp integration tests (CoreNLP-free)
         run: |
           mvn -B test -pl domox-webapp -am \
-            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest,HexagonalPortWiringIntegTest,CorpusOntologyDiagramIntegTest,OntologyDiagramIntegTest,StaleComponentRecoveryListenerTest,StaleComponentRecoveryEndToEndTest \
+            -Dtest=ValidateDomainModelIntegTest,ReviewMcpToolsIntegTest,DeleteCorpusIntegTest,Smoke_IntegTest,HexagonalPortWiringIntegTest,CorpusOntologyDiagramIntegTest,OntologyDiagramIntegTest,ContextGraphsIntegTest,StaleComponentRecoveryListenerTest,StaleComponentRecoveryEndToEndTest \
             -Dsurefire.failIfNoSpecifiedTests=false

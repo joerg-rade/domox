@@ -3,6 +3,7 @@ import domox.dom.AbstractEntity;
 import domox.DomainModule;
 import domox.dom.crc.diagram.CandidateD3Graph;
 import domox.dom.crc.service.CandidateReviewWorkflow;
+import domox.dom.requirements.ContextGraphs;
 import domox.dom.requirements.OntologyDiagrams;
 import domox.dom.rules.RuleMatch;
 import domox.dom.rules.RuleMatchSignature;
@@ -60,7 +61,7 @@ public abstract class Candidate extends AbstractEntity {
     @Transient
     private CandidateReviewWorkflow candidateReviewWorkflow;
 
-    // region Diagram
+    // region lexical graph
     /**
      * Injected {@link CandidateD3Graph} service used to render an interactive
      * <b>D3 force-directed node-link graph</b> of the candidate's dependency neighbourhood
@@ -87,7 +88,7 @@ public abstract class Candidate extends AbstractEntity {
     @Getter
     @Column(nullable = false)
     @PropertyLayout(
-            named = "Diagram Hop Depth",
+            named = "Lexical Graph Hop Depth",
             describedAs = "How far the dependency diagram reaches out (in hops) from this candidate (1–7)",
             fieldSetId = "general",
             sequence = "4")
@@ -118,12 +119,12 @@ public abstract class Candidate extends AbstractEntity {
     @PropertyLayout(
             named = "Lexical Graph",
             describedAs = "Interactive D3 force-directed node-link graph of this candidate's dependency neighbourhood",
-            fieldSetId = "content",
+            fieldSetId = "lexical",
             sequence = "5")
     public String getD3Graph() {
         return candidateD3GraphService != null ? candidateD3GraphService.renderGraph(this) : null;
     }
-    // endregion Diagram
+    // endregion lexical graph
     @Inject
     @Transient
     private OntologyDiagrams ontologyDiagrams;
@@ -137,6 +138,20 @@ public abstract class Candidate extends AbstractEntity {
             sequence = "5.1")
     public String getOntologyGraph() {
         return ontologyDiagrams != null ? ontologyDiagrams.ontologyAsD3Graph(this.candidateName) : null;
+    }
+
+    @Inject
+    @Transient
+    private ContextGraphs contextGraphs;
+    @D3Graph
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(
+            named = "Context Graph",
+            describedAs = "Interactive D3 force-directed node-link graph of this candidate's name occurrences",
+            fieldSetId = "context",
+            sequence = "5.1")
+    public String getContextGraph() {
+        return contextGraphs != null ? contextGraphs.renderContextGraph(this) : null;
     }
 
     /**

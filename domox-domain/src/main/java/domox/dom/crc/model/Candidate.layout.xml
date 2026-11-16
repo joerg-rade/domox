@@ -42,7 +42,7 @@
                 <bs:tab name="Lexical Graph">
                     <bs:row>
                         <bs:col span="12">
-                            <cpt:fieldSet id="content">
+                            <cpt:fieldSet id="lexical">
                                 <cpt:property id="d3Graph"/>
                             </cpt:fieldSet>
                         </bs:col>
@@ -53,6 +53,15 @@
                         <bs:col span="12">
                             <cpt:fieldSet id="ontology">
                                 <cpt:property id="ontologyGraph"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+                <bs:tab name="Context Graph">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet id="context">
+                                <cpt:property id="contextGraph"/>
                             </cpt:fieldSet>
                         </bs:col>
                     </bs:row>
