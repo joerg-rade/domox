@@ -150,3 +150,24 @@ td[class*="-diagram"]:hover .d3GraphPanel svg,
     overflow: visible;
 }
 
+/* ---------------------------------------------------------------------------
+   Context Sentences: the words a candidate matched on.
+
+   The candidate's "Context Sentences" tab lists the corpus sentences that back
+   the candidate, one row per sentence.  Each row's Text cell is that sentence
+   with the matched words wrapped in <mark> (ContextSentence.getText() is a
+   Markup, which the viewer renders as HTML — a String property would show the
+   literal tag), so the reviewer can see at a glance WHERE in a sentence that
+   may be hundreds of characters long the candidate occurs.
+
+   The browser default for <mark> is a heavy yellow; this is the same idea in
+   the DoMoX palette.  Scoped to the cell class Causeway generates for the
+   member (causeway-<objectType>-<memberId>), so a <mark> anywhere else in the
+   app keeps the browser default. */
+td[class*="ContextSentence"] mark {
+    background-color: #fff3bf;
+    color: inherit;
+    padding: 0 .15em;
+    border-radius: .15em;
+}
+

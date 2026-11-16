@@ -39,6 +39,12 @@ The floors are set just below what the per-collaborator tests achieve, so they f
 (a new branch left untested, a test deleted) rather than on an unrelated refactor that moves the
 denominator.
 
+The same applies to the candidate context-evidence rules added with the "Context Sentences" tab:
+`ContextHighlight` (the highlighting half of `ContextMatching`, kept pure) and `ContextSentence` (the
+row the tab renders — a view model, because the highlight belongs to the (candidate, sentence) pair,
+one sentence being evidence for several candidates).  Both scored 100 % when their test classes
+landed; the floors sit one mutant below.
+
 Usage:
   scripts/pitest-floors.py                            # the floor classes, exit 0 either way
   scripts/pitest-floors.py --check                    # exit 1 when any class is below its floor
@@ -141,6 +147,12 @@ FLOORS = {
     "RdfGraphIndex": 90,                    # 100 %  (41)
     "RdfDiagramJson": 90,                   # 100 %  (15)
     "RdfJson": 85,                          # 100 %  (7)
+
+    # --- the candidate context evidence: the highlighting rule and the row the candidate's
+    #     "Context Sentences" tab renders.  Both are pure — the row is a view model built from the
+    #     match, not an entity — so their tests assert directly and both score 100 %. ---
+    "ContextHighlight": 90,                 # 100 %  (20 mutants)
+    "ContextSentence": 80,                  # 100 %  (5)
 }
 
 # Statuses that count as a detected defect.

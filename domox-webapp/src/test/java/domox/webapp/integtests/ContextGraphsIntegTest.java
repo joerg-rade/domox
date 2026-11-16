@@ -9,10 +9,12 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.apache.causeway.applib.Identifier;
+import org.apache.causeway.applib.services.metamodel.MetaModelService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.services.xactn.TransactionService;
 
-import domox.dom.crc.diagram.ContextGraphJson.SentenceOccurrence;
+import domox.dom.crc.diagram.ContextMatching.SentenceOccurrence;
 import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.service.DomainModels;
@@ -22,20 +24,23 @@ import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.nlp.TypedDependencyRepository;
 import domox.dom.requirements.ContextGraphs;
+import domox.dom.requirements.ContextSentence;
 import domox.dom.requirements.Corpus;
 
 /**
- * Guards the <em>container</em> half of the context graph — the three things the container-free
- * {@code ContextGraphJsonTest} cannot see:
+ * Guards the <em>container</em> half of the candidate's context evidence — the three things the
+ * container-free {@code ContextMatchingTest} cannot see:
  * <ul>
  *   <li>that {@link TypedDependencyRepository#findByLemma} really resolves (Spring Data parses the
  *       JPQL at bootstrap, so a typo there is a start-up failure, not a compile error) and really
  *       runs against the database, matching a lemma as governor or dependent, case-insensitively;</li>
  *   <li>that {@link ContextGraphs} really is injected on a <em>persisted</em> candidate — a
- *       {@code null} collaborator would silently yield the {@code null} property the
- *       {@code getContextGraph()} guard returns, i.e. an empty column with no error;</li>
- *   <li>that the whole chain (candidate → service → repository → JPQL → payload) produces the
- *       hub-plus-sentence-nodes contract the shared D3 client renders.</li>
+ *       {@code null} collaborator would silently yield the empty list the
+ *       {@code getContextSentences()} guard returns, i.e. an empty tab with no error;</li>
+ *   <li>that the whole chain (candidate → service → repositories → JPQL → rows) really produces the
+ *       {@link ContextSentence} rows the candidate's <em>Context Sentences</em> tab lists — with the
+ *       words the sentence matched on highlighted as the sentence <em>writes</em> them ({@code Petz}
+ *       where the lemma is {@code petz}), which is only observable end-to-end.</li>
  * </ul>
  * The lemmas are unique to this class, so the exact-count assertions cannot be tripped by rows
  * another test left behind.
@@ -51,12 +56,25 @@ class ContextGraphsIntegTest extends ApplicationIntegTestAbstract {
     private static final String NOUN = "petz";
     private static final String VERB = "shopz";
 
+    /** The surface forms of those three words, as {@link #SENTENCE_TEXT} writes them. */
+    private static final String ACRONYM_GLOSS = "Ctxzz";
+    private static final String NOUN_GLOSS = "Petz";
+    private static final String VERB_GLOSS = "Shopz";
+
+    /**
+     * The sentence as it is written: the name's words in their <em>surface</em> forms, capitalised,
+     * so that a row highlighting the lemma rather than the word as written shows up in the assertion
+     * below ({@code Petz} is marked, {@code petz} is not).
+     */
+    private static final String SENTENCE_TEXT = "The Ctxzz Petz Shopz record.";
+
     /** A lemma that is deliberately not a word of {@link #CANDIDATE_NAME}. */
     private static final String FILLER = "record";
 
     @Inject private ContextGraphs contextGraphs;
     @Inject private TypedDependencyRepository typedDependencyRepository;
     @Inject private DomainModels domainModels;
+    @Inject private MetaModelService metaModelService;
     @Inject private RepositoryService repositoryService;
     @Inject private TransactionService transactionService;
 
@@ -106,16 +124,16 @@ class ContextGraphsIntegTest extends ApplicationIntegTestAbstract {
     }
 
     @Test
-    void contextGraph_ofAPersistedCandidate_rendersTheHubAndOneNodePerOccurringSentence() {
+    void contextSentences_ofAPersistedCandidate_listsEverySentenceCarryingItsName() {
         // given: a corpus owning a model with the candidate, and the sentence carrying all its words
-        final Sentence complete = sentence("The " + ACRONYM + " " + NOUN + " " + VERB + " " + FILLER + ".");
-        dependency(complete, ACRONYM, PartOfSpeechType.NN, FILLER, PartOfSpeechType.NN);
-        dependency(complete, NOUN, PartOfSpeechType.NN, FILLER, PartOfSpeechType.NN);
-        dependency(complete, VERB, PartOfSpeechType.VB, FILLER, PartOfSpeechType.NN);
+        final Sentence complete = sentence(SENTENCE_TEXT);
+        dependency(complete, ACRONYM, ACRONYM_GLOSS, PartOfSpeechType.NN, FILLER, PartOfSpeechType.NN);
+        dependency(complete, NOUN, NOUN_GLOSS, PartOfSpeechType.NN, FILLER, PartOfSpeechType.NN);
+        dependency(complete, VERB, VERB_GLOSS, PartOfSpeechType.VB, FILLER, PartOfSpeechType.NN);
         sentence("An unrelated sentence.");
 
         final Corpus corpus = new Corpus();
-        corpus.setTitle("Context Graph");
+        corpus.setTitle("Context Sentences");
         corpus.setAnalyzedAt(new Timestamp(System.currentTimeMillis()));
         final DomainModel domainModel = domainModels.create();
         final ClassCdd candidate = classCdd(CANDIDATE_NAME, domainModel);
@@ -124,27 +142,48 @@ class ContextGraphsIntegTest extends ApplicationIntegTestAbstract {
         repositoryService.persistAndFlush(corpus);
         transactionService.flushTransaction();
 
-        // when: the entity's own property — i.e. the injected collaborator, not the service directly
+        // when: the entity's own collection — i.e. the injected collaborator, not the service directly
         assertThat(candidate.getId()).as("candidate persisted").isNotNull();
-        final String json = candidate.getContextGraph();
+        final List<ContextSentence> rows = candidate.getContextSentences();
 
-        // then: the hub carries the candidate's name, id, object type and (unreviewed) status
-        assertThat(json).as("context graph of %s", CANDIDATE_NAME)
-                .contains("\"id\":\"candidate\"")
-                .contains("\"name\":\"" + CANDIDATE_NAME + "\"")
-                .contains("\"approved\":false")
-                .contains("\"isCandidateColumn\":true")
-                .contains("\"candidateId\":" + candidate.getId())
-                .contains("\"objectType\":\"domox.ClassCdd\"")
-                // one sentence node, wired to the hub by exactly one link
-                .contains("\"id\":\"sentence:" + complete.getId() + "\"")
-                .contains("\"links\":[{\"source\":\"candidate\",\"target\":\"sentence:" + complete.getId() + "\"}]");
+        // then: exactly the sentence that carries every word of the name, one row per sentence, each
+        // row carrying the sentence itself — not a copy of its text (the tab lists the sentence as
+        // that text, so the sentence itself is not one of the columns)
+        assertThat(rows).extracting(row -> row.getSentence().getId()).containsExactly(complete.getId());
 
-        // and a candidate whose name occurs nowhere still renders — as a lone hub, not as null
-        final String unevidencedJson = unevidenced.getContextGraph();
-        assertThat(unevidencedJson).as("context graph without evidence")
-                .contains("\"name\":\"CtxzzMissingWordz\"")
-                .contains("\"links\":[]");
+        // and the words the sentence matched on are highlighted where the sentence writes them
+        assertThat(rows.getFirst().getText().html())
+                .isEqualTo("The <mark>Ctxzz</mark> <mark>Petz</mark> <mark>Shopz</mark> record.");
+
+        // and a candidate whose name occurs nowhere lists no sentences — an empty tab, not an error
+        assertThat(unevidenced.getContextSentences()).as("context sentences without evidence").isEmpty();
+    }
+
+    /**
+     * The <em>Context Sentences</em> tab lists each sentence as its own (highlighted) text, so the
+     * sentence itself is not one of that table's columns — {@code ContextSentence#sentence} is hidden
+     * in tables.  Asked through {@link MetaModelService#parentedAssociationsForColumnRendering} — the
+     * very call the Wicket viewer makes to build a parented table's columns — so the assertion is
+     * about the rendered table and not merely about the annotation on the property.
+     */
+    @Test
+    void contextSentencesTab_listsTheSentenceAsTextOnly() {
+        // given: a candidate, whose type owns the collection the tab renders
+        final ClassCdd candidate = classCdd(CANDIDATE_NAME, domainModels.create());
+
+        // when: the columns the parented table renders for that collection
+        final List<String> columns = metaModelService
+                .parentedAssociationsForColumnRendering(
+                        candidate,
+                        Identifier.collectionIdentifier(
+                                metaModelService.lookupLogicalTypeByName("domox.ClassCdd").orElseThrow(),
+                                "contextSentences"),
+                        MetaModelService.AssociationsLookup.ENABLED)
+                .map(Identifier::memberLogicalName)
+                .toList();
+
+        // then: the text is the only column — the sentence, which the text already is, is not repeated
+        assertThat(columns).containsExactly("text");
     }
 
     private Sentence sentence(final String text) {
@@ -158,14 +197,27 @@ class ContextGraphsIntegTest extends ApplicationIntegTestAbstract {
     private TypedDependency dependency(final Sentence sentence, final String governorLemma,
                                        final PartOfSpeechType governorPos, final String dependentLemma,
                                        final PartOfSpeechType dependentPos) {
+        return dependency(sentence, governorLemma, governorLemma, governorPos, dependentLemma, dependentPos);
+    }
+
+    /**
+     * The same, with the governor's <em>surface form</em> — the word the sentence writes, which is
+     * what a row highlights ({@code Petz} where the lemma is {@code petz}).  The dependent is written
+     * as its lemma, so the gloss that matters is the governor's.
+     */
+    private TypedDependency dependency(final Sentence sentence, final String governorLemma,
+                                       final String governorGloss, final PartOfSpeechType governorPos,
+                                       final String dependentLemma, final PartOfSpeechType dependentPos) {
         final TypedDependency td = new TypedDependency();
         td.setType(TdType.NSUBJ);
         td.setSentence(sentence);
         td.setGovernorIndex(1);
         td.setGovernorLemma(governorLemma);
+        td.setGovernorGloss(governorGloss);
         td.setGovernorPos(governorPos);
         td.setDependentIndex(2);
         td.setDependentLemma(dependentLemma);
+        td.setDependentGloss(dependentLemma);
         td.setDependentPos(dependentPos);
         repositoryService.persistAndFlush(td);
         return td;

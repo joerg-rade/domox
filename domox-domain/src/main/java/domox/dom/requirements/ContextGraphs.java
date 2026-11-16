@@ -1,31 +1,36 @@
 package domox.dom.requirements;
 
 import domox.DomainModule;
-import domox.dom.crc.diagram.ContextGraphJson;
-import domox.dom.crc.diagram.ContextGraphJson.Center;
-import domox.dom.crc.diagram.ContextGraphJson.SentenceOccurrence;
+import domox.dom.crc.diagram.ContextMatching;
+import domox.dom.crc.diagram.ContextMatching.SentenceOccurrence;
 import domox.dom.crc.model.Candidate;
 import domox.dom.nlp.Sentence;
+import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependencyRepository;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
- * The <b>context graph</b> service: renders a {@link Candidate}'s name as the centre of a D3
- * force-layout graph, surrounded by one node per {@link Sentence} in which that word occurs.
+ * The <b>corpus-evidence</b> service: the {@link Sentence}s in which a {@link Candidate}'s name
+ * occurs — the "where is this candidate actually talked about" question, next to the lexical graph
+ * ({@code CandidateD3Graph}: <em>which other words</em> co-occur with it) and the ontology graph
+ * (<em>which reference vocabulary</em> covers it).
  *
- * <p><b>What it answers.</b>  The other two per-candidate graphs answer different questions:
- * {@code CandidateD3Graph} shows <em>which other words</em> co-occur with the candidate, and the
- * ontology graph shows <em>which reference vocabulary</em> covers it.  This one shows <em>where the
- * candidate is actually talked about</em> — the sentences that back it — which is what a reviewer
- * needs when deciding whether the evidence really supports the candidate.</p>
+ * <p><b>What it answers.</b>  The sentences that back a candidate are what a reviewer reads when
+ * deciding whether the evidence really supports it, so they are listed as a table on the
+ * candidate's <em>Context Sentences</em> tab — {@link #sentencesFor(Candidate)}.  Each row is a
+ * {@link ContextSentence}: the sentence, with the words the candidate matched on highlighted, so the
+ * reviewer does not have to hunt for the candidate in a sentence that may be hundreds of characters
+ * long.</p>
  *
  * <p><b>How the sentences are found.</b>  Through {@link TypedDependencyRepository#findByLemma}:
  * the candidate name is split into its words ({@code "PetShop"} → {@code pet}, {@code shop}) and a
@@ -35,72 +40,82 @@ import java.util.List;
  * {@code "petrol"}.</p>
  *
  * <p><b>Why it is its own service.</b>  This is the corpus-evidence axis: it changes when the
- * matching rule, the sentence look-up or the diagram contract changes, and for no other reason.
- * The rule itself is pure and lives in {@link ContextGraphJson} (tested without a container); this
- * class only owns the repository and the {@link Candidate} → payload mapping.</p>
+ * matching rule, the sentence look-up or the presentation of the evidence changes, and for no other
+ * reason.  The rule itself is pure and lives in {@link ContextMatching} (tested without a
+ * container); this class only owns the repositories and the {@link Candidate} → evidence
+ * mapping.</p>
+ *
+ * <p>{@link #occurrencesFor(String)} is the occurrence-level view of the same evidence — the
+ * matching rule ({@code ContextMatching}) applied to the repositories, without resolving the
+ * sentences.</p>
  */
-@Slf4j
 @Named(DomainModule.NAMESPACE + ".ContextGraphs")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
 public class ContextGraphs {
 
     private final TypedDependencyRepository typedDependencyRepository;
+    private final SentenceRepository sentenceRepository;
 
     @Inject
-    public ContextGraphs(final TypedDependencyRepository typedDependencyRepository) {
+    public ContextGraphs(final TypedDependencyRepository typedDependencyRepository,
+                         final SentenceRepository sentenceRepository) {
         this.typedDependencyRepository = typedDependencyRepository;
+        this.sentenceRepository = sentenceRepository;
     }
 
     /**
-     * Renders a freshly generated D3 force-layout graph JSON string of {@code candidate}'s name
-     * occurrences — see the class javadoc — or {@code null} when the candidate is {@code null} or
-     * has no name to search for.
+     * The sentences in which {@code candidate}'s name occurs, in ascending sentence-id order — the
+     * rows of the candidate's <em>Context Sentences</em> tab.
      * <p>
-     * The graph is regenerated on <em>every</em> call and never cached: the corpus, and therefore
-     * the set of sentences that mention the candidate, grows while the application runs.  A
-     * candidate whose name occurs nowhere still renders — as a lone hub node — so the reviewer can
-     * tell "no evidence" from "graph failed to build".
+     * The matching half is {@link #occurrencesFor(String)}; this method only resolves the matched
+     * sentence ids to the sentences the table renders, and wraps each in a {@link ContextSentence} —
+     * the sentence's text, with the words this candidate matched on highlighted, for the sentence the
+     * id resolved to.  The row carries the real sentence and not a copy of its text (the sentence is
+     * the row's title, and what the row's own page shows), but the tab lists only that text: a column
+     * repeating the sentence would add nothing to read.  A matched id whose sentence is no longer
+     * there is skipped rather than rendered as a hole.
+     *
+     * @param candidate the candidate whose evidence is listed; {@code null}, or a candidate without
+     *                  a name, yields an empty list
      */
     @Programmatic
-    public String renderContextGraph(final Candidate candidate) {
+    public List<ContextSentence> sentencesFor(final Candidate candidate) {
         if (candidate == null || candidate.getCandidateName() == null) {
-            return null;
+            return List.of();
         }
-        final long id = candidate.getId() != null ? candidate.getId() : -1L;
-        final String name = candidate.getCandidateName();
-        log.debug("Rendering context graph for candidate #{} '{}'", id, name);
-        try {
-            final String json = ContextGraphJson.render(center(candidate),
-                    ContextGraphJson.objectTypeOf(Sentence.class), occurrencesFor(name));
-            log.debug("Context graph JSON ({} chars) for candidate #{}", json != null ? json.length() : 0, id);
-            return json;
-        } catch (Exception e) {
-            log.warn("Failed to render context graph for candidate #{} '{}'", id, name, e);
-            return null;
+        final List<SentenceOccurrence> occurrences = occurrencesFor(candidate.getCandidateName());
+        if (occurrences.isEmpty()) {
+            return List.of();
         }
+        final List<Long> ids = occurrences.stream()
+                .map(SentenceOccurrence::id)
+                .distinct()
+                .sorted()
+                .toList();
+        final Map<Long, Sentence> byId = sentenceRepository.findAllById(ids).stream()
+                .filter(sentence -> sentence != null && sentence.getId() != null)
+                .collect(Collectors.toMap(Sentence::getId, Function.identity()));
+        return occurrences.stream()
+                .filter(occurrence -> byId.containsKey(occurrence.id()))
+                .map(occurrence -> ContextSentence.of(byId.get(occurrence.id()), occurrence.terms()))
+                .toList();
     }
 
     /**
-     * The sentences in which {@code name} occurs, in ascending sentence-id order — the look-up
-     * half of {@link #renderContextGraph(Candidate)}, exposed separately so it can be exercised
-     * without building a payload.
+     * The sentences in which {@code name} occurs, in ascending sentence-id order — the matching half
+     * of {@link #sentencesFor(Candidate)}, exposed separately so the rule can be exercised without
+     * resolving the sentences to entities.
      *
      * @param name the candidate name; {@code null} or blank yields an empty list
      */
     @Programmatic
     public List<SentenceOccurrence> occurrencesFor(final String name) {
-        final List<String> parts = ContextGraphJson.wordParts(name);
+        final List<String> parts = ContextMatching.wordParts(name);
         if (parts.isEmpty()) {
             return List.of();
         }
-        return ContextGraphJson.occurrences(parts, typedDependencyRepository::findByLemma);
-    }
-
-    /** The hub node of {@code candidate}: its name, id, Causeway object type and review status. */
-    private static Center center(final Candidate candidate) {
-        return new Center(candidate.getCandidateName(), candidate.getId(), candidate.getObjectType(),
-                candidate.getApprovalCount() > 0);
+        return ContextMatching.occurrences(parts, typedDependencyRepository::findByLemma);
     }
 }
 

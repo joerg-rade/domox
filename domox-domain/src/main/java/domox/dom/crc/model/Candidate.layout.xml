@@ -57,12 +57,10 @@
                         </bs:col>
                     </bs:row>
                 </bs:tab>
-                <bs:tab name="Context Graph">
+                <bs:tab name="Context Sentences">
                     <bs:row>
                         <bs:col span="12">
-                            <cpt:fieldSet id="context">
-                                <cpt:property id="contextGraph"/>
-                            </cpt:fieldSet>
+                            <cpt:collection id="contextSentences"/>
                         </bs:col>
                     </bs:row>
                 </bs:tab>

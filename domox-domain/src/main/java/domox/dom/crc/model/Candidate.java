@@ -3,7 +3,9 @@ import domox.dom.AbstractEntity;
 import domox.DomainModule;
 import domox.dom.crc.diagram.CandidateD3Graph;
 import domox.dom.crc.service.CandidateReviewWorkflow;
+import domox.dom.nlp.Sentence;
 import domox.dom.requirements.ContextGraphs;
+import domox.dom.requirements.ContextSentence;
 import domox.dom.requirements.OntologyDiagrams;
 import domox.dom.rules.RuleMatch;
 import domox.dom.rules.RuleMatchSignature;
@@ -153,15 +155,33 @@ public abstract class Candidate extends AbstractEntity {
     @Inject
     @Transient
     private ContextGraphs contextGraphs;
-    @D3Graph
-    @Property(optionality = Optionality.OPTIONAL)
-    @PropertyLayout(
-            named = "Context Graph",
-            describedAs = "Interactive D3 force-directed node-link graph of this candidate's name occurrences",
-            fieldSetId = "context",
-            sequence = "5.1")
-    public String getContextGraph() {
-        return contextGraphs != null ? contextGraphs.renderContextGraph(this) : null;
+
+    /**
+     * The corpus sentences in which this candidate's name occurs, one row per sentence — the
+     * evidence a reviewer reads when judging whether the candidate is really talked about.
+     * <p>
+     * The sentences are matched on the parser's <em>lemmas</em> ({@code ContextGraphs#sentencesFor}),
+     * not on {@code Sentence.text} containment, so {@code "pet"} does not match {@code "petrol"}; a
+     * compound name matches only a sentence carrying <em>every</em> one of its words.  Each row is a
+     * {@link ContextSentence}: the sentence in ascending sentence-id order, its text with the words
+     * this candidate matched on highlighted, and the sentence itself — so opening it shows the syntax
+     * diagram and the typed dependencies.
+     * <p>
+     * The rows are view models rather than the {@link Sentence} entities, because the highlight
+     * belongs to the <em>pair</em> (candidate, sentence): one sentence is evidence for several
+     * candidates and is marked up differently in each.
+     * <p>
+     * This replaces the former {@code contextGraph} property of this tab: rendered as a D3 graph,
+     * the very same evidence was one truncated label per sentence — a form from which the sentence
+     * could not be read, which is the whole point of the tab.
+     */
+    @Collection
+    @CollectionLayout(
+            named = "Sentences",
+            describedAs = "The corpus sentences in which this candidate's name occurs",
+            sequence = "3")
+    public List<ContextSentence> getContextSentences() {
+        return contextGraphs != null ? contextGraphs.sentencesFor(this) : List.of();
     }
 
     /**

@@ -58,9 +58,23 @@ public class Sentence extends AbstractEntity implements Comparable<Sentence> {
     @Transient
     private Sentences sentencesService;
 
+    /**
+     * The sentence's syntax diagram (PDF), rendered lazily on first access — see
+     * {@link Sentences#ensureDiagram(Sentence)}.
+     * <p>
+     * Hidden in tables ({@link Where#ALL_TABLES}): <em>reading</em> this property builds the diagram
+     * and persists it, and a table renders one cell per row — so listing sentences (the candidate's
+     * <em>Context Sentences</em> tab, the sentence list) would render a PDF per row, each a Kroki
+     * round-trip.  The same guard as {@code Candidate#getOntologyGraph()}; the diagram is shown on
+     * the sentence's own page.
+     */
     @PdfJsViewer
     @Property(optionality = Optionality.OPTIONAL)
-    @PropertyLayout(named = "Syntax Diagram", fieldSetId = "content", sequence = "1")
+    @PropertyLayout(
+            named = "Syntax Diagram",
+            fieldSetId = "content",
+            sequence = "1",
+            hidden = Where.ALL_TABLES)
     public Blob getDiagram() {
         if (diagram == null && sentencesService != null) {
             sentencesService.ensureDiagram(this);
