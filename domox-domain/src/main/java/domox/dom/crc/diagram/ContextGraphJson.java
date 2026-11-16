@@ -148,7 +148,7 @@ public final class ContextGraphJson {
                 flush(parts, current);
                 continue;
             }
-            if (Character.isUpperCase(c) && current.isEmpty() && startsAWord(name, i)) {
+            if (Character.isUpperCase(c) && !current.isEmpty() && startsAWord(name, i)) {
                 flush(parts, current);
             }
             current.append(Character.toLowerCase(c));
@@ -158,11 +158,15 @@ public final class ContextGraphJson {
     }
 
     /**
-     * Whether the capital at {@code index} begins a new word: it follows a non-capital
-     * ({@code "PetShop"} → the {@code S}), or it is the last capital of a run and a lower-case
-     * letter follows it ({@code "PDFViewer"} → the {@code V}, but not the {@code D} or {@code F}).
+     * Whether the capital at {@code index} begins a new word: it is the first character (there is
+     * nothing before it), it follows a non-capital ({@code "PetShop"} → the {@code S}), or it is the
+     * last capital of a run and a lower-case letter follows it ({@code "PDFViewer"} → the
+     * {@code V}, but not the {@code D} or {@code F}).
      */
     private static boolean startsAWord(final String name, final int index) {
+        if (index == 0) {
+            return true;
+        }
         if (!Character.isUpperCase(name.charAt(index - 1))) {
             return true;
         }
@@ -313,7 +317,7 @@ public final class ContextGraphJson {
     }
 
     private static void flush(final List<String> parts, final StringBuilder current) {
-        if (current.isEmpty()) {
+        if (!current.isEmpty()) {
             parts.add(current.toString());
             current.setLength(0);
         }

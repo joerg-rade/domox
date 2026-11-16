@@ -129,13 +129,23 @@ public abstract class Candidate extends AbstractEntity {
     @Transient
     private OntologyDiagrams ontologyDiagrams;
 
+    /**
+     * The candidate's name resolved against the reference ontologies, rendered as an interactive
+     * D3 force-layout graph.
+     * <p>
+     * Hidden in tables ({@link Where#ALL_TABLES}): a list of candidates is a table, and
+     * {@code TableDecorator.DatatablesNet} relocates cell DOM for sorting and paging, which would
+     * fight the D3 canvas — the same reason {@code Corpus#getOntologyDiagram()} is hidden there.
+     * The graph is shown on the candidate's own page instead.
+     */
     @D3Graph
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
             named = "Ontology Graph",
             describedAs = "Interactive D3 force-directed node-link graph of this candidate's ontologies",
             fieldSetId = "ontology",
-            sequence = "5.1")
+            sequence = "5.1",
+            hidden = Where.ALL_TABLES)
     public String getOntologyGraph() {
         return ontologyDiagrams != null ? ontologyDiagrams.ontologyAsD3Graph(this.candidateName) : null;
     }
