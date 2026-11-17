@@ -19,14 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Verifies the context-matching rule — {@link ContextMatching#wordParts} (splitting a name into its
  * words) and {@link ContextMatching#occurrences} (which sentences carry all of them) — with no
  * container, no repository and no database: the look-up the rule needs is passed in as a plain
- * {@link Function}, exactly as {@code ContextGraphs} passes
+ * {@link Function}, exactly as {@code ContextEvidence} passes
  * {@code TypedDependencyRepository#findByLemma}.
  *
  * <p>What is pinned here is the <em>rule</em> (a compound name matches only a sentence carrying
  * <em>every</em> one of its words) and what an occurrence carries (the sentence's id, text, POS,
  * match count, and the surface forms the sentence matched on — the words the table highlights).
  * The container half of the same feature — the JPQL and the sentence rows the candidate page shows —
- * is guarded by {@code ContextGraphsIntegTest}.</p>
+ * is guarded by {@code ContextEvidenceIntegTest}.</p>
  */
 class ContextMatchingTest {
 

@@ -45,6 +45,14 @@ row the tab renders — a view model, because the highlight belongs to the (cand
 one sentence being evidence for several candidates).  Both scored 100 % when their test classes
 landed; the floors sit one mutant below.
 
+A fifth wave split `ContextGraphs`, which was misnamed: it returns no graph — no nodes, no links — only
+the sentences a candidate's name occurs in and the use cases its rule-match evidence comes from.  It
+is now two classes, one per axis of change: `ContextEvidence` keeps the repositories (the lemma
+look-up behind the candidate's *Context Sentences* tab), and `UseCases` is pure (it walks the
+rule-match → sentence → document chain already loaded with the candidate, and touches no repository at
+all).  `ContextEvidence` is an orchestrator like `Documents`, so it carries no floor; `UseCases` is an
+extracted collaborator, so it does.
+
 Usage:
   scripts/pitest-floors.py                            # the floor classes, exit 0 either way
   scripts/pitest-floors.py --check                    # exit 1 when any class is below its floor
@@ -153,6 +161,11 @@ FLOORS = {
     #     match, not an entity — so their tests assert directly and both score 100 %. ---
     "ContextHighlight": 90,                 # 100 %  (20 mutants)
     "ContextSentence": 80,                  # 100 %  (5)
+
+    # --- the fifth wave: the two halves of the former ContextGraphs, split along the axis each
+    #     changes on.  ContextEvidence keeps the repositories (an orchestrator, like Documents, so
+    #     no floor); UseCases is pure — the extracted collaborator — and so is floored. ---
+    "UseCases": 90,                         # 100 %  (19 mutants)
 }
 
 # Statuses that count as a detected defect.

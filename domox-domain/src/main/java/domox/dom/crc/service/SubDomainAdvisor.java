@@ -22,7 +22,7 @@ import java.util.Set;
  *
  * <p>Pure and side-effect free, like {@link ReviewAdvisor}: it is given each unassigned class
  * candidate together with the use cases its rule-match evidence comes from
- * ({@code ContextGraphs#provenanceFor}), and it returns a partition — the clusters, the candidates
+ * ({@code UseCases#provenanceFor}), and it returns a partition — the clusters, the candidates
  * that belong to no single area, and the reasons behind each call.  It decides nothing and writes
  * nothing.</p>
  *
@@ -166,7 +166,7 @@ public class SubDomainAdvisor {
         final Map<Long, UseCaseProvenance> documentById = new LinkedHashMap<>();
         final Map<Long, Set<Long>> evidencedByDocument = new LinkedHashMap<>();
         for (final Profile profile : owned) {
-            final UseCaseProvenance dominant = profile.useCases().get(0);
+            final UseCaseProvenance dominant = profile.useCases().getFirst();
             byDominantDocument.computeIfAbsent(dominant.documentId(), key -> new ArrayList<>()).add(profile);
             for (final UseCaseProvenance useCase : profile.useCases()) {
                 documentById.putIfAbsent(useCase.documentId(), useCase);
@@ -215,7 +215,7 @@ public class SubDomainAdvisor {
         bySize.sort(Comparator
                 .comparingInt((Long id) -> byDominantDocument.get(id).size()).reversed()
                 .thenComparing(Comparator.naturalOrder()));
-        final UseCaseProvenance primary = documentById.get(bySize.get(0));
+        final UseCaseProvenance primary = documentById.get(bySize.getFirst());
 
         final List<String> reasons = new ArrayList<>();
         reasons.add("Named after '" + primary.fileName() + "' (" + primary.documentTitle()

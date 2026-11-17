@@ -6,9 +6,7 @@ import domox.dom.crc.diagram.ContextMatching.SentenceOccurrence;
 import domox.dom.crc.model.Candidate;
 import domox.dom.nlp.Sentence;
 import domox.dom.nlp.SentenceRepository;
-import domox.dom.nlp.TypedDependency;
 import domox.dom.nlp.TypedDependencyRepository;
-import domox.dom.rules.RuleMatch;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -16,12 +14,8 @@ import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
 
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,21 +45,26 @@ import java.util.stream.Collectors;
  * container); this class only owns the repositories and the {@link Candidate} → evidence
  * mapping.</p>
  *
+ * <p><b>What it deliberately does not answer.</b>  <em>Which use case</em> a candidate's evidence
+ * comes from is a different question — it follows the candidate's rule matches back to the document
+ * each sentence was ingested from, needs no repository at all, and changes when the rule-match chain
+ * changes.  It is therefore a separate service, {@link UseCases}.</p>
+ *
  * <p>{@link #occurrencesFor(String)} is the occurrence-level view of the same evidence — the
  * matching rule ({@code ContextMatching}) applied to the repositories, without resolving the
  * sentences.</p>
  */
-@Named(DomainModule.NAMESPACE + ".ContextGraphs")
+@Named(DomainModule.NAMESPACE + ".ContextEvidence")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
-public class ContextGraphs {
+public class ContextEvidence {
 
     private final TypedDependencyRepository typedDependencyRepository;
     private final SentenceRepository sentenceRepository;
 
     @Inject
-    public ContextGraphs(final TypedDependencyRepository typedDependencyRepository,
-                         final SentenceRepository sentenceRepository) {
+    public ContextEvidence(final TypedDependencyRepository typedDependencyRepository,
+                           final SentenceRepository sentenceRepository) {
         this.typedDependencyRepository = typedDependencyRepository;
         this.sentenceRepository = sentenceRepository;
     }
@@ -100,7 +99,7 @@ public class ContextGraphs {
                 .sorted()
                 .toList();
         final Map<Long, Sentence> byId = sentenceRepository.findAllById(ids).stream()
-                .filter(sentence -> sentence != null && sentence.getId() != null)
+                .filter(sentence -> sentence.getId() != null)
                 .collect(Collectors.toMap(Sentence::getId, Function.identity()));
         return occurrences.stream()
                 .filter(occurrence -> byId.containsKey(occurrence.id()))
@@ -123,83 +122,4 @@ public class ContextGraphs {
         }
         return ContextMatching.occurrences(parts, typedDependencyRepository::findByLemma);
     }
-
-    // --- use-case provenance (the evidence a sub-domain partition is built on) ---
-
-    /**
-     * The use cases a candidate's <em>own evidence</em> comes from, most-evidenced first.
-     * <p>
-     * Unlike {@link #sentencesFor(Candidate)} — which asks "where does this name occur at all" by
-     * lemma — this walks the candidate's {@link RuleMatch rule matches} back to their sentences and
-     * then to the {@link Document} each sentence was ingested from.  So it answers "which use cases
-     * the rules actually fired on", which is the evidence a sub-domain partition rests on, and it is
-     * derived from data already loaded for the candidate's review.
-     *
-     * @param candidate the candidate; {@code null} yields an empty list
-     * @return one entry per use case the candidate's evidence comes from, ordered by descending
-     *         sentence count (ties broken by document id), empty when the candidate has no evidence
-     */
-    @Programmatic
-    public List<UseCaseProvenance> provenanceFor(final Candidate candidate) {
-        return candidate == null ? List.of() : provenanceOf(candidate.getRuleMatches());
-    }
-
-    /**
-     * {@link #provenanceFor(Candidate)} for many candidates at once, keyed by candidate id and in the
-     * order the candidates were given — the bulk read a sub-domain pass starts from, so the partition
-     * is built from one pass over the corpus rather than one call per candidate.
-     */
-    @Programmatic
-    public Map<Long, List<UseCaseProvenance>> provenanceForAll(final List<? extends Candidate> candidates) {
-        final Map<Long, List<UseCaseProvenance>> byCandidateId = new LinkedHashMap<>();
-        if (candidates == null) {
-            return byCandidateId;
-        }
-        for (final Candidate candidate : candidates) {
-            if (candidate != null && candidate.getId() != null) {
-                byCandidateId.put(candidate.getId(), provenanceFor(candidate));
-            }
-        }
-        return byCandidateId;
-    }
-
-    private static List<UseCaseProvenance> provenanceOf(final List<RuleMatch> ruleMatches) {
-        if (ruleMatches == null || ruleMatches.isEmpty()) {
-            return List.of();
-        }
-        final Map<Long, Document> documentById = new LinkedHashMap<>();
-        final Map<Long, Set<Long>> sentenceIdsByDocumentId = new LinkedHashMap<>();
-        for (final RuleMatch ruleMatch : ruleMatches) {
-            final Sentence sentence = sentenceOf(ruleMatch);
-            final Document document = sentence == null ? null : sentence.getDocument();
-            if (sentence == null || sentence.getId() == null || document == null || document.getId() == null) {
-                continue;
-            }
-            documentById.putIfAbsent(document.getId(), document);
-            sentenceIdsByDocumentId
-                    .computeIfAbsent(document.getId(), key -> new LinkedHashSet<>())
-                    .add(sentence.getId());
-        }
-        return sentenceIdsByDocumentId.entrySet().stream()
-                .map(entry -> {
-                    final Document document = documentById.get(entry.getKey());
-                    return new UseCaseProvenance(
-                            entry.getKey(),
-                            document.getTitle(),
-                            document.getFileName(),
-                            entry.getValue().size());
-                })
-                .sorted(Comparator.comparingLong(UseCaseProvenance::sentenceCount).reversed()
-                        .thenComparing(Comparator.comparingLong(UseCaseProvenance::documentId)))
-                .toList();
-    }
-
-    private static Sentence sentenceOf(final RuleMatch ruleMatch) {
-        if (ruleMatch == null) {
-            return null;
-        }
-        final TypedDependency typedDependency = ruleMatch.getTypedDependency();
-        return typedDependency == null ? null : typedDependency.getSentence();
-    }
 }
-

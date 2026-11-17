@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>
  * The row is the <em>pair</em> (candidate, sentence): one sentence is evidence for several candidates
  * and is highlighted differently in each, which is why it is a view model rather than the
- * {@link Sentence}.  The mapping that builds the rows is pinned by {@code ContextGraphsTest}.
+ * {@link Sentence}.  The mapping that builds the rows is pinned by {@code ContextEvidenceTest}.
  */
 class ContextSentenceTest {
 

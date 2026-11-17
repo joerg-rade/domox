@@ -23,7 +23,7 @@ import domox.dom.nlp.Sentence;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.nlp.TypedDependencyRepository;
-import domox.dom.requirements.ContextGraphs;
+import domox.dom.requirements.ContextEvidence;
 import domox.dom.requirements.ContextSentence;
 import domox.dom.requirements.Corpus;
 
@@ -34,7 +34,7 @@ import domox.dom.requirements.Corpus;
  *   <li>that {@link TypedDependencyRepository#findByLemma} really resolves (Spring Data parses the
  *       JPQL at bootstrap, so a typo there is a start-up failure, not a compile error) and really
  *       runs against the database, matching a lemma as governor or dependent, case-insensitively;</li>
- *   <li>that {@link ContextGraphs} really is injected on a <em>persisted</em> candidate — a
+ *   <li>that {@link ContextEvidence} really is injected on a <em>persisted</em> candidate — a
  *       {@code null} collaborator would silently yield the empty list the
  *       {@code getContextSentences()} guard returns, i.e. an empty tab with no error;</li>
  *   <li>that the whole chain (candidate → service → repositories → JPQL → rows) really produces the
@@ -46,7 +46,7 @@ import domox.dom.requirements.Corpus;
  * another test left behind.
  */
 @Transactional
-class ContextGraphsIntegTest extends ApplicationIntegTestAbstract {
+class ContextEvidenceIntegTest extends ApplicationIntegTestAbstract {
 
     /** A name whose three words are {@code ctxzz}, {@code petz}, {@code shopz}. */
     private static final String CANDIDATE_NAME = "CtxzzPetzShopz";
@@ -71,7 +71,7 @@ class ContextGraphsIntegTest extends ApplicationIntegTestAbstract {
     /** A lemma that is deliberately not a word of {@link #CANDIDATE_NAME}. */
     private static final String FILLER = "record";
 
-    @Inject private ContextGraphs contextGraphs;
+    @Inject private ContextEvidence contextEvidence;
     @Inject private TypedDependencyRepository typedDependencyRepository;
     @Inject private DomainModels domainModels;
     @Inject private MetaModelService metaModelService;
@@ -111,7 +111,7 @@ class ContextGraphsIntegTest extends ApplicationIntegTestAbstract {
         dependency(partial, ACRONYM, PartOfSpeechType.NN, NOUN, PartOfSpeechType.NN);
 
         // when
-        final List<SentenceOccurrence> occurrences = contextGraphs.occurrencesFor(CANDIDATE_NAME);
+        final List<SentenceOccurrence> occurrences = contextEvidence.occurrencesFor(CANDIDATE_NAME);
 
         // then: one occurrence — the sentence where every word of the name is present
         assertThat(occurrences).hasSize(1);

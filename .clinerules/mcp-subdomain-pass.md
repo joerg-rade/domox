@@ -42,9 +42,9 @@ UC01..UC15.md → domox.document → domox.sentence → domox.typeddependency
 | `ClassCdd.subDomain` | `@ManyToOne` → `classcdd.subdomain_id`; inline-editable in the Causeway UI |
 | Evidence chain | `Candidate#getRuleMatches()` → `RuleMatch#getTypedDependency()` → `TypedDependency#getSentence()` → `Sentence#getDocument()` |
 
-**The provenance read is `ContextGraphs#provenanceFor(Candidate)`** — it walks the rule-match chain,
+**The provenance read is `UseCases#provenanceFor(Candidate)`** — it walks the rule-match chain,
 so it answers "which use cases the rules actually fired on", not "where does this word appear"
-(that is `ContextGraphs#sentencesFor`, a different question).
+(that is `ContextEvidence#sentencesFor`, a different question).
 
 ---
 

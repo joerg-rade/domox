@@ -23,7 +23,7 @@ import java.util.function.Function;
  * ({@link #occurrences(List, Function)}) — and free of Spring and JPA, so the rule is unit-testable
  * without a container: the caller supplies the look-up as a {@link Function}
  * ({@code TypedDependencyRepository#findByLemma}).  The thin orchestrator that owns the repositories
- * is {@code domox.dom.requirements.ContextGraphs}, which resolves the matched sentence ids to the
+ * is {@code domox.dom.requirements.ContextEvidence}, which resolves the matched sentence ids to the
  * {@link Sentence} entities the candidate's <em>Context Sentences</em> tab lists.
  */
 public final class ContextMatching {

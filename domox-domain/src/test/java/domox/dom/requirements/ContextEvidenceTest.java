@@ -7,7 +7,6 @@ import domox.dom.nlp.Sentence;
 import domox.dom.nlp.SentenceRepository;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.nlp.TypedDependencyRepository;
-import domox.dom.rules.RuleMatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,8 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,21 +28,22 @@ import static org.mockito.Mockito.when;
  * with the words the sentence matched on highlighted in the row's text.
  * <p>
  * The neighbours cover the ends of the chain: {@code ContextMatchingTest} the pure matching rule,
- * {@code ContextHighlightTest} the pure highlighting rule, and {@code ContextGraphsIntegTest} the
+ * {@code ContextHighlightTest} the pure highlighting rule, and {@code ContextEvidenceIntegTest} the
  * JPQL against a real database.  What is pinned here is the mapping in between, with both
- * repositories mocked — no container, no database.
+ * repositories mocked — no container, no database.  The service's other former responsibility,
+ * use-case provenance, is pinned by {@code UseCasesTest}.
  */
 @ExtendWith(MockitoExtension.class)
-class ContextGraphsTest {
+class ContextEvidenceTest {
 
     @Mock TypedDependencyRepository typedDependencyRepository;
     @Mock SentenceRepository sentenceRepository;
 
-    private ContextGraphs classUnderTest;
+    private ContextEvidence classUnderTest;
 
     @BeforeEach
     void setUp() {
-        classUnderTest = new ContextGraphs(typedDependencyRepository, sentenceRepository);
+        classUnderTest = new ContextEvidence(typedDependencyRepository, sentenceRepository);
     }
 
     @Test
@@ -115,74 +115,20 @@ class ContextGraphsTest {
         assertThat(rows).isEmpty();
     }
 
-    // ============ use-case provenance ============
-
     @Test
-    void provenanceFor_ofNoCandidate_isEmpty() {
-        assertThat(classUnderTest.provenanceFor(null)).isEmpty();
-    }
-
-    @Test
-    void provenanceFor_groupsTheEvidenceBySourceUseCase_mostEvidencedFirst() {
-        // given: three rule matches - two in the selling use case, one in the grooming one
-        final Document selling = document(2L, "UC01_SellingPetProducts.md");
-        final Document grooming = document(1019L, "UC02_PetGroomingServices.md");
-        final ClassCdd candidate = classCdd("Pet");
-        candidate.addMatchingRule(ruleMatch(sentence(1L, "A pet is sold.", selling), "sold"));
-        candidate.addMatchingRule(ruleMatch(sentence(2L, "The pet is priced.", selling), "priced"));
-        candidate.addMatchingRule(ruleMatch(sentence(3L, "A pet is groomed.", grooming), "groomed"));
+    void sentencesFor_ignoresANullRowAndAnIdlessSentenceFromTheRepository() {
+        // given: the look-up is asked for ids, and returns a row it cannot key alongside the real one
+        final Sentence real = sentence(4L, "A pet shop.");
+        when(typedDependencyRepository.findByLemma("pet")).thenReturn(List.of(dependency(real, "pet")));
+        when(sentenceRepository.findAllById(any()))
+                .thenReturn(Arrays.asList(null, sentenceWithoutId("A pet shop."), real));
 
         // when
-        final List<UseCaseProvenance> provenance = classUnderTest.provenanceFor(candidate);
+        final List<ContextSentence> rows = classUnderTest.sentencesFor(classCdd("Pet"));
 
-        // then: the best-evidenced use case first, with only the counts exposed
-        assertThat(provenance).extracting(UseCaseProvenance::documentId).containsExactly(2L, 1019L);
-        assertThat(provenance).extracting(UseCaseProvenance::sentenceCount).containsExactly(2L, 1L);
-        assertThat(provenance.getFirst().fileName()).isEqualTo("UC01_SellingPetProducts.md");
-        assertThat(provenance.getFirst().documentTitle()).isEqualTo("UC01_SellingPetProducts.md");
-    }
-
-    @Test
-    void provenanceFor_countsASentenceOnceEvenWhenSeveralRulesFiredInIt() {
-        // given: two DIFFERENT rule matches, both on the same sentence of the same use case
-        final Document selling = document(2L, "UC01_SellingPetProducts.md");
-        final Sentence shared = sentence(1L, "A pet is sold to a customer.", selling);
-        final ClassCdd candidate = classCdd("Pet");
-        candidate.addMatchingRule(ruleMatch(shared, "sold"));
-        candidate.addMatchingRule(ruleMatch(shared, "customer"));
-
-        // when/then: one sentence, not two — the unit of provenance is the sentence
-        assertThat(classUnderTest.provenanceFor(candidate))
-                .extracting(UseCaseProvenance::sentenceCount)
-                .containsExactly(1L);
-    }
-
-    @Test
-    void provenanceFor_skipsEvidenceWithNoSentenceAndEvidenceWithNoDocument() {
-        // given: one match whose sentence is gone, and one whose sentence has no source document
-        final ClassCdd candidate = classCdd("Pet");
-        candidate.addMatchingRule(ruleMatch(null, "no sentence"));
-        candidate.addMatchingRule(ruleMatch(sentence(2L, "A pet.", null), "no document"));
-
-        // when/then: neither can be attributed to a use case
-        assertThat(classUnderTest.provenanceFor(candidate)).isEmpty();
-    }
-
-    @Test
-    void provenanceForAll_keysTheResultByCandidateId_includingThoseWithoutEvidence() {
-        final ClassCdd first = classCdd("Pet");
-        setId(first, 11L);
-        first.addMatchingRule(ruleMatch(sentence(1L, "A pet.", document(2L, "UC01_SellingPetProducts.md")), "sold"));
-        final ClassCdd second = classCdd("Groomer");
-        setId(second, 22L);
-
-        // when
-        final Map<Long, List<UseCaseProvenance>> all = classUnderTest.provenanceForAll(List.of(first, second));
-
-        // then: both candidates are present, the unevidenced one with an empty list
-        assertThat(all).containsOnlyKeys(11L, 22L);
-        assertThat(all.get(11L)).hasSize(1);
-        assertThat(all.get(22L)).isEmpty();
+        // then: only the addressable sentence becomes a row — the others must not break the tab
+        assertThat(rows).hasSize(1);
+        assertThat(rows.getFirst().getSentence()).isSameAs(real);
     }
 
     // ============ fixtures ============
@@ -191,35 +137,11 @@ class ContextGraphsTest {
         return new ClassCdd(name, List.of(), List.of(), List.of());
     }
 
-    /** A document with a database id — the use case a sentence was ingested from. */
-    private static Document document(final long id, final String fileName) {
-        final Document document = new Document();
-        document.setTitle(fileName);
-        document.setFileName(fileName);
-        setId(document, id);
-        return document;
-    }
-
-    /** The same sentence, attributed to the use case it came from. */
-    private static Sentence sentence(final long id, final String text, final Document document) {
-        final Sentence sentence = sentence(id, text);
-        sentence.setDocument(document);
+    /** A sentence the repository returned without an id — not addressable, so not a row. */
+    private static Sentence sentenceWithoutId(final String text) {
+        final Sentence sentence = new Sentence();
+        sentence.setText(text);
         return sentence;
-    }
-
-    /**
-     * A rule match on {@code sentence}, distinguished from another by its description — the part of
-     * the signature {@code Candidate#addMatchingRule} de-duplicates on, so two matches inside one
-     * sentence stay two matches.
-     */
-    private static RuleMatch ruleMatch(final Sentence sentence, final String description) {
-        final RuleMatch ruleMatch = new RuleMatch();
-        ruleMatch.setTypedDependency(dependency(sentence, "pet"));
-        ruleMatch.setRuleClassName("test.Rule");
-        ruleMatch.setCandidateType("ClassCdd");
-        ruleMatch.setCandidateName("Pet");
-        ruleMatch.setDescription(description);
-        return ruleMatch;
     }
 
     /** A sentence with a database id, assigned reflectively as the sequence generator would. */

@@ -4,7 +4,7 @@ import domox.DomainModule;
 import domox.dom.crc.diagram.CandidateD3Graph;
 import domox.dom.crc.service.CandidateReviewWorkflow;
 import domox.dom.nlp.Sentence;
-import domox.dom.requirements.ContextGraphs;
+import domox.dom.requirements.ContextEvidence;
 import domox.dom.requirements.ContextSentence;
 import domox.dom.requirements.OntologyDiagrams;
 import domox.dom.rules.RuleMatch;
@@ -154,13 +154,13 @@ public abstract class Candidate extends AbstractEntity {
 
     @Inject
     @Transient
-    private ContextGraphs contextGraphs;
+    private ContextEvidence contextEvidence;
 
     /**
      * The corpus sentences in which this candidate's name occurs, one row per sentence — the
      * evidence a reviewer reads when judging whether the candidate is really talked about.
      * <p>
-     * The sentences are matched on the parser's <em>lemmas</em> ({@code ContextGraphs#sentencesFor}),
+     * The sentences are matched on the parser's <em>lemmas</em> ({@code ContextEvidence#sentencesFor}),
      * not on {@code Sentence.text} containment, so {@code "pet"} does not match {@code "petrol"}; a
      * compound name matches only a sentence carrying <em>every</em> one of its words.  Each row is a
      * {@link ContextSentence}: the sentence in ascending sentence-id order, its text with the words
@@ -181,7 +181,7 @@ public abstract class Candidate extends AbstractEntity {
             describedAs = "The corpus sentences in which this candidate's name occurs",
             sequence = "3")
     public List<ContextSentence> getContextSentences() {
-        return contextGraphs != null ? contextGraphs.sentencesFor(this) : List.of();
+        return contextEvidence != null ? contextEvidence.sentencesFor(this) : List.of();
     }
 
     /**

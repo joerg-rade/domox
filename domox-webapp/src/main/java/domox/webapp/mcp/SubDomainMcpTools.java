@@ -26,7 +26,7 @@ import domox.dom.crc.service.Candidates;
 import domox.dom.crc.service.Reviews;
 import domox.dom.crc.service.SubDomainAdvisor;
 import domox.dom.crc.service.SubDomains;
-import domox.dom.requirements.ContextGraphs;
+import domox.dom.requirements.UseCases;
 import domox.dom.requirements.Document;
 import domox.dom.requirements.Documents;
 import domox.dom.requirements.UseCaseProvenance;
@@ -35,7 +35,7 @@ import domox.dom.requirements.UseCaseProvenance;
  * Exposes the sub-domain pass to LLM clients over MCP (Model Context Protocol).
  *
  * <p><b>What it does.</b>  It turns the corpus into sub-domains: the use cases a candidate's
- * rule-match evidence comes from ({@link ContextGraphs}) are the cohesion evidence, the advisor
+ * rule-match evidence comes from ({@link UseCases}) are the cohesion evidence, the advisor
  * ({@link SubDomainAdvisor}) proposes a partition over them, and {@link SubDomains} writes the
  * result — creating the sub-domain reference rows and setting {@code ClassCdd.subDomain}.</p>
  *
@@ -60,7 +60,7 @@ import domox.dom.requirements.UseCaseProvenance;
 public class SubDomainMcpTools {
 
     private final Candidates candidates;
-    private final ContextGraphs contextGraphs;
+    private final UseCases useCases;
     private final SubDomains subDomains;
     private final SubDomainAdvisor subDomainAdvisor;
     private final Reviews reviews;
@@ -70,14 +70,14 @@ public class SubDomainMcpTools {
     @Inject
     public SubDomainMcpTools(
             final Candidates candidates,
-            final ContextGraphs contextGraphs,
+            final UseCases useCases,
             final SubDomains subDomains,
             final SubDomainAdvisor subDomainAdvisor,
             final Reviews reviews,
             final Documents documents,
             final PlatformTransactionManager transactionManager) {
         this.candidates = candidates;
-        this.contextGraphs = contextGraphs;
+        this.useCases = useCases;
         this.subDomains = subDomains;
         this.subDomainAdvisor = subDomainAdvisor;
         this.reviews = reviews;
@@ -97,7 +97,7 @@ public class SubDomainMcpTools {
     public List<UseCaseView> listUseCases() {
         return transactionTemplate.execute(status -> {
             final Map<Long, List<UseCaseProvenance>> provenance =
-                    contextGraphs.provenanceForAll(candidates.listAllClasses());
+                    useCases.provenanceForAll(candidates.listAllClasses());
             final Map<Long, Long> candidateCountByDocument = new HashMap<>();
             final Map<Long, Long> dominantCountByDocument = new HashMap<>();
             for (final List<UseCaseProvenance> useCases : provenance.values()) {
@@ -107,7 +107,7 @@ public class SubDomainMcpTools {
                 for (final UseCaseProvenance useCase : useCases) {
                     candidateCountByDocument.merge(useCase.documentId(), 1L, Long::sum);
                 }
-                dominantCountByDocument.merge(useCases.get(0).documentId(), 1L, Long::sum);
+                dominantCountByDocument.merge(useCases.getFirst().documentId(), 1L, Long::sum);
             }
             return documents.listAll().stream()
                     .sorted(Comparator.comparingLong(Document::getId))
@@ -168,15 +168,15 @@ public class SubDomainMcpTools {
             final long candidateId) {
         return transactionTemplate.execute(status -> {
             final Candidate candidate = requireCandidate(candidateId);
-            final List<UseCaseProvenance> useCases = contextGraphs.provenanceFor(candidate);
+            final List<UseCaseProvenance> provenance = useCases.provenanceFor(candidate);
             final List<String> notes = new ArrayList<>();
-            if (useCases.isEmpty()) {
+            if (provenance.isEmpty()) {
                 notes.add("No rule match, so no use case can be attributed to this candidate.");
-            } else if (useCases.size() >= SubDomainAdvisor.CROSS_CUTTING_USE_CASE_THRESHOLD) {
-                notes.add("Cross-cutting: evidenced by " + useCases.size()
+            } else if (provenance.size() >= SubDomainAdvisor.CROSS_CUTTING_USE_CASE_THRESHOLD) {
+                notes.add("Cross-cutting: evidenced by " + provenance.size()
                         + " use cases, so no single area owns it.");
-            } else if (useCases.size() > 1) {
-                notes.add("Evidenced by " + useCases.size()
+            } else if (provenance.size() > 1) {
+                notes.add("Evidenced by " + provenance.size()
                         + " use cases; the first is the strongest.");
             }
             if (candidate.getApprovalCount() == 0) {
@@ -190,7 +190,7 @@ public class SubDomainMcpTools {
                     candidate.getCandidateType(),
                     candidate.getApprovalCount() > 0,
                     subDomain != null ? subDomain.getName() : null,
-                    useCases,
+                    provenance,
                     notes);
         });
     }
@@ -211,7 +211,7 @@ public class SubDomainMcpTools {
             final List<ClassCdd> unassigned = subDomains.listUnassigned().stream()
                     .filter(candidate -> candidate.getApprovalCount() > 0)
                     .toList();
-            final Map<Long, List<UseCaseProvenance>> provenance = contextGraphs.provenanceForAll(unassigned);
+            final Map<Long, List<UseCaseProvenance>> provenance = useCases.provenanceForAll(unassigned);
             final List<SubDomainAdvisor.Profile> profiles = unassigned.stream()
                     .map(candidate -> new SubDomainAdvisor.Profile(
                             candidate.getId(),
@@ -245,7 +245,7 @@ public class SubDomainMcpTools {
             if (classification != null && !classification.isBlank()) {
                 subDomains.classify(subDomain, parseClassification(classification));
             }
-            return SubDomainView.of(subDomain, (long) subDomains.listAssignedTo(subDomain).size());
+            return SubDomainView.of(subDomain, subDomains.listAssignedTo(subDomain).size());
         });
     }
 
@@ -279,9 +279,6 @@ public class SubDomainMcpTools {
             final List<ClassCdd> toAssign = new ArrayList<>();
             final List<Long> notFound = new ArrayList<>();
             for (final Long candidateId : candidateIds == null ? List.<Long>of() : candidateIds) {
-                if (candidateId == null) {
-                    continue;
-                }
                 final Candidate candidate = reviews.findByUniqueId(candidateId);
                 if (candidate == null) {
                     notFound.add(candidateId);
