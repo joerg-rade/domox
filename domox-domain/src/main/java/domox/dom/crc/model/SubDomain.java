@@ -4,6 +4,8 @@ import domox.DomainModule;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -42,6 +44,26 @@ public class SubDomain extends AbstractEntity implements Comparable<SubDomain> {
             named = "Name",
             describedAs = "Name of the sub-domain (e.g. \"Checkout\", \"Inventory\")")
     private String name;
+
+    /**
+     * How this sub-domain contributes to the business — {@code CORE}, {@code SUPPORTING} or
+     * {@code GENERIC}, and {@code UNCLASSIFIED} until a reviewer decides.
+     * <p>
+     * Stored as a string ({@link EnumType#STRING}): the value stays readable in the database and
+     * reordering the enum cannot silently re-map the rows already written.  The field initialiser
+     * (rather than a database default) is what makes a {@code new SubDomain()} well-defined before
+     * any decision has been taken.
+     */
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Getter
+    @Setter
+    @ToString.Include
+    @PropertyLayout(
+            named = "Classification",
+            describedAs = "Core / supporting / generic — how this sub-domain contributes to the business",
+            sequence = "2")
+    private SubDomainClassification classification = SubDomainClassification.UNCLASSIFIED;
 
     @Override
     public int compareTo(@NonNull SubDomain o) {

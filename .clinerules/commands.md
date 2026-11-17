@@ -28,6 +28,9 @@ Cline rules directory, loaded for every project.
 - **Persistence / schema / JPA field migration** (TABLE_PER_CLASS trap, `create-tables.sql`,
   drift check) → `.clinerules/memory-bank/technical/SCHEMA.md`
 - **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`
+- **Sub-domain pass (partition the domain, classify core/supporting/generic) over MCP** →
+  `mcp-subdomain-pass.md` (DoMoX wiring: `SubDomains`, `ClassCdd.subDomain`, the eight
+  `SubDomainMcpTools`; generic method → the `identify-subdomains` skill)
 - **Domain-modeling (CRC) extraction rules** → `.clinerules/crc_domain_modeling_guide.md` (full guide: `docs/domain-modeling/crc-guide.md`)
 - **Run the app & confirm boot** → use `bash scripts/run-app.sh [--spring.args…]`. It does the three
   things that are easy to get wrong, in order: (1) `install`s `domox-domain`/`domox-adapter` into
