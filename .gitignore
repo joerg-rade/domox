@@ -38,3 +38,6 @@ hs_err_pid*
 __pycache__/
 *.pyc
 
+# Local database backups (scripts/db-backup.sh) — binary analysis snapshots, not source
+/backups/
+
