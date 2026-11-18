@@ -193,6 +193,12 @@ public class TypedDependencyRulesTest {
     private TDR41 tdr41;
 
     @Autowired
+    private TDR25 tdr25;
+
+    @Autowired
+    private TDR26 tdr26;
+
+    @Autowired
     private RuleBook ruleBook;
 
     /**
@@ -357,6 +363,160 @@ public class TypedDependencyRulesTest {
 
         tdr24.then();
         assertThat(tdr24).as("TDR24 bean should not be null").isNotNull();
+    }
+
+    /**
+     * Test TDR25: numeric multiplicity — the CD token is the parser's, not a UML multiplicity.
+     * nummod(pet, 01) -> multiplicity.add(pet, 1)   (zero padding dropped)
+     */
+    @Test
+    public void tdr25_normalisesZeroPaddedNumberToUml() {
+        Sentence sentence = new Sentence();
+        addToken(0, "pet", PartOfSpeechType.NN);
+        addToken(1, "01", PartOfSpeechType.CD);
+
+        TypedDependency td = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
+        tdr25.currentTd = td;
+        tdr25.previousTd = null;
+        tdr25.nextTd = null;
+
+        assertThat(tdr25.when()).as("TDR25 should fire for nummod(pet, 01)").isTrue();
+        tdr25.then();
+
+        assertThat(tdr25.ruleMatches.findByRuleClassName("TDR25").getLast().getDescription())
+                .as("a zero-padded number is still the count 1 in UML")
+                .isEqualTo("multiplicity.add(pet, 1)");
+    }
+
+    /**
+     * Test TDR25: a number word is a count, not the word itself.
+     * nummod(pet, one) -> multiplicity.add(pet, 1)
+     */
+    @Test
+    public void tdr25_normalisesNumberWordToUml() {
+        Sentence sentence = new Sentence();
+        addToken(0, "pet", PartOfSpeechType.NN);
+        addToken(1, "one", PartOfSpeechType.CD);
+
+        TypedDependency td = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
+        tdr25.currentTd = td;
+        tdr25.previousTd = null;
+        tdr25.nextTd = null;
+
+        assertThat(tdr25.when()).as("TDR25 should fire for nummod(pet, one)").isTrue();
+        tdr25.then();
+
+        assertThat(tdr25.ruleMatches.findByRuleClassName("TDR25").getLast().getDescription())
+                .as("the number word \"one\" is the UML count 1")
+                .isEqualTo("multiplicity.add(pet, 1)");
+    }
+
+    /**
+     * Test TDR25: a comparative carries no count — UML's unbounded notation is the honest answer.
+     * nummod(pet, more) -> multiplicity.add(pet, *)
+     */
+    @Test
+    public void tdr25_normalisesComparativeToUnbounded() {
+        Sentence sentence = new Sentence();
+        addToken(0, "pet", PartOfSpeechType.NN);
+        addToken(1, "more", PartOfSpeechType.CD);
+
+        TypedDependency td = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
+        tdr25.currentTd = td;
+        tdr25.previousTd = null;
+        tdr25.nextTd = null;
+
+        assertThat(tdr25.when()).as("TDR25 should fire for nummod(pet, more)").isTrue();
+        tdr25.then();
+
+        assertThat(tdr25.ruleMatches.findByRuleClassName("TDR25").getLast().getDescription())
+                .as("\"more\" states no count — UML 0..* is the only defensible value")
+                .isEqualTo("multiplicity.add(pet, *)");
+    }
+
+    /**
+     * Test TDR26: a quantifying determiner becomes UML's unbounded notation, not the literal
+     * placeholder {@code N} the rule used to write.
+     * det(pet, many) -> multiplicity.add(pet, *)
+     */
+    @Test
+    public void tdr26_quantifierBecomesUnbounded() {
+        Sentence sentence = new Sentence();
+        addToken(0, "pet", PartOfSpeechType.NN);
+        addToken(1, "many", PartOfSpeechType.DT);
+
+        TypedDependency td = createTypedDependency(sentence, TdType.DET, 0, 1);
+        tdr26.currentTd = td;
+        tdr26.previousTd = null;
+        tdr26.nextTd = null;
+
+        assertThat(tdr26.when()).as("TDR26 should fire for det(pet, many)").isTrue();
+        tdr26.then();
+
+        assertThat(tdr26.ruleMatches.findByRuleClassName("TDR26").getLast().getDescription())
+                .as("a quantifier is 0..*, never the literal \"N\"")
+                .isEqualTo("multiplicity.add(pet, *)");
+    }
+
+    /**
+     * Test TDR26: the indefinite article is exactly one.
+     * det(pet, a) -> multiplicity.add(pet, 1)
+     */
+    @Test
+    public void tdr26_indefiniteArticleBecomesOne() {
+        Sentence sentence = new Sentence();
+        addToken(0, "pet", PartOfSpeechType.NN);
+        addToken(1, "a", PartOfSpeechType.DT);
+
+        TypedDependency td = createTypedDependency(sentence, TdType.DET, 0, 1);
+        tdr26.currentTd = td;
+        tdr26.previousTd = null;
+        tdr26.nextTd = null;
+
+        assertThat(tdr26.when()).as("TDR26 should fire for det(pet, a)").isTrue();
+        tdr26.then();
+
+        assertThat(tdr26.ruleMatches.findByRuleClassName("TDR26").getLast().getDescription())
+                .isEqualTo("multiplicity.add(pet, 1)");
+    }
+
+    /**
+     * Test TDR26: "some" asserts at least one, so it is the one quantifier that is not unbounded.
+     * det(pet, some) -> multiplicity.add(pet, 1..*)
+     */
+    @Test
+    public void tdr26_someBecomesLowerBounded() {
+        Sentence sentence = new Sentence();
+        addToken(0, "pet", PartOfSpeechType.NN);
+        addToken(1, "some", PartOfSpeechType.DT);
+
+        TypedDependency td = createTypedDependency(sentence, TdType.DET, 0, 1);
+        tdr26.currentTd = td;
+        tdr26.previousTd = null;
+        tdr26.nextTd = null;
+
+        assertThat(tdr26.when()).as("TDR26 should fire for det(pet, some)").isTrue();
+        tdr26.then();
+
+        assertThat(tdr26.ruleMatches.findByRuleClassName("TDR26").getLast().getDescription())
+                .as("\"some\" means one or more")
+                .isEqualTo("multiplicity.add(pet, 1..*)");
+    }
+
+    /**
+     * Test TDR26: an ordinary determiner states no multiplicity and must not fire.
+     */
+    @Test
+    public void tdr26_doesNotFireForPlainDeterminer() {
+        Sentence sentence = new Sentence();
+        addToken(0, "pet", PartOfSpeechType.NN);
+        addToken(1, "the", PartOfSpeechType.DT);
+
+        tdr26.currentTd = createTypedDependency(sentence, TdType.DET, 0, 1);
+        tdr26.previousTd = null;
+        tdr26.nextTd = null;
+
+        assertThat(tdr26.when()).as("TDR26 should NOT fire for det(pet, the)").isFalse();
     }
 
     /**

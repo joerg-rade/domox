@@ -64,11 +64,16 @@ Extract relationships between entities and their actions.
 ### Group 3: Descriptor & Multiplicity Rules (TDR24-TDR26)
 Extract entity descriptors (TDR24) and multiplicity constraints (TDR25-TDR26).
 
+The multiplicity value is recorded in **UML notation** (UML 2.5 §7.5.3) — `MultiplicityNotation`
+translates the parser's token: `01`→`1`, `one`→`1`, `2..4`→`2..4`, `2+`→`2..*`, `at most 2`→`0..2`,
+`a`/`an`→`1`, `some`→`1..*`, `each`/`every`/`all`/`any`/`many`/`multiple`→`*` (i.e. `0..*`), and any
+token carrying no usable count → `*`.
+
 | Rule | Dependency | Condition | Output |
 |------|------------|-----------|--------|
 | TDR24 | amod(E,JJ) | - | descriptor.add(E, JJ) |
-| TDR25 | nummod(E,CD) | - | multiplicity.add(E, CD) |
-| TDR26 | det(E,DT) | DT in {Each, All, some, Any, Many, Every, multiple} | multiplicity.add(E, N) |
+| TDR25 | nummod(E,CD) | - | multiplicity.add(E, UML(CD)) |
+| TDR26 | det(E,DT) | DT in {Each, All, some, Any, Many, Every, multiple} | multiplicity.add(E, UML(DT)) |
 | TDR26 | det(E,DT) | DT in {a, an} | multiplicity.add(E, 1) |
 
 ### Group 4: Operation/Action Rules (TDR27-TDR37)

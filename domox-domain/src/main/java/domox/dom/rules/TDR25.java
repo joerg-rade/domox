@@ -28,9 +28,11 @@ public class TDR25 extends TypedDependencyRule {
     @Then
     public void then() {
         // multiplicity.add(E1, CD)
-        String e1 = currentTd.getA();
-        String cd = currentTd.getB();
-        result = "multiplicity.add(" + e1 + ", " + cd + ")";
+        // The CD token is the parser's, not a UML multiplicity: it can be zero-padded ("01"),
+        // a number word ("one") or a comparative ("more"). Normalise it — see MultiplicityNotation.
+        final String e1 = currentTd.getA();
+        final String multiplicity = MultiplicityNotation.umlNotation(currentTd.getB());
+        result = "multiplicity.add(" + e1 + ", " + multiplicity + ")";
 
         // Phase 1: record the match; dependency and sentence come from the @Given fields
         // The CD (number) is a multiplicity value, not a separate class

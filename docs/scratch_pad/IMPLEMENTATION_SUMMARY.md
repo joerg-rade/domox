@@ -79,9 +79,14 @@ Implemented a complete rule-based system for extracting domain models from natur
 | Rule | Dependency | Condition | Output |
 |------|------------|-----------|--------|
 | TDR24 | amod(E,JJ) | - | descriptor.add(E, JJ) |
-| TDR25 | nummod(E,CD) | - | multiplicity.add(E, CD) |
-| TDR26 | det(E,DT) | DT ∈ {Each,All,some,Any,Many,Every,multiple} | multiplicity.add(E, N) |
+| TDR25 | nummod(E,CD) | - | multiplicity.add(E, UML(CD)) |
+| TDR26 | det(E,DT) | DT ∈ {Each,All,some,Any,Many,Every,multiple} | multiplicity.add(E, UML(DT)) |
 | TDR26 | det(E,DT) | DT ∈ {a,an} | multiplicity.add(E, 1) |
+
+The multiplicity value is rendered in **UML notation** (UML 2.5 §7.5.3) by `MultiplicityNotation`,
+not as the raw parser token: `01`→`1`, `one`→`1`, `2..4`→`2..4`, `2+`→`2..*`, `at most 2`→`0..2`,
+`a`/`an`→`1`, `some`→`1..*`, `each`/`every`/`all`/`any`/`many`/`multiple`→`*` (= `0..*`), and any
+token carrying no usable count → `*`.
 
 **Key Features**:
 - Quantifier detection

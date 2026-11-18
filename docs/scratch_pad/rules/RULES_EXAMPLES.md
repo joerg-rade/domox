@@ -502,6 +502,10 @@ Output: descriptor.add(users, multiple)
 ### TDR25: Numeric Multiplicity
 **Rule**: `nummod(E, CD)`
 
+The CD token is whatever the parser produced — `01`, `one`, `more` — so it is translated to
+**UML multiplicity notation** by `MultiplicityNotation` before it is recorded (see also
+`RULES_REGISTRY.md`).
+
 **Example 1**:
 ```
 Input:  nummod(roles, 5)
@@ -510,16 +514,43 @@ Output: multiplicity.add(roles, 5)
         >> Roles limited to 5
 ```
 
+**Example 2** (zero padding dropped):
+```
+Input:  nummod(pet, 01)
+
+Output: multiplicity.add(pet, 1)
+        >> Exactly one pet
+```
+
+**Example 3** (number word):
+```
+Input:  nummod(pet, one)
+
+Output: multiplicity.add(pet, 1)
+        >> Exactly one pet
+```
+
+**Example 4** (comparative — no count stated):
+```
+Input:  nummod(pet, more)
+
+Output: multiplicity.add(pet, *)
+        >> Zero or more pets (UML 0..*)
+```
+
 ### TDR26: Determiner Multiplicity
 **Rule**: `det(E, DT)` with quantifier matching
+
+The determiner is translated to UML multiplicity notation: `a`/`an` → `1`, `some` → `1..*`,
+`each`/`every`/`all`/`any`/`many`/`multiple` → `*` (UML 0..*).
 
 **Example 1**:
 ```
 Input:  det(pages, each)
         DT="each" (plural quantifier)
 
-Output: multiplicity.add(pages, N)
-        >> Each page (unbounded plural)
+Output: multiplicity.add(pages, *)
+        >> Each page (unbounded plural, UML 0..*)
 ```
 
 **Example 2**:
@@ -529,6 +560,15 @@ Input:  det(document, an)
 
 Output: multiplicity.add(document, 1)
         >> Exactly one document
+```
+
+**Example 3**:
+```
+Input:  det(pet, some)
+        DT="some" (at least one)
+
+Output: multiplicity.add(pet, 1..*)
+        >> One or more pets
 ```
 
 ---

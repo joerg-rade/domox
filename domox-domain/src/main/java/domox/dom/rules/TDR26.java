@@ -5,6 +5,8 @@ import com.deliveredtechnologies.rulebook.annotation.Then;
 import com.deliveredtechnologies.rulebook.annotation.When;
 import com.deliveredtechnologies.rulebook.spring.RuleBean;
 
+import java.util.Locale;
+
 import static domox.dom.nlp.DependencyTypePredicates.det;
 import static domox.dom.nlp.DependencyPosPredicates.isNounA;
 
@@ -25,8 +27,9 @@ public class TDR26 extends TypedDependencyRule {
         if (!det(currentTd) || !isNounA(currentTd) || currentTd.getB() == null) {
             return false;
         }
-        String dt = currentTd.getB().toLowerCase();
-        return isMultiplicityDeterminer(dt) || dt.equals("a") || dt.equals("an");
+        String dt = currentTd.getB().toLowerCase(Locale.ROOT);
+        return MultiplicityNotation.isQuantifyingDeterminer(dt)
+                || MultiplicityNotation.isSingularDeterminer(dt);
     }
 
     @Override
@@ -36,14 +39,12 @@ public class TDR26 extends TypedDependencyRule {
         //    multiplicity.add(E1, N)
         // if (DT= "a" OR "an")
         //    multiplicity.add(E1, 1)
-        String e1 = currentTd.getA();
-        String dt = currentTd.getB().toLowerCase();
-
-        if (isMultiplicityDeterminer(dt)) {
-            result = "multiplicity.add(" + e1 + ", N)";
-        } else {
-            result = "multiplicity.add(" + e1 + ", 1)";
-        }
+        // "N" was a literal placeholder, never a value.  The determiner is translated to UML
+        // notation instead — "a"/"an" -> "1", "some" -> "1..*", "each"/"every"/"all"/"any"/
+        // "many"/"multiple" -> "*" — see MultiplicityNotation.
+        final String e1 = currentTd.getA();
+        final String dt = currentTd.getB().toLowerCase(Locale.ROOT);
+        result = "multiplicity.add(" + e1 + ", " + MultiplicityNotation.umlNotation(dt) + ")";
 
         // Phase 1: record the match; dependency and sentence come from the @Given fields
         // The DT (determiner) indicates a multiplicity value, not a separate class
@@ -57,12 +58,6 @@ public class TDR26 extends TypedDependencyRule {
                     null,
                     result);
         }
-    }
-
-    private boolean isMultiplicityDeterminer(String dt) {
-        return dt.equals("each") || dt.equals("all") || dt.equals("some") ||
-                dt.equals("any") || dt.equals("many") || dt.equals("every") ||
-                dt.equals("multiple");
     }
 
 }
