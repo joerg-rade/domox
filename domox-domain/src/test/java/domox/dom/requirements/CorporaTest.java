@@ -1,5 +1,6 @@
 package domox.dom.requirements;
 
+import domox.dom.crc.model.DomainModel;
 import org.apache.causeway.applib.services.factory.FactoryService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,12 +28,13 @@ class CorporaTest {
 
     @Mock RepositoryService repositoryService;
     @Mock FactoryService factoryService;
+    @Mock CorpusRepository corpusRepository;
 
     private Corpora corpora;
 
     @BeforeEach
     void setUp() {
-        corpora = new Corpora(repositoryService, factoryService);
+        corpora = new Corpora(repositoryService, factoryService, corpusRepository);
     }
 
     @Test
@@ -65,6 +68,59 @@ class CorporaTest {
         assertThat(corpora.findByTitle("A")).hasSize(2)
                 .allMatch(c -> "A".equals(c.getTitle()));
         assertThat(corpora.findByTitle("no-such-title")).isEmpty();
+    }
+
+    // --- titleOf: the lookup DomainModel#title() reads ----------------------
+
+    /** A model owned by a corpus is named after it. */
+    @Test
+    void titleOfReturnsTheOwningCorpusTitle() {
+        final DomainModel model = new DomainModel();
+        when(corpusRepository.findByDomainModel(model))
+                .thenReturn(List.of(corpus("Pet Shop Use Cases")));
+
+        assertThat(corpora.titleOf(model)).isEqualTo("Pet Shop Use Cases");
+    }
+
+    /**
+     * A hand-created model owns no corpus — {@code null}, not an empty string, so that
+     * {@code DomainModel#title()} can say "unattached" rather than render a blank owner.
+     */
+    @Test
+    void titleOfReturnsNullWhenNoCorpusOwnsTheModel() {
+        final DomainModel model = new DomainModel();
+        when(corpusRepository.findByDomainModel(model)).thenReturn(List.of());
+
+        assertThat(corpora.titleOf(model)).isNull();
+    }
+
+    @Test
+    void titleOfReturnsNullForNullModelWithoutQuerying() {
+        assertThat(corpora.titleOf(null)).isNull();
+        verify(corpusRepository, never()).findByDomainModel(null);
+    }
+
+    /**
+     * The join column is not unique, so two corpora <em>can</em> point at one model.  The lookup must
+     * still answer (first row) instead of throwing at render time.
+     */
+    @Test
+    void titleOfToleratesTwoCorporaOwningOneModel() {
+        final DomainModel model = new DomainModel();
+        when(corpusRepository.findByDomainModel(model))
+                .thenReturn(List.of(corpus("First"), corpus("Second")));
+
+        assertThat(corpora.titleOf(model)).isEqualTo("First");
+    }
+
+    /** A corpus whose title was never set contributes no title at all. */
+    @Test
+    void titleOfSkipsACorpusWithANullTitle() {
+        final DomainModel model = new DomainModel();
+        when(corpusRepository.findByDomainModel(model))
+                .thenReturn(List.of(new Corpus(), corpus("Named")));
+
+        assertThat(corpora.titleOf(model)).isEqualTo("Named");
     }
 
     private static Corpus corpus(final String title) {

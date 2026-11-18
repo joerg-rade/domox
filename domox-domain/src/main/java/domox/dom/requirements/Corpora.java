@@ -1,6 +1,7 @@
 package domox.dom.requirements;
 
 import domox.DomainModule;
+import domox.dom.crc.model.DomainModel;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -11,6 +12,7 @@ import org.apache.causeway.applib.services.repository.RepositoryService;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The <b>Corpus</b> aggregate's service: list, create and find the corpus that groups a requirements
@@ -34,12 +36,15 @@ public class Corpora {
 
     private final RepositoryService repositoryService;
     private final FactoryService factoryService;
+    private final CorpusRepository corpusRepository;
 
     @Inject
     public Corpora(RepositoryService repositoryService,
-                   FactoryService factoryService) {
+                   FactoryService factoryService,
+                   CorpusRepository corpusRepository) {
         this.repositoryService = repositoryService;
         this.factoryService = factoryService;
+        this.corpusRepository = corpusRepository;
     }
 
     @ActionLayout(sequence = "1")
@@ -68,5 +73,30 @@ public class Corpora {
             }
         }
         return answer;
+    }
+
+    /**
+     * Title of the corpus that owns {@code domainModel}, or {@code null} when no corpus does.
+     *
+     * <p><b>Why here.</b>  "Which corpus owns this model" is corpus-aggregate knowledge, and the
+     * owning side of the association lives on {@link Corpus}.  It is needed by
+     * {@code DomainModel#title()}, which cannot look it up itself: the model has no name of its own
+     * and no back-reference to its owner.</p>
+     *
+     * <p><b>Programmatic, not an action.</b>  A lookup for a title, not something a user invokes —
+     * and {@code DomainModel#title()} calls it on <em>every</em> render, so it must not appear in the
+     * UI as an action.  A model created by hand ({@code DomainModels#create()}) has no corpus, which
+     * is exactly the case that {@code null} reports.</p>
+     */
+    @Programmatic
+    public String titleOf(final DomainModel domainModel) {
+        if (domainModel == null) {
+            return null;
+        }
+        return corpusRepository.findByDomainModel(domainModel).stream()
+                .map(Corpus::getTitle)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 }

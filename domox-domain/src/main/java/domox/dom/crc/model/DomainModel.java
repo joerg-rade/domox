@@ -2,6 +2,7 @@ package domox.dom.crc.model;
 import domox.dom.AbstractEntity;
 import domox.DomainModule;
 import domox.dom.crc.diagram.DomainModelDiagramsD3;
+import domox.dom.requirements.Corpora;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
@@ -19,15 +20,71 @@ import java.util.List;
 @Table(schema = DomainModule.SCHEMA, name = "DomainModel")
 @Named(DomainModule.NAMESPACE + ".DomainModel")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
-@DomainObjectLayout(cssClassFa = "road", describedAs = "A DM. ...")
+@DomainObjectLayout(
+        cssClassFa = "road",
+        describedAs = "A domain model: the classes, attributes, responsibilities and collaborators "
+                + "analysed from a corpus of use-case documents")
 @NoArgsConstructor
 public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> {
 
     private static final Logger log = LoggerFactory.getLogger(DomainModel.class);
 
+    /**
+     * A one-line identity for the model: <em>who owns it</em> and <em>how big it is</em>.
+     *
+     * <p><b>Why it is derived rather than stored.</b>  The model has no name column of its own — its
+     * identity <em>is</em> the corpus it belongs to, and the owning side of that association lives
+     * on {@link domox.dom.requirements.Corpus} ({@code domain_model_id}).  So the owner is looked up
+     * through the injected {@link Corpora} service, and the size is read from the model's own
+     * candidate collections.</p>
+     *
+     * <p><b>What it makes visible.</b>  A model created by hand from {@code DomainModels#create()}
+     * owns no corpus and no candidates; that is a stray row, and the title now says so outright
+     * ({@code "Unattached domain model #14667 (empty)"}) instead of the {@code "//TODO"} it used to
+     * show.  A real model reads
+     * {@code "Pet Shop Use Cases #653 (classes: 971, attributes: 109, responsibilities: 191,
+     * collaborators: 237)"}, so two models can be told apart in a list without opening either.</p>
+     *
+     * <p>Counts are labelled rather than written as bare numbers because there is no plural to get
+     * right: {@code "1 classes"} reads badly in a UI, {@code "classes: 1"} does not.</p>
+     */
     @Title
     public String title() {
-        return "//TODO";
+        final StringBuilder title = new StringBuilder(ownerTitle());
+        if (getId() != null) {
+            title.append(" #").append(getId());
+        }
+        title.append(" (");
+        if (candidateCount() == 0) {
+            title.append("empty");
+        } else {
+            title.append("classes: ").append(sizeOf(classList))
+                    .append(", attributes: ").append(sizeOf(attributeList))
+                    .append(", responsibilities: ").append(sizeOf(responsibilityList))
+                    .append(", collaborators: ").append(sizeOf(collaboratorList));
+        }
+        return title.append(')').toString();
+    }
+
+    /** The owning corpus' title, or the most accurate placeholder available. */
+    private String ownerTitle() {
+        if (corpora == null) {
+            // not injected — a plain unit test, or a path outside Causeway's entity injection
+            return "Domain model";
+        }
+        final String ownerTitle = corpora.titleOf(this);
+        return ownerTitle != null ? ownerTitle : "Unattached domain model";
+    }
+
+    /** Total candidates across all four kinds — the model's size, and whether it is empty. */
+    private int candidateCount() {
+        return sizeOf(classList) + sizeOf(attributeList)
+                + sizeOf(responsibilityList) + sizeOf(collaboratorList);
+    }
+
+    /** {@code title()} must not fail on a half-built model, so a null collection counts as none. */
+    private static int sizeOf(final List<?> candidates) {
+        return candidates != null ? candidates.size() : 0;
     }
 
     @Getter
@@ -68,6 +125,24 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<CollaboratorCdd> collaboratorList = new ArrayList<>();
+
+    // region > owner (for the title)
+
+    /**
+     * Injected {@link Corpora} service, used to name the corpus that owns this model.
+     * <p>
+     * Hidden from the metamodel: an injected collaborator is <em>not</em> a property, and exposing it
+     * would trip the metamodel veto (see {@code CODING_STANDARDS.md} §1).
+     */
+    @Transient
+    @Inject
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Corpora corpora;
+
+    // endregion
 
     // region > diagram
 
