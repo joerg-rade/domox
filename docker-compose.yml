@@ -15,6 +15,22 @@ services:
 #    ports:
 #      - "8080:8080"
 
+  # ---------------------------------------------------------------------------------------------
+  #  All four services carry `restart: unless-stopped` so they come back after a host/daemon
+  #  reboot instead of having to be started by hand — that hand-start step is what left CoreNLP
+  #  down for 5 hours and made CorpusCandidateDedupIntegTest fail (see .clinerules/commands.md).
+  #  The healthchecks are what `docker compose up -d --wait` blocks on, so a caller never has to
+  #  poll/guess whether a service is really serving yet.
+  #  `db` mounts the NAMED volume domox-db-data (declared at the bottom of this file) so the
+  #  analysis data survives `docker compose down` — the postgres image's own anonymous volume
+  #  would not.
+  #
+  #  NOTE  applying `restart:` to an ALREADY-RUNNING container needs no recreate:
+  #        docker update --restart unless-stopped domox-db domox-fuseki-1 domox-kroki-1 domox-nlp-1
+  #        (healthchecks and volume mounts are create-time only, so they take effect on the next
+  #         recreate / up -d — the containers were recreated once, on 2026-11-18, to activate both)
+  # ---------------------------------------------------------------------------------------------
+
   nlp:
     build:
       context: docker/corenlp/
@@ -24,6 +40,15 @@ services:
       - "8999:9000"
     environment:
       - JVM_OPTS=-Xmx4g
+    restart: unless-stopped
+    # CoreNLP `-preload`s its models: ~6 s from main() to "Starting server...", ~10 s to actually
+    # serve.  start_period covers that; the root path answers 200 once the server is listening.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
 
   db:
     image: postgres:18-alpine
@@ -33,6 +58,22 @@ services:
       - POSTGRES_USER=postgres
     ports:
       - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      # A NAMED volume, deliberately — not the anonymous one the postgres image declares.
+      # The analysis data (classcdd rows, the 302 review decisions, the sub-domain partition)
+      # exists ONLY here and cannot be regenerated from the corpus, so it must not be at the
+      # mercy of `docker compose down` dropping an anonymous volume.  A named volume survives
+      # down/up, is addressable as domox-db-data, and can be backed up/restored by name.
+      # MIGRATED from the old anonymous volume on 2026-11-18 by copying /var/lib/postgresql
+      # across, so the 971 existing rows carried over.  See .clinerules/commands.md.
+      - domox-db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   kroki:
     build:
@@ -40,6 +81,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   fuseki:
     build:
@@ -49,3 +97,31 @@ services:
       dockerfile: docker/fuseki/Dockerfile
     ports:
       - "3030:3030"
+    restart: unless-stopped
+    # Root path, deliberately: it answers 200 once Fuseki is serving and needs no `$` in the
+    # command, which Compose's `$$` escaping would otherwise put in the shell's hands (a bare
+    # `$$` expands to the PID and the probe would hit /12345/ping).
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3030/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+
+# Named volumes.  Only the database has one: its data is the analysis product and is not
+# regenerable.  The name is pinned (rather than left to Compose's `<project>_<key>` default) so
+# it can be referenced directly — `docker volume inspect domox-db-data`, or the copy/restore
+# recipe in .clinerules/commands.md.
+#
+# NOTE  the name is pinned, and this volume already existed (it was created by hand so the
+#       existing rows could be copied into it before the containers were recreated).  Compose
+#       therefore warns on every `up`:
+#           volume "domox-db-data" already exists but was not created by Docker Compose.
+#           Use `external: true` to use an existing volume
+#       The warning is benign — Compose uses the existing volume, and the data is intact
+#       (verified: 971 classcdd rows / 302 reviews).  `external: true` is deliberately NOT set,
+#       because that would make `docker compose up` FAIL on a fresh clone (where the volume does
+#       not exist yet); with a plain named volume Compose simply creates it.
+volumes:
+  domox-db-data:
+    name: domox-db-data

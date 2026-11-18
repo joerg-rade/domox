@@ -7,11 +7,41 @@
         <Property name="LOG_DATEFORMAT_PATTERN">yyyy-MM-dd HH:mm:ss.SSS</Property>
         <Property name="CONSOLE_LOG_PATTERN">%clr{%d{${LOG_DATEFORMAT_PATTERN}}}{faint} %clr{${LOG_LEVEL_PATTERN}} %clr{${sys:PID}}{magenta} %clr{---}{faint} %clr{[%15.15t]}{faint} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
         <Property name="FILE_LOG_PATTERN">%d{${LOG_DATEFORMAT_PATTERN}} ${LOG_LEVEL_PATTERN} ${sys:PID} --- [%t] %-40.40c{1.} : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
+        <!-- Directory for the APPENDED run log.  A relative value resolves against the JVM working
+             directory — the repo root when started by scripts/run-app.sh — so the default is
+             <repo>/logs/domox-webapp.log.  Override with -Ddomox.log.dir=/var/log/domox
+             (e.g. via -Dspring-boot.run.jvmArguments).  Log4j2 creates the directory. -->
+        <Property name="LOG_DIR">${sys:domox.log.dir:-logs}</Property>
+        <Property name="LOG_FILE">${LOG_DIR}/domox-webapp.log</Property>
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT" follow="true">
             <PatternLayout pattern="${sys:CONSOLE_LOG_PATTERN}" />
         </Console>
+        <!-- APPENDED (not truncated) run log, size- and time-rolling.
+             WHY: the console keeps no history of a run — scripts/run-app.sh truncates
+             /tmp/domox-boot.log on every start — so a restart, or a crash-restart loop, used to be
+             invisible after the fact.  Because this file is appended to, restarts can be counted
+             and dated:
+                 grep -c  'Starting Application'   logs/domox-webapp.log   # how many starts
+                 grep -nE 'Starting Application|Started Application|Shutting down|Stopping service' \
+                                                   logs/domox-webapp.log   # the restart timeline
+             Rolls at 20 MB or daily into gzipped files, keeps 10, and deletes oldest beyond 200 MB. -->
+        <RollingFile name="RollingFile"
+                     fileName="${LOG_FILE}"
+                     filePattern="${LOG_DIR}/domox-webapp-%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${sys:FILE_LOG_PATTERN}" />
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="20 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10">
+                <Delete basePath="${LOG_DIR}" maxDepth="1">
+                    <IfFileName glob="domox-webapp-*.log.gz" />
+                    <IfAccumulatedFileSize exceeds="200 MB" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
     </Appenders>
     <Loggers>
 
@@ -52,6 +82,7 @@
 
         <Root level="info">
             <AppenderRef ref="Console" />
+            <AppenderRef ref="RollingFile" />
         </Root>
     </Loggers>
 </Configuration>

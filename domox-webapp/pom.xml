@@ -279,6 +279,17 @@
         <dependency>
             <groupId>org.apache.causeway.commons</groupId>
             <artifactId>causeway-commons</artifactId>
+            <exclusions>
+                <!-- causeway-commons -> spring-boot-starter -> spring-boot-starter-logging was
+                     the path that re-introduced logback-classic AFTER spring-boot-starter-web had
+                     excluded it, which is why the app silently ran on Logback.  Exclusions apply
+                     to the whole subtree, so this one removes logback-classic + logback-core +
+                     log4j-to-slf4j + jul-to-slf4j from under causeway-commons. -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.causeway.extensions</groupId>
@@ -381,15 +392,24 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <exclusions>
+                <!-- Boot's default logging starter would put logback-classic (and the
+                     log4j-to-slf4j bridge) back on the classpath, and Boot's LoggingSystem
+                     picks Logback whenever it is present — so exclude the starter itself
+                     rather than individual artifacts.  The Log4j2 binding is declared below. -->
                 <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-to-slf4j</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- The logging backend: log4j-core + log4j-slf4j2-impl + log4j-jul (versions come from
+             the Boot BOM's imported log4j-bom, pinned by ${log4j2.version}).  Configured by
+             src/main/resources/log4j2-spring.xml, which is therefore LIVE config — before this
+             dependency was declared there was no log4j-core on the classpath at all and that
+             file was dead. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
         <!-- MCP (Model Context Protocol) server: exposes @McpTool review tools to LLM clients -->
         <dependency>

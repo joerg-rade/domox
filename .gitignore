@@ -4,6 +4,9 @@
 # Log file
 *.log
 
+# Persistent app log directory (log4j2 RollingFile appender, default ./logs)
+logs/
+
 # BlueJ files
 *.ctxt
 

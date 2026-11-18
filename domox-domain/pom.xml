@@ -104,6 +104,15 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Logging backend for tests.  The root pom excludes spring-boot-starter-logging from
+             spring-boot-starter-test, so without this the test classpath would have no SLF4J
+             provider at all.  With it, tests run on Log4j2 too and use
+             src/main/resources/log4j2-spring.xml (which is otherwise inert). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>

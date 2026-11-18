@@ -87,10 +87,15 @@
              Boot 4.2.0-M1 manages Tomcat 11.0.24; this pin keeps tomcat-embed-core in step
              with the other embed artifacts (websocket / el) the Boot BOM resolves. -->
         <tomcat-embed-core.version>11.0.24</tomcat-embed-core.version>
-        <!-- Apache Log4j 2.x (transitive, active logging backend via
-             spring-boot-starter-log4j2 -> log4j-slf4j2-impl). CVE-2026-34480 (XmlLayout
-             fails to strip XML-1.0-forbidden chars) affects log4j-core up to 2.25.3,
-             fixed in 2.26.0; CVE-2026-49844 (MapMessage.asJson() non-finite floats)
+        <!-- Apache Log4j 2.x — the ACTIVE logging backend.  It is supplied by the explicitly
+             declared spring-boot-starter-log4j2 (log4j-core + log4j-slf4j2-impl + log4j-jul),
+             configured by domox-webapp/src/main/resources/log4j2-spring.xml, and every path that
+             would otherwise drag in spring-boot-starter-logging (i.e. logback-classic) is
+             excluded — see the exclusions on spring-boot-starter-test below and in
+             domox-webapp.  The Boot BOM imports log4j-bom at this property, so
+             api/core/slf4j2-impl/jul move in lock-step.
+             CVE-2026-34480 (XmlLayout fails to strip XML-1.0-forbidden chars) affects log4j-core
+             up to 2.25.3, fixed in 2.26.0; CVE-2026-49844 (MapMessage.asJson() non-finite floats)
              affects log4j-api up to 2.26.0, fixed in 2.26.1. -->
         <log4j2.version>2.26.1</log4j2.version>
         <!-- Jackson aligned at the latest 2.21.x patch. The Boot 4.2.0-M1 BOM pulls 2.21.5
@@ -341,6 +346,14 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-logging</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <!-- The Log4j2 binding that IS used (log4j-core + log4j-slf4j2-impl + log4j-jul).
+                 Declared here so it is pinned like every other starter; the module poms declare
+                 the actual dependency (compile in domox-webapp, test in domox-domain/adapter). -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-log4j2</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
             <dependency>
@@ -717,6 +730,15 @@
                 <artifactId>spring-boot-starter-test</artifactId>
                 <version>${spring-boot.version}</version>
                 <exclusions>
+                    <!-- Tests run on Log4j2 as well: the modules declare
+                         spring-boot-starter-log4j2 (test scope in domox-domain / domox-adapter),
+                         so Boot's default logging starter must not be pulled in here — otherwise
+                         logback-classic reappears and wins the SLF4J binding in tests.  This also
+                         removes the log4j-to-slf4j bridge that starter-logging carried. -->
+                    <exclusion>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-logging</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>org.apache.logging.log4j</groupId>
                         <artifactId>log4j-to-slf4j</artifactId>
@@ -1174,10 +1196,17 @@
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
             </dependency>
-            <!-- Logback arrives only transitively via spring-boot-starter-logging (pulled in as a
-                 test dep through spring-boot-starter-test in domox-domain; domox-webapp excludes
-                 logback-classic from spring-boot-starter-web because it runs on Log4j2). The
-                 1.5.32 line carries CVE-2026-19880 / 13006 / 9828 / 10532; explicit pins keep
+            <!-- Logback is NOT on the classpath any more (2026-11).  Before the Log4j2 migration
+                 it was the de-facto backend — domox-webapp excluded logback-classic from
+                 spring-boot-starter-web, but causeway-commons -> spring-boot-starter ->
+                 spring-boot-starter-logging put it straight back, while no log4j-core existed
+                 (only log4j-api + log4j-to-slf4j), so Boot's LoggingSystem chose Logback and
+                 log4j2-spring.xml was dead config.  That path is now excluded (webapp's
+                 causeway-commons + spring-boot-starter-web, and spring-boot-starter-test above).
+                 These two pins are kept as a cheap guard: should an exclusion ever be dropped,
+                 logback returns at the CVE-fixed version instead of whatever the Boot BOM
+                 happens to manage (it currently manages 1.6.5, i.e. newer than this pin).
+                 The 1.5.3x line carries CVE-2026-19880 / 13006 / 9828 / 10532; explicit pins keep
                  logback-classic + logback-core in lock-step. -->
             <dependency>
                 <groupId>ch.qos.logback</groupId>

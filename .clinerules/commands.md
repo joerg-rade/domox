@@ -46,6 +46,34 @@ Cline rules directory, loaded for every project.
 - **Stop the app** → `bash scripts/stop-app.sh [port…]` (default 8080). It resolves the PID by port.
   **Never `pkill -f <pattern>`**: the pattern also matches the shell running the `pkill` — its own
   command line contains it — so it SIGTERMs the caller and the output is lost (happened twice).
+- **Persistent app log & restart analysis** → the webapp appends to `logs/domox-webapp.log`
+  (size+time rolling: 20 MB or daily → `domox-webapp-<date>.<n>.log.gz`, 10 kept, 200 MB cap;
+  git-ignored). This exists because the console keeps **no history** — `scripts/run-app.sh`
+  truncates `/tmp/domox-boot.log` on every start — so a restart, or a crash-restart loop, used to be
+  invisible after the fact. Because the file is appended to, restarts can be counted and dated:
+  ```shell
+  grep -c 'Starting Application' logs/domox-webapp.log      # how many starts
+  grep -nE 'Starting Application|Started Application|Shutting down|Stopping service' \
+                                   logs/domox-webapp.log    # the restart timeline
+  ```
+  A `Starting Application` with **no** `Started Application` before the next `Starting Application`
+  is a failed/crashed boot; a short gap between the two is a crash-restart loop. Redirect the
+  directory with `-Ddomox.log.dir=/var/log/domox` (default `./logs`, i.e. `<repo>/logs`, because the
+  app's CWD is the repo root).
+- **Logging backend is Log4j2, and `log4j2-spring.xml` is LIVE config** → verified 2026-11.
+  `domox-webapp/src/main/resources/log4j2-spring.xml` is what governs: the webapp declares
+  `spring-boot-starter-log4j2` and every path that would drag in `spring-boot-starter-logging`
+  (logback) is excluded — `causeway-commons` and `spring-boot-starter-web` in `domox-webapp/pom.xml`,
+  plus `spring-boot-starter-test` in the root pom, with `domox-domain`/`domox-adapter` declaring the
+  Log4j2 binding at test scope. Check it with
+  `mvn -o -pl domox-webapp dependency:tree -Dincludes='ch.qos.logback:*,org.apache.logging.log4j:*'`
+  → expect `log4j-core`/`log4j-slf4j2-impl`/`log4j-jul` at `${log4j2.version}` and **no**
+  `logback-classic`. Two traps: (a) before the migration there was **no `log4j-core`** on the
+  classpath at all (only `log4j-api` + `log4j-to-slf4j`, the API bridged to SLF4J), so Boot's
+  `LoggingSystem` chose Logback and the Log4j2 file was dead — *a config file is not evidence that it
+  runs*; (b) `domox-domain` also ships a `log4j2-spring.xml` inside its jar, and Log4j2 takes the
+  first one on the classpath — the webapp's own `target/classes` wins, which the appended file
+  appender confirms.
 
 - **Long `mvn` / boot commands must run detached** → the shell tool caps one call at ~30 s, so
   `mvn test` (≈50 s) or `run-app.sh` (install + boot) die mid-run and their output is lost. Run them
@@ -68,6 +96,35 @@ Cline rules directory, loaded for every project.
   `docker ps --format '{{.Names}} {{.Status}}'`. NEVER boot a second instance against the same
   Postgres: the shared `domox.SEQ_GEN` sequence makes parallel boots fail with
   `seq_gen already exists`.
+- **Docker services: restart policy, healthchecks, named volume** → all four compose services
+  (`db`, `nlp`, `kroki`, `fuseki`) carry `restart: unless-stopped`, so they return after a
+  host/daemon reboot instead of needing a hand-start — that hand-start step is what left CoreNLP down
+  for 5 hours and failed `CorpusCandidateDedupIntegTest`. `db` also mounts the **named** volume
+  `domox-db-data` (`/var/lib/postgresql`), deliberately **not** the postgres image's anonymous
+  volume, which `docker compose down` would drop along with the 971 `classcdd` rows and the 302
+  review decisions.
+  The restart policy is **runtime** state and applies with no recreate
+  (`docker update --restart unless-stopped <ctr> …`), but **healthchecks and volume mounts are
+  create-time only** — activating them needs `docker compose up -d --no-build --wait` (≈45 s, so run
+  it detached; `--no-build` avoids rebuilding the fuseki/kroki images). It recreates all four and
+  blocks until each reports healthy. Compose then warns
+  *`volume "domox-db-data" already exists but was not created by Docker Compose`* — benign, it still
+  uses the volume; `external: true` is deliberately **not** set, because that would make `up` fail on
+  a fresh clone.
+  **Copying a volume's data** — how the named volume was seeded from the old anonymous one. Back up
+  first (`scripts/db-backup.sh`), **stop the DB** (`docker stop domox-db`) so the cluster is shut
+  down cleanly, then copy and prove the copy:
+  ```shell
+  docker run --rm -v <src-vol>:/from:ro -v domox-db-data:/to \
+      postgres:18-alpine sh -c 'cp -a /from/. /to/'
+  # verify: file count, byte count and the pg_control checksum must match on both sides
+  docker run --rm -v <src-vol>:/from:ro -v domox-db-data:/to postgres:18-alpine sh -c \
+      'find /from -type f | wc -l; find /to -type f | wc -l; md5sum /from/18/docker/global/pg_control /to/18/docker/global/pg_control'
+  ```
+  **Never** let a recreate start Postgres against an EMPTY volume: it would `initdb` a fresh cluster
+  and the analysis data would be gone. Afterwards confirm the mount with
+  `docker inspect domox-db --format '{{range .Mounts}}{{.Name}}{{end}}'` and the rows with
+  `docker exec domox-db psql -U postgres -d postgres -c 'SELECT count(*) FROM domox.classcdd;'`.
 - **A verification boot, in one call** → `bash scripts/verify-boot.sh` brings up a throwaway Postgres
   (`domox-db-verify`, port 5433) and boots the app on a free port (8082), **waiting until it actually
   serves** and printing the log path. It rebuilds `domox-domain`/`domox-adapter` only when their sources

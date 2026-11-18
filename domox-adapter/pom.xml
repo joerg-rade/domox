@@ -166,6 +166,14 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- Logging backend for tests — see the matching note in domox-domain/pom.xml: the root
+             pom strips spring-boot-starter-logging from spring-boot-starter-test, so the test
+             classpath needs the Log4j2 binding explicitly. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
