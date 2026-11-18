@@ -1,7 +1,6 @@
 package domox.dom.crc.diagram;
 import domox.DomainModule;
 import domox.dom.crc.model.Candidate;
-import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.model.Review;
 import domox.dom.crc.model.ReviewStatus;
@@ -24,10 +23,9 @@ import java.util.*;
  * <p>
  * The graph is built by a breadth-first expansion of the candidate-connection graph starting
  * from every approved candidate of the model (a candidate is approved when it carries at least
- * one {@link Review} whose status is {@link ReviewStatus#APPROVED}), up to
- * {@link DomainModel#getHopDepth()} hops deep (default {@code 1}).  Seeding from the approved set
- * keeps the starting graph deliberately small so it renders reliably; the depth is increased by
- * the user when a wider view of the model is wanted.  From each frontier candidate's own
+ * one {@link Review} whose status is {@link ReviewStatus#APPROVED}), one hop deep.  Seeding from the
+ * approved set keeps the starting graph deliberately small so it renders reliably; a wider view of
+ * the model is obtained by approving more candidates.  From each frontier candidate's own
  * {@link RuleMatch}es, only dependencies whose governor <em>and</em> dependent lemma both
  * correspond to a candidate word are kept, so the retained edges draw the approved candidates
  * together with every candidate directly (or, at higher depths, transitively) connected to them.
@@ -77,100 +75,21 @@ public class DomainModelDiagramsD3 {
                 return null;
             }
             log.debug("Domain model #{}: {} approved candidates", id, approved.size());
-            final Set<String> candidateLemmas = CandidateNeighbourhood.candidateLemmas(allCandidates);
-            final Map<String, List<Candidate>> candidatesByLemma = CandidateNeighbourhood.candidatesByLemma(allCandidates);
-            final List<TypedDependency> dependencies = CandidateNeighbourhood.collectDependencies(
-                    approved, candidateLemmas, candidatesByLemma, 1);
-
-            // Remove association-artifact candidate nodes — synthetic Association-typed compounds
-            // of the form "X_Y" derived from existing candidate lemmas (e.g. "Coverage_Age",
-            // "OnlineStore_Store"), regardless of which rule created them (synonym TDR41,
-            // generalization, association rule).  The participant lemmas and their typed
-            // dependency link are kept; only the synthetic compound node (with its empty <<>> POS)
-            // is removed from the lexical diagram.
-            final Set<String> artifactLemmas = CandidateNeighbourhood.associationArtifactLemmas(allCandidates, candidateLemmas);
-            CandidateNeighbourhood.removeArtifactEdges(dependencies, artifactLemmas);
-
-            // Build per-lemma metadata: POS tags and rule-match counts.
-            final CandidateNeighbourhood.LemmaMetrics metrics = CandidateNeighbourhood.lemmaMetrics(dependencies);
-            final Map<String, Set<String>> posByLemma = metrics.posByLemma();
-            final Map<String, Integer> countByLemma = metrics.matchCountByLemma();
-
-            // Every lemma that becomes a node: approved seeds plus endpoints of dependencies.
-            final Set<String> nodeLemmas = new LinkedHashSet<>();
-            for (final Candidate a : approved) {
-                nodeLemmas.add(DiagramLemmas.lower(a.getCandidateName()));
-            }
-            for (final TypedDependency td : dependencies) {
-                if (td == null) continue;
-                nodeLemmas.add(DiagramLemmas.lower(td.getGovernorLemma()));
-                nodeLemmas.add(DiagramLemmas.lower(td.getDependentLemma()));
-            }
-            // Association-artifact nodes are excluded from the diagram entirely.
-            nodeLemmas.removeAll(artifactLemmas);
-
-            // Approved lemma set (bold border).
-            final Set<String> approvedLemmas = CandidateNeighbourhood.approvedLemmas(allCandidates);
-
-            // Maximum count for scaling.
-            final int maxCount = countByLemma.values().stream()
-                    .mapToInt(Integer::intValue).max().orElse(DiagramNodeSizing.MIN_MATCH_COUNT);
-
-            // Map each lemma to its display name (original casing).
-            final Map<String, String> displayName = new HashMap<>();
-            for (final String lemma : nodeLemmas) {
-                final List<Candidate> cs = candidatesByLemma.get(lemma);
-                displayName.put(lemma, cs != null && !cs.isEmpty()
-                        ? cs.getFirst().getCandidateName() : lemma);
-            }
-
-            // Map each lemma to its ClassCdd subDomain name (set during review), if any.
-            final Map<String, String> classSubdomainByLemma = new HashMap<>();
-            for (final Candidate c : allCandidates) {
-                if (c instanceof ClassCdd cc && cc.getSubDomain() != null
-                        && cc.getSubDomain().getName() != null) {
-                    classSubdomainByLemma.put(DiagramLemmas.lower(c.getCandidateName()),
-                            cc.getSubDomain().getName());
-                }
-            }
-
-            // Map each lemma to its first label line (the "subdomain" line of the node):
-            // ClassCdd candidates show their assigned subDomain name; all others show blank.
-            final Map<String, String> subdomainByLemma = new HashMap<>();
-            for (final String lemma : nodeLemmas) {
-                final String sdName = classSubdomainByLemma.get(lemma);
-                subdomainByLemma.put(lemma, sdName != null ? sdName : "");
-            }
-
-            // Map each lemma to the first candidate's database ID and object type
-            // (e.g. "domox.ClassCdd", read from the pinned @Named) for click-through links.
-            final Map<String, Long> candidateIdByLemma = new HashMap<>();
-            final Map<String, String> objectTypeByLemma = new HashMap<>();
-            for (final String lemma : nodeLemmas) {
-                final List<Candidate> cs = candidatesByLemma.get(lemma);
-                if (cs != null && !cs.isEmpty()) {
-                    final Candidate c = cs.getFirst();
-                    candidateIdByLemma.put(lemma, c.getId());
-                    objectTypeByLemma.put(lemma, c.getObjectType());
-                }
-            }
+            // The neighbourhood, the node set and every per-lemma decoration are assembled by the
+            // shared candidate-graph model (see CandidateGraphModel) — the same model the two
+            // per-candidate renderers use, so all three diagrams agree on node identity.
+            final CandidateGraphModel graph = CandidateGraphModel.of(approved, 1, allCandidates);
 
             // Build enriched JSON: nodes, links, legend.
             final StringBuilder json = new StringBuilder();
             json.append('{');
-            appendNodes(json, nodeLemmas, posByLemma, countByLemma, maxCount,
-                    approvedLemmas, displayName, subdomainByLemma,
-                    candidateIdByLemma, objectTypeByLemma);
+            appendNodes(json, graph.nodeLemmas(), graph.posByLemma(), graph.countByLemma(), graph.maxCount(),
+                    graph.approvedLemmas(), graph.displayName(), graph.subdomainByLemma(),
+                    graph.candidateIdByLemma(), graph.objectTypeByLemma());
             json.append(',');
-            appendLinks(json, dependencies);
+            appendLinks(json, graph.dependencies());
             json.append(',');
-            final Set<String> usedPosCodes = new HashSet<>();
-            for (final Set<String> posSet : posByLemma.values()) {
-                if (posSet != null) {
-                    usedPosCodes.addAll(posSet);
-                }
-            }
-            PosLegend.appendLegendJson(json, usedPosCodes);
+            PosLegend.appendLegendJson(json, graph.usedPosCodes());
             json.append('}');
 
             final String result = json.toString();

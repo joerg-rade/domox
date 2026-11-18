@@ -97,8 +97,8 @@ public class Document extends AbstractEntity implements Comparable<Document> {
 
     // region Diagram
     /**
-     * Injected {@link Documents} service used to render the document-wide lexical diagram on
-     * demand.
+     * Injected {@link DocumentLexicalDiagrams} service used to render the document-wide lexical
+     * diagram on demand.
      * <p>
      * The diagram is deliberately <em>not</em> persisted: it is regenerated on every access
      * because its content depends on the current candidate set, which changes as candidates are
@@ -106,13 +106,13 @@ public class Document extends AbstractEntity implements Comparable<Document> {
      */
     @Inject
     @Transient
-    private Documents documentsService;
+    private DocumentLexicalDiagrams lexicalDiagrams;
 
     @PdfJsViewer
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(named = "Lexical Diagram", fieldSetId = "content", sequence = "1")
     public Blob getDiagram() {
-        return documentsService != null ? documentsService.renderDiagram(this) : null;
+        return lexicalDiagrams != null ? lexicalDiagrams.renderDiagram(this) : null;
     }
     // endregion Diagram
 

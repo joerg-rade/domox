@@ -127,7 +127,7 @@ def _backtracks(points):
 
 
 def _edge_of(box, point):
-    """The box edge a point attaches to: 0 top, 1 bottom, 2 left, 3 right (mirrors OrthogonalRouter)."""
+    """The box edge a point attaches to: 0 top, 1 bottom, 2 left, 3 right (mirrors PortGeometry.edgeOf)."""
     left = abs(point[0] - box[0])
     right = abs(point[0] - (box[0] + box[2]))
     top = abs(point[1] - box[1])

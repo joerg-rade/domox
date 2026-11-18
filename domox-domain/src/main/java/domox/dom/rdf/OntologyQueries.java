@@ -23,6 +23,12 @@ import java.util.stream.Collectors;
  * merged into the default graph — the query body stays graph-agnostic), while
  * {@link #withNamedDataset} emits {@code FROM NAMED <g>}, which is what a query addressing
  * {@code GRAPH ?g} needs in order to report <em>which</em> ontology a row came from.</p>
+ *
+ * <p><b>What is here, and what is not.</b>  The <em>focus</em> queries (search term → the IRIs it
+ * names) and the <em>describe</em> queries (those IRIs → their labels, comments, super-classes and
+ * synonyms) are both here, each with the prefixes and predicate list it needs.  The same rule holds
+ * for both: this class spells the query; deciding which source to run it against — local resource or
+ * remote endpoint, with which graphs, timeout and row cap — belongs to the caller.</p>
  */
 public final class OntologyQueries {
 
@@ -222,6 +228,71 @@ public final class OntologyQueries {
         // contain the upper-case keyword.
         final int where = sparql.indexOf("WHERE");
         return where < 0 ? sparql : sparql.substring(0, where) + clause + sparql.substring(where);
+    }
+
+    // ------------------------------------------------------------------
+    // describe (the focus IRIs → their descriptive triples)
+    // ------------------------------------------------------------------
+
+    /**
+     * The prefixes the describe queries use.  Declared once, here, with the rest of the query text:
+     * the two describe queries are the only ones that address several vocabularies at once.
+     */
+    private static final String PREFIXES = """
+            PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX ontouml: <https://w3id.org/ontouml#>
+            """;
+
+    /** The predicates that describe a term — everything else is noise for a reviewer. */
+    private static final String DESCRIBED_PREDICATES =
+            "rdf:type, rdfs:label, rdfs:comment, rdfs:subClassOf, skos:prefLabel, skos:altLabel, "
+                    + "skos:definition, owl:equivalentClass, ontouml:name";
+
+    /**
+     * Remote form of the describe query: {@code GRAPH ?g} so the source vocabulary is reported with
+     * each match.  No {@code LIMIT} — the {@code VALUES} clause already bounds the result to the
+     * focus IRIs.
+     */
+    public static String describeRemoteQuery(final List<String> focus) {
+        return PREFIXES + """
+                SELECT ?g ?term ?predicate ?value (isLiteral(?value) AS ?lit) WHERE {
+                  GRAPH ?g {
+                    VALUES ?term { %s }
+                    ?term ?predicate ?value .
+                    FILTER(?predicate IN (%s))
+                  }
+                }
+                """.formatted(values(focus), DESCRIBED_PREDICATES);
+    }
+
+    /** Local form: the bundled ontology is a single unnamed graph, so there is no {@code GRAPH ?g}. */
+    public static String describeLocalQuery(final List<String> focus) {
+        return PREFIXES + """
+                SELECT ?term ?predicate ?value (isLiteral(?value) AS ?lit) WHERE {
+                  VALUES ?term { %s }
+                  ?term ?predicate ?value .
+                  FILTER(?predicate IN (%s))
+                }
+                """.formatted(values(focus), DESCRIBED_PREDICATES);
+    }
+
+    /** {@code <iri> <iri> …}, dropping anything that could break out of the {@code VALUES} block. */
+    private static String values(final List<String> iris) {
+        return iris.stream()
+                .filter(OntologyQueries::isSafeIri)
+                .map(iri -> "<" + iri + ">")
+                .collect(Collectors.joining(" "));
+    }
+
+    /** Whether an IRI is safe to paste into a {@code VALUES} block unescaped. */
+    private static boolean isSafeIri(final String iri) {
+        return iri != null && !iri.isBlank()
+                && iri.indexOf('<') < 0 && iri.indexOf('>') < 0
+                && iri.indexOf('"') < 0 && iri.indexOf('{') < 0 && iri.indexOf('}') < 0
+                && iri.chars().noneMatch(Character::isWhitespace);
     }
 
     // ------------------------------------------------------------------

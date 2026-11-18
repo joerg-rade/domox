@@ -201,4 +201,28 @@ class OntologyQueriesTest {
         assertThat(OntologyQueries.escapeSparqlString("a \"b\"")).isEqualTo("a \\\"b\\\"");
         assertThat(OntologyQueries.escapeSparqlString("C:\\path")).isEqualTo("C:\\\\path");
     }
+
+    // ------------------------------------------------------------------
+    // describe (the focus IRIs → their descriptive triples)
+    // ------------------------------------------------------------------
+
+    @Test
+    void describeQueriesUseTheValuesClauseAndTheNamedGraph() {
+        final String remote = OntologyQueries.describeRemoteQuery(List.of("http://x/A"));
+        assertThat(remote).contains("GRAPH ?g");
+        assertThat(remote).contains("VALUES ?term { <http://x/A> }");
+        assertThat(remote).contains("isLiteral(?value) AS ?lit");
+
+        final String local = OntologyQueries.describeLocalQuery(List.of("http://x/A"));
+        assertThat(local).doesNotContain("GRAPH");
+        assertThat(local).contains("VALUES ?term { <http://x/A> }");
+    }
+
+    @Test
+    void anIriThatCouldBreakOutOfTheValuesClauseIsDropped() {
+        final String query = OntologyQueries.describeLocalQuery(
+                List.of("http://x/A> } UNION { ?s ?p ?o"));
+
+        assertThat(query).doesNotContain("UNION");
+    }
 }

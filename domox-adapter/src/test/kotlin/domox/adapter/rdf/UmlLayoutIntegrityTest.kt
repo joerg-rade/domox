@@ -269,7 +269,7 @@ class UmlLayoutIntegrityTest {
     private fun centreDistance(a: DoubleArray, b: DoubleArray): Double =
         hypot((a[0] + a[2] / 2) - (b[0] + b[2] / 2), (a[1] + a[3] / 2) - (b[1] + b[3] / 2))
 
-    /** The box edge a point attaches to: 0 top, 1 bottom, 2 left, 3 right (mirrors `OrthogonalRouter`). */
+    /** The box edge a point attaches to: 0 top, 1 bottom, 2 left, 3 right (mirrors `PortGeometry.edgeOf`). */
     private fun edgeOf(box: DoubleArray, point: DoubleArray): Int {
         val left = abs(point[0] - box[0])
         val right = abs(point[0] - (box[0] + box[2]))

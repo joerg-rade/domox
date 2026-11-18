@@ -125,24 +125,4 @@ class OntologyTermsTest {
         assertThat(lookup.hasMatches()).isFalse();
         assertThat(lookup.message()).as(lookup.message()).contains("No ontology term matches");
     }
-
-    @Test
-    void describeQueriesUseTheValuesClauseAndTheNamedGraph() {
-        final String remote = OntologyTerms.describeRemoteQuery(List.of("http://x/A"));
-        assertThat(remote).contains("GRAPH ?g");
-        assertThat(remote).contains("VALUES ?term { <http://x/A> }");
-        assertThat(remote).contains("isLiteral(?value) AS ?lit");
-
-        final String local = OntologyTerms.describeLocalQuery(List.of("http://x/A"));
-        assertThat(local).doesNotContain("GRAPH");
-        assertThat(local).contains("VALUES ?term { <http://x/A> }");
-    }
-
-    @Test
-    void anIriThatCouldBreakOutOfTheValuesClauseIsDropped() {
-        final String query = OntologyTerms.describeLocalQuery(
-                List.of("http://x/A> } UNION { ?s ?p ?o"));
-
-        assertThat(query).doesNotContain("UNION");
-    }
 }

@@ -65,19 +65,6 @@ public class OntologyTerms {
     /** OntoUML names its elements with this instead of {@code rdfs:label} (see {@link OntologyQueries}). */
     private static final String ONTOUML_NAME = "https://w3id.org/ontouml#name";
 
-    private static final String PREFIXES = """
-            PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX owl:  <http://www.w3.org/2002/07/owl#>
-            PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-            PREFIX ontouml: <https://w3id.org/ontouml#>
-            """;
-
-    /** The predicates that describe a term — everything else is noise for a reviewer. */
-    private static final String DESCRIBED_PREDICATES =
-            "rdf:type, rdfs:label, rdfs:comment, rdfs:subClassOf, skos:prefLabel, skos:altLabel, "
-                    + "skos:definition, owl:equivalentClass, ontouml:name";
-
     private final RdfPort rdfPort;
     private final RdfProperties rdfProperties;
 
@@ -143,51 +130,10 @@ public class OntologyTerms {
     /** Fetches the descriptive triples of the focus IRIs and reduces them to one term each. */
     private List<OntologyTerm> describe(final List<String> focus) {
         final List<Map<String, String>> rows = isRemote()
-                ? rdfPort.selectRemote(rdfProperties.getEndpointUrl(), describeRemoteQuery(focus), remoteOptions())
-                : rdfPort.select(localResource(), describeLocalQuery(focus));
+                ? rdfPort.selectRemote(rdfProperties.getEndpointUrl(),
+                        OntologyQueries.describeRemoteQuery(focus), remoteOptions())
+                : rdfPort.select(localResource(), OntologyQueries.describeLocalQuery(focus));
         return reduce(rows);
-    }
-
-    /**
-     * Remote form: {@code GRAPH ?g} so the source vocabulary is reported with each match.  No
-     * {@code LIMIT} — the {@code VALUES} clause already bounds the result to the focus IRIs.
-     */
-    static String describeRemoteQuery(final List<String> focus) {
-        return PREFIXES + """
-                SELECT ?g ?term ?predicate ?value (isLiteral(?value) AS ?lit) WHERE {
-                  GRAPH ?g {
-                    VALUES ?term { %s }
-                    ?term ?predicate ?value .
-                    FILTER(?predicate IN (%s))
-                  }
-                }
-                """.formatted(values(focus), DESCRIBED_PREDICATES);
-    }
-
-    /** Local form: the bundled ontology is a single unnamed graph, so there is no {@code GRAPH ?g}. */
-    static String describeLocalQuery(final List<String> focus) {
-        return PREFIXES + """
-                SELECT ?term ?predicate ?value (isLiteral(?value) AS ?lit) WHERE {
-                  VALUES ?term { %s }
-                  ?term ?predicate ?value .
-                  FILTER(?predicate IN (%s))
-                }
-                """.formatted(values(focus), DESCRIBED_PREDICATES);
-    }
-
-    /** {@code <iri> <iri> …}, dropping anything that could break out of the {@code VALUES} block. */
-    private static String values(final List<String> iris) {
-        return iris.stream()
-                .filter(OntologyTerms::isSafeIri)
-                .map(iri -> "<" + iri + ">")
-                .collect(Collectors.joining(" "));
-    }
-
-    private static boolean isSafeIri(final String iri) {
-        return iri != null && !iri.isBlank()
-                && iri.indexOf('<') < 0 && iri.indexOf('>') < 0
-                && iri.indexOf('"') < 0 && iri.indexOf('{') < 0 && iri.indexOf('}') < 0
-                && iri.chars().noneMatch(Character::isWhitespace);
     }
 
     // -- reduction --------------------------------------------------------------

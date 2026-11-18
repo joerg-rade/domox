@@ -27,8 +27,9 @@ import domox.dom.rdf.geometry.Pt;
  * them visibly merge into one trunk instead of arriving sideways.</p>
  *
  * <p>Works on {@link Box}es, {@link Pt}s and {@link Link}s only — no knowledge of diagrams or RDF.
- * Extracted from {@code UmlLayoutDiagrams}; the routes these ports serve are shaped by
- * {@link RouteGeometry}, scored by {@link RouteScoring} and laid out by {@link OrthogonalRouter}.</p>
+ * Extracted from {@code UmlLayoutDiagrams}; the ports themselves are placed with {@link PortGeometry},
+ * and the routes they serve are shaped by {@link RouteGeometry}, scored by {@link RouteScoring} and
+ * laid out by {@link OrthogonalRouter}.</p>
  */
 final class PortLayout {
 
@@ -77,7 +78,7 @@ final class PortLayout {
                 }
                 if (end != null) {
                     final Pt attach = facingEdgeMidpoint(end, links, link.source(), boxes);
-                    reserved.add(new EdgeKey(link.source(), OrthogonalRouter.edgeOf(end, attach)));
+                    reserved.add(new EdgeKey(link.source(), PortGeometry.edgeOf(end, attach)));
                 }
                 continue;
             }
@@ -97,7 +98,7 @@ final class PortLayout {
             for (int k = 0; k < ends.size(); k++) {
                 final double fraction = (k + 1.0) / (ends.size() + 1.0);
                 ports.put(ends.get(k).link() * 2 + (ends.get(k).start() ? 0 : 1),
-                        OrthogonalRouter.pointOnEdge(box, group.getKey().edge(),
+                        PortGeometry.pointOnEdge(box, group.getKey().edge(),
                                 keepMiddleFree ? clearOfMiddle(fraction) : fraction));
             }
         }
@@ -110,7 +111,7 @@ final class PortLayout {
      * part in the spreading.
      */
     private static Pt attachPoint(final Box box, final Box other, final Pt hint) {
-        if (box != null && hint != null && OrthogonalRouter.nearBoundary(box, hint)) {
+        if (box != null && hint != null && PortGeometry.nearBoundary(box, hint)) {
             return hint;
         }
         return facingEdgeMidpoint(box, other);
@@ -120,10 +121,10 @@ final class PortLayout {
     private static void attachAt(final Map<EdgeKey, List<End>> groups, final Map<String, Box> boxes,
                                  final String id, final int link, final boolean start, final Pt at) {
         final Box box = boxes.get(id);
-        if (box == null || at == null || !OrthogonalRouter.nearBoundary(box, at)) {
+        if (box == null || at == null || !PortGeometry.nearBoundary(box, at)) {
             return;
         }
-        final int edge = OrthogonalRouter.edgeOf(box, at);
+        final int edge = PortGeometry.edgeOf(box, at);
         final double along = switch (edge) {
             case 0, 1 -> box.w() == 0 ? 0.5 : (at.x() - box.x()) / box.w();
             default -> box.h() == 0 ? 0.5 : (at.y() - box.y()) / box.h();
@@ -154,7 +155,7 @@ final class PortLayout {
         if (spreadPort != null) {
             return spreadPort;
         }
-        return hint == null ? null : OrthogonalRouter.edgeMidpoint(box, hint);
+        return hint == null ? null : PortGeometry.edgeMidpoint(box, hint);
     }
 
     /**
@@ -171,8 +172,8 @@ final class PortLayout {
         final double dx = (other.x() + other.w() / 2) - (box.x() + box.w() / 2);
         final double dy = (other.y() + other.h() / 2) - (box.y() + box.h() / 2);
         return Math.abs(dx) >= Math.abs(dy)
-                ? OrthogonalRouter.pointOnEdge(box, dx >= 0 ? 3 : 2, 0.5)
-                : OrthogonalRouter.pointOnEdge(box, dy >= 0 ? 1 : 0, 0.5);
+                ? PortGeometry.pointOnEdge(box, dx >= 0 ? 3 : 2, 0.5)
+                : PortGeometry.pointOnEdge(box, dy >= 0 ? 1 : 0, 0.5);
     }
 
     /**
@@ -204,9 +205,9 @@ final class PortLayout {
             dy += (sub.y() + sub.h() / 2) - (superBox.y() + superBox.h() / 2);
         }
         if (Math.abs(dy) > TRUNK_VERTICAL_BIAS * Math.abs(dx)) {
-            return OrthogonalRouter.pointOnEdge(superBox, dy >= 0 ? 1 : 0, 0.5);
+            return PortGeometry.pointOnEdge(superBox, dy >= 0 ? 1 : 0, 0.5);
         }
-        return OrthogonalRouter.pointOnEdge(superBox, dx >= 0 ? 3 : 2, 0.5);
+        return PortGeometry.pointOnEdge(superBox, dx >= 0 ? 3 : 2, 0.5);
     }
 
     /**
@@ -216,7 +217,7 @@ final class PortLayout {
      * connector back to the side-approaching fallback.
      */
     static Pt trunkPoint(final Box box, final Pt attach, final List<Box> boxes) {
-        final int edge = OrthogonalRouter.edgeOf(box, attach);
+        final int edge = PortGeometry.edgeOf(box, attach);
         final double dx = edge == 2 ? -1 : edge == 3 ? 1 : 0;
         final double dy = edge == 0 ? -1 : edge == 1 ? 1 : 0;
 
@@ -262,7 +263,7 @@ final class PortLayout {
      */
     static boolean hasRoomToRise(final Pt fromPort, final Pt trunk) {
         final double rise = fromPort.y() - trunk.y();
-        return rise <= 0 || rise >= OrthogonalRouter.DEPARTURE_STUB;
+        return rise <= 0 || rise >= PortGeometry.DEPARTURE_STUB;
     }
 
     // -- value carriers --------------------------------------------------------

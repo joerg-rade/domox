@@ -52,6 +52,16 @@ Cline rules directory, loaded for every project.
   in the background into a log, then poll:
   `setsid mvn … > /tmp/x.log 2>&1 < /dev/null &` then `grep -E 'Tests run|BUILD' /tmp/x.log`.
   (`run-app.sh` already does this for the boot itself; this applies to everything else.)
+- **Webapp integration tests need the dev docker services up** → `domox-webapp`'s `*IntegTest` classes
+  boot the full Spring context against a throwaway Testcontainers Postgres (self-contained), but some of
+  them also reach the dev docker stack. `CorpusCandidateDedupIntegTest` calls the **real Stanford CoreNLP**
+  service (`StanfordCoreNlpAdapter` → `localhost:8999`; container `domox-nlp-1`, compose service `nlp`) and
+  needs a fresh DB. A stopped/stale `domox-nlp-1` fails it with
+  `java.net.ConnectException: Failed to connect to localhost/127.0.0.1:8999` — check
+  `docker ps -a --format '{{.Names}} {{.Status}}'`, then `docker start domox-nlp-1` and wait until it
+  serves (`curl -s -o /dev/null -w '%{http_code}' http://localhost:8999/` → `200`, ~10 s after start).
+  CI **deliberately excludes** this test (`.github/workflows/ci.yml`), so it only ever fails locally.
+  Run it detached: `setsid mvn -o -pl domox-webapp test -Dtest=CorpusCandidateDedupIntegTest >/tmp/x.log 2>&1 </dev/null &`.
 
 - **Port / DB ownership caveat** → a dev instance may already own 8080: check
   `curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/` and

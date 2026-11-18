@@ -1,7 +1,6 @@
 package domox.dom.crc.diagram;
 import domox.DomainModule;
 import domox.dom.crc.model.Candidate;
-import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.service.AttributeCandidates;
 import domox.dom.crc.service.ClassCandidates;
@@ -109,103 +108,29 @@ public class CandidateVegaGraph {
      * a POS-category colour scale with auto-generated legend, and rule/symbol/text marks.
      */
     private String buildVegaSpec(final Candidate candidate) {
-        // Snapshot the candidate set once per render: the lemma whitelist and the per-lemma
-        // candidate lookups are derived from the same lists, so the graph is built against a
-        // consistent candidate set.
-        final List<Candidate> allCandidates = allCandidates();
-        final Set<String> candidateLemmas = CandidateNeighbourhood.candidateLemmas(allCandidates);
-        final Map<String, List<Candidate>> candidatesByLemma = CandidateNeighbourhood.candidatesByLemma(allCandidates);
-
-        // Breadth-first expansion of the candidate-connection graph, hop-depth hops deep.
-        final List<TypedDependency> dependencies = CandidateNeighbourhood.collectDependencies(
-                List.of(candidate), candidateLemmas, candidatesByLemma, candidate.getHopDepth());
-
-        // Remove association-artifact edges — synthetic "X_Y" compound nodes — exactly as
-        // DomainModelDiagramsD3 does: participant lemmas and their links are kept; only the
-        // compound node is dropped from the diagram.
-        final Set<String> artifactLemmas = CandidateNeighbourhood.associationArtifactLemmas(allCandidates, candidateLemmas);
-        CandidateNeighbourhood.removeArtifactEdges(dependencies, artifactLemmas);
-
-        // Per-lemma metadata: POS codes and rule-match counts.
-        final CandidateNeighbourhood.LemmaMetrics metrics = CandidateNeighbourhood.lemmaMetrics(dependencies);
-        final Map<String, Set<String>> posByLemma = metrics.posByLemma();
-        final Map<String, Integer> countByLemma = metrics.matchCountByLemma();
-
-        // Every lemma that becomes a node: the candidate itself plus endpoints of dependencies.
-        final Set<String> nodeLemmas = new LinkedHashSet<>();
-        nodeLemmas.add(DiagramLemmas.lower(candidate.getCandidateName()));
-        for (final TypedDependency td : dependencies) {
-            if (td == null) continue;
-            nodeLemmas.add(DiagramLemmas.lower(td.getGovernorLemma()));
-            nodeLemmas.add(DiagramLemmas.lower(td.getDependentLemma()));
-        }
-        nodeLemmas.removeAll(artifactLemmas);
-        if (nodeLemmas.isEmpty()) {
-            // The candidate's own word is an artifact compound and every edge touching it was
-            // removed: fall back to the single seed node so the graph never renders empty.
-            nodeLemmas.add(DiagramLemmas.lower(candidate.getCandidateName()));
-        }
-
-        final int maxCount = countByLemma.values().stream()
-                .mapToInt(Integer::intValue).max().orElse(DiagramNodeSizing.MIN_MATCH_COUNT);
-
-        // Lemma -> display name (original casing). The seed is primed from the candidate itself
-        // (it may not be part of the repository snapshot in every caller), then overwritten for
-        // lemmas that are found in the snapshot.
-        final Map<String, String> displayName = new HashMap<>();
-        final String seedName = candidate.getCandidateName();
-        displayName.put(DiagramLemmas.lower(seedName), seedName != null ? seedName : "");
-        for (final String lemma : nodeLemmas) {
-            final List<Candidate> cs = candidatesByLemma.get(lemma);
-            if (cs != null && !cs.isEmpty()) {
-                displayName.put(lemma, cs.getFirst().getCandidateName());
-            }
-        }
-
-        final Map<String, String> classSubdomainByLemma = new HashMap<>();
-        for (final Candidate c : allCandidates) {
-            if (c instanceof ClassCdd cc && cc.getSubDomain() != null
-                    && cc.getSubDomain().getName() != null) {
-                classSubdomainByLemma.put(DiagramLemmas.lower(c.getCandidateName()), cc.getSubDomain().getName());
-            }
-        }
-        final Map<String, String> subdomainByLemma = new HashMap<>();
-        for (final String lemma : nodeLemmas) {
-            final String sdName = classSubdomainByLemma.get(lemma);
-            subdomainByLemma.put(lemma, sdName != null ? sdName : "");
-        }
-
-        final Map<String, Long> candidateIdByLemma = new HashMap<>();
-        final Map<String, String> objectTypeByLemma = new HashMap<>();
-        for (final String lemma : nodeLemmas) {
-            final List<Candidate> cs = candidatesByLemma.get(lemma);
-            if (cs != null && !cs.isEmpty()) {
-                final Candidate c = cs.getFirst();
-                candidateIdByLemma.put(lemma, c.getId());
-                objectTypeByLemma.put(lemma, c.getObjectType());
-            }
-        }
-
-        final Set<String> approvedLemmas = CandidateNeighbourhood.approvedLemmas(allCandidates);
+        // The neighbourhood, the node set and every per-lemma decoration are assembled by the
+        // shared candidate-graph model (see CandidateGraphModel).
+        final CandidateGraphModel model = CandidateGraphModel.of(
+                List.of(candidate), candidate.getHopDepth(), allCandidates());
 
         // POS categories actually present in the diagram, in encounter order — the scale domain
         // and colour range are both derived from it so node fills and the legend always agree.
         final Set<String> usedGroups = new LinkedHashSet<>();
-        for (final String lemma : nodeLemmas) {
-            usedGroups.add(PosLegend.label(DiagramLemmas.firstPos(posByLemma.get(lemma))));
+        for (final String lemma : model.nodeLemmas()) {
+            usedGroups.add(PosLegend.label(DiagramLemmas.firstPos(model.posByLemma().get(lemma))));
         }
 
         // Per-lemma POS-type label (e.g. "<< Noun >>") for the third text line inside each rect.
         final Map<String, String> posTypeLabelByLemma = new HashMap<>();
-        for (final String lemma : nodeLemmas) {
-            final String group = PosLegend.label(DiagramLemmas.firstPos(posByLemma.get(lemma)));
+        for (final String lemma : model.nodeLemmas()) {
+            final String group = PosLegend.label(DiagramLemmas.firstPos(model.posByLemma().get(lemma)));
             posTypeLabelByLemma.put(lemma, "<< " + group + " >>");
         }
 
-        final String nodesJson = nodeValuesJson(nodeLemmas, posByLemma, countByLemma, maxCount,
-                approvedLemmas, displayName, subdomainByLemma, posTypeLabelByLemma,
-                candidateIdByLemma, objectTypeByLemma);
-        final String linksJson = linkValuesJson(dependencies);
+        final String nodesJson = nodeValuesJson(model.nodeLemmas(), model.posByLemma(), model.countByLemma(),
+                model.maxCount(), model.approvedLemmas(), model.displayName(), model.subdomainByLemma(),
+                posTypeLabelByLemma, model.candidateIdByLemma(), model.objectTypeByLemma());
+        final String linksJson = linkValuesJson(model.dependencies());
 
         return TEMPLATE
                 .replace("${title}", DiagramJson.escape(titleOf(candidate)))
@@ -499,11 +424,7 @@ public class CandidateVegaGraph {
 
     /** All candidates of every type currently present, in a single snapshot. */
     private List<Candidate> allCandidates() {
-        final List<Candidate> all = new ArrayList<>();
-        CandidateNeighbourhood.addAll(all, classCandidates.listAll());
-        CandidateNeighbourhood.addAll(all, responsibilityCandidates.listAll());
-        CandidateNeighbourhood.addAll(all, attributeCandidates.listAll());
-        CandidateNeighbourhood.addAll(all, collaboratorCandidates.listAll());
-        return all;
+        return CandidateGraphModel.snapshot(
+                classCandidates, responsibilityCandidates, attributeCandidates, collaboratorCandidates);
     }
 }

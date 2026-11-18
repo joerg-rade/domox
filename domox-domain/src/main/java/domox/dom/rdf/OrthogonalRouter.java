@@ -12,6 +12,13 @@ import domox.dom.rdf.geometry.Box;
 import domox.dom.rdf.geometry.Pt;
 import domox.dom.rdf.geometry.Segment;
 
+import static domox.dom.rdf.PortGeometry.DEPARTURE_STUB;
+import static domox.dom.rdf.PortGeometry.DOWN;
+import static domox.dom.rdf.PortGeometry.LEFT;
+import static domox.dom.rdf.PortGeometry.NONE;
+import static domox.dom.rdf.PortGeometry.RIGHT;
+import static domox.dom.rdf.PortGeometry.UP;
+
 /**
  * An <b>orthogonal connector router</b>: the axis-aligned route between two class boxes that never runs
  * through a box and crosses as few already-placed routes as it can.
@@ -30,6 +37,9 @@ import domox.dom.rdf.geometry.Segment;
  *
  * <p>Blocked moves and crossing counts are precomputed per grid line, so the search itself costs O(1) per
  * neighbour and a diagram of a hundred connectors routes in a fraction of a second.</p>
+ *
+ * <p>Where a connector <em>attaches</em> — a box's four edges, their midpoints, and the inward normal a
+ * generalization arrives along — is {@link PortGeometry}, which this class and {@link PortLayout} share.</p>
  */
 final class OrthogonalRouter {
 
@@ -42,21 +52,13 @@ final class OrthogonalRouter {
     /** How far outside the two boxes the search region reaches, so a route can get around an obstacle. */
     private static final double REGION_MARGIN = 160.0;
 
-    /** How far a forced departure runs straight out of its box before it may turn. */
-    static final double DEPARTURE_STUB = 20.0;
-
     /** Tolerance on coordinates that ought to be equal. */
     private static final double EPS = 1e-6;
 
     /** Above this the grid is too big to search; the caller's plain route is used instead. */
     private static final long MAX_GRID = 250_000L;
 
-    /** The direction a move travels in; {@link #NONE} is a route that has not started yet (or "any"). */
-    static final int NONE = 0;
-    private static final int RIGHT = 1;
-    private static final int LEFT = 2;
-    private static final int DOWN = 3;
-    static final int UP = 4;
+    /** How many directions a search state can be in — the direction vocabulary itself is {@link PortGeometry}. */
     private static final int DIRECTIONS = 5;
 
     private OrthogonalRouter() {
@@ -70,18 +72,18 @@ final class OrthogonalRouter {
      *                  search pick the cheapest of the box's four edge midpoints
      * @param endPort   likewise for {@code end}
      * @param departure the direction the route must first travel in from {@code startPort}, or
-     *                  {@link #NONE} for any — a generalization asks for {@link #UP}, so it leaves the
-     *                  middle of its sub-class's top edge going straight up
+     *                  {@link PortGeometry#NONE} for any — a generalization asks for {@link PortGeometry#UP},
+     *                  so it leaves the middle of its sub-class's top edge going straight up
      * @param arrival   the direction the route must be travelling in when it reaches {@code endPort}, or
-     *                  {@link #NONE} for any — a generalization asks for the inward normal, so that every
-     *                  connector into one super-class arrives along the same line and they merge
+     *                  {@link PortGeometry#NONE} for any — a generalization asks for the inward normal, so
+     *                  that every connector into one super-class arrives along the same line and they merge
      * @return the route's points, or an empty list when no route was found (the caller then falls back)
      */
     static List<Pt> route(final Box start, final Box end, final Pt startPort, final Pt endPort,
                           final int departure, final int arrival,
                           final List<Box> boxes, final List<Segment> placed) {
-        final List<Pt> froms = ports(start, startPort);
-        final List<Pt> tos = ports(end, endPort);
+        final List<Pt> froms = PortGeometry.ports(start, startPort);
+        final List<Pt> tos = PortGeometry.ports(end, endPort);
         if (froms.isEmpty() || tos.isEmpty()) {
             return List.of();
         }
@@ -308,62 +310,6 @@ final class OrthogonalRouter {
         }
     }
 
-    /** The attachment points to try on a box: the given one, or the four edge midpoints. */
-    private static List<Pt> ports(final Box box, final Pt hint) {
-        if (hint != null && nearBoundary(box, hint)) {
-            return List.of(hint);                               // the caller placed it on the edge already
-        }
-        return List.of(
-                new Pt(box.x() + box.w() / 2, box.y()),
-                new Pt(box.x() + box.w() / 2, box.y() + box.h()),
-                new Pt(box.x(), box.y() + box.h() / 2),
-                new Pt(box.x() + box.w(), box.y() + box.h() / 2));
-    }
-
-    /** Whether {@code point} is close enough to the box to have been an attachment on it. */
-    static boolean nearBoundary(final Box box, final Pt point) {
-        final double tolerance = 6;
-        return point.x() >= box.x() - tolerance && point.x() <= box.x() + box.w() + tolerance
-                && point.y() >= box.y() - tolerance && point.y() <= box.y() + box.h() + tolerance;
-    }
-
-    /** The box edge a point attaches to: {@code 0} top, {@code 1} bottom, {@code 2} left, {@code 3} right. */
-    static int edgeOf(final Box box, final Pt point) {
-        final double left = Math.abs(point.x() - box.x());
-        final double right = Math.abs(point.x() - (box.x() + box.w()));
-        final double top = Math.abs(point.y() - box.y());
-        final double bottom = Math.abs(point.y() - (box.y() + box.h()));
-        final double nearest = Math.min(Math.min(left, right), Math.min(top, bottom));
-        if (nearest == left) {
-            return 2;
-        }
-        if (nearest == right) {
-            return 3;
-        }
-        return nearest == top ? 0 : 1;
-    }
-
-    /** A point {@code fraction} of the way along that edge — {@code 0} at one corner, {@code 1} at the other. */
-    static Pt pointOnEdge(final Box box, final int edge, final double fraction) {
-        return switch (edge) {
-            case 0 -> new Pt(box.x() + box.w() * fraction, box.y());
-            case 1 -> new Pt(box.x() + box.w() * fraction, box.y() + box.h());
-            case 2 -> new Pt(box.x(), box.y() + box.h() * fraction);
-            default -> new Pt(box.x() + box.w(), box.y() + box.h() * fraction);
-        };
-    }
-
-    /**
-     * The <b>middle</b> of the edge {@code hint} attaches to — never a corner.
-     * <p>
-     * The edge is the one the hint is nearest to (the same choice the raw attachment made), and only the
-     * point along it moves: to the middle.  A connector that leaves or enters at a corner reads as a
-     * mistake, while which side it uses is the model author's intent and is kept.
-     */
-    static Pt edgeMidpoint(final Box box, final Pt hint) {
-        return pointOnEdge(box, edgeOf(box, hint), 0.5);
-    }
-
     /**
      * Marks every move that would pass through {@code box}.
      * <p>
@@ -433,27 +379,6 @@ final class OrthogonalRouter {
             best = Math.min(best, Math.abs(xa[i] - goal.x()) + Math.abs(ya[j] - goal.y()));
         }
         return best;
-    }
-
-    /**
-     * The direction a connector travels in when it enters {@code box} at {@code port} — the inward normal
-     * of the edge the port sits on.
-     * <p>
-     * Handing this to {@link #route} as the required arrival direction is what makes every generalization
-     * into one super-class come in along the same line, so they merge into a single trunk and a single
-     * arrowhead.
-     */
-    static int inward(final Box box, final Pt port) {
-        if (Math.abs(port.x() - box.x()) <= 0.5) {
-            return RIGHT;
-        }
-        if (Math.abs(port.x() - (box.x() + box.w())) <= 0.5) {
-            return LEFT;
-        }
-        if (Math.abs(port.y() - box.y()) <= 0.5) {
-            return DOWN;
-        }
-        return UP;
     }
 
     /** Whether moving in {@code next} straight after {@code previous} is a corner. */

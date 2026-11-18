@@ -11,9 +11,6 @@ import domox.dom.nlp.Sentences;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
-import domox.dom.rules.RuleMatches;
-import org.apache.causeway.applib.services.message.MessageService;
-import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Blob;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Verifies {@link Documents#renderDiagram(Document)}:
+ * Verifies {@link DocumentLexicalDiagrams#renderDiagram(Document)}:
  * <ul>
  *   <li>typed dependencies are restricted to those whose governor and dependent lemma
  *       are both candidate words, and</li>
@@ -41,24 +38,18 @@ import static org.mockito.Mockito.when;
  * SentenceTO/TokenTO reconstruction is involved.
  */
 @ExtendWith(MockitoExtension.class)
-class DocumentsLexicalDiagramTest {
+class DocumentLexicalDiagramsTest {
 
-    @Mock
-    RepositoryService mockRepositoryService;
     @Mock
     Sentences sentences;
     @Mock
     DiagramPort diagramPort;
-    @Mock
-    MessageService messageService;
-    @Mock
-    RuleMatches ruleMatches;
 
-    Documents documents;
+    DocumentLexicalDiagrams documentLexicalDiagrams;
 
     @BeforeEach
     void setUp() {
-        documents = new Documents(mockRepositoryService, sentences, diagramPort, messageService, ruleMatches);
+        documentLexicalDiagrams = new DocumentLexicalDiagrams(sentences, diagramPort);
     }
 
     @Test
@@ -91,7 +82,7 @@ class DocumentsLexicalDiagramTest {
         when(diagramPort.buildLexicalGraphDiagram(anyString())).thenReturn(new byte[]{1, 2, 3});
 
         // when — renderDiagram uses the fixed DEFAULT_LEXICAL_THRESHOLD (1)
-        final Blob result = documents.renderDiagram(document);
+        final Blob result = documentLexicalDiagrams.renderDiagram(document);
 
         // then — diagram built from the candidate-restricted dependencies
         assertThat(result).isNotNull();
@@ -116,7 +107,7 @@ class DocumentsLexicalDiagramTest {
         final Document document = new Document();
         document.setTitle("Unanalysed");
 
-        final Blob result = documents.renderDiagram(document);
+        final Blob result = documentLexicalDiagrams.renderDiagram(document);
 
         assertThat(result).as("no model -> no diagram").isNull();
     }
@@ -132,7 +123,7 @@ class DocumentsLexicalDiagramTest {
 
     /**
      * {@link AbstractEntity#getId()} is generated (no setter), so give a transient test
-     * entity a surrogate id — {@link Documents#renderDiagram(Document)} logs it.
+     * entity a surrogate id — {@link DocumentLexicalDiagrams#renderDiagram(Document)} logs it.
      */
     private static void assignId(final Document document, final long id) {
         try {

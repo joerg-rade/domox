@@ -1,6 +1,5 @@
 package domox.dom.requirements;
 
-import domox.port.DiagramPort;
 import domox.dom.nlp.Sentences;
 import domox.dom.rules.RuleMatches;
 import org.apache.causeway.applib.services.message.MessageService;
@@ -24,8 +23,6 @@ class DocumentsTest {
     @Mock
     Sentences sentences;
     @Mock
-    DiagramPort mockDiagramPort;
-    @Mock
     MessageService mockMessageService;
     @Mock
     RuleMatches ruleMatches;
@@ -34,7 +31,7 @@ class DocumentsTest {
     Documents documents;
     @BeforeEach
     public void setUp() {
-        documents = new Documents(mockRepositoryService, sentences, mockDiagramPort, mockMessageService, ruleMatches);
+        documents = new Documents(mockRepositoryService, sentences, mockMessageService, ruleMatches);
     }
 
     @Test

@@ -16,6 +16,7 @@ import org.apache.causeway.applib.annotation.Programmatic;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -99,6 +100,9 @@ public class ContextEvidence {
                 .sorted()
                 .toList();
         final Map<Long, Sentence> byId = sentenceRepository.findAllById(ids).stream()
+                // the look-up is by id, so a row that carries none — or a null row — cannot be keyed
+                // and is dropped here rather than rendered as a hole in the table
+                .filter(Objects::nonNull)
                 .filter(sentence -> sentence.getId() != null)
                 .collect(Collectors.toMap(Sentence::getId, Function.identity()));
         return occurrences.stream()

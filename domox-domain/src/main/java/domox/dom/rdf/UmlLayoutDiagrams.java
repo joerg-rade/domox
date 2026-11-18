@@ -228,7 +228,7 @@ public class UmlLayoutDiagrams {
             // trunk into the box is appended.
             final Pt trunk = shared == null ? null : PortLayout.trunkPoint(end, shared, all);
             final Pt endPort = shared != null ? trunk : PortLayout.portFor(spread, i, false, end, to);
-            final int arrival = shared != null ? OrthogonalRouter.inward(end, shared) : OrthogonalRouter.NONE;
+            final int arrival = shared != null ? PortGeometry.inward(end, shared) : PortGeometry.NONE;
             final Box endBox = shared != null ? new Box(trunk.x(), trunk.y(), 0, 0) : end;
             // An inheritance edge leaves the middle of its sub-class's TOP edge, going straight up — the
             // way a UML tool draws it, and the reason a sub-class reads as "below" its super-class.  When
@@ -239,7 +239,7 @@ public class UmlLayoutDiagrams {
                     ? new Pt(start.x() + start.w() / 2, start.y())
                     : PortLayout.portFor(spread, i, true, start, from);
             final int departure = shared != null && PortLayout.hasRoomToRise(fromPort, trunk)
-                    ? OrthogonalRouter.UP : OrthogonalRouter.NONE;
+                    ? PortGeometry.UP : PortGeometry.NONE;
 
             List<Pt> route = OrthogonalRouter.route(start, endBox, fromPort, endPort,
                     departure, arrival, all, placed);

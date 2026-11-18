@@ -1,7 +1,6 @@
 package domox.dom.crc.diagram;
 import domox.DomainModule;
 import domox.dom.crc.model.Candidate;
-import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.service.AttributeCandidates;
 import domox.dom.crc.service.ClassCandidates;
@@ -116,94 +115,21 @@ public class CandidateD3Graph {
      * arrays.
      */
     private String buildD3Json(final Candidate candidate) {
-        // Snapshot the candidate set once per render.
-        final List<Candidate> allCandidates = allCandidates();
-        final Set<String> candidateLemmas = CandidateNeighbourhood.candidateLemmas(allCandidates);
-        final Map<String, List<Candidate>> candidatesByLemma = CandidateNeighbourhood.candidatesByLemma(allCandidates);
-
-        // Breadth-first expansion of the candidate-connection graph.
-        final List<TypedDependency> dependencies = CandidateNeighbourhood.collectDependencies(
-                List.of(candidate), candidateLemmas, candidatesByLemma, candidate.getHopDepth());
-
-        // Remove association-artifact edges.
-        final Set<String> artifactLemmas = CandidateNeighbourhood.associationArtifactLemmas(allCandidates, candidateLemmas);
-        CandidateNeighbourhood.removeArtifactEdges(dependencies, artifactLemmas);
-
-        // Per-lemma metadata: POS codes and rule-match counts.
-        final CandidateNeighbourhood.LemmaMetrics metrics = CandidateNeighbourhood.lemmaMetrics(dependencies);
-        final Map<String, Set<String>> posByLemma = metrics.posByLemma();
-        final Map<String, Integer> countByLemma = metrics.matchCountByLemma();
-
-        // Every lemma that becomes a node.
-        final Set<String> nodeLemmas = new LinkedHashSet<>();
-        nodeLemmas.add(DiagramLemmas.lower(candidate.getCandidateName()));
-        for (final TypedDependency td : dependencies) {
-            if (td == null) continue;
-            nodeLemmas.add(DiagramLemmas.lower(td.getGovernorLemma()));
-            nodeLemmas.add(DiagramLemmas.lower(td.getDependentLemma()));
-        }
-        nodeLemmas.removeAll(artifactLemmas);
-        if (nodeLemmas.isEmpty()) {
-            nodeLemmas.add(DiagramLemmas.lower(candidate.getCandidateName()));
-        }
-
-        final int maxCount = countByLemma.values().stream()
-                .mapToInt(Integer::intValue).max().orElse(DiagramNodeSizing.MIN_MATCH_COUNT);
-
-        // Lemma → display name (original casing).
-        final Map<String, String> displayName = new HashMap<>();
-        final String seedName = candidate.getCandidateName();
-        displayName.put(DiagramLemmas.lower(seedName), seedName != null ? seedName : "");
-        for (final String lemma : nodeLemmas) {
-            final List<Candidate> cs = candidatesByLemma.get(lemma);
-            if (cs != null && !cs.isEmpty()) {
-                displayName.put(lemma, cs.getFirst().getCandidateName());
-            }
-        }
-
-        // Lemma → subdomain name (from ClassCdd).
-        final Map<String, String> classSubdomainByLemma = new HashMap<>();
-        for (final Candidate c : allCandidates) {
-            if (c instanceof ClassCdd cc && cc.getSubDomain() != null
-                    && cc.getSubDomain().getName() != null) {
-                classSubdomainByLemma.put(DiagramLemmas.lower(c.getCandidateName()), cc.getSubDomain().getName());
-            }
-        }
-        final Map<String, String> subdomainByLemma = new HashMap<>();
-        for (final String lemma : nodeLemmas) {
-            final String sdName = classSubdomainByLemma.get(lemma);
-            subdomainByLemma.put(lemma, sdName != null ? sdName : "");
-        }
-
-        // Lemma → candidate ID and object type for click-through.
-        final Map<String, Long> candidateIdByLemma = new HashMap<>();
-        final Map<String, String> objectTypeByLemma = new HashMap<>();
-        for (final String lemma : nodeLemmas) {
-            final List<Candidate> cs = candidatesByLemma.get(lemma);
-            if (cs != null && !cs.isEmpty()) {
-                final Candidate c = cs.getFirst();
-                candidateIdByLemma.put(lemma, c.getId());
-                objectTypeByLemma.put(lemma, c.getObjectType());
-            }
-        }
-
-        // Lemma → whether it has at least one approved review.
-        final Set<String> approvedLemmas = CandidateNeighbourhood.approvedLemmas(allCandidates);
+        // The neighbourhood, the node set and every per-lemma decoration are assembled by the
+        // shared candidate-graph model (see CandidateGraphModel).
+        final CandidateGraphModel model = CandidateGraphModel.of(
+                List.of(candidate), candidate.getHopDepth(), allCandidates());
 
         // Build the JSON document.
         final StringBuilder json = new StringBuilder();
         json.append('{');
-        appendNodes(json, nodeLemmas, posByLemma, countByLemma, maxCount,
-                approvedLemmas, displayName, subdomainByLemma,
-                candidateIdByLemma, objectTypeByLemma);
+        appendNodes(json, model.nodeLemmas(), model.posByLemma(), model.countByLemma(), model.maxCount(),
+                model.approvedLemmas(), model.displayName(), model.subdomainByLemma(),
+                model.candidateIdByLemma(), model.objectTypeByLemma());
         json.append(',');
-        appendLinks(json, dependencies);
+        appendLinks(json, model.dependencies());
         json.append(',');
-        final Set<String> usedPosCodes = new HashSet<>();
-        for (final Set<String> posSet : posByLemma.values()) {
-            if (posSet != null) usedPosCodes.addAll(posSet);
-        }
-        PosLegend.appendLegendJson(json, usedPosCodes);
+        PosLegend.appendLegendJson(json, model.usedPosCodes());
         json.append('}');
 
         return json.toString();
@@ -285,12 +211,8 @@ public class CandidateD3Graph {
 
     /** All candidates of every type currently present, in a single snapshot. */
     private List<Candidate> allCandidates() {
-        final List<Candidate> all = new ArrayList<>();
-        CandidateNeighbourhood.addAll(all, classCandidates.listAll());
-        CandidateNeighbourhood.addAll(all, responsibilityCandidates.listAll());
-        CandidateNeighbourhood.addAll(all, attributeCandidates.listAll());
-        CandidateNeighbourhood.addAll(all, collaboratorCandidates.listAll());
-        return all;
+        return CandidateGraphModel.snapshot(
+                classCandidates, responsibilityCandidates, attributeCandidates, collaboratorCandidates);
     }
 
 }

@@ -53,6 +53,19 @@ rule-match → sentence → document chain already loaded with the candidate, an
 all).  `ContextEvidence` is an orchestrator like `Documents`, so it carries no floor; `UseCases` is an
 extracted collaborator, so it does.
 
+A sixth wave continued the same cleanup in the diagram and layout code.  The three lexical diagram
+renderers each carried their own copy of the ~60 lines that assemble a candidate neighbourhood — the
+breadth-first expansion, the artifact-compound removal, the node set, the display names, the sub-domain
+names, the click-through ids and the approval flags — and two of the three had already drifted apart
+(`CandidateDiagrams` did not use the null-safe snapshot helper the other two did).  That assembly is now
+`CandidateGraphModel`, whose `snapshot` is the single place that collects the candidate set from the four
+repositories.  `OrthogonalRouter` similarly owned two things at once: the A* search over the Hanan grid,
+and the arithmetic of where a box's attachment points are — the four edges, their midpoints, and the
+inward normal a generalization arrives along.  The latter is now `PortGeometry`, which is what `PortLayout`
+(a port chooser that never routes anything) depends on instead of the router.  Both new types are pure and
+floored; `DocumentLexicalDiagrams`, the diagram half split out of `Documents`, keeps a `DiagramPort` and so
+joins `Documents` and `ContextEvidence` as an orchestrator with no floor.
+
 Usage:
   scripts/pitest-floors.py                            # the floor classes, exit 0 either way
   scripts/pitest-floors.py --check                    # exit 1 when any class is below its floor
@@ -166,6 +179,14 @@ FLOORS = {
     #     changes on.  ContextEvidence keeps the repositories (an orchestrator, like Documents, so
     #     no floor); UseCases is pure — the extracted collaborator — and so is floored. ---
     "UseCases": 90,                         # 100 %  (19 mutants)
+
+    # --- the sixth wave: the shared candidate-graph assembler — the neighbourhood, node set and
+    #     per-lemma decoration that CandidateD3Graph, CandidateVegaGraph and DomainModelDiagramsD3
+    #     each carried a copy of — and the port/edge vocabulary carved out of OrthogonalRouter.
+    #     DocumentLexicalDiagrams (the diagram half split out of Documents) keeps a DiagramPort and
+    #     so is an orchestrator, like Documents and ContextEvidence: no floor. ---
+    "CandidateGraphModel": 90,              # 100 %  (20 mutants)
+    "PortGeometry": 75,                     # 84 %   (67; every mutant reached, 11 unasserted)
 }
 
 # Statuses that count as a detected defect.
