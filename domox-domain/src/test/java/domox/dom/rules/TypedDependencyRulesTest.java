@@ -375,8 +375,7 @@ public class TypedDependencyRulesTest {
         addToken(0, "pet", PartOfSpeechType.NN);
         addToken(1, "01", PartOfSpeechType.CD);
 
-        TypedDependency td = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
-        tdr25.currentTd = td;
+        tdr25.currentTd = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
         tdr25.previousTd = null;
         tdr25.nextTd = null;
 
@@ -398,8 +397,7 @@ public class TypedDependencyRulesTest {
         addToken(0, "pet", PartOfSpeechType.NN);
         addToken(1, "one", PartOfSpeechType.CD);
 
-        TypedDependency td = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
-        tdr25.currentTd = td;
+        tdr25.currentTd = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
         tdr25.previousTd = null;
         tdr25.nextTd = null;
 
@@ -421,8 +419,7 @@ public class TypedDependencyRulesTest {
         addToken(0, "pet", PartOfSpeechType.NN);
         addToken(1, "more", PartOfSpeechType.CD);
 
-        TypedDependency td = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
-        tdr25.currentTd = td;
+        tdr25.currentTd = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
         tdr25.previousTd = null;
         tdr25.nextTd = null;
 
@@ -445,8 +442,7 @@ public class TypedDependencyRulesTest {
         addToken(0, "pet", PartOfSpeechType.NN);
         addToken(1, "many", PartOfSpeechType.DT);
 
-        TypedDependency td = createTypedDependency(sentence, TdType.DET, 0, 1);
-        tdr26.currentTd = td;
+        tdr26.currentTd = createTypedDependency(sentence, TdType.DET, 0, 1);
         tdr26.previousTd = null;
         tdr26.nextTd = null;
 
@@ -468,8 +464,7 @@ public class TypedDependencyRulesTest {
         addToken(0, "pet", PartOfSpeechType.NN);
         addToken(1, "a", PartOfSpeechType.DT);
 
-        TypedDependency td = createTypedDependency(sentence, TdType.DET, 0, 1);
-        tdr26.currentTd = td;
+        tdr26.currentTd = createTypedDependency(sentence, TdType.DET, 0, 1);
         tdr26.previousTd = null;
         tdr26.nextTd = null;
 
@@ -490,8 +485,7 @@ public class TypedDependencyRulesTest {
         addToken(0, "pet", PartOfSpeechType.NN);
         addToken(1, "some", PartOfSpeechType.DT);
 
-        TypedDependency td = createTypedDependency(sentence, TdType.DET, 0, 1);
-        tdr26.currentTd = td;
+        tdr26.currentTd = createTypedDependency(sentence, TdType.DET, 0, 1);
         tdr26.previousTd = null;
         tdr26.nextTd = null;
 

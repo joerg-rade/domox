@@ -11,11 +11,10 @@ import domox.dom.rules.RuleMatch;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -61,12 +60,11 @@ import java.util.*;
  * reflects the current candidate set, which changes as candidates are reviewed, approved, or
  * rejected.
  */
+@Slf4j
 @Named(DomainModule.NAMESPACE + ".CandidateD3Graph")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
 public class CandidateD3Graph {
-
-    private static final Logger log = LoggerFactory.getLogger(CandidateD3Graph.class);
 
     private final ClassCandidates classCandidates;
     private final ResponsibilityCandidates responsibilityCandidates;

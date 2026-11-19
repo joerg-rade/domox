@@ -13,12 +13,11 @@ import domox.port.DomainConstants;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.value.Blob;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -37,12 +36,11 @@ import java.util.*;
  * reflects the current candidate set, which changes as candidates are reviewed, approved, or
  * rejected.
  */
+@Slf4j
 @Named(DomainModule.NAMESPACE + ".CandidateDiagrams")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
 public class CandidateDiagrams {
-
-    private static final Logger log = LoggerFactory.getLogger(CandidateDiagrams.class);
 
     private final DiagramPort diagramPort;
     private final ClassCandidates classCandidates;

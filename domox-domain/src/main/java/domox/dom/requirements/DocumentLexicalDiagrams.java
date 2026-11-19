@@ -14,12 +14,11 @@ import domox.port.DomainConstants;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.value.Blob;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,12 +42,11 @@ import java.util.stream.Collectors;
  * reflects the current candidate set, which changes as candidates are reviewed, approved, or
  * rejected.
  */
+@Slf4j
 @Named(DomainModule.NAMESPACE + ".DocumentLexicalDiagrams")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
 public class DocumentLexicalDiagrams {
-
-    private static final Logger log = LoggerFactory.getLogger(DocumentLexicalDiagrams.class);
 
     /** Default rule-match threshold used when lazily building a document's lexical diagram. */
     private static final int DEFAULT_LEXICAL_THRESHOLD = 1;

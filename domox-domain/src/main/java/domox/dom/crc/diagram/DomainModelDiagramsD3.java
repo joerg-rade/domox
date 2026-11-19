@@ -8,11 +8,10 @@ import domox.dom.nlp.TypedDependency;
 import domox.dom.rules.RuleMatch;
 import jakarta.annotation.Priority;
 import jakarta.inject.Named;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -48,12 +47,12 @@ import java.util.*;
  * reflects the current candidate set and their reviews, both of which change as candidates are
  * reviewed, approved, or rejected.
  */
+@Slf4j
 @Named(DomainModule.NAMESPACE + ".DomainModelDiagramsD3")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
 public class DomainModelDiagramsD3 {
 
-    private static final Logger log = LoggerFactory.getLogger(DomainModelDiagramsD3.class);
     @Programmatic
     public String renderDiagram(final DomainModel model) {
         if (model == null) {

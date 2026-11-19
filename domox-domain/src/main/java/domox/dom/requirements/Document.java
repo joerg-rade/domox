@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.BookmarkPolicy;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.Domain;
@@ -29,12 +30,11 @@ import org.apache.causeway.applib.value.Blob;
 import org.apache.causeway.applib.value.Clob;
 import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
 import org.apache.causeway.persistence.jpa.applib.types.ClobJpaEmbeddable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.List;
 
+@Slf4j
 @Entity
 @Table(schema = DomainModule.SCHEMA, name = "Document")
 @Named(DomainModule.NAMESPACE + ".Document")
@@ -47,7 +47,6 @@ import java.util.List;
 @ToString
 public class Document extends AbstractEntity implements Comparable<Document> {
 
-    private static final Logger log = LoggerFactory.getLogger(Document.class);
     private static MimeType MIME_TYPE = null;
 
     @Title(prepend = "Object: ")

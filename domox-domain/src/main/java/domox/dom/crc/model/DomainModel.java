@@ -7,15 +7,15 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Entity
 @Table(schema = DomainModule.SCHEMA, name = "DomainModel")
 @Named(DomainModule.NAMESPACE + ".DomainModel")
@@ -26,8 +26,6 @@ import java.util.List;
                 + "analysed from a corpus of use-case documents")
 @NoArgsConstructor
 public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> {
-
-    private static final Logger log = LoggerFactory.getLogger(DomainModel.class);
 
     /**
      * A one-line identity for the model: <em>who owns it</em> and <em>how big it is</em>.

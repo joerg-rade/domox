@@ -11,24 +11,22 @@ import domox.port.SentenceTO;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.*;
 import org.apache.causeway.applib.services.message.MessageService;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Clob;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Named(DomainModule.NAMESPACE + ".Documents")
 @DomainService
 @Priority(PriorityPrecedence.EARLY)
 public class Documents {
-
-    private static final Logger log = LoggerFactory.getLogger(Documents.class);
 
     private final RepositoryService repositoryService;
     private final Sentences sentences;

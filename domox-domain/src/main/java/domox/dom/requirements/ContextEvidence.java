@@ -102,7 +102,7 @@ public class ContextEvidence {
         final Map<Long, Sentence> byId = sentenceRepository.findAllById(ids).stream()
                 // the look-up is by id, so a row that carries none — or a null row — cannot be keyed
                 // and is dropped here rather than rendered as a hole in the table
-                .filter(Objects::nonNull)
+                .filter(Objects::nonNull) // required - else test will fail
                 .filter(sentence -> sentence.getId() != null)
                 .collect(Collectors.toMap(Sentence::getId, Function.identity()));
         return occurrences.stream()
