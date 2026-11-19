@@ -4,11 +4,14 @@ import domox.DomainModule;
 import domox.dom.crc.model.AssociationType;
 import domox.dom.crc.model.Candidate;
 import domox.dom.crc.model.ClassCdd;
+import domox.dom.crc.model.CollaboratorCdd;
 import domox.dom.crc.model.DomainModel;
+import domox.dom.crc.model.ResponsibilityCdd;
 import domox.dom.crc.service.AttributeCandidates;
 import domox.dom.crc.service.ClassCandidates;
 import domox.dom.crc.service.CollaboratorCandidates;
 import domox.dom.crc.service.ResponsibilityCandidates;
+import domox.dom.nlp.Sentence;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -90,6 +93,10 @@ public class CandidateFactory {
             return candidates;
         }
         final Map<String, Candidate> createdClassCandidates = new HashMap<>();
+        // Multiplicities are stated *within one sentence* ("a customer may have many pets"), so the
+        // matches are grouped by sentence up front: an association then looks up its own sentence's
+        // multiplicity matches instead of re-querying the repository per match.
+        final Map<Long, List<RuleMatch>> matchesBySentence = matchesBySentence(matches);
         for (final RuleMatch match : matches) {
             if (match == null) {
                 continue;
@@ -103,7 +110,8 @@ public class CandidateFactory {
                     continue;
                 }
             }
-            final Candidate candidate = createCandidateFromMatch(match, domainModel);
+            final Candidate candidate =
+                    createCandidateFromMatch(match, sentenceMatchesOf(matchesBySentence, match), domainModel);
             if (candidate != null) {
                 candidate.addMatchingRule(match);
                 if (candidate instanceof ClassCdd) {
@@ -116,11 +124,27 @@ public class CandidateFactory {
     }
 
     /**
-     * Creates a single Candidate from a RuleMatch record.
-     * Dispatches based on candidateType.
+     * Creates a single Candidate from a RuleMatch record with no knowledge of the other matches of
+     * its sentence — the shape used by unit tests and by any caller holding one match.
+     * <p>
+     * An association created through this overload carries no multiplicity: there is no sibling
+     * evidence to read, and guessing one would assert a count the text never stated.
      */
     @Programmatic
     Candidate createCandidateFromMatch(final RuleMatch match, final DomainModel domainModel) {
+        return createCandidateFromMatch(match, List.of(), domainModel);
+    }
+
+    /**
+     * Creates a single Candidate from a RuleMatch record.
+     * Dispatches based on candidateType.
+     *
+     * @param sentenceMatches every match whose typed dependency belongs to the same sentence as
+     *                        {@code match} — the multiplicity evidence for an association
+     */
+    @Programmatic
+    Candidate createCandidateFromMatch(
+            final RuleMatch match, final List<RuleMatch> sentenceMatches, final DomainModel domainModel) {
         final String candidateType = match.getCandidateType();
         final String candidateName = match.getCandidateName();
         final String relatedCandidateName = match.getRelatedCandidateName();
@@ -136,7 +160,10 @@ public class CandidateFactory {
                 final ClassCdd target = classCandidates.findOrCreate(relatedCandidateName, domainModel);
                 target.setCandidateName(relatedCandidateName);
                 final String assocName = candidateName + "_" + relatedCandidateName;
-                return collaboratorCandidates.findOrCreate(assocName, source, target, domainModel);
+                final CollaboratorCdd association =
+                        collaboratorCandidates.findOrCreate(assocName, source, target, domainModel);
+                applyMultiplicities(association, source, target, sentenceMatches);
+                return association;
             }
             if (isBlockedUseCaseNoun(candidateName)) {
                 return null;
@@ -180,26 +207,116 @@ public class CandidateFactory {
             final ClassCdd classCdd = (relatedCandidateName != null && !isBlockedUseCaseNoun(relatedCandidateName))
                     ? classCandidates.findOrCreate(relatedCandidateName, domainModel)
                     : null;
-            return responsibilityCandidates.findOrCreate(candidateName, classCdd, domainModel);
+            final ResponsibilityCdd responsibility =
+                    responsibilityCandidates.findOrCreate(candidateName, classCdd, domainModel);
+            addParameters(responsibility, match, domainModel);
+            return responsibility;
         } else if ("PropertyCdd".equals(candidateType)) {
-            // A blocked use-case noun as the owning class (e.g. "Condition") must not
-            // produce an orphan property; skip entirely.
-            if (relatedCandidateName != null && isBlockedUseCaseNoun(relatedCandidateName)) {
+            // A property match must name its owning class: a match with no owner used to be attached to
+            // a class literally called "Unknown" (the fallback below), which produced a phantom class
+            // with 12 attributes on it.  TDR12's "both sides are basic attributes" branch — "size color",
+            // "description description" — is exactly such a match, and there is no owner to invent.
+            if (relatedCandidateName == null || isBlockedUseCaseNoun(relatedCandidateName)) {
                 return null;
             }
-            // The related candidate name should be the owning class name
-            final String className = relatedCandidateName != null ? relatedCandidateName : "Unknown";
-            final String type = inferType(candidateName);
-            return attributeCandidates.findOrCreate(className, candidateName, type, domainModel);
+            return attributeCandidates.findOrCreate(
+                    relatedCandidateName, candidateName, inferType(candidateName), domainModel);
         }
         // Unknown candidate types are ignored.
         return null;
+    }
+
+    /**
+     * Records the operation's parameters, read from the sentence the operation was extracted from.
+     * <p>
+     * The type of a parameter is the model's own class of that name when there is one — the sentence
+     * object usually is an entity ("browse a {@code Pet}" → {@code browse(pet: Pet)}) — and otherwise
+     * the built-in type inferred from the name ({@link #inferType}).  A parameter whose name never
+     * became a class is a value, not a reference.
+     */
+    private void addParameters(
+            final ResponsibilityCdd responsibility, final RuleMatch match, final DomainModel domainModel) {
+        for (final String noun
+                : ResponsibilityParameterExtraction.objectNounsOf(match.getTypedDependency(), match.getCandidateName())) {
+            responsibilityCandidates.addParameter(responsibility, noun, parameterType(noun, domainModel));
+        }
+    }
+
+    /** The type of a parameter: the model's class of that name, else the inferred built-in type. */
+    private String parameterType(final String name, final DomainModel domainModel) {
+        final ClassCdd type = classCandidates.findByCandidateName(
+                capitalizeFirstLetter(name), domainModel);
+        return type != null ? type.getCandidateName() : inferType(name);
+    }
+
+    /** {@code pet} → {@code Pet} — candidate names are capitalised, the parser's lemmas are not. */
+    private static String capitalizeFirstLetter(final String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        return Character.toUpperCase(input.charAt(0)) + input.substring(1);
     }
 
     /** Returns {@code true} when {@code candidateName} is a configured blocked use-case noun. */
     @Programmatic
     boolean isBlockedUseCaseNoun(final String candidateName) {
         return UseCaseBlockedNouns.isBlocked(nlpProperties, candidateName);
+    }
+
+    /**
+     * Copies the multiplicities the sentence stated onto the two ends of the association.
+     * <p>
+     * Both columns are {@code NOT NULL}, so {@code ""} is the "absent" value: an end the sentence says
+     * nothing about is left untouched — including an end an earlier match already filled, because one
+     * association name can be produced by several sentences of the same corpus.
+     */
+    private static void applyMultiplicities(
+            final CollaboratorCdd association,
+            final ClassCdd source,
+            final ClassCdd target,
+            final List<RuleMatch> sentenceMatches) {
+        final String sourceCardinality =
+                MultiplicityEvidence.cardinalityFor(sentenceMatches, source.getCandidateName());
+        if (!sourceCardinality.isEmpty()) {
+            association.setSourceCardinality(sourceCardinality);
+        }
+        final String targetCardinality =
+                MultiplicityEvidence.cardinalityFor(sentenceMatches, target.getCandidateName());
+        if (!targetCardinality.isEmpty()) {
+            association.setTargetCardinality(targetCardinality);
+        }
+    }
+
+    /**
+     * Groups the matches by the id of the sentence their typed dependency belongs to.  A match without
+     * a sentence (or with an unsaved one) is left out — it can contribute no sentence-scoped evidence.
+     */
+    private static Map<Long, List<RuleMatch>> matchesBySentence(final List<RuleMatch> matches) {
+        final Map<Long, List<RuleMatch>> bySentence = new HashMap<>();
+        for (final RuleMatch match : matches) {
+            final Long sentenceId = sentenceIdOf(match);
+            if (sentenceId != null) {
+                bySentence.computeIfAbsent(sentenceId, key -> new ArrayList<>()).add(match);
+            }
+        }
+        return bySentence;
+    }
+
+    /** The matches of {@code match}'s own sentence, or an empty list when it has none. */
+    private static List<RuleMatch> sentenceMatchesOf(
+            final Map<Long, List<RuleMatch>> matchesBySentence, final RuleMatch match) {
+        final Long sentenceId = sentenceIdOf(match);
+        final List<RuleMatch> matches = sentenceId != null ? matchesBySentence.get(sentenceId) : null;
+        return matches != null ? matches : List.of();
+    }
+
+    /** The id of the sentence {@code match}'s typed dependency belongs to, or {@code null}. */
+    private static Long sentenceIdOf(final RuleMatch match) {
+        if (match == null || match.getTypedDependency() == null) {
+            return null;
+        }
+        final Sentence sentence = match.getTypedDependency().getSentence();
+        return sentence != null ? sentence.getId() : null;
     }
 
     /** Infers the property type from the property name. */
@@ -209,7 +326,8 @@ public class CandidateFactory {
         final String lower = propertyName.toLowerCase();
         if (lower.contains("count") || lower.contains("number") || lower.contains("age")) {
             return "int";
-        } else if (lower.contains("price") || lower.contains("amount")) {
+        } else if (lower.contains("price") || lower.contains("amount")
+                || lower.contains("cost") || lower.contains("fee")) {
             return "double";
         } else if (lower.contains("active") || lower.contains("valid") || lower.contains("enabled")) {
             return "boolean";

@@ -171,7 +171,7 @@ class CorpusIngestionTest {
 
         ingestion.loadUcDocument(UC_FILE);
 
-        assertThat(clazz.getClassType()).isEqualTo(ClassType.ROLE);
+        assertThat(clazz.classType).isEqualTo(ClassType.ROLE);
     }
 
     /** The batch entry point visits every bundled {@code UC*.md} file. */

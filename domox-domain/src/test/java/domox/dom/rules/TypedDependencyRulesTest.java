@@ -70,6 +70,7 @@ public class TypedDependencyRulesTest {
          * <ul>
          *   <li>TDR27 — requires {@code "enter"} in {@code userInputVerbs}</li>
          *   <li>TDR34 — requires {@code "invalid"} in {@code exceptionTerms}</li>
+         *   <li>TDR25/TDR26 — consult {@code useCaseMetadataNouns} (the multiplicity scope guard)</li>
          * </ul>
          * All other vocabulary lists are set to empty to keep the fixture
          * minimal; rules not exercised here see an empty list and simply
@@ -85,6 +86,7 @@ public class TypedDependencyRulesTest {
             props.setInputPastVerbs(List.of());
             props.setOutputPastVerbs(List.of());
             props.setReceiveVerbs(List.of());
+            props.setUseCaseMetadataNouns(List.of("sentence", "second", "step", "day", "time"));
             return props;
         }
 
@@ -176,6 +178,9 @@ public class TypedDependencyRulesTest {
 
     @Autowired
     private TDR11 tdr11;
+
+    @Autowired
+    private TDR12 tdr12;
 
     @Autowired
     private TDR38 tdr38;
@@ -513,6 +518,90 @@ public class TypedDependencyRulesTest {
         assertThat(tdr26.when()).as("TDR26 should NOT fire for det(pet, the)").isFalse();
     }
 
+    // ============ TDR25/TDR26 scope guard: document-metadata nouns ============
+
+    /**
+     * Test TDR25 scope guard: a nummod on a document-metadata noun is a cross-reference, not a
+     * multiplicity.  "A use case elaborated from sentence 10 of ..." produced
+     * {@code multiplicity.add(sentence, 10)} — and, worse, a {@code ClassCdd} named
+     * {@code Sentence}: this rule names its candidate after the governor.
+     */
+    @Test
+    public void tdr25_doesNotFireForADocumentCrossReference() {
+        Sentence sentence = new Sentence();
+        addToken(0, "sentence", PartOfSpeechType.NN);
+        addToken(1, "10", PartOfSpeechType.CD);
+
+        tdr25.currentTd = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
+        tdr25.previousTd = null;
+        tdr25.nextTd = null;
+
+        assertThat(tdr25.when())
+                .as("nummod(sentence, 10) is a document cross-reference, not a multiplicity")
+                .isFalse();
+    }
+
+    /** "must load within 2 seconds" — a time unit is not a multiplicity of anything either. */
+    @Test
+    public void tdr25_doesNotFireForATimeUnit() {
+        Sentence sentence = new Sentence();
+        addToken(0, "second", PartOfSpeechType.NNS);
+        addToken(1, "2", PartOfSpeechType.CD);
+
+        tdr25.currentTd = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
+        tdr25.previousTd = null;
+        tdr25.nextTd = null;
+
+        assertThat(tdr25.when()).as("nummod(seconds, 2) is a duration, not a multiplicity").isFalse();
+    }
+
+    /** The metadata lookup is plural-tolerant, like the blocked-noun lookup. */
+    @Test
+    public void tdr25_doesNotFireForAPluralMetadataNoun() {
+        Sentence sentence = new Sentence();
+        addToken(0, "sentences", PartOfSpeechType.NNS);
+        addToken(1, "3", PartOfSpeechType.CD);
+
+        tdr25.currentTd = createTypedDependency(sentence, TdType.NUMMOD, 0, 1);
+        tdr25.previousTd = null;
+        tdr25.nextTd = null;
+
+        assertThat(tdr25.when()).as("the plural of a metadata noun is still a metadata noun").isFalse();
+    }
+
+    /**
+     * Test TDR26 scope guard: the determiner is quantifying, but the governor is a metadata noun —
+     * "a day", "each step" is not the multiplicity of an association end.
+     */
+    @Test
+    public void tdr26_doesNotFireForAMetadataNoun() {
+        Sentence sentence = new Sentence();
+        addToken(0, "day", PartOfSpeechType.NN);
+        addToken(1, "a", PartOfSpeechType.DT);
+
+        tdr26.currentTd = createTypedDependency(sentence, TdType.DET, 0, 1);
+        tdr26.previousTd = null;
+        tdr26.nextTd = null;
+
+        assertThat(tdr26.when())
+                .as("det(day, a) is a duration, not a multiplicity")
+                .isFalse();
+    }
+
+    /** A domain noun with the same determiner still fires — the guard is about the governor. */
+    @Test
+    public void tdr26_stillFiresForADomainNoun() {
+        Sentence sentence = new Sentence();
+        addToken(0, "daycare", PartOfSpeechType.NN);
+        addToken(1, "each", PartOfSpeechType.DT);
+
+        tdr26.currentTd = createTypedDependency(sentence, TdType.DET, 0, 1);
+        tdr26.previousTd = null;
+        tdr26.nextTd = null;
+
+        assertThat(tdr26.when()).as("det(daycare, each) is a multiplicity").isTrue();
+    }
+
     /**
      * Test TDR27: Input data extraction
      * Identifies data being input by verbs like "enter", "fill", "select"
@@ -696,6 +785,81 @@ public class TypedDependencyRulesTest {
                 .orElse(null);
         assertThat(entityMatch).as("TDR11 should have created a ClassCdd for a non-possessed noun").isNotNull();
         assertThat(entityMatch.getCandidateName()).isEqualTo("Order");
+    }
+
+    /**
+     * Test TDR12: the attribute is named after the attribute word, not the whole compound phrase.
+     * "pet name" → compound(pet, name): {@code name} is the attribute, {@code Pet} the entity.  The
+     * old naming produced "pet name", i.e. the class name leaked into the attribute name ("pet size",
+     * "pet type", "variant color" in the PetShop model).
+     */
+    @Test
+    public void tdr12_namesTheAttributeAfterTheAttributeWord_entityIsTheGovernor() {
+        Sentence sentence = new Sentence();
+        addToken(0, "pet", PartOfSpeechType.NN);
+        addToken(1, "name", PartOfSpeechType.NN);
+
+        tdr12.currentTd = createTypedDependency(sentence, TdType.COMPOUND, 0, 1);
+        tdr12.previousTd = null;
+        tdr12.nextTd = null;
+
+        assertThat(tdr12.when()).as("TDR12 should fire for compound(pet, name)").isTrue();
+        tdr12.then();
+
+        assertThat(propertyMatchOf(tdr12).getCandidateName())
+                .as("the attribute name is the attribute word, not 'pet name'")
+                .isEqualTo("name");
+        assertThat(propertyMatchOf(tdr12).getRelatedCandidateName()).isEqualTo("Pet");
+    }
+
+    /** The same, with the compound the other way round: the attribute word is the dependent. */
+    @Test
+    public void tdr12_namesTheAttributeAfterTheAttributeWord_entityIsTheDependent() {
+        Sentence sentence = new Sentence();
+        addToken(0, "name", PartOfSpeechType.NN);
+        addToken(1, "pet", PartOfSpeechType.NN);
+
+        tdr12.currentTd = createTypedDependency(sentence, TdType.COMPOUND, 0, 1);
+        tdr12.previousTd = null;
+        tdr12.nextTd = null;
+
+        assertThat(tdr12.when()).isTrue();
+        tdr12.then();
+
+        assertThat(propertyMatchOf(tdr12).getCandidateName()).isEqualTo("name");
+        assertThat(propertyMatchOf(tdr12).getRelatedCandidateName()).isEqualTo("Pet");
+    }
+
+    /**
+     * Test TDR12: a compound of two attribute words ("size color", "description description") names no
+     * owning class.  The match must therefore carry no related candidate name — otherwise
+     * {@code CandidateFactory} would invent a class called {@code Unknown} to own it.
+     */
+    @Test
+    public void tdr12_leavesTheOwnerUnsetWhenBothWordsAreAttributes() {
+        Sentence sentence = new Sentence();
+        addToken(0, "type", PartOfSpeechType.NN);
+        addToken(1, "name", PartOfSpeechType.NN);
+
+        tdr12.currentTd = createTypedDependency(sentence, TdType.COMPOUND, 0, 1);
+        tdr12.previousTd = null;
+        tdr12.nextTd = null;
+
+        assertThat(tdr12.when()).isTrue();
+        tdr12.then();
+
+        assertThat(propertyMatchOf(tdr12).getCandidateName()).isEqualTo("type");
+        assertThat(propertyMatchOf(tdr12).getRelatedCandidateName())
+                .as("no owning class is known, so the match must not name one")
+                .isNull();
+    }
+
+    /** The {@code PropertyCdd} match TDR12 recorded for the current dependency. */
+    private static RuleMatch propertyMatchOf(final TDR12 rule) {
+        return rule.ruleMatches.findByRuleClassName("TDR12").stream()
+                .filter(m -> "PropertyCdd".equals(m.getCandidateType()))
+                .reduce((first, second) -> second)
+                .orElseThrow();
     }
 
     /**

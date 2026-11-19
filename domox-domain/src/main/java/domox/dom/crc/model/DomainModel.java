@@ -85,7 +85,15 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
         return candidates != null ? candidates.size() : 0;
     }
 
-    @Getter
+    /**
+     * The classes this analysis run produced.
+     * <p>
+     * Public field only — <b>no</b> Lombok {@code @Getter}: a public field plus a getter of the same
+     * name is two JAXB properties, and the RestfulObjects list endpoint serialises this entity, so
+     * the duplicate fails the whole request with HTTP 500 ({@code Class has two properties of the
+     * same name "classList"}). Callers read {@code domainModel.classList} directly. The same rule
+     * applies to the three collections below.
+     */
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<ClassCdd> classList = new ArrayList<>();
@@ -97,7 +105,6 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
      */
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @Getter
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<ResponsibilityCdd> responsibilityList = new ArrayList<>();
@@ -108,7 +115,6 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
      */
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @Getter
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<AttributeCdd> attributeList = new ArrayList<>();
@@ -119,7 +125,6 @@ public class DomainModel extends AbstractEntity implements Comparable<ClassCdd> 
      */
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @Getter
     @OneToMany(mappedBy = "domainModel", cascade = CascadeType.ALL)
     @CollectionLayout(sortedBy = CandidateByRuleMatchCountComparator.class)
     public List<CollaboratorCdd> collaboratorList = new ArrayList<>();

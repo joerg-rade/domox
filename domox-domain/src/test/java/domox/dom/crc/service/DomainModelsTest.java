@@ -71,13 +71,13 @@ class DomainModelsTest {
         clazz1.addCollaborator(association);
 
         final DomainModel domainModel = classUnderTest.create();
-        domainModel.getClassList().add(clazz1);
-        domainModel.getClassList().add(clazz2);
+        domainModel.classList.add(clazz1);
+        domainModel.classList.add(clazz2);
 
         // when
         final String plantUml = classUnderTest.generateUmlDiagram(domainModel);
         // then
-        assertThat(domainModel.getClassList()).hasSize(2);
+        assertThat(domainModel.classList).hasSize(2);
         assertThat(plantUml).as("@startuml tag missing").startsWith("@startuml");
         assertThat(plantUml).as("@enduml tag missing").endsWith("@enduml");
         assertThat(plantUml).contains("class \"Alice");

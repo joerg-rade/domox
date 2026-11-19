@@ -1,5 +1,6 @@
 package domox.dom.rules;
 
+import domox.dom.AbstractEntity;
 import domox.dom.crc.model.AssociationType;
 import domox.dom.crc.model.AttributeCdd;
 import domox.dom.crc.model.Candidate;
@@ -11,15 +12,21 @@ import domox.dom.crc.service.AttributeCandidates;
 import domox.dom.crc.service.ClassCandidates;
 import domox.dom.crc.service.CollaboratorCandidates;
 import domox.dom.crc.service.ResponsibilityCandidates;
+import domox.dom.nlp.PartOfSpeechType;
+import domox.dom.nlp.Sentence;
+import domox.dom.nlp.TdType;
+import domox.dom.nlp.TypedDependency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -126,6 +133,55 @@ class CandidateFactoryTest {
         verify(mockResponsibilityCandidates).findOrCreate("offer", offerClassCdd, null);
     }
 
+    /**
+     * The operation <em>signature</em>: the parameters are read from the sentence the action was
+     * extracted from, and a parameter whose name is a class in the model is typed by that class
+     * ("the customer browses a pet" → {@code Customer.browse(pet: Pet)}).
+     */
+    @Test
+    void createCandidatesFrom_addsTheOperationsParameters() {
+        // given — an action match carrying the sentence it came from
+        final Sentence sentence = sentenceWithId(9L);
+        final RuleMatch actionMatch = match("ActionCdd", "Browse", null, "Customer");
+        actionMatch.setTypedDependency(dependencyIn(sentence));
+        sentence.addTypedDependency(objectDependency(sentence, "browse", "pet"));
+
+        final ClassCdd customer = new ClassCdd();
+        final ClassCdd pet = new ClassCdd();
+        pet.setCandidateName("Pet");
+        final ResponsibilityCdd browse = new ResponsibilityCdd();
+        when(mockClassCandidates.findOrCreate("Customer", null)).thenReturn(customer);
+        when(mockResponsibilityCandidates.findOrCreate("Browse", customer, null)).thenReturn(browse);
+        when(mockClassCandidates.findByCandidateName("Pet", null)).thenReturn(pet);
+
+        // when
+        classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
+
+        // then
+        verify(mockResponsibilityCandidates).addParameter(browse, "pet", "Pet");
+    }
+
+    /** A parameter whose name never became a class is a value — typed by the inferred built-in type. */
+    @Test
+    void createCandidatesFrom_infersTheParameterTypeWhenNoClassOfThatNameExists() {
+        // given — no class candidate is found for "reference"
+        final Sentence sentence = sentenceWithId(10L);
+        final RuleMatch actionMatch = match("ActionCdd", "Provide", null, "Shop");
+        actionMatch.setTypedDependency(dependencyIn(sentence));
+        sentence.addTypedDependency(objectDependency(sentence, "provide", "reference"));
+
+        final ClassCdd shop = new ClassCdd();
+        final ResponsibilityCdd provide = new ResponsibilityCdd();
+        when(mockClassCandidates.findOrCreate("Shop", null)).thenReturn(shop);
+        when(mockResponsibilityCandidates.findOrCreate("Provide", shop, null)).thenReturn(provide);
+
+        // when
+        classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
+
+        // then
+        verify(mockResponsibilityCandidates).addParameter(provide, "reference", "String");
+    }
+
     @Test
     void createCandidatesFrom_createsClassAssociationBetweenTwoClasses() {
         // given — a ClassCdd match carrying a related candidate name is an association
@@ -145,6 +201,58 @@ class CandidateFactoryTest {
         assertThat(result).containsExactly(assoc);
         assertThat(payment.getCandidateName()).isEqualTo("Payment");
         assertThat(customer.getCandidateName()).isEqualTo("Customer");
+    }
+
+    /**
+     * The multiplicities of an association come from the sentence the association was extracted from:
+     * {@code "… 01 payments …"} states {@code 1} for the Payment end, {@code "many customers"} states
+     * {@code *} for the Customer end.
+     */
+    @Test
+    void createCandidatesFrom_putsTheSentenceMultiplicitiesOnBothAssociationEnds() {
+        // given — one sentence, three matches: the association plus one multiplicity per end
+        final Sentence sentence = sentenceWithId(7L);
+        final RuleMatch assocMatch = match("ClassCdd", "Payment", "ClassCdd", "Customer");
+        assocMatch.setTypedDependency(dependencyIn(sentence));
+        final RuleMatch sourceMultiplicity = multiplicityMatch("TDR25", "Payment", "01", sentence);
+        final RuleMatch targetMultiplicity = multiplicityMatch("TDR26", "Customer", "many", sentence);
+
+        final ClassCdd payment = new ClassCdd();
+        final ClassCdd customer = new ClassCdd();
+        final CollaboratorCdd assoc = new CollaboratorCdd();
+        when(mockClassCandidates.findOrCreate("Payment", null)).thenReturn(payment);
+        when(mockClassCandidates.findOrCreate("Customer", null)).thenReturn(customer);
+        when(mockCollaboratorCandidates.findOrCreate("Payment_Customer", payment, customer, null)).thenReturn(assoc);
+
+        // when
+        classUnderTest.createCandidatesFrom(Arrays.asList(assocMatch, sourceMultiplicity, targetMultiplicity));
+
+        // then
+        assertThat(assoc.getSourceCardinality()).as("TDR25 nummod(payment, 01)").isEqualTo("1");
+        assertThat(assoc.getTargetCardinality()).as("TDR26 det(customer, many)").isEqualTo("*");
+    }
+
+    /** Evidence is sentence-scoped: a multiplicity stated elsewhere in the document must not be borrowed. */
+    @Test
+    void createCandidatesFrom_doesNotBorrowAMultiplicityFromAnotherSentence() {
+        // given — the association lives in sentence 7, the multiplicity in sentence 8
+        final RuleMatch assocMatch = match("ClassCdd", "Payment", "ClassCdd", "Customer");
+        assocMatch.setTypedDependency(dependencyIn(sentenceWithId(7L)));
+        final RuleMatch elsewhere = multiplicityMatch("TDR26", "Customer", "many", sentenceWithId(8L));
+
+        final ClassCdd payment = new ClassCdd();
+        final ClassCdd customer = new ClassCdd();
+        final CollaboratorCdd assoc = new CollaboratorCdd();
+        when(mockClassCandidates.findOrCreate("Payment", null)).thenReturn(payment);
+        when(mockClassCandidates.findOrCreate("Customer", null)).thenReturn(customer);
+        when(mockCollaboratorCandidates.findOrCreate("Payment_Customer", payment, customer, null)).thenReturn(assoc);
+
+        // when
+        classUnderTest.createCandidatesFrom(Arrays.asList(assocMatch, elsewhere));
+
+        // then — "" is the "not stated" value, and both columns are NOT NULL
+        assertThat(assoc.getSourceCardinality()).isEmpty();
+        assertThat(assoc.getTargetCardinality()).isEmpty();
     }
 
     @Test
@@ -296,18 +404,26 @@ class CandidateFactoryTest {
         verifyNoInteractions(mockClassCandidates, mockCollaboratorCandidates);
     }
 
+    /**
+     * A property match with no resolvable owner is skipped, not attached to a fabricated class.
+     * <p>
+     * The old behaviour invented a class literally called {@code Unknown} to own such a property —
+     * 12 attribute candidates hung off it in the PetShop model.  TDR12's "both sides are basic
+     * attributes" branch ("size color", "description description") records exactly this shape: a
+     * {@code PropertyCdd} whose {@code relatedCandidateName} is null, because the rule never
+     * identifies an owning class for it.  With no owner there is no attribute.
+     */
     @Test
-    void createCandidatesFrom_usesUnknownAsOwningClassWhenThePropertyHasNoOwner() {
+    void createCandidatesFrom_skipsAPropertyWhoseOwnerCannotBeResolved() {
         // given
         final RuleMatch propMatch = match("PropertyCdd", "name", null, null);
-        final AttributeCdd attribute = new AttributeCdd();
-        when(mockAttributeCandidates.findOrCreate("Unknown", "name", "String", null)).thenReturn(attribute);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(propMatch));
 
         // then
-        assertThat(result).containsExactly(attribute);
+        assertThat(result).isEmpty();
+        verifyNoInteractions(mockAttributeCandidates);
     }
 
     @Test
@@ -439,6 +555,24 @@ class CandidateFactoryTest {
         assertThat(classUnderTest.isBlockedUseCaseNoun(null)).isFalse();
     }
 
+    /**
+     * The production list configures {@code UC} and {@code UseUC} in upper case, but the candidate
+     * name is lower-cased before the lookup — comparing the configured entry verbatim matched
+     * nothing, so {@code UC} was never actually blocked (and became a {@code ClassCdd} named
+     * {@code UC}).
+     */
+    @Test
+    void isBlockedUseCaseNoun_matchesAConfiguredUpperCaseEntry() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("UC", "UseUC"));
+
+        // expect
+        assertThat(classUnderTest.isBlockedUseCaseNoun("UC")).isTrue();
+        assertThat(classUnderTest.isBlockedUseCaseNoun("uc")).isTrue();
+        assertThat(classUnderTest.isBlockedUseCaseNoun("UseUC")).isTrue();
+        assertThat(classUnderTest.isBlockedUseCaseNoun("Customer")).isFalse();
+    }
+
     @Test
     void isBlockedUseCaseNoun_fallsBackToTheSingularForAnUnlemmatizedPlural() {
         // given
@@ -490,6 +624,8 @@ class CandidateFactoryTest {
         assertThat(classUnderTest.inferType("petAge")).isEqualTo("int");
         assertThat(classUnderTest.inferType("totalPrice")).isEqualTo("double");
         assertThat(classUnderTest.inferType("amountDue")).isEqualTo("double");
+        assertThat(classUnderTest.inferType("membershipFee")).isEqualTo("double");
+        assertThat(classUnderTest.inferType("deliveryCost")).isEqualTo("double");
     }
 
     @Test
@@ -510,5 +646,59 @@ class CandidateFactoryTest {
         match.setRelatedCandidateType(relatedType);
         match.setRelatedCandidateName(relatedName);
         return match;
+    }
+
+    /** A typed dependency in the given sentence — the link that makes two matches sentence-siblings. */
+    private static TypedDependency dependencyIn(final Sentence sentence) {
+        final TypedDependency dependency = new TypedDependency();
+        dependency.setSentence(sentence);
+        return dependency;
+    }
+
+    /** {@code dobj(governor, dependent)} in the given sentence — an operation's object parameter. */
+    private static TypedDependency objectDependency(
+            final Sentence sentence, final String governor, final String dependent) {
+        final TypedDependency dependency = dependencyIn(sentence);
+        dependency.setType(TdType.OBJ);
+        dependency.setGovernorLemma(governor);
+        dependency.setGovernorPos(PartOfSpeechType.VB);
+        dependency.setDependentLemma(dependent);
+        dependency.setDependentPos(PartOfSpeechType.NN);
+        return dependency;
+    }
+
+    /** A multiplicity match exactly as {@code TDR25}/{@code TDR26} record one. */
+    private static RuleMatch multiplicityMatch(
+            final String ruleClassName, final String candidateName, final String token, final Sentence sentence) {
+        final TypedDependency dependency = dependencyIn(sentence);
+        dependency.setGovernorLemma(candidateName.toLowerCase(Locale.ROOT));
+        dependency.setDependentLemma(token);
+
+        final RuleMatch match = new RuleMatch();
+        match.setRuleClassName(ruleClassName);
+        match.setCandidateType("ClassCdd");
+        match.setCandidateName(candidateName);
+        match.setTypedDependency(dependency);
+        return match;
+    }
+
+    /**
+     * A sentence with an id: the factory groups a document's matches by sentence id, and {@code id} is
+     * generated by the database (no setter), so a unit test has to assign it reflectively.
+     */
+    private static Sentence sentenceWithId(final long id) {
+        final Sentence sentence = new Sentence();
+        setId(sentence, id);
+        return sentence;
+    }
+
+    private static void setId(final Object entity, final long id) {
+        try {
+            final Field field = AbstractEntity.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(entity, id);
+        } catch (final Exception e) {
+            throw new RuntimeException("failed to assign the id of " + entity, e);
+        }
     }
 }

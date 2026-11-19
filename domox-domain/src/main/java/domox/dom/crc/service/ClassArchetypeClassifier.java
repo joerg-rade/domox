@@ -114,7 +114,7 @@ public class ClassArchetypeClassifier {
             score += countKeywordHits(name, nlpProperties.getArchetypeMomentIntervalKeywords()) * 3.0;
         }
         // Has temporal properties (date, time, duration)?
-        for (AttributeCdd prop : candidate.getAttributeList()) {
+        for (AttributeCdd prop : candidate.attributeList) {
             String propName = prop.getCandidateName();
             if (propName != null) {
                 String lc = propName.toLowerCase();
@@ -125,7 +125,7 @@ public class ClassArchetypeClassifier {
             }
         }
         // Actions suggest activity
-        int actionCount = candidate.getResponsibilityList().size();
+        int actionCount = candidate.responsibilityList.size();
         score += actionCount * 0.5;
         // Extraction from nsubj/dobj patterns
         score += countTdTypes(candidate, MOMENT_INTERVAL_TD_TYPES) * 0.5;
@@ -145,8 +145,8 @@ public class ClassArchetypeClassifier {
         // Extraction from nmod:poss patterns (e.g., "customer's order")
         score += countTdTypes(candidate, ROLE_TD_TYPES) * 1.0;
         // Roles typically have few properties and actions
-        int totalProps = candidate.getAttributeList().size();
-        int totalActions = candidate.getResponsibilityList().size();
+        int totalProps = candidate.attributeList.size();
+        int totalActions = candidate.responsibilityList.size();
         if (totalProps <= 3) score += 0.5;
         if (totalActions <= 2) score += 0.5;
         return score;
@@ -161,13 +161,13 @@ public class ClassArchetypeClassifier {
         // Extraction from amod patterns (e.g., "full {name}" → attribute)
         score += countTdTypes(candidate, DESCRIPTION_TD_TYPES) * 1.5;
         // Descriptions have many properties (attributes) but few actions
-        int propCount = candidate.getAttributeList().size();
-        int actionCount = candidate.getResponsibilityList().size();
+        int propCount = candidate.attributeList.size();
+        int actionCount = candidate.responsibilityList.size();
         if (propCount > actionCount + 2) {
             score += 1.0;
         }
         // Descriptions often appear as targets of associations (type-of relationships)
-        int assocCount = candidate.getCollaboratorList().size();
+        int assocCount = candidate.collaboratorList.size();
         if (assocCount > 0) {
             score += 0.5;
         }
@@ -196,7 +196,7 @@ public class ClassArchetypeClassifier {
             score += 2.0;
         }
         // Party/Place/Thing candidates typically have a moderate number of properties
-        int propCount = candidate.getAttributeList().size();
+        int propCount = candidate.attributeList.size();
         if (propCount >= 2 && propCount <= 8) {
             score += 1.0;
         }

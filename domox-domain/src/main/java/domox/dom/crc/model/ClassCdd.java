@@ -50,7 +50,16 @@ public class ClassCdd
     @ManyToOne()
     public DomainModel domainModel;
 
-    @Getter
+    /**
+     * The Coad archetype this class was classified as.
+     * <p>
+     * A public field is the property — Causeway maps it directly. It must <b>not</b> also carry a
+     * Lombok {@code @Getter}: a public field plus a getter of the same name is two JAXB properties,
+     * and Causeway serialises a list of domain objects with JAXB, so the duplicate makes every
+     * RestfulObjects list endpoint fail with HTTP 500
+     * ({@code Class has two properties of the same name "classType"}). {@code @Setter} is kept — it
+     * is genuinely called by {@code CorpusIngestion}.
+     */
     @Setter
     @Programmatic
     public ClassType classType = ClassType.PARTY_PLACE_THING;
@@ -74,19 +83,24 @@ public class ClassCdd
             sequence = "2.1")
     private SubDomain subDomain;
 
-    @Getter
+    /**
+     * The attributes extracted for this class.
+     * <p>
+     * Public field only — <b>no</b> Lombok {@code @Getter} (see {@link #classType}): the pair is a
+     * JAXB duplicate property and breaks the RestfulObjects list endpoints. Callers read
+     * {@code classCdd.attributeList} directly. Same applies to {@link #responsibilityList} and
+     * {@link #collaboratorList}.
+     */
     @Setter
     @Collection
     @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)
     public List<AttributeCdd> attributeList = new ArrayList<>();
 
-    @Getter
     @Setter
     @Collection
     @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)
     public List<ResponsibilityCdd> responsibilityList = new ArrayList<>();
 
-    @Getter
     @Setter
     @Collection
     @OneToMany(mappedBy = "classCdd", cascade = CascadeType.ALL)

@@ -25,11 +25,6 @@ public class AttributeCdd
         extends Candidate
         implements Comparable<AttributeCdd> {
 
-  //  @Getter
-  //  @Setter
-  //  @Property
-    private Cardinality cardinality;
-
     public AttributeCdd(String propertyName, String type) {
         this.setCandidateName(propertyName);
         this.type = type;
@@ -52,7 +47,10 @@ public class AttributeCdd
 
     /**
      * Field to store the property type (e.g., "int", "String")
-     * But not only primitives - class candidates from the scope of this analysis are to be set here as well
+     * <p>
+     * Only built-in/primitive types belong here.  A reference to <em>another class</em> of the model is
+     * not an attribute but an association, and belongs on a {@link CollaboratorCdd} — otherwise the
+     * attribute lexicon grows until it swallows the associations.
      */
     @Setter
     @Property

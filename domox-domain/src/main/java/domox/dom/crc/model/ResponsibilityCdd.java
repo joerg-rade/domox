@@ -20,6 +20,7 @@ import org.apache.causeway.applib.annotation.Property;
 import org.apache.causeway.applib.annotation.Publishing;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "ActionCdd")
@@ -33,9 +34,17 @@ public class ResponsibilityCdd
         extends Candidate
         implements Comparable<ResponsibilityCdd> {
 
+    /**
+     * @param name          the operation name
+     * @param inputTypeList the operation's parameters; a {@code null} list is normalised to an empty
+     *                      one, and the list is <em>copied</em>, because the caller may pass an
+     *                      immutable list ({@code List.of()}) and this collection is appended to when
+     *                      a parameter is added later
+     * @param outputType    the UML return type; {@code null}/blank/{@code void} renders no return type
+     */
     public ResponsibilityCdd(String name, List<ResponsibilityParameter> inputTypeList, String outputType) {
         this.setCandidateName(name);
-        this.inputTypeList = inputTypeList;
+        this.inputTypeList = inputTypeList != null ? new ArrayList<>(inputTypeList) : new ArrayList<>();
         this.outputType = outputType;
     }
 
@@ -57,7 +66,7 @@ public class ResponsibilityCdd
 
     @OneToMany(mappedBy = "responsibilityCdd", cascade = CascadeType.ALL)
     @Collection
-    public List<ResponsibilityParameter> inputTypeList;
+    public List<ResponsibilityParameter> inputTypeList = new ArrayList<>();
 
     @Property
     @Column(nullable = false)
@@ -69,13 +78,31 @@ public class ResponsibilityCdd
         return Long.compare(this.getId(), o.getId());
     }
 
+    /**
+     * Renders this responsibility as a PlantUML operation line, e.g. {@code browse()} or
+     * {@code notify(message: String)}.
+     * <p>
+     * The closing parenthesis is appended <em>unconditionally</em>: the previous implementation only
+     * emitted it from a {@code replaceAll(", $" → ")")} that stripped a trailing separator, so an
+     * operation with no parameters rendered as {@code browse(: void} — invalid PlantUML, and the
+     * shape of every one of the 149 operation lines in the exported model. A {@code null}
+     * {@code inputTypeList} (possible for a hand-built or detached instance) is treated as no
+     * parameters rather than throwing, and a {@code null}/{@code void} return type is omitted
+     * entirely, because UML writes no return type for {@code void}.
+     */
     public String toPlantUmlString() {
-        final String sep = ", ";
-        StringBuilder s = new StringBuilder(getCandidateName() + "(");
-        for (ResponsibilityParameter i : inputTypeList) {
-            s.append(i.toPlantUmlString()).append(sep);
+        final StringBuilder s = new StringBuilder(getCandidateName()).append('(');
+        if (inputTypeList != null) {
+            String separator = "";
+            for (final ResponsibilityParameter parameter : inputTypeList) {
+                s.append(separator).append(parameter.toPlantUmlString());
+                separator = ", ";
+            }
         }
-        s = new StringBuilder(s.toString().replaceAll(sep + "$", ")"));
-        return s + ": " + outputType;
+        s.append(')');
+        if (outputType != null && !outputType.isBlank() && !"void".equals(outputType)) {
+            s.append(": ").append(outputType);
+        }
+        return s.toString();
     }
 }

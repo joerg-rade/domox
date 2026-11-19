@@ -12,6 +12,10 @@ import static domox.dom.nlp.DependencyTypePredicates.nummod;
 @Rule(order = 25)
 public class TDR25 extends TypedDependencyRule {
 
+    public TDR25(NlpProperties nlpProperties) {
+        super(nlpProperties);
+    }
+
     @Override
     @When
     public boolean when() {
@@ -21,7 +25,15 @@ public class TDR25 extends TypedDependencyRule {
         }
         // Spec: nummod(E1, CD) -> multiplicity.add(E1, CD)
         // E1 (governor) must be a noun entity
-        return nummod(currentTd) && isNounA(currentTd);
+        if (!nummod(currentTd) || !isNounA(currentTd)) {
+            return false;
+        }
+        // Scope guard: a nummod on a document-metadata noun is a cross-reference, not a
+        // multiplicity — "elaborated from sentence 10 of ...", "Use Case ID UC - 09", "within 2
+        // seconds".  Measured: 33 of the 44 TDR25 matches in the PetShop corpus were of this kind,
+        // and each one also fabricated a ClassCdd named after the metadata noun.  The spec is
+        // unchanged (nummod(E1, CD) -> multiplicity.add(E1, CD)); this only narrows which E1 count.
+        return !UseCaseBlockedNouns.isMetadataNoun(nlpProperties, currentTd.getA());
     }
 
     @Override

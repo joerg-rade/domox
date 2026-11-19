@@ -14,6 +14,10 @@ import static domox.dom.nlp.DependencyPosPredicates.isNounA;
 @Rule(order = 26)
 public class TDR26 extends TypedDependencyRule {
 
+    public TDR26(NlpProperties nlpProperties) {
+        super(nlpProperties);
+    }
+
     @Override
     @When
     public boolean when() {
@@ -25,6 +29,12 @@ public class TDR26 extends TypedDependencyRule {
         // E1 (governor) must be a noun entity and DT (dependent) one of
         // the determiners handled by this rule
         if (!det(currentTd) || !isNounA(currentTd) || currentTd.getB() == null) {
+            return false;
+        }
+        // Scope guard, as in TDR25: "each sentence", "a day" is not the multiplicity of an
+        // association end.  The determiner list alone is not enough — the governor has to be a
+        // domain noun too.
+        if (UseCaseBlockedNouns.isMetadataNoun(nlpProperties, currentTd.getA())) {
             return false;
         }
         String dt = currentTd.getB().toLowerCase(Locale.ROOT);

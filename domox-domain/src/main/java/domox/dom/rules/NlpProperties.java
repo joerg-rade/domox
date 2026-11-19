@@ -43,5 +43,13 @@ public class NlpProperties {
     private List<String> nounTypeTemporals = List.of();
     private List<String> nounTypeCollections = List.of();
     private List<String> useCaseBlockedNouns = List.of();
+    /**
+     * Use-case <em>metadata</em> nouns — a {@code nummod}/{@code det} on one of these is a document
+     * reference ({@code "sentence 10"}, {@code "Use Case ID UC - 09"}) or a time unit
+     * ({@code "within 2 seconds"}), never the multiplicity of a domain association end. Consumed by
+     * the TDR25/TDR26 scope guard; deliberately separate from {@link #useCaseBlockedNouns}, because
+     * a noun can be a legitimate class while still not being a multiplicity.
+     */
+    private List<String> useCaseMetadataNouns = List.of();
     private List<String> synonymMarkers = List.of();
 }

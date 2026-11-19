@@ -187,6 +187,14 @@ FLOORS = {
     #     so is an orchestrator, like Documents and ContextEvidence: no floor. ---
     "CandidateGraphModel": 90,              # 100 %  (20 mutants)
     "PortGeometry": 75,                     # 84 %   (67; every mutant reached, 11 unasserted)
+
+    # --- the UML gap-fix wave: the three pure collaborators carved out of CandidateFactory /
+    #     CollaboratorCdd (which is floored at 95 % and must not grow untestable branches), and the
+    #     metadata-noun predicate.  Each is handed its inputs and returns a value — no Spring, no
+    #     database — so each has a test class that asserts the mapping directly and scores 100 %. ---
+    "MultiplicityEvidence": 85,             # 100 %  (per MultiplicityEvidenceTest)
+    "AssociationLabel": 85,                 # 100 %  (per AssociationLabelTest)
+    "ResponsibilityParameterExtraction": 85,  # 100 %  (per ResponsibilityParameterExtractionTest)
 }
 
 # Statuses that count as a detected defect.

@@ -122,9 +122,15 @@ public class Document extends AbstractEntity implements Comparable<Document> {
     @ToString.Exclude
     private List<Sentence> sentences;
 
+    /**
+     * The document's authors.
+     * <p>
+     * Public field only — <b>no</b> Lombok {@code @Getter}: the public field plus a generated getter
+     * of the same name is two JAXB properties, which fails every RestfulObjects list endpoint that
+     * reaches this class with HTTP 500 ({@code Class has two properties of the same name "authors"}).
+     */
     @PropertyLayout(sequence = "6")
     @ManyToMany(mappedBy = "documents", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @Getter
     @Setter
     @ToString.Exclude
     public List<Author> authors;

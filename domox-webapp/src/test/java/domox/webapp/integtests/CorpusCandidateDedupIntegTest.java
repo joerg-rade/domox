@@ -87,10 +87,10 @@ class CorpusCandidateDedupIntegTest extends ApplicationIntegTestAbstract {
         // so the shared model's own collections must be exactly as large as each
         // per-type candidate table.  (Had any candidate fallen outside the shared
         // model, its table row count would be greater than the collection size.)
-        assertThat(sharedModel.getClassList()).hasSize((int) classCddRepository.count());
-        assertThat(sharedModel.getAttributeList()).hasSize((int) propertyCddRepository.count());
-        assertThat(sharedModel.getResponsibilityList()).hasSize((int) responsibilityCddRepository.count());
-        assertThat(sharedModel.getCollaboratorList()).hasSize((int) associationCddRepository.count());
+        assertThat(sharedModel.classList).hasSize((int) classCddRepository.count());
+        assertThat(sharedModel.attributeList).hasSize((int) propertyCddRepository.count());
+        assertThat(sharedModel.responsibilityList).hasSize((int) responsibilityCddRepository.count());
+        assertThat(sharedModel.collaboratorList).hasSize((int) associationCddRepository.count());
 
         // THE core regression: exactly one candidate per name, per type (before the
         // fix every name appeared once per document, i.e. 15 times here).

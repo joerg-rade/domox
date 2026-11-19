@@ -66,10 +66,10 @@ public class CorpusDeletion {
         // constraints cannot fire.
         final DomainModel domainModel = corpus.getDomainModel();
         if (domainModel != null) {
-            removeCandidates(domainModel.getCollaboratorList());
-            removeCandidates(domainModel.getResponsibilityList());
-            removeCandidates(domainModel.getAttributeList());
-            removeCandidates(domainModel.getClassList());
+            removeCandidates(domainModel.collaboratorList);
+            removeCandidates(domainModel.responsibilityList);
+            removeCandidates(domainModel.attributeList);
+            removeCandidates(domainModel.classList);
             corpus.setDomainModel(null);
         }
         // Then drop this corpus's documents (releasing their FK into the shared

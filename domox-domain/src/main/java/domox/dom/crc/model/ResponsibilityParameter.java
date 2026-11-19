@@ -34,7 +34,14 @@ public class ResponsibilityParameter
         this.type = type;
     }
 
-    @Getter
+    /**
+     * The responsibility (operation) this parameter belongs to — the inverse of
+     * {@link ResponsibilityCdd#inputTypeList}.
+     * <p>
+     * Public field only — <b>no</b> Lombok {@code @Getter}: a public field plus a getter of the same
+     * name is two JAXB properties and breaks the RestfulObjects list endpoints with HTTP 500
+     * ({@code Class has two properties of the same name "responsibilityCdd"}).
+     */
     @Setter
     @ManyToOne()
     @JoinColumn(name = "actioncdd_id", nullable = false)

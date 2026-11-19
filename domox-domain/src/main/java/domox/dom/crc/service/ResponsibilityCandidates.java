@@ -4,6 +4,7 @@ import domox.dom.crc.model.Candidate;
 import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.model.ResponsibilityCdd;
+import domox.dom.crc.model.ResponsibilityParameter;
 import domox.dom.crc.repository.ResponsibilityCddRepository;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -97,6 +98,43 @@ public class ResponsibilityCandidates {
             candidate = create(candidateName, classCdd, domainModel);
         }
         return candidate;
+    }
+
+    /**
+     * Adds one parameter to an operation, if that operation does not already carry a parameter of that
+     * name.
+     * <p>
+     * Idempotent on purpose: Phase 2 may be re-run over the same matches, and {@code findOrCreate}
+     * returns the <em>existing</em> operation on a re-run — appending blindly would duplicate every
+     * parameter on every pass.
+     *
+     * @param responsibility the operation the parameter belongs to (ignored when {@code null})
+     * @param name           the parameter name, as the sentence states it
+     * @param type           the parameter type (a class name, or an inferred built-in type)
+     * @return the parameter, or {@code null} when there is no operation or no name
+     */
+    @Programmatic
+    public ResponsibilityParameter addParameter(
+            final ResponsibilityCdd responsibility, final String name, final String type) {
+        if (responsibility == null || name == null) {
+            return null;
+        }
+        final ResponsibilityParameter existing = responsibility.inputTypeList.stream()
+                .filter(parameter -> name.equals(parameter.getCandidateName()))
+                .findFirst()
+                .orElse(null);
+        if (existing != null) {
+            return existing;
+        }
+        final ResponsibilityParameter parameter =
+                factoryService.detachedEntity(ResponsibilityParameter.class);
+        parameter.setCandidateName(name);
+        parameter.setCandidateType("ParameterCdd");
+        parameter.setType(type);
+        parameter.responsibilityCdd = responsibility;
+        responsibility.inputTypeList.add(parameter);
+        repositoryService.persist(parameter);
+        return parameter;
     }
 
 }

@@ -1,4 +1,5 @@
 package domox.dom.crc.model;
+import domox.dom.rules.RuleMatch;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -68,5 +69,32 @@ class CollaboratorCddTest {
         // then
         assertThat(plantUml.indexOf("..|>")).as("Association arrow should be used when type is null").isEqualTo(-1);
         assertThat(plantUml).contains("->");
+    }
+
+    /**
+     * The edge label is the verb the association was extracted from, not the candidate's own name:
+     * an edge labelled {@code Customer_Premium} states nothing about the relationship.
+     */
+    @Test
+    void rendersTheRelationshipVerbAsTheEdgeLabel() {
+        // given — an association whose rule match recorded "relationship.add(inventory (has) product)"
+        final CollaboratorCdd association = associationWith(AssociationType.ASSOCIATION);
+        final RuleMatch match = new RuleMatch();
+        match.setRuleClassName("TDR16");
+        match.setDescription("relationship.add(inventory (has) product)");
+        association.addMatchingRule(match);
+
+        // when / then
+        assertThat(association.label()).isEqualTo("has");
+        assertThat(association.toPlantUmlString()).endsWith(": has");
+    }
+
+    /** Without a rule match there is no verb to read — the candidate name keeps the edge labelled. */
+    @Test
+    void fallsBackToTheCandidateNameWhenNoRuleMatchRecordsAVerb() {
+        final CollaboratorCdd association = associationWith(AssociationType.ASSOCIATION);
+
+        assertThat(association.label()).isEqualTo("pays");
+        assertThat(association.toPlantUmlString()).endsWith(": pays");
     }
 }

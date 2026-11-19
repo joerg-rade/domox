@@ -273,11 +273,17 @@ domox:
     blocked-verbs: entered, inputted, saved, added, has
 
     # WhiteList
+    # The attribute lexicon: nouns that are an attribute of their owner rather than an entity of their
+    # own.  Extended with the attribute vocabulary the corpus actually uses, measured over the 15
+    # use-case documents: fee (19 occurrences), cost (7), color (3), price (1), breed (1),
+    # duration (1), rating (1).  Deliberately NOT "species" (5 occurrences): it names a class, and a
+    # reference to another class is an association, not an attribute (UML_GAP_FIX_PLAN.md §13.3).
     basic-attributes: name, number, type, address, level, date, time,
                         id, code, status, description, title, label, value,
                         amount, quantity, size, color, email, phone, username,
                         password, comment, note, version, category, priority,
-                        created-date, modified-date
+                        created-date, modified-date,
+                        fee, cost, price, breed, duration, rating
     # Archetype keyword lists (Coad 1999) used by ClassArchetypeClassifier
     archetype-moment-interval-keywords: order, sale, purchase, rental, lease, booking, reservation,
                                         appointment, transaction, payment, invoice, receipt, claim,
@@ -334,6 +340,14 @@ domox:
         assumption, rule, goal, feature, function, path, note, UC, 
         end, mainflow, UseUC
         #**, #Case
+    # TDR25/TDR26 scope guard — use-case *metadata* nouns.  A nummod/det on one of these is a
+    # document cross-reference ("elaborated from sentence 10 of ...", "Use Case ID UC - 09") or a
+    # time unit ("must load within 2 seconds"), never the multiplicity of a domain association
+    # end.  Deliberately separate from use-case-blocked-nouns: "day"/"time" may be real classes,
+    # they are simply not multiplicities.  Measured on the PetShop corpus: 33 of the 44 TDR25
+    # matches were of this kind (15 "sentence", 15 "UC", 2 "second", 1 "off").
+    use-case-metadata-nouns: sentence, step, section, figure, table, diagram, uc, id, version,
+                             second, minute, hour, day, week, month, year, time, period
     # TDR41 — predicate verbs of defining constructions ("X, also known as Y")
     # whose object noun is a synonym of the relative-clause head noun.
     synonym-markers: known, termed, called, referred, named, aka, aliased,

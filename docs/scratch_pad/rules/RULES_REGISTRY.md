@@ -43,6 +43,18 @@ Extract domain entities (classes) and attributes (properties) from dependency pa
 
 **Blocked Verbs** (TDR3-TDR5): entered, inputted, saved, added, has
 
+**Attribute naming — TDR12 (compound), changed 2026-11.** The spec's `Attributes.add(B + A)` /
+`Attributes.add(A + B)` records the *whole phrase* as the attribute name, and that leaked the class
+name into it: the PetShop model held `pet size`, `pet type`, `item size`, `variant color`,
+`product category`. The attribute is now recorded as the **attribute word alone** (`size`, `type`,
+`color`, `category`) with the other side carried as the owning class
+(`relatedCandidateName`) — the same information, in the shape the UML attribute needs. Two
+attribute words ("size color", "description description") name no owning class at all, so the match
+records **no** owner and `CandidateFactory` skips it; it used to invent a class called `Unknown` to
+own such attributes (12 rows in the model). Rationale: an attribute is a value of a built-in type,
+while a reference to another class is an *association* — so an attribute name must be an attribute
+noun, never a class name.
+
 **Basic Attributes**: name, number, type, address, level, date, time
 
 ### Group 2: Relationship Extraction (TDR14-TDR23)
@@ -75,6 +87,25 @@ token carrying no usable count → `*`.
 | TDR25 | nummod(E,CD) | - | multiplicity.add(E, UML(CD)) |
 | TDR26 | det(E,DT) | DT in {Each, All, some, Any, Many, Every, multiple} | multiplicity.add(E, UML(DT)) |
 | TDR26 | det(E,DT) | DT in {a, an} | multiplicity.add(E, 1) |
+
+**Scope guard (TDR25/TDR26) — added 2026-11.** A `nummod`/`det` whose governor `E1` is a *use-case
+metadata noun* is **not** recorded. This is a scope narrowing, **not** a spec change: the spec
+(`docs/application/RULES.txt` §TDR25/TDR26) still reads `nummod(E1, CD) → multiplicity.add(E1, CD)`;
+the guard only restricts which `E1` counts as an entity.
+
+Measured on the PetShop corpus before the guard: of TDR25's 44 matches, 15 were `UC` and 15
+`sentence` — i.e. `"… Use Case ID UC - 09 …"` and `"A use case elaborated from sentence 10 of …"` —
+plus `second` (×2, `"within 2 seconds"`), `off` (×1) and two UC-header artefacts (`Accessories`,
+`Partner`). Because both rules name their `ClassCdd` candidate after `E1`, each such match also
+fabricated a **class** (`Sentence`, `Second`, `Off`, `UC`, `Day`, `Period`, `Time`).
+
+The nouns live in `domox.nlp.use-case-metadata-nouns` (`application.yml`), deliberately separate
+from `domox.nlp.use-case-blocked-nouns`: `day`/`time` may be legitimate classes, they are simply not
+multiplicities. The predicate is `UseCaseBlockedNouns#isMetadataNoun` (case-insensitive, with the
+same plural fallback as the blocked-noun lookup). Known leftovers: `Off`/`Up`, which are POS
+mis-tagging (`one-off`, `sign up`) rather than document metadata, and `Accessories`/`Partner`, which
+come from the UC-header sentence rather than from a metadata noun — both need a different fix
+(the header sentence is itself a candidate for suppression).
 
 ### Group 4: Operation/Action Rules (TDR27-TDR37)
 Extract operations, user actions, system actions, and exceptions.
