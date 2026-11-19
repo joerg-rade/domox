@@ -39,6 +39,18 @@ over the whole metamodel; it is wired into CI (`.github/workflows/ci.yml`,
 `.mvn/` restores cached surefire executions, and since `-Dtest` values are not part of the cache
 key a stale entry would silently skip the guardrail. CI runs on a fresh checkout and is unaffected.)
 
+**Second guardrail, same family, and it fails *later*:** `ArchitectureTests` (domox-webapp,
+`domox/webapp/unittests/archunit`) carries the ArchUnit rule
+`entity_public_fields_have_no_getter_of_the_same_name` — a `public` field on an `@Entity` must not
+also carry a Lombok `@Getter` of the same name (`@Setter` is fine; a `private` field needs its
+getter). JAXB then sees **two** properties called `X` and every RestfulObjects *list* endpoint fails
+with HTTP 500 (`IllegalAnnotationsException: Class has two properties of the same name`); the
+2026-11 occurrence was six members across four classes. The metamodel validator does **not** catch
+it — it is a serialization-time failure, so only an RO call or this rule can see it. Run it with
+`mvn -B test -pl domox-webapp -Dtest=ArchitectureTests -Dmaven.build.cache.enabled=false`, and apply
+the checklist item below: a rule that reports `Tests run: 0` (stale jar, renamed test class) enforces
+nothing.
+
 ## 2. Injected services are collaborators, not properties
 
 Any `@Inject`ed field (service, repository, `TransactionService`, …) on a domain object must
@@ -68,7 +80,10 @@ String webjarUrl = resourceName.startsWith("/") ? resourceName : "/" + resourceN
 
 - [ ] No class-level `@Data` on entities / view models.
 - [ ] Injected fields on domain objects have suppressed accessors or `@Programmatic`.
-- [ ] After touching entity members, `ValidateDomainModelIntegTest` passes.
+- [ ] After touching entity members, `ValidateDomainModelIntegTest` passes **and** the ArchUnit rule
+      `entity_public_fields_have_no_getter_of_the_same_name` (in `ArchitectureTests`) still reports
+      `Tests run: n > 0` — a `public` field with a same-named `@Getter` breaks every RO list endpoint
+      at serialization time, which the metamodel validator cannot see (see §1).
 - [ ] Webjar resource URL generation uses `/webjars/...` (absolute), not `../webjars/...` (relative).
 - [ ] **A UI / static-asset change is verified by RENDERING, not by reading the CSS** — run
       `bash scripts/verify-ui-render.sh` (or, for other views, measure the *user-visible* property:

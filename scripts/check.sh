@@ -191,26 +191,25 @@ fi
 
 # --- 8. Metamodel guardrail (boot-time DomainModelValidator veto) ----------------------
 step "8/8  Metamodel guardrail (ValidateDomainModelIntegTest)"
-# This test boots a Spring context (and EclipseLink, against the shared domox.SEQ_GEN).  With a dev
-# instance already owning :8080 that second context contends with it and can hang for minutes
-# instead of failing, so skip rather than block.  (See the "Port / DB ownership caveat" in
-# .clinerules/commands.md.)
-if curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ 2>/dev/null | grep -qE '^[23]'; then
-  skip "a dev instance owns :8080 — stop it and re-run to validate the metamodel"
-  echo
-  [ $FAILED -eq 0 ] && echo "ALL CHECKS PASSED (metamodel guardrail skipped)" || echo "FAILURES DETECTED — see logs above"
-  exit $FAILED
-fi
-
-LOG=/tmp/domox-check-meta.log
-# Cache disabled for the same reason as step 2: -Dtest values are NOT part of the build-cache
-# key, so a cached entry from a different -Dtest run would restore and silently skip the
-# metamodel veto entirely.
-if mvn -B test -pl domox-webapp -Dtest=ValidateDomainModelIntegTest -am \
-  -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.build.cache.enabled=false >"$LOG" 2>&1; then
-  ok "metamodel guardrail passed"
+# This test boots a Spring context, but NOT against the dev instance or the dev database: it is a
+# @SpringBootTest with the default MOCK web environment and gets its own throwaway Testcontainers
+# Postgres (see ApplicationIntegTestAbstract).  So a dev instance owning :8080 does NOT contend with
+# it — this step used to skip on that port check and therefore never actually ran on a workstation
+# (verified 2026-11: it passes in ~10 s with a dev instance serving :8080).  The only real
+# requirement is a working Docker daemon, for Testcontainers.
+if docker info >/dev/null 2>&1; then
+  LOG=/tmp/domox-check-meta.log
+  # Cache disabled for the same reason as step 2: -Dtest values are NOT part of the build-cache
+  # key, so a cached entry from a different -Dtest run would restore and silently skip the
+  # metamodel veto entirely.
+  if mvn -B test -pl domox-webapp -Dtest=ValidateDomainModelIntegTest -am \
+    -Dsurefire.failIfNoSpecifiedTests=false -Dmaven.build.cache.enabled=false >"$LOG" 2>&1; then
+    ok "metamodel guardrail passed"
+  else
+    bad "metamodel guardrail failed (log: $LOG)"
+  fi
 else
-  bad "metamodel guardrail failed (log: $LOG)"
+  skip "docker daemon unavailable — Testcontainers can't start the test database"
 fi
 
 echo

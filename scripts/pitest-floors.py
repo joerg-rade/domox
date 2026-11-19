@@ -76,6 +76,14 @@ Usage:
 `--table` and `--detail` are read-only inspection modes: they answer "what does the whole module look
 like" and "what exactly goes untested in this one class", which otherwise means hand-parsing the XML.
 
+Every mode also prints an advisory NOTE for a class that is at least `UNFLOORED_MIN_MUTANTS` (20)
+mutants large, kills at least `UNFLOORED_MIN_RATE` (95 %) of them, and is in neither `FLOORS` nor
+`NO_FLOOR`.  It never changes the exit code: the floors are per-collaborator decisions, and the note
+exists because a *forgotten* floor is otherwise invisible — `--check` gates only the names it is
+given, so a newly extracted collaborator with 40 mutants and no entry passes silently.  Both bounds
+are needed to keep the note actionable: without the kill-rate bound it lists every entity, service and
+Drools rule class in the module, and a warning that always fires is not read.
+
 The report comes from the opt-in mutation profile, which is **not** part of `mvn verify` (~2 min):
 
   mvn -o -pl domox-domain verify -Pmutation     # writes domox-domain/target/pit-reports/mutations.xml
@@ -195,11 +203,37 @@ FLOORS = {
     "MultiplicityEvidence": 85,             # 100 %  (per MultiplicityEvidenceTest)
     "AssociationLabel": 85,                 # 100 %  (per AssociationLabelTest)
     "ResponsibilityParameterExtraction": 85,  # 100 %  (per ResponsibilityParameterExtractionTest)
+    # The raw determiner/number token → UML multiplicity translation.  A `final` utility with no
+    # injected collaborator (so it is not one of the three NO_FLOOR orchestrators), 44 mutants at
+    # 95 %.  It was the first class the unfloored-class note below caught, which is exactly what
+    # that note is for: the test class existed, the floor did not.
+    "MultiplicityNotation": 90,             # 95 %   (44 mutants)
 }
+
+# Classes that deliberately carry NO floor, so the unfloored-class warning below does not nag about
+# them.  Each is an orchestrator: it holds the repositories/ports and delegates, so its kill rate is
+# not a statement about its own logic.  Keep this list to *deliberate* decisions — the point of the
+# warning is that a new extracted collaborator is otherwise invisible to --check, because a class with
+# 40 mutants and no entry simply is not gated by anything.
+NO_FLOOR = {
+    "Documents": "orchestrator — holds the repositories, delegates the work",
+    "ContextEvidence": "orchestrator — the lemma look-up behind the Context Sentences tab",
+    "DocumentLexicalDiagrams": "orchestrator — the diagram half of Documents, keeps a DiagramPort",
+    "CandidateResolver": "@DomainService orchestrator — injected AttributeCandidates / BasicAttributeCatalog",
+    "CorpusIngestion": "orchestrator — RepositoryService, NlpPort and five domain services",
+}
+
+# A class this well covered, and this large, with no floor entry is worth a warning.  Both bounds
+# matter: the mutant count keeps small helpers out, and the kill rate keeps out the classes that are
+# *deliberately* unfloored — an entity, a service, a Drools rule class or a renderer scores near zero
+# and is not the thing this warns about.  A class a test class kills almost completely is exactly the
+# "collaborator extracted, test written, floor forgotten" case: every wave-2/3/5 collaborator scored
+# 100 %, and their floors sit a mutant or two below that.
+UNFLOORED_MIN_MUTANTS = 20
+UNFLOORED_MIN_RATE = 95.0
 
 # Statuses that count as a detected defect.
 KILLED = {"KILLED"}
-
 # Statuses that are neither killed nor survived: the minion never returned a verdict, so the mutant
 # only inflates the denominator.  Reported separately so the rates can be read honestly.
 NO_VERDICT = ("MEMORY_ERROR", "TIMED_OUT", "RUN_ERROR")
@@ -252,6 +286,39 @@ def floor_failures(classes):
         if rate < floor:
             failures.append((name, rate, floor))
     return failures
+
+
+def unfloored_classes(classes, threshold=UNFLOORED_MIN_MUTANTS, min_rate=UNFLOORED_MIN_RATE):
+    """Well-covered classes no floor gates: (name, mutants, rate), largest first.
+
+    The floors exist to stop extracted collaborators decaying, but they only gate the names in FLOORS —
+    a new collaborator with 40 mutants and no entry is invisible to --check.  This surfaces it at check
+    time, when the extraction is still fresh, instead of relying on the agent remembering to add one.
+    See UNFLOORED_MIN_MUTANTS / UNFLOORED_MIN_RATE for why both bounds are needed.
+    """
+    missing = []
+    for name, counts in classes.items():
+        if name in FLOORS or name in NO_FLOOR:
+            continue
+        killed, total, rate = kill_rate(counts)
+        if total >= threshold and rate >= min_rate:
+            missing.append((name, total, rate))
+    return sorted(missing, key=lambda row: (-row[1], row[0]))
+
+
+def print_unfloored(classes):
+    """Warn (never fail) about well-covered classes with no floor entry.  Returns how many were reported."""
+    missing = unfloored_classes(classes)
+    if not missing:
+        return 0
+    print()
+    print(f"NOTE: {len(missing)} class(es) are >= {UNFLOORED_MIN_MUTANTS} mutants at "
+          f">= {UNFLOORED_MIN_RATE:.0f}% killed but have no floor in FLOORS:")
+    for name, total, rate in missing:
+        print(f"  {name:<28} {total:>4} mutants  {rate:5.0f}% killed  "
+              f"— add a floor, or add it to NO_FLOOR with a reason")
+    print("  (not an error: the floors are per-collaborator decisions, not a blanket coverage gate)")
+    return len(missing)
 
 
 def stale_sources(report, roots, suffixes):
@@ -395,6 +462,9 @@ def main():
         failures = print_full_table(classes)
     else:
         failures = print_floor_table(classes)
+
+    # Advisory, in every mode and never a failure: a collaborator that was extracted and forgotten.
+    print_unfloored(classes)
 
     if failures:
         print()

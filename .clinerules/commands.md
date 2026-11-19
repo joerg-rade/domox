@@ -14,10 +14,17 @@ Whenever executing terminal commands that require Java, Maven, or SDKMAN binarie
 
 Before searching the codebase, jump straight to the right steer/doc for common tasks.
 
-**Rule-file partitioning:** `.clinerules/*.md` (top level) = always-active DoMoX steering;
+**Rule-file partitioning:** `.clinerules/*.md` (top level) = always-active DoMoX steering — kept
+small, because every line here is paid for on **every** turn;
 `.clinerules/memory-bank/technical/` = DoMoX-specific tech references (loaded on demand);
-`~/.clinerules/` = generic cross-project tech references (causeway, maven) — user-global
-Cline rules directory, loaded for every project.
+`.clinerules/memory-bank/workflows/` = task-type runbooks (loaded on demand);
+`.clinerules/skills/` = skills; `~/.clinerules/` = generic cross-project tech references
+(causeway, maven) — user-global Cline rules directory, loaded for every project.
+
+**Where a doc belongs** — a runbook that fires for one task type (the candidate-review pass, the
+sub-domain pass) is branch material, so it lives in `memory-bank/workflows/`, not at the top
+level; the top level keeps only the pointer that says when to open it. Adding a workflow = two
+edits: the file under `memory-bank/workflows/`, and one line here.
 
 - **Causeway annotations & conventions** (e.g. `@DomainObject(editing = Editing.ENABLED)`) →
   `~/.clinerules/causeway.md` (user-global reference; full reference:
@@ -27,10 +34,13 @@ Cline rules directory, loaded for every project.
   trap) → `~/.clinerules/maven.md`
 - **Persistence / schema / JPA field migration** (TABLE_PER_CLASS trap, `create-tables.sql`,
   drift check) → `.clinerules/memory-bank/technical/SCHEMA.md`
-- **Candidate-review pipeline over MCP** → `mcp-review-pipeline.md`
+- **Candidate-review pipeline over MCP** (review all N candidates) →
+  `.clinerules/memory-bank/workflows/mcp-review-pipeline.md` — open it *before* touching the
+  review tools, not mid-run.
 - **Sub-domain pass (partition the domain, classify core/supporting/generic) over MCP** →
-  `mcp-subdomain-pass.md` (DoMoX wiring: `SubDomains`, `ClassCdd.subDomain`, the eight
-  `SubDomainMcpTools`; generic method → the `identify-subdomains` skill)
+  `.clinerules/memory-bank/workflows/mcp-subdomain-pass.md` (DoMoX wiring: `SubDomains`,
+  `ClassCdd.subDomain`, the eight `SubDomainMcpTools`; generic method → the `identify-subdomains`
+  skill)
 - **Domain-modeling (CRC) extraction rules** → `.clinerules/crc_domain_modeling_guide.md` (full guide: `docs/domain-modeling/crc-guide.md`)
 - **Run the app & confirm boot** → use `bash scripts/run-app.sh [--spring.args…]`. It does the three
   things that are easy to get wrong, in order: (1) `install`s `domox-domain`/`domox-adapter` into
@@ -42,7 +52,8 @@ Cline rules directory, loaded for every project.
   `Validation PASSED` then `Started Application`). Liveness:
   `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/` (expect 200); MCP endpoint:
   `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:8080/mcp` (expect 200; 404 = the
-  `spring.ai.mcp.server.protocol` key issue, see `mcp-review-pipeline.md`).
+  `spring.ai.mcp.server.protocol` key issue, see
+  `.clinerules/memory-bank/workflows/mcp-review-pipeline.md`).
 - **Stop the app** → `bash scripts/stop-app.sh [port…]` (default 8080). It resolves the PID by port.
   **Never `pkill -f <pattern>`**: the pattern also matches the shell running the `pkill` — its own
   command line contains it — so it SIGTERMs the caller and the output is lost (happened twice).
@@ -146,11 +157,22 @@ Cline rules directory, loaded for every project.
 - **Inspecting the running app** → Wicket pages need a session and the sign-in form is an Ajax form
   that curl cannot drive. Use the RestfulObjects API with basic auth instead (users in `shiro.ini`,
   e.g. `sven:pass`) — or better, `scripts/ro.py`:
-  `ro.py invoke <service> <action> [k=v…]` (e.g. `ro.py invoke domox.OntologyDiagrams searchOntologyAsD3Graph searchTerm=Pet`,
-  then it dumps the returned object's members), `ro.py property <objectRef> <member>`,
-  `ro.py layout <objectRef>` (top-level columns with their span — the fastest way to see whether a
-  layout XML was actually applied), `ro.py members|object <objectRef>`. It reads `DOMOX_URL`
-  (default `http://localhost:8080`) and `DOMOX_USER`/`DOMOX_PASS`.
+  `ro.py invoke <service> <action> [k=v…] [--out FILE]` (e.g. `ro.py invoke domox.OntologyDiagrams
+  searchOntologyAsD3Graph searchTerm=Pet`, then it dumps the returned object's members),
+  `ro.py property <objectRef> <member>`, `ro.py layout <objectRef>` (top-level columns with their
+  span — the fastest way to see whether a layout XML was actually applied),
+  `ro.py members|object <objectRef>`. It reads `DOMOX_URL` (default `http://localhost:8080`) and
+  `DOMOX_USER`/`DOMOX_PASS`. Two things it used to make you write a throwaway script for:
+  - a parameter that is an **object reference** is written `@<ref>` —
+    `ro.py invoke domox.Reviews findByCandidate candidate=@/restful/objects/domox.ClassCdd/6640`,
+    or `@` + the `self:` URL an earlier `invoke` printed. Without the `@` the value goes as a plain
+    string and RO rejects it: `Expected a link (because this object's type is not a value) but found
+    no 'href'`. ⚠️ `@` only *builds* the reference — it still has to resolve: this app's RO viewer
+    exposes **services and view models, not entities**, so `…/objects/domox.ClassCdd/6640` comes back
+    `No 'value' key` (the resolved representation is an error). Use the id the action declares, or
+    the `self:` link of a view model an `invoke` returned.
+  - `--out FILE` writes the result to a file and prints its size instead of dumping it; a scalar
+    result prints as `result: …`. Use one of them before pasting a diagram payload into a transcript.
   For rendered HTML/CSS questions, prefer `scripts/verify-ui-render.sh` over reasoning about CSS.
 - **Causeway layouts / view models / `@D3Graph`** → `.clinerules/memory-bank/technical/CAUSEWAY-LAYOUT.md`
   (verified facts: layout-XML resolution and the silent fallback grid, the `unreferenced*` markers,
@@ -167,9 +189,17 @@ Cline rules directory, loaded for every project.
   fail with "Unable to determine the target project".
 - **Coding standards (review)** → `CODING_STANDARDS.md` (repo root), esp. the
   no-`@Data`-on-entities rule and injected-service accessor suppression.
-- **Reference / archive docs** (completed-milestone how-to's: `RULES_*`,
-  `COMPLETION_CHECKLIST.md`, `SYNONYMS.md`, implementation summaries) live in
-  `docs/scratch_pad/` — on-demand only; skim with `head` first, never a full read.
+- **Reference / archive docs** — `docs/scratch_pad/` holds three kinds of document and they are read
+  differently, so read the *name* first:
+  - **the live plan / spec of the work in progress** (`*_PLAN.md`, `*_READINESS_REVIEW.md`,
+    `D3_DIAGRAM.md`, `UML_LAYOUT_GEOMETRY.md`, `MODEL_*`) — read it **in full** and re-read it as the
+    work proceeds: it is the session's steering document, and the one file whose staleness makes the
+    rest of the work drift. (A retro's #1 finding was that the rules said *never a full read* about
+    the whole directory, so the plan was skimmed and the session argued with a spec it had not read.)
+  - **retrospectives** (`retro-*.md`) — read the header and the candidate list before a session of
+    the same type; they are where the environment improvements are proposed.
+  - **archive** (completed-milestone how-to's: `RULES_*`, `COMPLETION_CHECKLIST.md`, `SYNONYMS.md`,
+    implementation summaries) — on-demand only; skim with `head` first, never a full read.
 
 - **Mutation testing (pitest)** → **one command**: `bash scripts/check-mutation.sh` (opt-in, ~2 min —
   it runs `mvn -o -pl domox-domain verify -Pmutation`, then `python3 scripts/pitest-floors.py --check`
@@ -207,6 +237,20 @@ When preparing terminal execution requests:
 1. NEVER chain multiple long commands on a single line using `&&`.
 2. Format chained commands using multiline line-continuations (`\`) with each sub-command on its own indented line.
 3. Keep shell commands concise and visually structured for easy review.
+
+## Tool limits that look like task failures
+
+Two hard limits of the *tools*, not of the repo — each one cost a session real time, and each one
+fails in a way that reads like something else went wrong:
+
+- **The editor tool caps `new_text` at ~6 000 characters.** A larger single call is rejected, and
+  the failure arrives *after* the whole block was composed, so it looks like the edit was refused.
+  Split anything longer into several calls (the plan doc for the UML gap-fix session went in as
+  three). Same applies to a large `old_text`.
+- **`grep -c` exits 1 when the count is 0** — so `grep -c … && …` silently does nothing exactly when
+  the answer is "none", and inside a `set -e` script it aborts. Use `grep -c … || true`, or
+  `[ "$(grep -c …)" = 0 ]`. (Same for `grep -q` on an empty input, and `find | grep -c` in a pipeline:
+  the pipeline's status is `grep`'s.)
 
 Example preference (use line continuations for long command chains):
 source "$HOME/.sdkman/bin/sdkman-init.sh" \

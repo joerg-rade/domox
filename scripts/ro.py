@@ -7,14 +7,24 @@ boilerplate (basic auth, JSON body, self-link extraction, member dump) in a thro
 every time — eight of them in one session.
 
 Usage:
-  scripts/ro.py invoke   <service> <action> [name=value ...]
-      e.g. scripts/ro.py invoke domox.Corpora searchOntologyAsD3Graph searchTerm=Pet
-  scripts/ro.py property <objectRef> <member>
-  scripts/ro.py members  <objectRef>
-  scripts/ro.py layout   <objectRef>          # top-level columns with their span and members
-  scripts/ro.py object   <objectRef>
+  scripts/ro.py invoke   <service> <action> [name=value ...] [--out FILE]
+      e.g. scripts/ro.py invoke domox.OntologyDiagrams searchOntologyAsD3Graph searchTerm=Pet
+  scripts/ro.py property <objectRef> <member>  [--out FILE]
+  scripts/ro.py members  <objectRef>           [--out FILE]
+  scripts/ro.py layout   <objectRef>           [--out FILE]  # top-level columns, span, members
+  scripts/ro.py object   <objectRef>           [--out FILE]
 
 <objectRef> is a /restful/... path or a full URL (e.g. the self-link printed by `invoke`).
+
+Argument values are sent as strings, which is wrong for a parameter whose type is another
+object: prefix it with `@` and it is sent as an object reference (`{"href": …}`) instead —
+  scripts/ro.py invoke domox.Reviews findByCandidate candidate=@/restful/objects/domox.ClassCdd/6640
+(`@` + the `self:` URL an earlier `invoke` printed works too).  The reference still has to
+resolve: this app's RO viewer exposes services and view models, not entities, so use the id the
+action declares, or the `self:` link of a view model an `invoke` returned.
+
+`--out FILE` writes the result to FILE and prints its size, instead of dumping it — the way to
+look at a big diagram payload without pasting it into the transcript.
 
 Env: DOMOX_URL (default http://localhost:8080), DOMOX_USER / DOMOX_PASS (default sven / pass).
 """
@@ -62,12 +72,38 @@ def show(rep, limit=70):
             print(f"  {name:<20} {value!r}")
 
 
+def take_out(args):
+    """Split an optional trailing `--out FILE` off an argument list."""
+    if "--out" not in args:
+        return args, None
+    i = args.index("--out")
+    try:
+        return args[:i] + args[i + 2:], args[i + 1]
+    except IndexError:
+        print("--out needs a FILE argument", file=sys.stderr)
+        sys.exit(2)
+
+
+def emit(rep, out):
+    """Dump a representation to stdout, or to `out` (then print only its size)."""
+    if out is None:
+        show(rep)
+        return
+    text = json.dumps(rep, indent=1)
+    with open(out, "w") as f:
+        f.write(text)
+    print(f"wrote {out} ({len(text)} bytes)")
+
+
 def cmd_invoke(args):
     service, action = args[0], args[1]
+    rest, out = take_out(args[2:])
     body = {}
-    for kv in args[2:]:
+    for kv in rest:
         k, _, v = kv.partition("=")
-        body[k] = {"value": v}
+        # `@ref` is an object parameter: RO wants {"value": {"href": …}} — a bare {"href": …}
+        # is rejected with `No 'value' key`.  Anything else is sent as a plain string value.
+        body[k] = {"value": {"href": to_path(v[1:])}} if v.startswith("@") else {"value": v}
     rep = call(f"/restful/services/{service}/actions/{action}/invoke", "POST", body)
     print("invoke:", rep.get("title"))
     self_url = link(rep, "self")
@@ -75,24 +111,45 @@ def cmd_invoke(args):
         print(json.dumps(rep, indent=1)[:2000])
         return
     print("self:  ", self_url)
-    print("--- object ---")
-    show(call(to_path(self_url)))
+    obj = call(to_path(self_url))
+    if out is None:
+        print("--- object ---")
+        show(obj)
+    else:
+        emit(obj, out)
 
 
 def cmd_property(args):
-    print(call(f"{to_path(args[0])}/properties/{args[1]}").get("value"))
+    rest, out = take_out(args)
+    value = call(f"{to_path(rest[0])}/properties/{rest[1]}").get("value")
+    if out is not None:
+        emit(value, out)
+    elif isinstance(value, (dict, list)):
+        print(json.dumps(value, indent=1))
+    else:
+        print("result:", value)
 
 
 def cmd_members(args):
-    show(call(to_path(args[0])))
+    rest, out = take_out(args)
+    emit(call(to_path(rest[0])), out)
 
 
 def cmd_object(args):
-    print(json.dumps(call(to_path(args[0])), indent=1))
+    rest, out = take_out(args)
+    rep = call(to_path(rest[0]))
+    if out is None:
+        print(json.dumps(rep, indent=1))
+    else:
+        emit(rep, out)
 
 
 def cmd_layout(args):
-    layout = call(f"{to_path(args[0])}/object-layout")
+    rest, out = take_out(args)
+    layout = call(f"{to_path(rest[0])}/object-layout")
+    if out is not None:
+        emit(layout, out)
+        return
     for row in layout.get("row", []):
         for row_content in row.get("rowContents", []):
             col = row_content.get("col", {})

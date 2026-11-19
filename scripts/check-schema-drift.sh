@@ -43,24 +43,51 @@ PSQL_USER="${DOMOX_DB_USER:-postgres}"
 [ -f "$DDL" ] || { echo "ERROR: $DDL not found (run the app once to regenerate it)"; exit 2; }
 
 # The DDL is only regenerated when the app boots (EclipseLink writes create-tables.sql).  If an
-# ENTITY source is NEWER than the DDL, this check would compare a stale file against the live DB
-# and can therefore pass VACUOUSLY — that happened once: five real drifts (from renaming
-# @Entity / @JoinColumn members) went unreported until the app was booted afterwards.  Refuse to
-# report OK on stale input.
+# ENTITY source has changed since, this check would compare a stale file against the live DB and can
+# therefore pass VACUOUSLY — that happened once: five real drifts (from renaming @Entity / @JoinColumn
+# members) went unreported until the app was booted afterwards.  Refuse to report OK on stale input.
+#
+# The arbiter is a HASH of the schema-relevant projection of the entity sources, not their mtime.
+# mtime misfired on a comment-only edit — touching a javadoc bumped it, the DDL looked stale, and this
+# script exited 2 with a false alarm.  The projection strips comments (keeping line structure) and
+# keeps only the lines that can move the schema, so:
+#
+#   hash == the hash recorded when this DDL was last known current  ->  not stale, however recently
+#                                                                       the sources were touched
+#   hash != recorded, and an entity source is newer than the DDL     ->  STALE (exit 2)
+#   hash != recorded, and nothing is newer than the DDL              ->  current; record the hash
+#
+# The state file lives next to the DDL (git-ignored).  Without it — a fresh clone, or after `mvn
+# clean` — the first run falls back to the mtime test, which can false-alarm once; running the check
+# again (or booting once) settles it.  Failing loudly in that case is deliberate: the unsafe direction
+# is passing against a stale DDL.
 #
 # Only JPA entities count: a new port interface, rule class or service cannot change the schema
 # (an earlier, broader version of this guard flagged exactly that — a new `domox.port.RdfPort`).
-newer_sources=$(find domox-domain/src/main/java -name '*.java' -newer "$DDL" 2>/dev/null)
-newest_src=""
-if [ -n "$newer_sources" ]; then
-  newest_src=$(printf '%s\n' "$newer_sources" \
-    | xargs -r grep -lE '(^|[[:space:]])@Entity' 2>/dev/null | head -1)
+PROJECTION="$(dirname "$DDL")/$(basename "$DDL").projection"
+current_hash=""
+if command -v python3 >/dev/null 2>&1; then
+  current_hash=$(python3 "$(dirname "$0")/schema-projection.py" 2>/dev/null) || current_hash=""
 fi
-if [ -n "$newest_src" ]; then
-  echo "ERROR: $DDL is STALE — newer entity source: $newest_src"
-  echo "       Boot the app once so EclipseLink regenerates the DDL, then re-run this check."
-  echo "       (Easiest: a throwaway DB + free port, see .clinerules/commands.md.)"
-  exit 2
+recorded_hash=""
+[ -f "$PROJECTION" ] && recorded_hash=$(head -1 "$PROJECTION")
+
+if [ -z "$current_hash" ] || [ "$current_hash" != "$recorded_hash" ]; then
+  newer_sources=$(find domox-domain/src/main/java -name '*.java' -newer "$DDL" 2>/dev/null)
+  newest_src=""
+  if [ -n "$newer_sources" ]; then
+    newest_src=$(printf '%s\n' "$newer_sources" \
+      | xargs -r grep -lE '(^|[[:space:]])@Entity' 2>/dev/null | head -1)
+  fi
+  if [ -n "$newest_src" ]; then
+    echo "ERROR: $DDL is STALE — newer entity source: $newest_src"
+    echo "       Boot the app once so EclipseLink regenerates the DDL, then re-run this check."
+    echo "       (Easiest: a throwaway DB + free port, see .clinerules/commands.md.)"
+    exit 2
+  fi
+  if [ -n "$current_hash" ]; then
+    printf '%s\n' "$current_hash" > "$PROJECTION" 2>/dev/null || true
+  fi
 fi
 docker ps --format '{{.Names}}' | grep -qx "$CONTAINER" \
   || { echo "ERROR: container $CONTAINER is not running"; exit 2; }

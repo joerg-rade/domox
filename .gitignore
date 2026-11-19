@@ -32,6 +32,9 @@ hs_err_pid*
 /domox-domain/target/
 /domox-webapp/target/
 /domox-webapp/target/classes/*.yml
+# State file for scripts/check-schema-drift.sh: the schema-projection hash of the entity sources at
+# the point the checked-in create-tables.sql was last known current (see scripts/schema-projection.py).
+/domox-webapp/create-tables.sql.projection
 /domox-service/target/
 /domox-service/domox-service.iml
 /target/
