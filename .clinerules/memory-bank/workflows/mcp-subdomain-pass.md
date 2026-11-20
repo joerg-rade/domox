@@ -64,9 +64,15 @@ MCP endpoint, session handling and the **`spring.ai.mcp.server.protocol` 404 tra
 | `listUnassignedClassCandidates()` | 📖 read | **approved** class candidates with no sub-domain (lean: id, name, type, approvalCount) |
 | `subDomainEvidenceForCandidate(candidateId)` | 📖 read | one candidate's use-case profile + approval + current sub-domain |
 | `suggestSubDomains()` | 🧠 advisory | the proposed partition; **writes nothing** |
-| `createSubDomain(name, classification)` | ✍️ write | create, or re-classify an existing one (case-insensitive, idempotent) |
-| `assignCandidatesToSubDomain(candidateIds[], subDomainName, classification)` | ✍️ write | one cluster per call; creates the sub-domain if missing |
-| `clearCandidateSubDomain(candidateId)` | ✍️ write | undo one assignment |
+| `createSubDomain(name, classification, reason)` | ✍️ write | create, or re-classify an existing one (case-insensitive, idempotent) |
+| `assignCandidatesToSubDomain(candidateIds[], subDomainName, classification, reason)` | ✍️ write | one cluster per call; creates the sub-domain if missing |
+| `clearCandidateSubDomain(candidateId, reason)` | ✍️ write | undo one assignment |
+
+> ⚠️ **Every write requires a `reason`.** It is the free text behind the change — the corpus
+> evidence, not a restatement of the name — and it is recorded on the object that changes:
+> `SubDomain.rationale` for `createSubDomain`, and `Candidate.rationale` for every candidate assigned
+> or un-assigned (`varchar(2000)`; blank is refused, `domox-webapp/.../mcp/McpReason.java`). The
+> review pass applies the same rule — see `mcp-review-pipeline.md` §2.
 
 > ⚠️ `suggestSubDomains` is **advice, not a decision**. It sees use-case provenance only — no
 > business strategy, no roadmap, no org chart. Weigh it, rename the clusters, then decide.
@@ -87,9 +93,10 @@ MCP endpoint, session handling and the **`spring.ai.mcp.server.protocol` 404 tra
   `subDomainEvidenceForCandidate(id)`.
 - **Phase 3 — Decide.** Apply §5 and §6: rename each cluster to the business's own word, split or
   merge where the business says so, set the classification.
-- **Phase 4 — Write.** `createSubDomain(name, classification)` per sub-domain, then
-  `assignCandidatesToSubDomain(ids, name)` per cluster — one call per cluster, ids straight from
-  the proposal.
+- **Phase 4 — Write.** `createSubDomain(name, classification, reason)` per sub-domain, then
+  `assignCandidatesToSubDomain(ids, name, classification, reason)` per cluster — one call per
+  cluster, ids straight from the proposal, and a reason on every call: it is required, and it is
+  recorded on the sub-domain and on each assigned candidate.
 - **Phase 5 — Verify.** `listSubDomains()` must show every sub-domain with a non-zero count, and
   the SQL in §7 must show no approved class candidate left unassigned.
 

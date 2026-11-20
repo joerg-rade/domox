@@ -57,11 +57,18 @@ every pass.
 | Tool | Role |
 |---|---|
 | `nextCandidateForReview()` | the next unprocessed candidate |
-| `approveCandidate(candidateId)` | approve |
-| `rejectCandidate(candidateId, rationale)` | reject, with a reason |
+| `approveCandidate(candidateId, reason)` | approve, with a reason |
+| `rejectCandidate(candidateId, rationale, reason)` | reject, with a category **and** a reason |
 
 Every decision is recorded as the agent reviewer and is **idempotent**, so a re-run is safe and a
 straggler is fixed by calling the tool for that one id.
+
+**A reason is required on every write.** `rationale` is the *category*; `reason` is the free text
+behind it — the evidence relied on, not a restatement of the category. It is stored on the candidate
+(`Candidate.rationale`, `varchar(2000)`), so a decision can be read back together with its
+justification, and a blank reason is refused rather than defaulted. The same rule holds for the
+sub-domain writes — `createSubDomain`, `assignCandidatesToSubDomain` and `clearCandidateSubDomain`
+record it on the sub-domain and on every assigned candidate (`mcp-subdomain-pass.md` §3).
 
 The evidence behind a decision is the rule-match chain
 `candidate → RuleMatch → TypedDependency → Sentence → Document`. Read it through

@@ -47,6 +47,13 @@ import domox.dom.requirements.UseCaseProvenance;
  * classification is deliberately left {@code UNCLASSIFIED} except where the corpus itself shows an
  * area is broad.</p>
  *
+ * <p><b>Every write carries a reason.</b>  All three write tools require the client to state
+ * <em>why</em> in a {@code reason} argument, recorded on the object that changes: the sub-domain for
+ * {@code createSubDomain} ({@link SubDomain#setRationale(String)}), every assigned candidate for
+ * {@code assignCandidatesToSubDomain}, and the candidate for {@code clearCandidateSubDomain}
+ * ({@link Candidate#setRationale(String)}).  A blank reason is refused rather than defaulted —
+ * see {@link McpReason}.</p>
+ *
  * <p><b>Idempotence.</b>  Every write is repeatable: a sub-domain is matched case-insensitively and
  * only created when missing, and assigning a candidate that already has that sub-domain is a no-op.
  * Re-running the pass after adjusting the clustering is therefore safe.</p>
@@ -233,17 +240,21 @@ public class SubDomainMcpTools {
             description = """
                     Create a sub-domain, or update the classification of one that already exists (the name is
                     matched case-insensitively). Use the names suggestSubDomains proposed, renamed to the words
-                    the business actually uses. Idempotent: calling it twice with the same name does not create
-                    a second row.""")
+                    the business actually uses. A reason is REQUIRED: state in 'reason' why this area is a
+                    sub-domain and why it carries this classification — it is recorded on the sub-domain.
+                    Idempotent: calling it twice with the same name does not create a second row.""")
     public SubDomainView createSubDomain(
             @McpToolParam(description = "The sub-domain name, e.g. 'Checkout'.")
             final String name,
             @McpToolParam(description = "CORE, SUPPORTING, GENERIC or UNCLASSIFIED. Blank leaves an existing sub-domain's classification untouched.")
-            final String classification) {
+            final String classification,
+            @McpToolParam(description = "Required. Why this is a sub-domain of the business and why it carries this classification — name the corpus evidence (the use cases that support it) rather than restating the name. Recorded on the sub-domain.")
+            final String reason) {
+        final String required = McpReason.require(reason);
         return transactionTemplate.execute(status -> {
-            final SubDomain subDomain = subDomains.findOrCreate(name, parseClassification(classification));
+            final SubDomain subDomain = subDomains.findOrCreate(name, parseClassification(classification), required);
             if (classification != null && !classification.isBlank()) {
-                subDomains.classify(subDomain, parseClassification(classification));
+                subDomains.classify(subDomain, parseClassification(classification), required);
             }
             return SubDomainView.of(subDomain, subDomains.listAssignedTo(subDomain).size());
         });
@@ -253,17 +264,21 @@ public class SubDomainMcpTools {
             name = "assignCandidatesToSubDomain",
             description = """
                     Assign class candidates to a sub-domain, creating the sub-domain if it does not exist yet.
-                    Pass one cluster from suggestSubDomains per call. Idempotent: re-assigning a candidate that is
-                    already in that sub-domain changes nothing, so a pass can be re-run safely. Candidates that
-                    are not class candidates, and ids that match nothing, are reported back instead of failing
-                    the whole call.""")
+                    Pass one cluster from suggestSubDomains per call. A reason is REQUIRED: state in 'reason' why
+                    these candidates belong together in this area — it is recorded on every candidate assigned.
+                    Idempotent: re-assigning a candidate that is already in that sub-domain changes nothing, so a
+                    pass can be re-run safely. Candidates that are not class candidates, and ids that match
+                    nothing, are reported back instead of failing the whole call.""")
     public AssignmentResult assignCandidatesToSubDomain(
             @McpToolParam(description = "The numeric ids of the class candidates to assign.")
             final List<Long> candidateIds,
             @McpToolParam(description = "The sub-domain name; created when it does not exist yet.")
             final String subDomainName,
             @McpToolParam(description = "CORE, SUPPORTING, GENERIC or UNCLASSIFIED - applied only when this call creates the sub-domain. Blank leaves an existing classification untouched.")
-            final String classification) {
+            final String classification,
+            @McpToolParam(description = "Required. Why these candidates form this sub-domain — name the shared corpus evidence (the use cases or sentences they have in common), not just the cluster name. Recorded on every candidate assigned.")
+            final String reason) {
+        final String required = McpReason.require(reason);
         return transactionTemplate.execute(status -> {
             final List<String> messages = new ArrayList<>();
             final SubDomain existing = subDomains.findByNameIgnoreCase(subDomainName);
@@ -271,7 +286,7 @@ public class SubDomainMcpTools {
             if (existing != null) {
                 subDomain = existing;
             } else {
-                subDomain = subDomains.findOrCreate(subDomainName, parseClassification(classification));
+                subDomain = subDomains.findOrCreate(subDomainName, parseClassification(classification), required);
                 messages.add("Created sub-domain '" + subDomain.getName() + "' ("
                         + subDomain.getClassification() + ").");
             }
@@ -299,7 +314,7 @@ public class SubDomainMcpTools {
                 }
             }
 
-            final List<Long> assignedIds = subDomains.assignAll(toAssign, subDomain).stream()
+            final List<Long> assignedIds = subDomains.assignAll(toAssign, subDomain, required).stream()
                     .map(ClassCdd::getId)
                     .toList();
             return new AssignmentResult(
@@ -315,10 +330,14 @@ public class SubDomainMcpTools {
             name = "clearCandidateSubDomain",
             description = """
                     Remove one class candidate's sub-domain assignment, leaving the sub-domain itself in place.
-                    Use this to undo a wrong assignment without re-running a whole cluster.""")
+                    Use this to undo a wrong assignment without re-running a whole cluster. A reason is
+                    REQUIRED: state in 'reason' why the assignment was wrong — it is recorded on the candidate.""")
     public AssignmentResult clearCandidateSubDomain(
             @McpToolParam(description = "The numeric id of the class candidate whose sub-domain assignment should be removed.")
-            final long candidateId) {
+            final long candidateId,
+            @McpToolParam(description = "Required. Why this assignment is being undone — what it was wrongly grouped with. Recorded on the candidate.")
+            final String reason) {
+        final String required = McpReason.require(reason);
         return transactionTemplate.execute(status -> {
             final Candidate candidate = requireCandidate(candidateId);
             if (!(candidate instanceof ClassCdd classCdd)) {
@@ -326,7 +345,7 @@ public class SubDomainMcpTools {
                         + candidate.getCandidateType() + ", not a class candidate");
             }
             final SubDomain previous = classCdd.getSubDomain();
-            subDomains.clearSubDomain(classCdd);
+            subDomains.clearSubDomain(classCdd, required);
             final List<String> messages = new ArrayList<>();
             messages.add(previous != null
                     ? "Removed the assignment to '" + previous.getName() + "'."

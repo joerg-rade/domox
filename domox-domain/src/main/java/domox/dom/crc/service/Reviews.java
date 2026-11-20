@@ -218,24 +218,48 @@ public class Reviews {
     }
 
     /**
-     * Approves the candidate via the automated agent, creating the review if needed.
+     * Approves the candidate via the automated agent, creating the review if needed, and records
+     * {@code reason} on the candidate.
      * <p>
-     * Idempotent: approving a candidate that is already approved by the agent is a no-op.
+     * Idempotent: approving a candidate that is already approved by the agent is a no-op, though
+     * the reason is refreshed on every call.
+     *
+     * @param reason why the agent approves — required at the MCP boundary, stored on the candidate
      */
     @Programmatic
-    public Review approveAsAgent(Candidate candidate) {
+    public Review approveAsAgent(Candidate candidate, String reason) {
+        recordReason(candidate, reason);
         return approve(findOrCreateReviewForAgent(candidate));
     }
 
     /**
-     * Rejects the candidate via the automated agent with the given rationale,
-     * creating the review if needed.
+     * Rejects the candidate via the automated agent with the given rationale, creating the review
+     * if needed, and records {@code reason} on the candidate.
      * <p>
      * Idempotent: rejecting again merely refreshes status/rationale/timestamp.
+     *
+     * @param reason why the agent rejects — required at the MCP boundary, stored on the candidate
      */
     @Programmatic
-    public Review rejectAsAgent(Candidate candidate, ReviewRationale rationale) {
+    public Review rejectAsAgent(Candidate candidate, ReviewRationale rationale, String reason) {
+        recordReason(candidate, reason);
         return reject(findOrCreateReviewForAgent(candidate), rationale);
+    }
+
+    /**
+     * Stores the agent's reason for changing {@code candidate} on the candidate itself, so the
+     * justification travels with the object rather than living only in the caller's transcript.
+     * <p>
+     * A blank or {@code null} reason clears the field (see {@link Candidate#setRationale(String)});
+     * the "a reason must be given" rule is enforced at the MCP boundary, not here, so a domain
+     * caller such as the UI keeps working without one.
+     */
+    private void recordReason(Candidate candidate, String reason) {
+        if (candidate == null) {
+            return;
+        }
+        candidate.setRationale(reason);
+        repositoryService.persist(candidate);
     }
 
     private Review createForUser(Candidate candidate, String user) {

@@ -72,6 +72,25 @@ ALTER TABLE domox.responsibilityparameter ADD COLUMN hopdepth INTEGER NOT NULL D
 
 (Names fold to lowercase in Postgres; unquoted DDL `HOPDEPTH` -> stored `hopdepth`.)
 
+Second example — the **`rationale` migration (2026-11-20)**, which adds the free-text reason every MCP
+write must give. It is nullable (so no `DEFAULT`) and `VARCHAR(2000)`, and it is the one migration that
+also touches a table **outside** the `Candidate` hierarchy: `SubDomain` records the reason for its own
+changes, so `createSubDomain` has somewhere to put it.
+
+```sql
+ALTER TABLE domox.classcdd                 ADD COLUMN IF NOT EXISTS rationale VARCHAR(2000);
+ALTER TABLE domox.attributecdd             ADD COLUMN IF NOT EXISTS rationale VARCHAR(2000);
+ALTER TABLE domox.responsibilitycdd        ADD COLUMN IF NOT EXISTS rationale VARCHAR(2000);
+ALTER TABLE domox.collaboratorcdd          ADD COLUMN IF NOT EXISTS rationale VARCHAR(2000);
+ALTER TABLE domox.responsibilityparameter  ADD COLUMN IF NOT EXISTS rationale VARCHAR(2000);
+ALTER TABLE domox.subdomain                ADD COLUMN IF NOT EXISTS rationale VARCHAR(2000);
+```
+
+The 2000-character length is deliberate: Postgres treats `varchar(n)` as a length *constraint* only, so
+it costs nothing over a short column and a longer value is TOASTed transparently. The value is
+normalised by `RationaleText` (blank → `NULL`, over-long → truncated), which is why the column can
+stay a plain nullable `VARCHAR`.
+
 ## Schema-drift guardrail
 
 Run after any entity change that adds/removes columns, before trusting the app:

@@ -66,6 +66,17 @@ inward normal a generalization arrives along.  The latter is now `PortGeometry`,
 floored; `DocumentLexicalDiagrams`, the diagram half split out of `Documents`, keeps a `DiagramPort` and so
 joins `Documents` and `ContextEvidence` as an orchestrator with no floor.
 
+The most recent wave came out of the MCP *reason* feature — every MCP write tool now has to state why.
+The rule behind the free-text `rationale` both `Candidate` and `SubDomain` record is `RationaleText`
+(trim, blank→null, clamp to 2000), extracted so the two setters cannot drift apart; it is floored.  The
+wave also closed a gap this file had not seen before: `SubDomains` was at **0 %** (44 mutants, none
+covered) because the only thing touching it was a *webapp* integration test, which pitest — configured
+for `domox-domain` only — cannot see at all.  A floor would not have caught that either, since the class
+was never floored; what caught it was reading `--table` after a change to the class.  `SubDomainsTest`
+now covers it directly, and `Reviews`/`Candidate`, the other two classes the feature touched, were
+already covered (their new `recordReason` / `setRationale` code is 100 % killed; their remaining
+survivors are long-standing).
+
 Usage:
   scripts/pitest-floors.py                            # the floor classes, exit 0 either way
   scripts/pitest-floors.py --check                    # exit 1 when any class is below its floor
@@ -209,6 +220,23 @@ FLOORS = {
     # 95 %.  It was the first class the unfloored-class note below caught, which is exactly what
     # that note is for: the test class existed, the floor did not.
     "MultiplicityNotation": 90,             # 95 %   (44 mutants)
+
+    # --- the MCP "reason" wave: the one rule behind the free-text rationale both Candidate and
+    #     SubDomain record.  It was extracted so the two setters cannot drift apart on length or on
+    #     what a blank means, and its own test class pins all three behaviours (trim, blank→null,
+    #     clamp) — so it is floored.  85 rather than 100 because the last mutant is *equivalent*:
+    #     `length() > MAX` mutated to `>=` differs only at exactly MAX, where
+    #     `substring(0, length())` returns the same string (JDK 9+ returns `this`), so no assertion
+    #     can distinguish it.  Verified 2026-11: 6/7, the survivor being that one boundary mutant. ---
+    "RationaleText": 85,                    # 86 %   (7 mutants, 1 of them equivalent)
+    # The service half of that same wave, and the class the `--table` read caught at 0 % (44 mutants,
+    # none covered — the only thing touching it was a *webapp* integration test, invisible to pitest).
+    # SubDomainsTest now covers it directly; the floor guards the idempotence the sub-domain pass
+    # relies on (a re-run must not create a second sub-domain).  95 rather than 98 because the last
+    # mutant is equivalent: `assignAll(null, …)` returning `Collections.emptyList()` instead of the
+    # freshly built, still-empty `ArrayList` differs only in mutability, and no assertion on the
+    # returned *value* can see it.
+    "SubDomains": 95,                       # 98 %   (42 mutants, 1 of them equivalent)
 }
 
 # Classes that deliberately carry NO floor, so the unfloored-class warning below does not nag about

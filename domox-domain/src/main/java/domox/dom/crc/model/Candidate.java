@@ -226,6 +226,41 @@ public abstract class Candidate extends AbstractEntity {
     @PropertyLayout(sequence = "2")
     private String candidateType;
 
+    /**
+     * Why the last change to this candidate was made, in the words of whoever made it.
+     * <p>
+     * Supplied by the MCP client: every write tool of the review and sub-domain passes takes a
+     * required {@code reason} and records it here, so a decision can be read back together with
+     * its justification instead of only as a status.  Note the division of labour with
+     * {@code Review.rationale}, which is the <em>categorical</em> reason
+     * ({@code DUPLICATE}, {@code NOT_RELEVANT}, …) — this is the free text behind it.
+     * <p>
+     * A blank value is stored as {@code null} and a longer one is truncated to
+     * {@link RationaleText#MAX_LENGTH} characters (see {@link #setRationale(String)}), so a
+     * verbose agent cannot fail the write with a database error.
+     * <p>
+     * Hidden in tables: it is free text of up to 2000 characters and would swamp a list cell.
+     */
+    @Column(length = RationaleText.MAX_LENGTH)
+    @Getter
+    @PropertyLayout(
+            named = "Rationale",
+            describedAs = "Why the last change to this candidate was made",
+            fieldSetId = "general",
+            sequence = "3",
+            hidden = Where.ALL_TABLES)
+    private String rationale;
+
+    /**
+     * Stores the reason for the last change through {@link RationaleText#normalise(String)}:
+     * trimmed, blank becomes {@code null}, and an over-long value is truncated rather than
+     * rejected — the same clamp-don't-throw convention {@link #setHopDepth(Integer)} follows, so
+     * a long rationale degrades instead of aborting the caller's transaction.
+     */
+    public void setRationale(final String rationale) {
+        this.rationale = RationaleText.normalise(rationale);
+    }
+
     @ManyToMany
     @JoinTable(schema = DomainModule.SCHEMA)
     @Getter

@@ -31,7 +31,8 @@ The task signature includes any of:
 | MCP server | Spring AI 1.1.8, streamable HTTP, endpoint `POST http://localhost:8080/mcp` (SSE responses) |
 | MCP tools class | `domox-webapp/src/main/java/domox/webapp/mcp/ReviewMcpTools.java` |
 | MCP config | `domox-webapp/src/main/resources/application.yml` → `spring.ai.mcp.server.*` |
-| Tools exposed | `nextCandidateForReview`, `approveCandidate(candidateId)`, `rejectCandidate(candidateId, rationale)` |
+| Tools exposed | `nextCandidateForReview`, `approveCandidate(candidateId, reason)`, `rejectCandidate(candidateId, rationale, reason)` |
+| Reason on every write | both write tools **require** `reason` — the free text *behind* the decision, stored on the candidate (`Candidate.rationale`, `varchar(2000)`) by `Reviews.approveAsAgent`/`rejectAsAgent`. A blank reason is refused (`domox-webapp/.../mcp/McpReason.java`), so a pass cannot record a decision without saying why. The sub-domain write tools require one too — see `mcp-subdomain-pass.md` §3 |
 | Ontology-assisted tools | `ontologySearch(term)`, `ontologyEvidenceForCandidate(candidateId)`, `suggestReview(candidateId)` — `domox-webapp/.../mcp/OntologyReviewMcpTools.java` |
 | Ontology source | the local Fuseki image (`domox.rdf.endpoint-url` + `domox.rdf.default-graphs` = Schema.org / BFO / gist / BBO / sBPMN); a blank endpoint falls back to the bundled `ontology.ttl` |
 | DB | docker container `domox-db`, user=`postgres`, db=`postgres`, app schema=`domox` |
@@ -92,8 +93,8 @@ in Wicket UI" as proof — that is unrelated to MCP registration.
   Wicket UI's `CandidateReviewWorkflow` restricts to the current candidate's own type. Drive a pass
   from the per-type id list (§6.1), as the §7 driver does — never from the fetch loop, or the
   "attribute pass" hands you classes.
-- **Phase 2 — Decisions.** Build `/tmp/decisions.tsv` (`id<TAB>APPROVE[<TAB>]` or `id<TAB>REJECT<TAB>RATIONALE`); apply §5 policy.
-- **Phase 3 — Write.** Loop `approveCandidate`/`rejectCandidate` via the driver (§7).
+- **Phase 2 — Decisions.** Build `/tmp/decisions.tsv` (`id<TAB>APPROVE<TAB><TAB>reason` or `id<TAB>REJECT<TAB>RATIONALE<TAB>reason`) — four columns, because the reason is required, not optional; apply §5 policy.
+- **Phase 3 — Write.** Loop `approveCandidate`/`rejectCandidate` via the driver (§7), one row per candidate, the reason carried straight from the TSV.
 - **Phase 4 — Verify.** DB counts (§8): reviews == candidate count, no unprocessed, all `agent`.
 
 ---
@@ -276,13 +277,13 @@ SID=$(curl -sS -D - -o /dev/null -X POST "$MC" -H "$H1" -H "$H2" -H "$HP" \
 echo "SESSION=$SID" >&2
 : > /tmp/review_results.log
 i=0
-while IFS=$'\t' read -r id act rat; do
+while IFS=$'\t' read -r id act rat why; do
   [ -n "$id" ] || continue
   i=$((i+1))
   if [ "$act" = APPROVE ]; then
-    payload="{\"jsonrpc\":\"2.0\",\"id\":$((i+100)),\"method\":\"tools/call\",\"params\":{\"name\":\"approveCandidate\",\"arguments\":{\"candidateId\":$id}}}"
+    payload="{\"jsonrpc\":\"2.0\",\"id\":$((i+100)),\"method\":\"tools/call\",\"params\":{\"name\":\"approveCandidate\",\"arguments\":{\"candidateId\":$id,\"reason\":\"$why\"}}}"
   else
-    payload="{\"jsonrpc\":\"2.0\",\"id\":$((i+100)),\"method\":\"tools/call\",\"params\":{\"name\":\"rejectCandidate\",\"arguments\":{\"candidateId\":$id,\"rationale\":\"$rat\"}}}"
+    payload="{\"jsonrpc\":\"2.0\",\"id\":$((i+100)),\"method\":\"tools/call\",\"params\":{\"name\":\"rejectCandidate\",\"arguments\":{\"candidateId\":$id,\"rationale\":\"$rat\",\"reason\":\"$why\"}}}"
   fi
   out=$(curl -sS -X POST "$MC" -H "$H1" -H "$H2" -H "$HP" -H "Mcp-Session-Id: $SID" --data-binary "$payload" 2>&1)
   if printf '%s' "$out" | grep -qE '"isError":true|"error"|event:error'; then

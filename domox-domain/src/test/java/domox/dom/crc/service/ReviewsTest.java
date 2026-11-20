@@ -172,12 +172,15 @@ class ReviewsTest {
         candidate.getReviews().add(review);
 
         // when
-        final Review result = classUnderTest.approveAsAgent(candidate);
+        final Review result = classUnderTest.approveAsAgent(candidate, "real class: named by TDR10");
 
         // then
         assertThat(result.getStatus()).isEqualTo(ReviewStatus.APPROVED);
         assertThat(result.getUser()).isEqualTo(Reviews.AGENT_USER);
         assertThat(result.getUpdatedAt()).as("updatedAt must be set").isNotNull();
+        assertThat(candidate.getRationale())
+                .as("the reason for the change must be recorded on the candidate")
+                .isEqualTo("real class: named by TDR10");
         verify(mockRepositoryService).persist(review);
         assertThat(candidate.getReviews()).as("no duplicate review row").hasSize(1);
     }
@@ -190,12 +193,14 @@ class ReviewsTest {
         when(mockFactoryService.detachedEntity(Review.class)).thenReturn(review);
 
         // when
-        final Review result = classUnderTest.approveAsAgent(candidate);
+        final Review result = classUnderTest.approveAsAgent(candidate, "real class");
 
         // then
         assertThat(result.getStatus()).isEqualTo(ReviewStatus.APPROVED);
         assertThat(result.getUser()).isEqualTo(Reviews.AGENT_USER);
         assertThat(candidate.getReviews()).as("must create exactly one review").hasSize(1);
+        assertThat(candidate.getRationale()).as("the reason must survive a freshly created review")
+                .isEqualTo("real class");
         verify(mockRepositoryService, atLeastOnce()).persist(review);
     }
 
@@ -209,13 +214,15 @@ class ReviewsTest {
         candidate.getReviews().add(review);
 
         // when
-        final Review result = classUnderTest.rejectAsAgent(candidate, ReviewRationale.DUPLICATE);
+        final Review result = classUnderTest.rejectAsAgent(candidate, ReviewRationale.DUPLICATE, "duplicate of approved Candidate 12");
 
         // then
         assertThat(result.getStatus()).isEqualTo(ReviewStatus.REJECTED);
         assertThat(result.getRationale()).isEqualTo(ReviewRationale.DUPLICATE);
         assertThat(result.getUser()).isEqualTo(Reviews.AGENT_USER);
         assertThat(result.getUpdatedAt()).as("updatedAt must be set").isNotNull();
+        assertThat(candidate.getRationale()).as("the free-text reason must be recorded on the candidate")
+                .isEqualTo("duplicate of approved Candidate 12");
         verify(mockRepositoryService).persist(review);
     }
 

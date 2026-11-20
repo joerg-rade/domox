@@ -59,10 +59,36 @@ class ReviewMcpToolsIntegTest extends ApplicationIntegTestAbstract {
 
     @Test
     void rejectCandidate_withUnknownId_throwsIllegalArgument() {
-        // when / then
-        assertThatThrownBy(() -> reviewMcpTools.rejectCandidate(999999L, "OTHER"))
+        // when / then — a valid reason, so the id is what fails
+        assertThatThrownBy(() -> reviewMcpTools.rejectCandidate(999999L, "OTHER", "not a real concept"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("No candidate found with id 999999");
+    }
+
+    // --- the reason requirement: every MCP write must say why ---
+
+    @Test
+    void approveCandidate_withoutAReason_isRefused() {
+        // when / then — refused before the database is touched, whatever the id
+        assertThatThrownBy(() -> reviewMcpTools.approveCandidate(1L, "   "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("A reason is required");
+    }
+
+    @Test
+    void rejectCandidate_withoutAReason_isRefused() {
+        // when / then
+        assertThatThrownBy(() -> reviewMcpTools.rejectCandidate(1L, "OTHER", ""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("A reason is required");
+    }
+
+    @Test
+    void approveCandidate_withoutAReasonAtAll_isRefused() {
+        // when / then — a missing argument is the same as a blank one
+        assertThatThrownBy(() -> reviewMcpTools.approveCandidate(1L, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("A reason is required");
     }
 
     }

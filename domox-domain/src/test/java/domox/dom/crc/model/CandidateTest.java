@@ -162,6 +162,81 @@ class CandidateTest {
         assertThat(responsibility.getObjectType()).isEqualTo("domox.ResponsibilityCdd");
     }
 
+    // -- rationale (the reason an MCP client gives for changing a candidate)
+
+    /**
+     * {@code rationale} is the free text an MCP client supplies as the reason for a change, so the
+     * entity's job is only to normalise it — the "a reason must be given" rule lives at the MCP
+     * boundary ({@code McpReason}), which is what lets the UI edit the same property without one.
+     */
+    @Test
+    void setRationale_trimsAndKeepsTheText() {
+        // given
+        final ClassCdd candidate = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+
+        // when
+        candidate.setRationale("   real class: named by TDR10   ");
+
+        // then
+        assertThat(candidate.getRationale()).isEqualTo("real class: named by TDR10");
+    }
+
+    @Test
+    void setRationale_mapsBlankToNull() {
+        // given
+        final ClassCdd candidate = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+
+        // when
+        candidate.setRationale("   ");
+
+        // then
+        assertThat(candidate.getRationale()).isNull();
+    }
+
+    @Test
+    void setRationale_truncatesAnOverLongReasonInsteadOfRejectingIt() {
+        // given — one character past what the column stores
+        final ClassCdd candidate = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        final String tooLong = "x".repeat(RationaleText.MAX_LENGTH + 50);
+
+        // when
+        candidate.setRationale(tooLong);
+
+        // then — clamped, so a verbose agent cannot fail the write with a database error
+        assertThat(candidate.getRationale()).hasSize(RationaleText.MAX_LENGTH);
+        assertThat(candidate.getRationale()).isEqualTo(tooLong.substring(0, RationaleText.MAX_LENGTH));
+    }
+
+    /**
+     * The length boundary: a reason of exactly {@link RationaleText#MAX_LENGTH} is kept verbatim,
+     * and one character more is clamped.  Clamped, not rejected — a verbose agent must not fail the
+     * write with a database error.
+     * <p>
+     * Note for the mutation report: the pitest {@code ConditionalsBoundaryMutator} survives inside
+     * {@code RationaleText#normalise}, and it is <em>equivalent</em> — {@code >} mutated to
+     * {@code >=} differs only when the length equals the maximum, where
+     * {@code substring(0, length())} returns the same string.  This test pins the contract, not
+     * that mutant.
+     */
+    @Test
+    void setRationale_keepsTheBoundaryAndClampsOneCharacterOver() {
+        // given
+        final ClassCdd candidate = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        final String exactlyMax = "y".repeat(RationaleText.MAX_LENGTH);
+
+        // when
+        candidate.setRationale(exactlyMax);
+
+        // then — untouched, not one character short
+        assertThat(candidate.getRationale()).isEqualTo(exactlyMax);
+
+        // and when — one character over what the column stores
+        candidate.setRationale(exactlyMax + "y");
+
+        // then — clamped rather than rejected
+        assertThat(candidate.getRationale()).hasSize(RationaleText.MAX_LENGTH);
+    }
+
     // -- helper
 
     private static RuleMatch match(String candidateType, String candidateName, String ruleClassName,

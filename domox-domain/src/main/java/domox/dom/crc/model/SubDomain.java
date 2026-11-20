@@ -65,6 +65,26 @@ public class SubDomain extends AbstractEntity implements Comparable<SubDomain> {
             sequence = "2")
     private SubDomainClassification classification = SubDomainClassification.UNCLASSIFIED;
 
+    /**
+     * Why the last change to this sub-domain was made — the reason the MCP client supplied to
+     * {@code createSubDomain}, recorded so a re-classification can be read back together with its
+     * justification.  Same shape as {@link Candidate#rationale}: free text, normalised through
+     * {@link RationaleText} (blank becomes {@code null}, over-long is truncated to
+     * {@link RationaleText#MAX_LENGTH}).
+     */
+    @Column(length = RationaleText.MAX_LENGTH)
+    @Getter
+    @PropertyLayout(
+            named = "Rationale",
+            describedAs = "Why the last change to this sub-domain was made",
+            sequence = "3")
+    private String rationale;
+
+    /** Stores the reason for the last change through {@link RationaleText#normalise(String)}. */
+    public void setRationale(final String rationale) {
+        this.rationale = RationaleText.normalise(rationale);
+    }
+
     @Override
     public int compareTo(@NonNull SubDomain o) {
         return Long.compare(this.getId(), o.getId());

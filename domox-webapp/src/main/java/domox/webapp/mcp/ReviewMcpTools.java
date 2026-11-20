@@ -26,6 +26,12 @@ import domox.dom.crc.model.ReviewRationale;
  * {@code spring-ai-starter-mcp-server-webmvc} server on the {@code /mcp} endpoint
  * (zero registration code - see {@code McpServerAnnotationScannerAutoConfiguration}).
  * <p>
+ * <b>Every write carries a reason.</b>  Both deciding tools require the client to state
+ * <em>why</em> in a {@code reason} argument, which is stored on the candidate
+ * ({@link Candidate#setRationale(String)}); a blank reason is refused rather than defaulted
+ * ({@link McpReason}).  So a decision can be read back together with its justification instead
+ * of only as a status.
+ * <p>
  * The MCP annotation scanner invokes the annotated methods reflectively on the raw bean
  * (bypassing the AOP proxy), so a transaction is opened explicitly with a
  * {@link TransactionTemplate} instead of {@code @Transactional} to keep every tool call
@@ -58,12 +64,16 @@ public class ReviewMcpTools {
             name = "approveCandidate",
             description = """
                     Approve the candidate with the given id as a valid class-diagram element.
+                    A reason is REQUIRED: state in 'reason' why the candidate is valid — it is stored on
+                    the candidate, so the decision can be read back with its justification.
                     The decision is recorded under the 'agent' reviewer. Safe to call repeatedly (idempotent).""")
     public ReviewResult approveCandidate(
-            @McpToolParam(description = "The numeric id of the candidate to approve (as returned by nextCandidateForReview).") long candidateId) {
+            @McpToolParam(description = "The numeric id of the candidate to approve (as returned by nextCandidateForReview).") long candidateId,
+            @McpToolParam(description = "Required. Why this candidate is being approved — the evidence that makes it a real class-diagram element (e.g. the rule match / source sentence relied on). Recorded on the candidate.") String reason) {
+        final String required = McpReason.require(reason);
         return transactionTemplate.execute(status -> {
             final Candidate candidate = requireCandidate(candidateId);
-            return ReviewResult.approved(reviews.approveAsAgent(candidate), candidate);
+            return ReviewResult.approved(reviews.approveAsAgent(candidate, required), candidate);
         });
     }
 
@@ -71,15 +81,19 @@ public class ReviewMcpTools {
             name = "rejectCandidate",
             description = """
                     Reject the candidate with the given id as not valid for inclusion in the class
-                    diagram, giving a rationale. The decision is recorded under the 'agent' reviewer.
-                    Safe to call repeatedly (idempotent).""")
+                    diagram, giving a rationale and a reason. Both are REQUIRED: 'rationale' is the
+                    category, 'reason' is why it applies — the reason is stored on the candidate, so the
+                    decision can be read back with its justification.
+                    The decision is recorded under the 'agent' reviewer. Safe to call repeatedly (idempotent).""")
     public ReviewResult rejectCandidate(
             @McpToolParam(description = "The numeric id of the candidate to reject.") long candidateId,
-            @McpToolParam(description = "Why the candidate is being rejected. One of: DUPLICATE, WRONG_CANDIDATE_TYPE, NOT_RELEVANT, INSUFFICIENT_INFORMATION, OTHER.") String rationale) {
+            @McpToolParam(description = "The category of the rejection. One of: DUPLICATE, WRONG_CANDIDATE_TYPE, NOT_RELEVANT, INSUFFICIENT_INFORMATION, OTHER.") String rationale,
+            @McpToolParam(description = "Required. Why that category applies to this candidate — the evidence, not a restatement of the category (e.g. 'duplicate of approved Candidate 12; both come from the same sentence'). Recorded on the candidate.") String reason) {
+        final String required = McpReason.require(reason);
         return transactionTemplate.execute(status -> {
             final Candidate candidate = requireCandidate(candidateId);
             final ReviewRationale parsed = parseRationale(rationale);
-            return ReviewResult.rejected(reviews.rejectAsAgent(candidate, parsed), candidate, parsed);
+            return ReviewResult.rejected(reviews.rejectAsAgent(candidate, parsed, required), candidate, parsed);
         });
     }
 
