@@ -1,6 +1,8 @@
 # Pattern Repositories for DoMoX — Feasibility & MCP Assessment
 
-> **Status:** analysis / proposal (not yet implemented).
+> **Status:** analysis / proposal — **Phase 1 (gist into Fuseki) implemented 2026-11**; Phases 2–4 open
+> (tracked as TODO-25 in `TODO.md`). Verified live 2026-11-20: `ontologySearch("Contract")` resolves to
+> gist's `Contract` class with its definition.
 > **Question answered:** *Are there pattern repositories available that could be integrated with
 > DoMoX and help with creating the domain model? Would it make sense to make them available via MCP?*
 > **Short answer:** Yes to both. The highest-ROI addition is a machine-readable ontology that drops

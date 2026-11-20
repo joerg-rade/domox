@@ -34,6 +34,7 @@ class OntologyTermsTest {
     private static final String RDFS_COMMENT = "http://www.w3.org/2000/01/rdf-schema#comment";
     private static final String RDFS_SUBCLASS_OF = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
     private static final String RDFS_CLASS = "http://www.w3.org/2000/01/rdf-schema#Class";
+    private static final String OWL_EQUIVALENT_CLASS = "http://www.w3.org/2002/07/owl#equivalentClass";
 
     @Mock RdfPort rdfPort;
 
@@ -101,6 +102,33 @@ class OntologyTermsTest {
         verify(rdfPort, atLeastOnce()).select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), queries.capture());
         assertThat(queries.getAllValues()).as("the bundled ontology is a single unnamed graph")
                 .noneMatch(q -> q.contains("GRAPH ?g"));
+    }
+
+    @Test
+    void aBlankNodeDefinitionIsNotReportedAsASynonymOrSuperClass() {
+        // gist:Contract defines itself with owl:equivalentClass pointing at an owl:Restriction BLANK
+        // node, and its rdfs:subClassOf may point at one too.  Both are anonymous, so neither is
+        // evidence — before the guard, the reviewer was shown the node's "_:" identifier as a synonym.
+        when(rdfPort.select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("SELECT DISTINCT ?focus")))
+                .thenReturn(List.of(Map.of("focus", "http://x/Contract")));
+        when(rdfPort.select(eq(RdfProperties.DEFAULT_ONTOLOGY_RESOURCE), contains("VALUES ?term")))
+                .thenReturn(List.of(
+                        Map.of("term", "http://x/Contract", "predicate", RDF_TYPE,
+                                "value", RDFS_CLASS, "lit", "false"),
+                        Map.of("term", "http://x/Contract", "predicate", RDFS_LABEL,
+                                "value", "Contract", "lit", "true"),
+                        Map.of("term", "http://x/Contract", "predicate", RDFS_SUBCLASS_OF,
+                                "value", "_:b0", "lit", "false"),
+                        Map.of("term", "http://x/Contract", "predicate", OWL_EQUIVALENT_CLASS,
+                                "value", "_:73fda4a67b34702600201258f11e572f", "lit", "false"),
+                        Map.of("term", "http://x/Contract", "predicate", OWL_EQUIVALENT_CLASS,
+                                "value", "http://other/Agreement", "lit", "false")));
+
+        final OntologyTerm term = termsWith(new RdfProperties()).lookup("Contract").terms().getFirst();
+
+        assertThat(term.synonyms()).as("only the named equivalent class is evidence")
+                .containsExactly("Agreement");
+        assertThat(term.superClass()).as("a blank-node subClassOf names nothing").isNull();
     }
 
     @Test

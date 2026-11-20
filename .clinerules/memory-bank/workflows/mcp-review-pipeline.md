@@ -167,6 +167,11 @@ Everything else REJECTED (statuses: NOT_RELEVANT 66, WRONG_CANDIDATE_TYPE 23, DU
 | `ontologyEvidenceForCandidate(candidateId)` | the above for the candidate's name, plus `typeAgreement` (`AGREES`/`MISMATCH`/`UNKNOWN`) and any **already-approved candidates with the same name** |
 | `suggestReview(candidateId)` | an **advisory** `suggestion` (`APPROVE`/`REJECT`/`UNCERTAIN`) + `rationale` + `confidence` + `reasons` |
 
+**Blank nodes are dropped.** A restriction-based definition (`gist:Contract` uses
+`owl:equivalentClass` → an `owl:Restriction` blank node) is anonymous, so neither `synonyms` nor
+`superClass` reports it — otherwise the reviewer would see `_:73fda4a6…` as if it were evidence. Absence
+of a super-class therefore does **not** mean the term is a root class.
+
 **Suggested workflow:** `nextCandidateForReview` → `ontologyEvidenceForCandidate(id)` (and/or
 `suggestReview(id)`) → decide → `approveCandidate`/`rejectCandidate`.
 

@@ -37,6 +37,11 @@ import java.util.stream.Collectors;
  * The focus query is scoped with {@code FROM} instead, because it reuses {@link OntologyQueries}'s
  * graph-agnostic query text.</p>
  *
+ * <p><b>Named resources only.</b>  A blank node is anonymous, so its identifier is noise rather than
+ * evidence: a restriction-based {@code owl:equivalentClass} (or {@code rdfs:subClassOf}) would
+ * otherwise surface as a garbage synonym ({@code _:73fda4a6…}) or super-class.  Both are dropped, as
+ * blank focus IRIs already were.</p>
+ *
  * <p><b>Never throws.</b>  An unreachable endpoint yields an empty result plus a message — the caller
  * must be able to tell "the ontology does not know this term" from "the ontology could not be
  * asked".</p>
@@ -167,16 +172,31 @@ public class OntologyTerms {
                     if (builder.definition == null) builder.definition = value;
                 }
                 case RDFS_SUBCLASS_OF -> {
-                    if (!literal) builder.superClass = value;
+                    if (!literal && !isBlankNode(value)) builder.superClass = value;
                 }
                 case SKOS_ALT_LABEL -> builder.synonyms.add(value);
                 case OWL_EQUIVALENT_CLASS -> {
-                    if (!literal) builder.synonyms.add(RdfIriNames.localName(value));
+                    if (!literal && !isBlankNode(value)) builder.synonyms.add(RdfIriNames.localName(value));
                 }
                 default -> { /* not one of the descriptive predicates */ }
             }
         }
         return byTerm.values().stream().map(TermBuilder::build).toList();
+    }
+
+    /**
+     * Whether an RDF term is a <em>blank node</em> — an anonymous resource an endpoint reports as
+     * {@code _:b0}.
+     *
+     * <p>A restriction-based definition is exactly this: {@code gist:Contract} states its meaning with
+     * {@code owl:equivalentClass} pointing at an {@code owl:Restriction} blank node, and
+     * {@code rdfs:subClassOf} can point at one too.  Such a node has no name, so rendering it — or its
+     * "local name", which is the {@code _:} identifier itself — would show the reviewer
+     * {@code _:73fda4a6…} as if it were a synonym or a super-class, which discredits the whole lookup.
+     * Named resources only.</p>
+     */
+    private static boolean isBlankNode(final String value) {
+        return value != null && value.startsWith("_:");
     }
 
     /** Accumulates the descriptive triples of one resource. */

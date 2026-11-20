@@ -134,6 +134,19 @@ artifacts, 37 class-named, 5 plain value nouns) and the note that 21/37 and 16/4
 the lexicon-guarded TDR10/TDR11, so the hard buckets shrink on the TODO-01 re-run. §12.2 item 2 now
 reads *decided*. The pass itself (TODO-04) is unchanged and still gated on TODO-01.
 
+**Fixed 2026-11-20 (not a TODO item — found while measuring TODO-25).** `OntologyTerms.reduce()` added
+an `owl:equivalentClass` object to a term's `synonyms` **without filtering blank nodes**, so every
+restriction-based definition leaked its anonymous identifier into the reviewer's evidence:
+`ontologySearch("Contract")` returned `synonyms: ["_:d738283a…"]` for gist's `Contract` (the identifier
+is minted per query, so it differs on every call). The `rdfs:subClassOf` branch had the same unfiltered
+shape, so a blank-node super-class would have rendered the same way. Both now drop blank nodes — as
+`runFocus` already did for focus IRIs — pinned by
+`OntologyTermsTest."a blank node definition is not reported as a synonym or super-class"`, which was
+confirmed to **fail** against the old code. Verified live on a restarted instance:
+`ontologySearch("Contract")` → `synonyms: []`, while *named* equivalents and super-classes are kept
+(`Product` → `["TradeProduct","Product"]`; `Person` → `Thing`). Not gist-specific: it fires for any OWL
+restriction.
+
 ---
 
 ## 1. Scales
@@ -203,7 +216,7 @@ unassigned** — the pass's own completion criterion was already met and it corr
 | **TODO-06** | Review pipeline | Pass 4 — review **237** `CollaboratorCdd` (last: needs both ends approved) | P2 | M | Medium |
 | **TODO-07** | Review pipeline | Sub-domain pass for the newly approved classes | P2 | S | Low |
 | **TODO-08** | Review pipeline | Re-measure the UML diagram and update the readiness review | P2 | S | Medium |
-| **TODO-25** | Capability | gist into Fuseki + MCP-exposed pattern repositories | P3 | L | Low |
+| **TODO-25** | Capability | MCP-exposed pattern repositories + completion tools (gist already loaded) | P3 | L | Low |
 | **TODO-26** | Capability | "Suggest missing model elements" (DoMoX only reviews what exists) | P3 | XL | Low |
 | **TODO-27** | Capability | Event-detection rules (`EVENTS.md`) not implemented | P3 | L | Low |
 | **TODO-28** | Capability | The "(future)" association patterns in `association-type-categorization.md` | P3 | M | Low |
@@ -346,21 +359,38 @@ retro's *Candidates implemented* table.
 
 ---
 
-### D. Capability proposals (not yet implemented)
+### D. Capability proposals
 
-#### TODO-25 — gist into Fuseki + MCP-exposed pattern repositories · P3 · L · Risk Low
+*(TODO-25's gist/grounding half is implemented; its pattern-catalogue and completion halves, and
+TODO-26…29 in full, are not.)*
 
-- **Source:** `docs/domain-modeling/pattern-repositories.md` (status: analysis / proposal).
-- **Open:** the highest-ROI suggestion — load **gist** into the Fuseki instance DoMoX already runs —
-  has not been done; nor has exposing pattern repositories over MCP. (GoodRelations is already inside
-  Schema.org, which is already loaded.)
-- **Risk if skipped:** none functional; DoMoX keeps working with Schema.org/BFO/gist/BBO/sBPMN as-is.
-  The cost is that the core-commerce classes stay ungrounded against the vocabulary that describes
-  them best.
-- **Area of improvement:** add the gist graph to `docker/fuseki` and to `domox.rdf.default-graphs`,
-  mirroring the existing `OntologyTerms` / `OntologyReviewMcpTools` pattern rather than building a new
-  subsystem.
-- **Done when:** a gist term (e.g. `Contract`) resolves through `ontologySearch`.
+#### TODO-25 — MCP-exposed pattern repositories · P3 · L · Risk Low
+
+- **Source:** `docs/domain-modeling/pattern-repositories.md` (status: Phase 1 implemented, Phases 2–4 open).
+- **Open:** **Phase 1 is done and verified (2026-11-20)** — the premise that "load gist into the Fuseki
+  instance DoMoX already runs has not been done" is stale. What remains is the *pattern* half:
+  **Phase 2** (a curated analysis-pattern catalogue behind a `PatternCataloguePort`, consulted by
+  `ReviewAdvisor`) and **Phase 3** (the `suggestMissingElements` / `validateModel` completion tools).
+  No `PatternCataloguePort`, `suggestMissingElements` or `validateModel` exists in the codebase.
+- **Risk if skipped:** none functional — the *grounding* half already landed, with no Java change. The
+  cost is that DoMoX still cannot *suggest* an element the corpus implies but the rules missed (TODO-26).
+- **Measured contribution of gist (2026-11-20, live DB + live Fuseki):** gist is loaded as the named
+  graph `<https://w3id.org/semanticarts/ontology/gistCore>`, listed in `domox.rdf.default-graphs`, and
+  reachable through `ontologySearch` — `Contract` → `CLASS`, *"An agreement which can be enforced by
+  law."* (gist 14.1.0). It carries **224 `skos:prefLabel` labels (216 distinct)**, and the focus query
+  matches `skos:prefLabel`, which is *why* it works. Overlap with the model is real but **narrow**:
+  **34/967** distinct class names, among them **9/131 approved** classes — `catalog, category,
+  collection, contract, event, item, order, product, service` — exactly the core-commerce set
+  `MODEL_UML_READINESS_REVIEW.md` §3.6 called genuine matches; **17/75** attribute names (relevant to
+  TODO-04) and **10/174** responsibility names (TODO-05); and **0/237** collaborators, because gist
+  names classes and properties, not relationship labels. So gist *confirms* generic/upper-ontology
+  nouns rather than deciding them — the same false-homonym trap TODO-09 documented for `Claim`/`Class`.
+- **Area of improvement:** for the pattern half, mirror the existing `OntologyTerms` /
+  `OntologyReviewMcpTools` shape (domain port + domain service + a thin `*McpTools` façade) rather than
+  building a new subsystem.
+- **Done when:** *(Phase 1, met 2026-11-20)* a gist term resolves through `ontologySearch`;
+  *(Phase 2/3, open)* the pattern catalogue is consulted by `ReviewAdvisor` and a completion tool
+  proposes an element for a corpus known to lack one.
 
 #### TODO-26 — "Suggest missing model elements" · P3 · XL · Risk Low
 
