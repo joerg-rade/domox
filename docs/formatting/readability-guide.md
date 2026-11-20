@@ -180,6 +180,21 @@ const scale = rect.width / vb.width;             // < 1 means the text shrank by
 than ~420px is worth restructuring — but read the *Scope* note immediately below first, because the
 IntelliJ plugin does not shrink the way Chromium does.
 
+**One command reproduces every figure below** — the harness is committed, so the numbers are
+re-checkable rather than re-derived:
+
+```shell
+bash scripts/measure-mermaid.sh docs/formatting/readability-guide.md
+bash scripts/measure-mermaid.sh .clinerules/hexagonal-architecture.md docker/fuseki/README.md --width 430
+```
+
+It renders each `mermaid` fenced block into a `<width>px` column in headless Chromium (default
+430px — the chat column) and prints `natW=<natural px>  font=<effective px>` per block, flagging a
+block the renderer had to shrink as `WIDE`. The Mermaid build is pinned to the version the viewer
+uses (`11.4.1`), and the script skips cleanly when node, a Chromium binary, or the build is
+unavailable. Run it *before* citing a width — it is what reports the 1239px for
+`docker/fuseki/README.md` in the table below.
+
 ### ⚠️ Scope: this is the *Chromium* renderer, not the IntelliJ plugin
 
 Every figure above was measured in **headless Chromium** at a 430px column, with the same Mermaid

@@ -154,6 +154,11 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
+            <!-- `src/main/java` stays a resource root on purpose: the Causeway `*.layout.xml`
+                 files (Candidate.layout.xml, DomainModel.layout.xml, …) live next to the entities
+                 and must land on the classpath beside their class.  Only `**/*.java` is excluded.
+                 `META-INF/persistence.xml` was moved to src/main/resources/META-INF/ (2026-11-19) —
+                 do NOT drop this root, the layouts depend on it. -->
             <resource>
                 <filtering>false</filtering>
                 <directory>src/main/java</directory>

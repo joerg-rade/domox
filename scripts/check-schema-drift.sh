@@ -10,7 +10,7 @@
 #
 #   This bites hard for a TABLE_PER_CLASS base like Candidate: a field added to it (e.g. the
 #   hopDepth migration) must be ALTERed into EVERY per-type table (classcdd, propertycdd,
-#   actioncdd, associationcdd, packagecdd, parametercdd), not just the base.
+#   actioncdd, associationcdd, parametercdd), not just the base.
 #
 # What it does:
 #   Diffs the columns declared in the latest generated create-tables.sql against the live dev
@@ -157,7 +157,7 @@ if [ ${#drift[@]} -gt 0 ]; then
   echo "  ALTER TABLE domox.<table> ADD COLUMN <col> <TYPE> [NOT NULL DEFAULT ...];"
   echo
   echo "Remember: a field added to the TABLE_PER_CLASS base Candidate must be added to EVERY"
-  echo "per-type table (classcdd, propertycdd, actioncdd, associationcdd, packagecdd, parametercdd)."
+  echo "per-type table (classcdd, propertycdd, actioncdd, associationcdd, parametercdd)."
   exit 1
 fi
 

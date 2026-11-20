@@ -44,8 +44,8 @@ The task signature includes any of:
 `Candidate` uses **TABLE_PER_CLASS** inheritance. Real candidate rows live in the **per-type
 tables**, NOT the base table:
 - `domox.classcdd` (classtype int), `domox.propertycdd`, `domox.actioncdd`, `domox.associationcdd`,
-  plus `parametercdd` (usually empty in this corpus) and `packagecdd` (orphaned — its entity
-  was deleted in the CRC rename, the table still exists with 0 rows).
+  plus `parametercdd` (usually empty in this corpus). `packagecdd` is **gone** — the orphaned
+  table was dropped on 2026-11-19, so do not query it.
 - `domox.candidate` (base) and the `public`-schema tables (`tables.sql` legacy) are **stale/empty** — never query them for data.
 - A candidate's evidence lives in the join table `<type>cdd_rulematch` (`<type>cdd_id`,
   `rulematches_id`) → `domox.rulematch` → `domox.typeddependency` → `domox.sentence`.
@@ -104,6 +104,13 @@ mapping below. Be decisive — the whole point is cleaning the candidate set.
 | `WRONG_CANDIDATE_TYPE` | An attribute/unit in the entity slot: `Quantity`, `Cost`, `Availability`, `Age`, `Range`, `Second`, `Time`, `Online`; a verb used as a class: `Update`, `groom`, `have`, `reflect`, `require`, `restrict`; a measure phrase: `WideRange`, `RealTime`, `TotalCost` |
 | `DUPLICATE` | Capitalized `User_Action` dup of an accepted lowercase dobj action: `Select`/`select`, `Add`/`add`, `Process`/`process`, `Display`/`display`; a property that duplicates an entity (`cart` vs `Cart`) |
 | `INSUFFICIENT_INFORMATION` / `OTHER` | Rarely needed |
+
+**The `NOT_RELEVANT` / `WRONG_CANDIDATE_TYPE` boundary** (decided 2026-11-19 —
+`MODEL_REVIEW_PLAN.md` §4, §12.3): the name *is* a domain concept but sits in the **wrong slot** (an
+attribute or unit in the entity slot, a bare verb, a measure phrase; for a collaborator, an endpoint
+that is not a class) → `WRONG_CANDIDATE_TYPE`; the name is **not a domain concept at all**
+(scaffolding, a combined artifact, a generic noun, two merely co-occurring names) →
+`NOT_RELEVANT`. Apply it identically in every pass, so the rationale counts stay comparable.
 
 > **Vocabulary note (CRC rename, 2026-10).** The Java entity classes now follow the CRC guide's
 > element names — `ResponsibilityCdd` (was `ActionCdd`), `AttributeCdd` (was `PropertyCdd`),

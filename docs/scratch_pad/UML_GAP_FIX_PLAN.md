@@ -375,7 +375,7 @@ when a rule match is present, and `source_target` when it is not.
 | `AttributeCdd.cardinality` (`AttributeCdd.java:28-31`) | `private Cardinality cardinality;` — **annotations commented out**, no getter, no setter, never assigned |
 | `Cardinality.java` | `@Data` class with `min`/`max`/`hasLimit` — no other reference in the codebase |
 | `domox-webapp/create-tables.sql:1` | still declares `CARDINALITY BYTEA` on `domox.PropertyCdd` — a column the entity no longer maps |
-| `domox.packagecdd` | orphaned table (entity deleted in the CRC rename, 0 rows) |
+| `domox.packagecdd` | orphaned table (entity deleted in the CRC rename, 0 rows) — **dropped 2026-11-19** |
 
 **Fix.** This is the **same decision as FIX-2**:
 

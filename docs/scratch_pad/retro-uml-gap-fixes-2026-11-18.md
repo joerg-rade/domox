@@ -2,7 +2,8 @@
 
 > Produced with the `retro` skill (`.clinerules/skills/retro.md`) — it looks back over a session and
 > proposes improvements to the **environment**, never to the code.
-> **Status: nothing applied.** Pick the candidate(s) you want and they get implemented then.
+> **Status: all eight candidates implemented (2026-11-19)** — see [Status](#status) at the end of
+> this document for where each one landed.
 
 ## Session summary
 
@@ -205,3 +206,20 @@ chars of `new_text` per call), and `grep -c` exits 1 on zero matches (`grep -c �
   read off the running instance, not inferred from unit tests.
 - **Writing down the two findings deliberately *not* fixed** (§13.6 possessive attributes, §13.7
   association de-duplication) as decisions with a one-line fix sketch, instead of leaving them silent.
+
+---
+
+## Status
+
+**Implemented on 2026-11-19** (the session that compiled `TODO.md`):
+
+| # | Candidate | Where it landed |
+|---|---|---|
+| **1** | The steering document had no context pointer | `.clinerules/commands.md` — the `docs/scratch_pad/` reading rules (live plan read in full; retros by header; archive on demand) |
+| **2** | `check.sh` step 8 skipped the metamodel guardrail exactly when the agent had been working | `scripts/check.sh` step 9/9 now runs `ValidateDomainModelIntegTest` against a throwaway DB (`scripts/verify-boot.sh` promoted into the bundle) |
+| **3** | The schema-drift gate fired on comment-only entity edits | `scripts/schema-projection.py` + the staleness guard in `scripts/check-schema-drift.sh` (hashes the *projection*, not the file mtime) |
+| **4** | `ro.py` could not pass an object reference | `scripts/ro.py` — the `@<ref>` prefix for object-valued parameters, and `--out FILE` for large payloads |
+| **5** | Two always-loaded runbooks were branch material | moved to `.clinerules/memory-bank/workflows/` (`mcp-review-pipeline.md`, `mcp-subdomain-pass.md`), with a one-line pointer at the top level |
+| **6** | The new mechanical rule was not named where the reviewer looks | `CODING_STANDARDS.md` §1 names the ArchUnit rule `entity_public_fields_have_no_getter_of_the_same_name` |
+| **7** | `pitest-floors.py --check` silently accepted a class with no floor entry | `scripts/pitest-floors.py` — the unfloored-class advisory note (`UNFLOORED_MIN_MUTANTS` / `UNFLOORED_MIN_RATE`) |
+| **8** | Two undocumented tool limits that each cost a round-trip | `.clinerules/commands.md` §"Tool limits that look like task failures" (the ~6 000-char `new_text` cap and `grep -c` exiting 1 on zero matches) |

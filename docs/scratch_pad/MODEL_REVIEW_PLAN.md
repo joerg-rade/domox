@@ -99,6 +99,22 @@ the attribute owner test all read the class decisions.
 | `REJECT / DUPLICATE` | a capitalised `User_Action` duplicate of an accepted lowercase form |
 | `REJECT / INSUFFICIENT_INFORMATION` | a name whose evidence is a single fragment |
 
+**Rationale convention — the `NOT_RELEVANT` / `WRONG_CANDIDATE_TYPE` boundary** (decided
+2026-11-19; §12.3). The two are not interchangeable, and the boundary is applied identically in all
+four passes so the rationale counts stay comparable between them:
+
+- **`WRONG_CANDIDATE_TYPE`** — the name *is* a domain concept, but it sits in the wrong slot: an
+  attribute or unit in the entity slot (`Quantity`, `Cost`, `Availability`, `Age`, `Time`, `Online`),
+  a bare verb where a class is expected (`Update`, `groom`, `have`), or a measure phrase
+  (`WideRange`, `RealTime`, `TotalCost`). For a collaborator, an endpoint that is **not a class**
+  (an attribute, a verb, a document artifact) is `WRONG_CANDIDATE_TYPE`.
+- **`NOT_RELEVANT`** — the name is not a domain concept at all: document scaffolding (`Sentence`,
+  `MetadataField`, `SystemAction`, `UC`, `**`), a combined artifact (`SystemPayment`, `PetSystem`),
+  a generic/abstract noun (`Information`, `Reason`, `Intent`), or two names that merely co-occur.
+
+Rule of thumb: **"right kind of thing, wrong place" → `WRONG_CANDIDATE_TYPE`; "not a thing we model"
+→ `NOT_RELEVANT`.**
+
 **Calibration.** The 302 existing decisions are the worked examples (190 approve / 112 reject;
 `NOT_RELEVANT` dominates). Use them as the style guide; the PetShop baseline id list in
 `mcp-review-pipeline.md` §5.1 is the reference for the already-reviewed portion.
@@ -276,8 +292,12 @@ Shell: `docker exec domox-db psql -U postgres -d postgres -c "..."`.
    18 from TDR11), and the rule "an attribute is a built-in value; a reference to a class is an
    association" is settled — what is undecided is whether the *possessive* rules may keep producing
    attributes for class nouns.
-3. **`WRONG_CANDIDATE_TYPE` vs `NOT_RELEVANT`** — open (a consistency call; it only affects the
-   counts, not the decision).
+3. **`WRONG_CANDIDATE_TYPE` vs `NOT_RELEVANT`** — **decided 2026-11-19** (a consistency call; it
+   only affects the counts, not the decision). The boundary is stated once in §4 ("Rationale
+   convention"): an element that *is* a domain concept but sits in the wrong slot — an attribute or
+   unit in the entity slot, a bare verb, a measure phrase, or (for a collaborator) an endpoint that
+   is not a class — is `WRONG_CANDIDATE_TYPE`; a name that is not a domain concept at all is
+   `NOT_RELEVANT`. All four passes follow it.
 4. **Whether to re-review** the 302 existing decisions → **no**: keep them (decision 1), and
    re-review only where the evidence changed (a candidate whose rule matches changed because of
    FIX-5/FIX-6).

@@ -231,7 +231,8 @@ edits: the file under `memory-bank/workflows/`, and one line here.
 Quick checks after an entity change: run `bash scripts/check.sh` — bundles schema drift,
 domain unit tests, and the metamodel guardrail (the same checks CI runs in
 `.github/workflows/ci.yml`). For a faster check use `bash scripts/check.sh --quick`
-(the four instant, Maven-free steps: drift, layout XML, .mjs/.py syntax, dependency alignment).
+(the five instant, Maven-free steps: drift, layout XML, .mjs/.py syntax, dependency alignment,
+mermaid styling).
 
 # Shell Execution Formatting Rules
 

@@ -26,7 +26,9 @@ CLI boots need `-Dspring-boot.run.workingDirectory=<repo root>`.
 | `ResponsibilityCdd` | `domox.actioncdd` |
 | `CollaboratorCdd` | `domox.associationcdd` |
 | `ResponsibilityParameter` | `domox.parametercdd` |
-| ~~`PackageCdd`~~ (entity deleted) | `domox.packagecdd` (orphaned table, 0 rows) |
+
+`PackageCdd` was deleted in the CRC rename; its two tables (`domox.packagecdd`,
+`domox.packagecdd_rulematch`) were dropped on 2026-11-19, so there is no `packagecdd` row to keep.
 
 > **Class names ≠ table names (deliberate).** The CRC-vocabulary rename
 > (`ActionCdd`→`ResponsibilityCdd`, `PropertyCdd`→`AttributeCdd`,
@@ -61,7 +63,6 @@ ALTER TABLE domox.classcdd       ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
 ALTER TABLE domox.propertycdd    ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
 ALTER TABLE domox.actioncdd      ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
 ALTER TABLE domox.associationcdd ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE domox.packagecdd     ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
 ALTER TABLE domox.parametercdd   ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
 ```
 
@@ -99,7 +100,7 @@ working. Still outstanding:
 | `@Table(name = "ParameterCdd")` on `ResponsibilityParameter` | same for `domox.parametercdd` |
 | `@Named(... ".ActionCdd")` etc. | flip together with the table rename (Causeway object types are persisted in `bookmark`/`command` tables) |
 | `candidateType` literals (`RuleMatches`, `*Candidates`, `CandidateD3Graph.typeLabel`) | `UPDATE domox.rulematch SET candidatetype='ResponsibilityCdd' WHERE candidatetype='ActionCdd';` etc. |
-| Orphaned `domox.packagecdd` + `domox.packagecdd_rulematch` tables | `DROP TABLE` (entity `PackageCdd` was deleted; tables hold 0 rows) |
+| Orphaned `domox.packagecdd` + `domox.packagecdd_rulematch` tables | ✅ **done 2026-11-19** — dropped; the live schema and `create-tables.sql` hold no `packagecdd` table |
 | `@Entity(name = "ActionCdd")` / `"PropertyCdd"` / `"AssociationCdd"` / `"ParameterCdd"` pins | flip together with the table rename — they exist only to keep the derived join-table columns stable |
 | `@JoinColumn(name = "actioncdd_id")` on `ResponsibilityParameter.responsibilityCdd` | rename the column together with the field (or drop the explicit name once the property is renamed back) |
-| `scripts/check-schema-drift.sh` comment listing `packagecdd` | drop from the comment once the table is dropped |
+| `scripts/check-schema-drift.sh` comment listing `packagecdd` | ✅ **done 2026-11-19** — `packagecdd` dropped from both comment lines |
