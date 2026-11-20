@@ -207,13 +207,18 @@ public class CandidateFactory {
             final String assocName = candidateName + "_" + relatedCandidateName;
             return collaboratorCandidates.findOrCreate(assocName, head, partner, domainModel, AssociationType.SYNONYM);
         } else if ("ActionCdd".equals(candidateType)) {
-            // The related candidate name should be the owning class name;
-            // a blocked use-case noun (e.g. "System") must not become the owner
-            final ClassCdd classCdd = (relatedCandidateName != null && !isBlockedUseCaseNoun(relatedCandidateName))
-                    ? classCandidates.findOrCreate(relatedCandidateName, domainModel)
-                    : null;
-            final ResponsibilityCdd responsibility =
-                    responsibilityCandidates.findOrCreate(candidateName, classCdd, domainModel);
+            // FIX-3d (UML_GAP_FIX_PLAN.md §13.8): the operation belongs to the sentence's ACTOR, not to
+            // its object.  "the customer selects products" is Customer.select(products) — the owner is
+            // the subject; the object noun is what the operation receives.  TDR3 fires on the object
+            // dependency, so its relatedCandidateName is the object: measured on the PetShop model, all
+            // 149 owned operations were owned by their object noun and none by their actor.
+            final ClassCdd actor = classFor(actorNameOf(match), domainModel);
+            // The object class is kept as the owner only when the sentence names no usable actor (e.g.
+            // "the system validates availability" — there is no System class) and as the receive-verb
+            // return type in every case (FIX-3b).
+            final ClassCdd objectClass = classFor(relatedCandidateName, domainModel);
+            final ResponsibilityCdd responsibility = responsibilityCandidates.findOrCreate(
+                    candidateName, actor != null ? actor : objectClass, objectClass, domainModel);
             addParameters(responsibility, match, domainModel);
             return responsibility;
         } else if ("PropertyCdd".equals(candidateType)) {
@@ -229,6 +234,27 @@ public class CandidateFactory {
         }
         // Unknown candidate types are ignored.
         return null;
+    }
+
+    /** The operation's actor noun, as the sentence states it — the FIX-3d owner evidence. */
+    private static String actorNameOf(final RuleMatch match) {
+        return ResponsibilityOwnerExtraction.actorNounOf(
+                match.getTypedDependency(), match.getCandidateName());
+    }
+
+    /**
+     * The class candidate named {@code name}, or {@code null} when there is none to make: a null name,
+     * or a blocked use-case noun ({@code System}, {@code Case}) that must never become a class.
+     * <p>
+     * The name is capitalised first because candidate names are capitalised while the parser's lemmas
+     * are not ({@code "customer"} → {@code Customer}), so without it the actor would create a second,
+     * lower-case class beside the one the class rules already made.
+     */
+    private ClassCdd classFor(final String name, final DomainModel domainModel) {
+        if (name == null || isBlockedUseCaseNoun(name)) {
+            return null;
+        }
+        return classCandidates.findOrCreate(capitalizeFirstLetter(name), domainModel);
     }
 
     /**

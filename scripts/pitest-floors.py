@@ -203,6 +203,7 @@ FLOORS = {
     "MultiplicityEvidence": 85,             # 100 %  (per MultiplicityEvidenceTest)
     "AssociationLabel": 85,                 # 100 %  (per AssociationLabelTest)
     "ResponsibilityParameterExtraction": 85,  # 100 %  (per ResponsibilityParameterExtractionTest)
+    "ResponsibilityOwnerExtraction": 85,      # 100 %  (per ResponsibilityOwnerExtractionTest)
     # The raw determiner/number token → UML multiplicity translation.  A `final` utility with no
     # injected collaborator (so it is not one of the three NO_FLOOR orchestrators), 44 mutants at
     # 95 %.  It was the first class the unfloored-class note below caught, which is exactly what

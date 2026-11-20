@@ -103,7 +103,7 @@ class CandidateFactoryTest {
         final RuleMatch actionMatch = match("ActionCdd", "process", null, null);
 
         final ResponsibilityCdd responsibilityCdd = new ResponsibilityCdd();
-        when(mockResponsibilityCandidates.findOrCreate("process", null, null)).thenReturn(responsibilityCdd);
+        when(mockResponsibilityCandidates.findOrCreate("process", null, null, null)).thenReturn(responsibilityCdd);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
@@ -115,13 +115,14 @@ class CandidateFactoryTest {
 
     @Test
     void createCandidatesFrom_createsResponsibilityCandidates_withOwningClass() {
-        // given
+        // given — the object noun is the only owner evidence (no sentence, so no actor)
         final RuleMatch actionMatch = match("ActionCdd", "offer", "ClassCdd", "Offer");
 
         final ClassCdd offerClassCdd = new ClassCdd();
         final ResponsibilityCdd offerAction = new ResponsibilityCdd();
         when(mockClassCandidates.findOrCreate("Offer", null)).thenReturn(offerClassCdd);
-        when(mockResponsibilityCandidates.findOrCreate("offer", offerClassCdd, null)).thenReturn(offerAction);
+        when(mockResponsibilityCandidates.findOrCreate("offer", offerClassCdd, offerClassCdd, null))
+                .thenReturn(offerAction);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
@@ -130,7 +131,67 @@ class CandidateFactoryTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst()).isEqualTo(offerAction);
         verify(mockClassCandidates).findOrCreate("Offer", null);
-        verify(mockResponsibilityCandidates).findOrCreate("offer", offerClassCdd, null);
+        verify(mockResponsibilityCandidates).findOrCreate("offer", offerClassCdd, offerClassCdd, null);
+    }
+
+    /**
+     * FIX-3d ({@code UML_GAP_FIX_PLAN.md} §13.8): the operation is owned by the sentence's <b>actor</b>,
+     * not by its object. {@code "the customer selects products"} is {@code Customer.select(products)} —
+     * {@code Product.select(...)} is the defect this pins shut. The object class still travels with the
+     * call, because a receive verb is typed by it (FIX-3b).
+     */
+    @Test
+    void createCandidatesFrom_ownsTheOperationByTheSentencesActor() {
+        // given — TDR3's match: the verb with its object as the related candidate …
+        final Sentence sentence = sentenceWithId(11L);
+        final RuleMatch actionMatch = match("ActionCdd", "select", "ClassCdd", "Product");
+        actionMatch.setTypedDependency(dependencyIn(sentence));
+        sentence.addTypedDependency(actorDependency(sentence, "select", "customer"));
+        sentence.addTypedDependency(objectDependency(sentence, "select", "product"));
+
+        final ClassCdd customer = new ClassCdd();
+        final ClassCdd product = new ClassCdd();
+        final ResponsibilityCdd select = new ResponsibilityCdd();
+        when(mockClassCandidates.findOrCreate("Customer", null)).thenReturn(customer);
+        when(mockClassCandidates.findOrCreate("Product", null)).thenReturn(product);
+        when(mockResponsibilityCandidates.findOrCreate("select", customer, product, null)).thenReturn(select);
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
+
+        // then — the owner is the actor, the object is only the received class
+        assertThat(result).containsExactly(select);
+        verify(mockResponsibilityCandidates).findOrCreate("select", customer, product, null);
+    }
+
+    /**
+     * The fallback: when the sentence names no usable actor — here {@code System}, a blocked use-case
+     * noun — the object keeps the operation, as it did before FIX-3d. Measured on the PetShop model this
+     * is 62 of the 149 owned operations (19 naming an unusable actor such as {@code System}, 43 naming
+     * none), and it is why the change loses no operation its owner.
+     */
+    @Test
+    void createCandidatesFrom_fallsBackToTheObjectWhenTheSentenceNamesNoUsableActor() {
+        // given
+        when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("system"));
+        final Sentence sentence = sentenceWithId(12L);
+        final RuleMatch actionMatch = match("ActionCdd", "validate", "ClassCdd", "Availability");
+        actionMatch.setTypedDependency(dependencyIn(sentence));
+        sentence.addTypedDependency(actorDependency(sentence, "validate", "system"));
+
+        final ClassCdd availability = new ClassCdd();
+        final ResponsibilityCdd validate = new ResponsibilityCdd();
+        when(mockClassCandidates.findOrCreate("Availability", null)).thenReturn(availability);
+        when(mockResponsibilityCandidates.findOrCreate("validate", availability, availability, null))
+                .thenReturn(validate);
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
+
+        // then — no class is invented for "System"; the object owns the operation
+        assertThat(result).containsExactly(validate);
+        verify(mockClassCandidates, never()).findOrCreate("System", null);
+        verify(mockResponsibilityCandidates).findOrCreate("validate", availability, availability, null);
     }
 
     /**
@@ -151,7 +212,7 @@ class CandidateFactoryTest {
         pet.setCandidateName("Pet");
         final ResponsibilityCdd browse = new ResponsibilityCdd();
         when(mockClassCandidates.findOrCreate("Customer", null)).thenReturn(customer);
-        when(mockResponsibilityCandidates.findOrCreate("Browse", customer, null)).thenReturn(browse);
+        when(mockResponsibilityCandidates.findOrCreate("Browse", customer, customer, null)).thenReturn(browse);
         when(mockClassCandidates.findByCandidateName("Pet", null)).thenReturn(pet);
 
         // when
@@ -173,7 +234,7 @@ class CandidateFactoryTest {
         final ClassCdd shop = new ClassCdd();
         final ResponsibilityCdd provide = new ResponsibilityCdd();
         when(mockClassCandidates.findOrCreate("Shop", null)).thenReturn(shop);
-        when(mockResponsibilityCandidates.findOrCreate("Provide", shop, null)).thenReturn(provide);
+        when(mockResponsibilityCandidates.findOrCreate("Provide", shop, shop, null)).thenReturn(provide);
 
         // when
         classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
@@ -516,7 +577,7 @@ class CandidateFactoryTest {
         final RuleMatch actionMatch = match("ActionCdd", "validate", "ClassCdd", "System");
 
         final ResponsibilityCdd action = new ResponsibilityCdd();
-        when(mockResponsibilityCandidates.findOrCreate("validate", null, null)).thenReturn(action);
+        when(mockResponsibilityCandidates.findOrCreate("validate", null, null, null)).thenReturn(action);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(actionMatch));
@@ -525,7 +586,7 @@ class CandidateFactoryTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst()).isEqualTo(action);
         verify(mockClassCandidates, never()).findOrCreate("System", null);
-        verify(mockResponsibilityCandidates).findOrCreate("validate", null, null);
+        verify(mockResponsibilityCandidates).findOrCreate("validate", null, null, null);
     }
 
     @Test
@@ -681,6 +742,18 @@ class CandidateFactoryTest {
     private static TypedDependency dependencyIn(final Sentence sentence) {
         final TypedDependency dependency = new TypedDependency();
         dependency.setSentence(sentence);
+        return dependency;
+    }
+
+    /** {@code nsubj(governor, dependent)} in the given sentence — an operation's actor (its owner). */
+    private static TypedDependency actorDependency(
+            final Sentence sentence, final String governor, final String dependent) {
+        final TypedDependency dependency = dependencyIn(sentence);
+        dependency.setType(TdType.NSUBJ);
+        dependency.setGovernorLemma(governor);
+        dependency.setGovernorPos(PartOfSpeechType.VB);
+        dependency.setDependentLemma(dependent);
+        dependency.setDependentPos(PartOfSpeechType.NN);
         return dependency;
     }
 

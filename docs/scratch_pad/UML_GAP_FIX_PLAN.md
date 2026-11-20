@@ -295,9 +295,11 @@ blocked and survive.
   else keeps `void`.
 - [ ] **F3c.** Render the return type only when it is meaningful (UML omits a return type for
   void). This is the honest minimum if F3b is deferred.
-- [ ] **F3d.** Owner correctness is a **separate** defect and should not be bundled: the review
-  found `supervise → Day`, `capture → Delivery` (the owner is the sentence *object*, not the
-  actor). Fix it only if the review pass shows it matters for the approved set.
+- [x] **F3d.** Owner correctness — **applied 2026-11-20** (§13.8): the operation is owned by the
+  sentence's **actor** (`nsubj`), not by its object; the object is kept only as the fallback owner when
+  the sentence names no usable actor, and as the receive-verb return type. The review's
+  `supervise → Day` / `capture → Delivery` observation turned out to be **systematic** — measured, all
+  149 owned operations were owned by their object noun and none by their actor.
 
 **Tests.** A new `ResponsibilityParameterExtractionTest` over hand-built `TypedDependency` lists;
 extend `TypedDependencyRulesTest` with a sentence carrying both a verb and its object.
@@ -405,7 +407,8 @@ when a rule match is present, and `source_target` when it is not.
 
 **Floored classes this plan touches** (`scripts/pitest-floors.py`): `CandidateFactory` (95),
 `UseCaseBlockedNouns` (85), `BasicAttributeVocabulary` (80) — plus each new collaborator
-(`MultiplicityEvidence`, `ResponsibilityParameterExtraction`) needs its own entry.
+(`MultiplicityEvidence`, `ResponsibilityParameterExtraction`, `ResponsibilityOwnerExtraction`) needs
+its own entry.
 
 ---
 
@@ -530,6 +533,108 @@ change, it takes effect on the **next Phase-1/2 run** (§14) — no migration, a
 review decisions hang off candidate rows that a re-run updates in place.
 
 
+### 13.8 FIX-3d — the operation's owner is the actor, not the object  *(decided and applied 2026-11-20)*
+
+**The question.** FIX-3d was deliberately left open (§8) with the instruction *"fix it only if the
+review pass shows it matters"*. That pass (TODO-05) has not run, so the gate was re-expressed as a
+**measurement**: the owner-correctness tally can be computed from data the model already holds —
+`ActionCdd.classCdd` is the owner, and the sentence behind each candidate carries both its subject and
+its object.
+
+**The tally** (`ActionCdd` candidates, PetShop model, 2026-11-20):
+
+```sql
+-- the actor each operation's own evidence sentences state, per candidate
+WITH ev AS (
+  SELECT DISTINCT a.id AS action_id, c.candidatename AS owner,
+         lower(rm.candidatename) AS verb, td.sentence_id AS sid
+    FROM domox.actioncdd a
+    LEFT JOIN domox.classcdd c ON c.id = a.classcdd_id
+    JOIN domox.actioncdd_rulematch am ON am.actioncdd_id = a.id
+    JOIN domox.rulematch rm ON rm.id = am.rulematches_id
+    JOIN domox.typeddependency td ON td.id = rm.typed_dependency_id
+), actors AS (
+  SELECT ev.action_id FROM ev JOIN domox.typeddependency s
+    ON s.sentence_id = ev.sid AND s.type = 76                     -- nsubj
+   AND lower(s.governorlemma) = ev.verb
+   AND s.dependentpos IN ('NN','NNP','NNS','NFP')                 -- a noun, not "there"/"it"
+   AND lower(s.dependentlemma) NOT IN ('system','actor','case','end','result','message','step',
+       'exception','field','note','rule','goal','feature','function','path','summary','overview',
+       'outcome','constraint','assumption','scenario','flow','description','trigger','condition',
+       'requirement','usecase','use-case','uc','useuc','mainflow','alternative','precondition',
+       'postcondition','pre-condition','post-condition')          -- domox.nlp.use-case-blocked-nouns
+  GROUP BY 1
+)
+SELECT count(*) AS actions,
+       count(*) FILTER (WHERE n_actors > 0)                        AS actor_ok,
+       count(*) FILTER (WHERE owner IS NOT NULL)                   AS object_today,
+       count(*) FILTER (WHERE n_actors > 0 OR owner IS NOT NULL)   AS union_owner,
+       count(*) FILTER (WHERE n_actors > 0 AND owner IS NOT NULL)  AS both
+  FROM (SELECT DISTINCT ev.action_id, ev.owner,
+               (SELECT count(*) FROM actors a WHERE a.action_id = ev.action_id) AS n_actors
+          FROM ev) per_action;
+```
+
+| Measure | n |
+|---|---|
+| `ActionCdd` candidates | **191** |
+| owned today | **149** — **all 149 by the sentence object**; **0** by the actor |
+| have a usable actor (`nsubj`, noun, not a blocked use-case noun) | **108** |
+| owners that change (object → actor) | **87** |
+| keep the object as the fallback owner | **62** (19 name an unusable actor — `System`; 43 name none) |
+| owner-less operations that gain an owner | **21** |
+| result under *actor, else object* | **170** owners (up from 149, none lost) |
+
+**Decision: fix — the defect is systematic, not sporadic.** Every owned operation came from `TDR3`,
+which fires on the *object* dependency (`dobj`/`iobj`/`pobj`) and records that object as the operation's
+related candidate; no rule ever recorded the subject as an owner. Corroboration from the codebase
+itself: `ResponsibilityParameterExtraction`'s javadoc already stated the contract —
+*"the subject is the operation's owner ('the customer browses …' is `Customer.browse()`, not
+`browse(customer)`)"* — while the factory attached the operation to the object. The comment described
+the model the rules were meant to build; the implementation did the opposite.
+
+**Applied 2026-11-20.**
+
+| Piece | Change |
+|---|---|
+| new `ResponsibilityOwnerExtraction` | the actor noun of the verb: the dependent of an `nsubj` whose governor **is that verb** and whose dependent is a noun. A pure static utility, mirroring `ResponsibilityParameterExtraction` (which reads the verb's objects, the parameters) |
+| `CandidateFactory` (ActionCdd branch) | owner = the actor class; the object class is kept as owner **only** when the sentence names no usable actor, and is always passed as the *received class* |
+| `ResponsibilityCandidates` | `create`/`findOrCreate` take the received class separately from the owner, so FIX-3b's mapping survives the owner move (§13.2) |
+| floors | `ResponsibilityOwnerExtraction` floored at 85 % (`scripts/pitest-floors.py`) |
+
+**Two deliberate exclusions** in "what counts as the actor": `nsubj:pass` is **not** the actor (in a
+passive clause it is the patient — `"the payment is processed"` says nothing about who processes it, so
+reading it would move the defect rather than fix it; such a sentence falls back to the object), and a
+non-noun dependent (`"there is …"`) is not an actor.
+
+**Why the object stays as the fallback.** 62 of the 149 owned operations name no *usable* actor: 19 of
+them name an actor that cannot become a class (`System`, a blocked use-case noun — *"the system
+validates availability"*), and 43 name no actor at all. Dropping them would remove 62 operations from
+the class diagram for no gain; keeping the object leaves a plausible owner
+(`Availability.validate()`). Without the fallback the change would have *lost* coverage (108 owners
+instead of 149) — with it, the result is **170**, and no operation loses its owner.
+
+**Effect.** 87 owners corrected (`Product.select(...)` → `Customer.select(products)`), 21 owner-less
+operations gain an owner, 0 lost. The `outputType` of a receive verb is unchanged — it is the received
+class, i.e. the object, exactly as before (§13.2).
+
+**Guarded by** `ResponsibilityOwnerExtractionTest` (6 cases: the subject, case-insensitive verb match,
+another verb's subject, a non-noun, a passive subject, no sentence/verb),
+`CandidateFactoryTest#createCandidatesFrom_ownsTheOperationByTheSentencesActor` and
+`#createCandidatesFrom_fallsBackToTheObjectWhenTheSentenceNamesNoUsableActor`, and
+`ResponsibilityCandidatesTest#createAttachesTheOperationToTheOwnerButTypesItFromTheReceivedClass`.
+
+Like every rule-set change here it takes effect on the **next Phase-1/2 run** (§14) — no migration, and
+the 302 existing review decisions hang off candidate rows a re-run updates in place.
+
+### 13.9 the gate it no longer waits on
+
+TODO-05 (Pass 3, the responsibility review) still has to run, and it still has to record owner
+correctness as its second column (`MODEL_REVIEW_PLAN.md` §6) — but it is no longer a *decision* gate,
+only a confirmation. If the approved subset shows the actor-derived owners to be wrong in a way this
+tally cannot see, the change is one branch in `CandidateFactory` plus one test class to revisit; the
+measurement above is the record of why it was made.
+
 ## 14. Execution status
 
 - [x] **Wave 1** — FIX-1 (XS), FIX-4 (S), FIX-5 (S) → `check.sh --quick`, domain tests, boot smoke
@@ -540,6 +645,10 @@ review decisions hang off candidate rows that a re-run updates in place.
 - [x] **Wave 5** — the three §13 rule-set decisions: §13.2 (the verb→return-type mapping), §13.6
       (the TDR10/TDR11 possessive scope guard) and §13.7 (association vs. class de-duplication) →
       domain tests (`TypedDependencyRulesTest`, `CandidateFactoryTest`, `ResponsibilityCandidatesTest`)
+- [x] **Wave 6** — FIX-3d (§13.8, the operation owner): measured the owner-correctness tally (149/149
+      owned by the object, 0 by the actor → systematic), then applied the actor-owner change → domain
+      tests (`ResponsibilityOwnerExtractionTest`, `CandidateFactoryTest`,
+      `ResponsibilityCandidatesTest`)
 - [ ] Re-run Phase 1/2 on the corpus, regenerate the export, and update
       `MODEL_UML_READINESS_REVIEW.md` §2 with the new measurements — **needs the NLP service and a
       fresh model; not run here**
@@ -558,5 +667,6 @@ review decisions hang off candidate rows that a re-run updates in place.
 | FIX-5 | `domox.nlp.use-case-metadata-nouns` + `UseCaseBlockedNouns.isMetadataNoun` + TDR25/TDR26 guards + case-insensitive lookup fix |
 | FIX-6 | `CandidateFactory` (no `Unknown` owner), `TDR12` (attribute word, no owner when both are attributes), `basic-attributes` extended |
 | FIX-3 | new `ResponsibilityParameterExtraction` + `ResponsibilityCandidates.addParameter` + `CandidateFactory.addParameters`; `void` omitted |
+| FIX-3d | new `ResponsibilityOwnerExtraction` (the verb's `nsubj` actor) + `CandidateFactory.classFor`/`actorNameOf` + the `receivedClass` split in `ResponsibilityCandidates` (§13.8) |
 | FIX-7 | new `AssociationLabel` + `CollaboratorCdd.label()` |
 | FIX-8 | `AttributeCdd.cardinality` + `Cardinality.java` deleted, `create-tables.sql` updated, dev-DB column dropped |

@@ -59,16 +59,42 @@ public class ResponsibilityCandidates {
         return create(candidateName, null, domainModel);
     }
 
+    /**
+     * Convenience form for a caller that has an owner but no object evidence — the operation then
+     * carries no receive-verb return type. Prefer
+     * {@link #create(String, ClassCdd, ClassCdd, DomainModel)}, which the candidate factory uses.
+     */
     @Programmatic
     public ResponsibilityCdd create(String candidateName, ClassCdd classCdd, DomainModel domainModel) {
+        return create(candidateName, classCdd, null, domainModel);
+    }
+
+    /**
+     * Creates an operation owned by {@code owner}, with its UML return type derived from
+     * {@code receivedClass}.
+     *
+     * <p><b>Why the two are separate.</b> FIX-3b (closed 2026-11-19, {@code UML_GAP_FIX_PLAN.md} §13.2)
+     * maps a <em>receive</em> verb to the class it receives. FIX-3d (closed 2026-11-20, §13.8) moved the
+     * owner to the sentence's <em>actor</em>, so the received class can no longer be read off the owner:
+     * {@code "the customer receives the payment"} is {@code Customer.receive(): Payment}, i.e. the owner
+     * is {@code Customer} while the return type comes from the object noun {@code Payment}. Passing the
+     * object class separately keeps the mapping's meaning intact.</p>
+     *
+     * @param owner         the class the operation belongs to — the sentence's actor — or {@code null}
+     * @param receivedClass the class of the sentence's object noun, i.e. what a receive verb returns,
+     *                      or {@code null} when the sentence names no such class
+     */
+    @Programmatic
+    public ResponsibilityCdd create(
+            String candidateName, ClassCdd owner, ClassCdd receivedClass, DomainModel domainModel) {
         final ResponsibilityCdd obj = factoryService.detachedEntity(ResponsibilityCdd.class);
         obj.setCandidateName(candidateName);
         obj.setCandidateType("ActionCdd");
-        obj.setOutputType(outputTypeFor(candidateName, classCdd));
-        obj.classCdd = classCdd;
+        obj.setOutputType(outputTypeFor(candidateName, receivedClass));
+        obj.classCdd = owner;
         obj.domainModel = domainModel;
-        if (classCdd != null) {
-            classCdd.responsibilityList.add(obj);
+        if (owner != null) {
+            owner.responsibilityList.add(obj);
         }
         if (domainModel != null) {
             domainModel.responsibilityList.add(obj);
@@ -86,8 +112,9 @@ public class ResponsibilityCandidates {
      * {@link Candidate#getCandidateType()}. Three cases, from the configured verb catalogues:
      * <ul>
      *   <li><b>a receive verb</b> ({@code receive}, {@code accept}, {@code obtain}, …) → the
-     *       <em>received class</em>, i.e. the class the operation is attached to; the sentence's
-     *       direct object is what the operation receives, and the factory makes it the owner.</li>
+     *       <em>received class</em> — the class of the sentence's direct object, which is what the
+     *       operation receives. Since FIX-3d that is no longer the operation's owner (the owner is the
+     *       actor), so the caller passes it in explicitly.</li>
      *   <li><b>an output/notify verb</b> ({@code display}, {@code show}, {@code print}, …) →
      *       {@code String} — the operation produces something to read.</li>
      *   <li><b>otherwise</b> → no return type ({@code null}, which
@@ -96,18 +123,18 @@ public class ResponsibilityCandidates {
      * Deliberately no {@code void}: the renderer omits blank/{@code void} anyway, and a real
      * {@code null} says "the mapping had no answer" rather than "the mapping answered void".
      *
-     * @param verb  the operation name, as the rule recorded it (the catalogues are lower-case, and
-     *              TDR32/TDR33 capitalise the name, so the lookup lower-cases it)
-     * @param owner the class the operation is attached to, or {@code null} for an orphan operation
+     * @param verb          the operation name, as the rule recorded it (the catalogues are lower-case,
+     *                      and TDR32/TDR33 capitalise the name, so the lookup lower-cases it)
+     * @param receivedClass the class of the sentence's direct object, or {@code null} when there is none
      */
     @Programmatic
-    String outputTypeFor(final String verb, final ClassCdd owner) {
+    String outputTypeFor(final String verb, final ClassCdd receivedClass) {
         if (verb == null || nlpProperties == null) {
             return null;
         }
         final String lower = verb.toLowerCase(Locale.ROOT);
         if (contains(nlpProperties.getReceiveVerbs(), lower)) {
-            return owner != null ? owner.getCandidateName() : null;
+            return receivedClass != null ? receivedClass.getCandidateName() : null;
         }
         if (contains(nlpProperties.getSystemOutputVerbs(), lower)) {
             return "String";
@@ -146,11 +173,30 @@ public class ResponsibilityCandidates {
         return findOrCreate(candidateName, null, domainModel);
     }
 
+    /** Convenience form of {@link #findOrCreate(String, ClassCdd, ClassCdd, DomainModel)} without the
+     * received class — see its note on the receive-verb return type. */
     @Programmatic
     public ResponsibilityCdd findOrCreate(final String candidateName, final ClassCdd classCdd, final DomainModel domainModel) {
+        return findOrCreate(candidateName, classCdd, null, domainModel);
+    }
+
+    /**
+     * Returns the operation named {@code candidateName}, creating it when it does not exist yet.
+     *
+     * <p>Idempotent on purpose: Phase 2 runs over the same matches more than once, and a re-run must
+     * return the <em>existing</em> operation rather than a second one of the same name.</p>
+     *
+     * @param owner         the class the operation belongs to — the sentence's actor (FIX-3d)
+     * @param receivedClass the class of the sentence's object noun, for the receive-verb return type
+     *                      (FIX-3b) — see {@link #create(String, ClassCdd, ClassCdd, DomainModel)}
+     */
+    @Programmatic
+    public ResponsibilityCdd findOrCreate(
+            final String candidateName, final ClassCdd owner, final ClassCdd receivedClass,
+            final DomainModel domainModel) {
         ResponsibilityCdd candidate = findByCandidateName(candidateName, domainModel);
         if (candidate == null) {
-            candidate = create(candidateName, classCdd, domainModel);
+            candidate = create(candidateName, owner, receivedClass, domainModel);
         }
         return candidate;
     }

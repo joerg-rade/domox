@@ -32,7 +32,6 @@ swallowed by its source class, §13.7); TODO-12 (TDR10/TDR11 create a `PropertyC
 attribute noun — the same scope-guard shape FIX-5 gave TDR25/TDR26, §13.6); TODO-11 (the verb→return
 type mapping — receive verb → the received class, output/notify verb → `String`, else no return type,
 §13.2). All three take effect on the next Phase-1/2 run (TODO-01); no migration is needed.
-**TODO-14 stays open** — it is gated on TODO-05's owner tally, which needs Pass 3 to run.
 
 **Closed 2026-11-20 (third sweep)** — the four CI-guardrail items, each proved by a **negative test**
 (the failure the rule exists for was reproduced and observed to fail) and recorded in
@@ -45,6 +44,18 @@ bare `mvn enforcer:enforce` ignores the execution's configuration and would chec
 TODO-22 (`ConfigPlaceholderSmokeTest` resolves every no-default `causeway.*` placeholder it scrapes
 from the classpath against `application.yml`). The last three are Maven/test work, so `check.sh` now
 has **ten** steps.
+
+**Closed 2026-11-20 (fourth sweep)** — TODO-14 (operation owner correctness), the last open
+extraction-rule item, recorded in `UML_GAP_FIX_PLAN.md` §13.8. It was the one item explicitly
+**gated** on a review pass, so the gate was re-expressed as a measurement: the owner-correctness tally
+is computable from data the model already holds, and it came out **systematic** — of the 191
+`ActionCdd` candidates, 149 have an owner and *all 149 are owned by their object noun*, none by their
+actor (every one from `TDR3`, which fires on the object dependency). So the owner is now the sentence's
+`nsubj` actor, with the object kept only as the fallback owner when the sentence names no usable actor
+(62 operations — 19 name an unusable actor such as `System`, 43 name none) and as the receive-verb
+return type. 87 owners corrected, 21 owner-less operations gain an owner, 0 lost. Pass 3 (TODO-05) now
+only *confirms* it — it still records the owner-correctness column (`MODEL_REVIEW_PLAN.md` §6). A
+rule-set change, so it takes effect on the next Phase-1/2 run (TODO-01); no migration.
 
 ---
 
@@ -94,9 +105,10 @@ flowchart TD
 Read it as one column: the **re-run gates the review passes**, and the **collaborator pass gates the
 sub-domain pass and the re-measurement**. The three independent rule gaps (TODO-11/12/13) landed
 2026-11-19, so they no longer branch off this path — the re-run above simply carries them. The four
-CI-guardrail items (TODO-19…22) landed 2026-11-20 and were never on this path either. The one
-remaining rule item, TODO-14 (operation-owner correctness), is *not* independent: it waits on Pass 3's
-owner tally, so it has no place on this diagram until TODO-05 has run.
+CI-guardrail items (TODO-19…22) landed 2026-11-20 and were never on this path either, and neither was
+TODO-14 (operation-owner correctness, landed 2026-11-20): it waited on Pass 3's owner tally, which
+turned out to be derivable from the candidates themselves, so the decision was made ahead of the pass.
+No open item now sits off this path.
 
 ---
 ## 3. Summary — every open item
@@ -107,12 +119,11 @@ owner tally, so it has no place on this diagram until TODO-05 has run.
 | **TODO-02** | Review pipeline | Attribute-review policy (`MODEL_REVIEW_PLAN.md` §5) not signed off | **P1** | S | Medium |
 | **TODO-03** | Review pipeline | Pass 1 — review **769** `ClassCdd` candidates | **P1** | L | High |
 | **TODO-04** | Review pipeline | Pass 2 — review **100** `PropertyCdd` + record the vocabulary (feeds FIX-6c) | P2 | M | Medium |
-| **TODO-05** | Review pipeline | Pass 3 — review **100** `ActionCdd` + capture owner correctness (feeds FIX-3d) | P2 | M | Medium |
+| **TODO-05** | Review pipeline | Pass 3 — review **100** `ActionCdd` + confirm the owner-correctness column | P2 | M | Medium |
 | **TODO-06** | Review pipeline | Pass 4 — review **237** `AssociationCdd` (last: needs both ends approved) | P2 | M | Medium |
 | **TODO-07** | Review pipeline | Sub-domain pass for the newly approved classes | P2 | S | Low |
 | **TODO-08** | Review pipeline | Re-measure the UML diagram and update the readiness review | P2 | S | Medium |
 | **TODO-09** | Ontology grounding | Optional grounding of the ~15 core commerce classes | P3 | S | Low |
-| **TODO-14** | Extraction rules | Operation owner correctness (`supervise → Day`) — gated on TODO-05's owner tally | P3 | M | Medium |
 | **TODO-15** | Schema / DDL | Deferred persisted-name migration (`@Table`/`@Named`/`candidateType`) | P3 | L | Medium |
 | **TODO-18** | Architecture | `domox.dom.rules` is a flat package of 61 files | P3 | M | Low |
 | **TODO-24** | Build hygiene | Nexus snapshot-metadata timeout noise on every build | P3 | S | Low |
@@ -122,8 +133,8 @@ owner tally, so it has no place on this diagram until TODO-05 has run.
 | **TODO-28** | Capability | The "(future)" association patterns in `association-type-categorization.md` | P3 | M | Low |
 | **TODO-29** | Capability | Generalization literature gaps + the stale "not yet implemented" Group-6 header | P3 | M | Low |
 
-**Counts.** 18 open items — 1 × P0, 2 × P1, 5 × P2, 10 × P3. (Thirteen further items — TODO-10, 11,
-12, 13, 16, 17, 19, 20, 21, 22, 23, 30, 31 — were closed 2026-11-19/20; see the header.)
+**Counts.** 17 open items — 1 × P0, 2 × P1, 5 × P2, 9 × P3. (Fourteen further items — TODO-10, 11,
+12, 13, 14, 16, 17, 19, 20, 21, 22, 23, 30, 31 — were closed 2026-11-19/20; see the header.)
 
 ---
 
@@ -183,14 +194,15 @@ concrete improvement, and the condition that closes it.
   it to F6c, and the rejects to F6e.
 - **Done when:** all 100 reviewed **and** the vocabulary list is attached to `UML_GAP_FIX_PLAN.md` §9.
 
-#### TODO-05 — Pass 3: review 100 `ActionCdd` + capture owner correctness · P2 · M · Risk Medium
+#### TODO-05 — Pass 3: review 100 `ActionCdd` + confirm the owner-correctness column · P2 · M · Risk Medium
 
-- **Source:** `MODEL_REVIEW_PLAN.md` §6 and §11; `UML_GAP_FIX_PLAN.md` §8 (F3d).
-- **Open:** 100 responsibilities unreviewed; and the owner-correctness observation (the review
-  measured `supervise → Day`, `capture → Delivery` — the owner is the sentence *object*) **cannot be
-  recovered later**.
-- **Risk if skipped:** FIX-3d is decided blind — systematic vs sporadic owner errors lead to opposite
-  conclusions, and the evidence is gone after the pass.
+- **Source:** `MODEL_REVIEW_PLAN.md` §6 and §11; `UML_GAP_FIX_PLAN.md` §8 (F3d), §13.8.
+- **Open:** 100 responsibilities unreviewed. The owner-correctness observation is **no longer a
+  blocker** — it was measured over the candidates themselves and FIX-3d was applied 2026-11-20
+  (TODO-14, closed): all 149 owned operations were owned by their object noun and none by their actor.
+  This pass now only *confirms* the actor-derived owners.
+- **Risk if skipped:** the responsibility vocabulary stays unratified and the owner correction goes
+  unconfirmed — but no decision hangs on it any more.
 - **Area of improvement:** for every approved responsibility, record whether its owner is the right
   class, as a second column of the pass output.
 - **Done when:** all 100 reviewed **and** the owner-correctness tally is written into §6.
@@ -241,27 +253,7 @@ concrete improvement, and the condition that closes it.
 
 ---
 
-### B. Extraction-rule gaps — `docs/scratch_pad/UML_GAP_FIX_PLAN.md` §13
-
-#### TODO-14 — Operation owner correctness (FIX-3d) · P3 · M · Risk Medium
-
-- **Source:** `UML_GAP_FIX_PLAN.md` §8 (F3d); `MODEL_REVIEW_PLAN.md` §6.
-- **Open:** deliberately not bundled with FIX-3 — fix only if TODO-05's owner tally shows it matters
-  for the approved set. Its three sibling extraction-rule items (TODO-11/12/13) were closed
-  2026-11-19; this one is **gated**: it needs a Pass-3 tally that does not exist yet, so it is the
-  only item left in this section.
-- **Risk if skipped:** if the owner is systematically the sentence object, operations sit on the wrong
-  classes and the class diagram's behaviour is misattributed.
-- **Area of improvement:** use TODO-05's tally to decide; if systematic, resolve the owner from the
-  `nsubj` actor rather than the object. Note that the FIX-3b return type (closed 2026-11-19) maps a
-  receive verb to "the received class", i.e. the operation's **owner** — so if this item moves the
-  owner to the `nsubj` actor, the receive-verb return type moves with it
-  (`ResponsibilityCandidates#outputTypeFor`).
-- **Done when:** the tally exists and a keep/fix decision is recorded.
-
----
-
-### C. Schema / DDL hygiene — `SCHEMA.md`, `CRC_VOCABULARY_RENAME_SUMMARY.md`
+### B. Schema / DDL hygiene — `SCHEMA.md`, `CRC_VOCABULARY_RENAME_SUMMARY.md`
 
 #### TODO-15 — Deferred persisted-name migration · P3 · L · Risk Medium
 
@@ -290,7 +282,7 @@ concrete improvement, and the condition that closes it.
 
 ---
 
-### D. Build hygiene — `retro-boot4-upgrade-2026-10-14.md`
+### C. Build hygiene — `retro-boot4-upgrade-2026-10-14.md`
 
 The four CI-guardrail items that used to live here — TODO-19 (mermaid check not wired into CI),
 TODO-20 (no JUnit 5.x `bannedDependencies` rule), TODO-21 (`check.sh` never ran the enforcer) and
@@ -313,7 +305,7 @@ build-hygiene item is what remains here.
 
 ---
 
-### E. Capability proposals (not yet implemented)
+### D. Capability proposals (not yet implemented)
 
 #### TODO-25 — gist into Fuseki + MCP-exposed pattern repositories · P3 · L · Risk Low
 

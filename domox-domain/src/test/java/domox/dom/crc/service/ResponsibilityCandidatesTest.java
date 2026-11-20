@@ -159,4 +159,30 @@ class ResponsibilityCandidatesTest {
         // getOutputType(): the field is write-only, and the UML rendering is the contract)
         assertThat(browse.toPlantUmlString()).isEqualTo("browse(): String");
     }
+
+    /**
+     * FIX-3d ({@code UML_GAP_FIX_PLAN.md} §13.8) splits the two classes apart: the operation is
+     * <em>owned</em> by the actor, while a receive verb is <em>typed</em> by the object it receives —
+     * {@code "the customer receives the payment"} is {@code Customer.receive(): Payment}, not
+     * {@code Customer.receive(): Customer}.
+     */
+    @Test
+    void createAttachesTheOperationToTheOwnerButTypesItFromTheReceivedClass() {
+        // given
+        final ClassCdd customer = new ClassCdd();
+        customer.setCandidateName("Customer");
+        final ClassCdd payment = new ClassCdd();
+        payment.setCandidateName("Payment");
+        when(nlpProperties.getReceiveVerbs()).thenReturn(List.of("receive"));
+        when(factoryService.detachedEntity(ResponsibilityCdd.class))
+                .thenAnswer(invocation -> new ResponsibilityCdd());
+
+        // when
+        final ResponsibilityCdd receive = classUnderTest.create("receive", customer, payment, null);
+
+        // then
+        assertThat(receive.classCdd).isSameAs(customer);
+        assertThat(customer.responsibilityList).containsExactly(receive);
+        assertThat(receive.toPlantUmlString()).isEqualTo("receive(): Payment");
+    }
 }

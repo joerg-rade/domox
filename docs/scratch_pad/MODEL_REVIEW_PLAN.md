@@ -170,8 +170,16 @@ a rule defect to re-open.
 
 **Also record (for FIX-3).** For each approved responsibility, note whether its **owner** is the
 right class. The review measured the owner to be the sentence *object* (`supervise → Day`,
-`capture → Delivery`). If the approved set shows this is systematic, FIX-3d is worth doing; if it
-is sporadic, it is not. This observation cannot be recovered later — capture it during the pass.
+`capture → Delivery`).
+
+> **Resolved before the pass — FIX-3d applied 2026-11-20** (`UML_GAP_FIX_PLAN.md` §13.8). The
+> observation no longer has to wait for this pass: it was re-expressed as a measurement over the
+> candidates themselves, and it came out **systematic** — of the 191 `ActionCdd` candidates, 149 have
+> an owner and **all 149 are owned by their object noun**, none by their actor (every one from `TDR3`,
+> which fires on the object dependency). The owner is now the sentence's `nsubj` actor, with the object
+> kept only as the fallback when the sentence names no usable actor. This pass therefore only
+> **confirms** it: keep the second column, and read it as a check on the actor-derived owners rather
+> than as the gate for a decision that has already been made.
 
 ---
 
@@ -281,7 +289,7 @@ Shell: `docker exec domox-db psql -U postgres -d postgres -c "..."`.
 | 0 — prerequisites + re-run | — | — | S | the re-run replaces candidate ids → review only **after** it |
 | 1 — classes | 769 | existing, calibrated | L | review fatigue; a class approved here decides 171 associations |
 | 2 — attributes | 100 | **new** | M | the vocabulary is the real deliverable — record it as you go |
-| 3 — responsibilities | 100 | existing | M | owner-correctness observation must be captured now (FIX-3d) |
+| 3 — responsibilities | 100 | existing | M | the owner correction (FIX-3d, applied 2026-11-20) is only *confirmed* here — see §6 |
 | 4 — collaborators | 237 | **new** | M | near-total rejection of 171 generalizations is expected, not a failure |
 | 5 — sub-domains + re-measure | — | existing | S | `suggestSubDomains` is empty until Pass 1 completes |
 
