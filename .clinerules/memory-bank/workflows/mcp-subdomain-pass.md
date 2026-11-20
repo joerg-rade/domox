@@ -9,6 +9,10 @@ The generic method lives in the `identify-subdomains` skill (cohesion cues, clus
 boundary tests, classification signals, output template). This file is the DoMoX wiring: where the
 evidence is, which tools move it, and what the numbers are.
 
+> **Pass 2 of three.**  The umbrella view — pass 1 *review* → pass 2 *partition* → pass 3 *assemble
+> & ground* — is the `review-and-assemble-model` skill
+> (`.clinerules/skills/review-and-assemble-model.md`).  This file is the wiring for pass 2 only.
+
 ---
 
 ## 1. When to use this runbook

@@ -9,43 +9,32 @@ disable-model-invocation: true
 ## Core Principles
 
 ```mermaid
-flowchart LR
-    subgraph Outer["Outer (Infrastructure / Adapter)"]
-        DB[(Postgres)]
-        NLP[Stanford CoreNLP]
-        KROKI[Kroki Diagram]
-        WEB[Web UI / MCP]
+%%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
+%% Vertical, one node per boundary: the horizontal version measured 1597px natural and was
+%% shrunk to 4.8px in a narrow viewer.  This one measures 344px, so it renders at the full 18px.
+%% See "Diagram size" in docs/formatting/readability-guide.md.
+flowchart TD
+    classDef outer fill:#FDEAEC,stroke:#D9536B,stroke-width:2px,color:#3D3630
+    classDef adap fill:#E8F1FD,stroke:#3B82C4,stroke-width:2px,color:#3D3630
+    classDef port fill:#F0EBFB,stroke:#7C5CD1,stroke-width:2px,color:#3D3630
+    classDef core fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
+
+    subgraph Outer["Outer · infrastructure"]
+        O["Postgres · CoreNLP · Kroki<br/>Web UI / MCP"]:::outer
+    end
+    subgraph Adapter["Adapter · domox-adapter"]
+        A["StanfordCoreNlpAdapter<br/>KrokiDiagramAdapter · WebController"]:::adap
+    end
+    subgraph Ports["Ports · interfaces, in domox-domain"]
+        P["NlpPort · DiagramPort"]:::port
+    end
+    subgraph Core["Core · domox-domain"]
+        K["Entities<br/>Domain Services · Rules"]:::core
     end
 
-    subgraph Adapter["Adapter Layer<br/>(domox-adapter)"]
-        NLP_Adapter[StanfordCoreNlpAdapter]
-        DIAGRAM_Adapter[KrokiDiagramAdapter]
-        WEB_Adapter[WebController]
-    end
-
-    subgraph Port["Port Interfaces<br/>(defined in domox-domain)"]
-        NLP_Port["NlpPort (interface)"]
-        DIAGRAM_Port["DiagramPort (interface)"]
-    end
-
-    subgraph Core["Domain Core<br/>(domox-domain)"]
-        ENT[Entities]
-        SVC[Domain Services]
-        RULES[Rules]
-    end
-
-    NLP --> NLP_Adapter
-    KROKI --> DIAGRAM_Adapter
-    WEB --> WEB_Adapter
-
-    NLP_Adapter -.->|implements| NLP_Port
-    DIAGRAM_Adapter -.->|implements| DIAGRAM_Port
-
-    NLP_Port -.->|used by| SVC
-    DIAGRAM_Port -.->|used by| SVC
-
-    SVC --> ENT
-    SVC --> RULES
+    O -->|"calls"| A
+    A -.->|"implements"| P
+    P -.->|"used by"| K
 ```
 
 ### 1. Dependency Rule — THE cardinal rule
@@ -111,21 +100,29 @@ domox-adapter/src/main/java/domox/adapter/
 ### 5. Transfer Objects (TOs / DTOs)
 
 ```mermaid
-flowchart LR
-    subgraph Adapter
-        NLP_API[Stanford CoreNLP]
-        NLP_DTO[DocumentTO / SentenceTO]
+%%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
+%% Vertical: the horizontal version measured 1244px natural and was shrunk to 6.2px in a narrow
+%% viewer.  This one measures 346px, so it renders at the full 18px.
+%% See "Diagram size" in docs/formatting/readability-guide.md.
+flowchart TD
+    classDef adap fill:#E8F1FD,stroke:#3B82C4,stroke-width:2px,color:#3D3630
+    classDef port fill:#F0EBFB,stroke:#7C5CD1,stroke-width:2px,color:#3D3630
+    classDef core fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
+
+    subgraph Adapter["Adapter"]
+        NLP_API["Stanford CoreNLP"]:::adap
+        NLP_DTO["DocumentTO / SentenceTO"]:::adap
     end
-    subgraph Port
-        NLP_Result[NlpResult]
+    subgraph Port["Port"]
+        NLP_Result["NlpResult"]:::port
     end
-    subgraph Domain
-        ENT[Entity]
+    subgraph Domain["Domain"]
+        ENT["Entity"]:::core
     end
 
     NLP_API --> NLP_DTO
-    NLP_DTO -->|mapped by adapter| NLP_Result
-    NLP_Result -->|used by| ENT
+    NLP_DTO -->|"mapped by adapter"| NLP_Result
+    NLP_Result -->|"used by"| ENT
 ```
 
 **Best Practice:**

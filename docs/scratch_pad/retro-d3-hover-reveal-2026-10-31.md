@@ -244,11 +244,15 @@ vacuously — candidates 1 and 2.
 ## Suggested sequencing
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
 flowchart LR
-    A["1 — verify-ui-render.sh<br/>+ check.sh step 6"] --> B["2 — stale-DDL guard<br/>in check-schema-drift.sh"]
-    B --> C["3 + 5 — pointers in<br/>d3-diagram.md / commands.md"]
-    C --> D["6 — CODING_STANDARDS §4<br/>review items"]
-    D --> E["4, 7, 8, 9 — one-liners"]
+    classDef priority fill:#E9F7EC,stroke:#3FA65A,stroke-width:2px,color:#3D3630
+    classDef step fill:#E8F1FD,stroke:#3B82C4,stroke-width:2px,color:#3D3630
+
+    A["1 — verify-ui-render.sh<br/>+ check.sh step 6"]:::priority --> B["2 — stale-DDL guard<br/>in check-schema-drift.sh"]:::priority
+    B --> C["3 + 5 — pointers in<br/>d3-diagram.md / commands.md"]:::step
+    C --> D["6 — CODING_STANDARDS §4<br/>review items"]:::step
+    D --> E["4, 7, 8, 9 — one-liners"]:::step
 ```
 
 Candidates **1** and **2** are the two that would have prevented this session's actual failures;

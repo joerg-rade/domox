@@ -108,20 +108,27 @@ the stereotype set into a queryable catalogue with *signals* is cheap and domain
 pattern exactly** — a domain port + domain service + a thin `*McpTools` façade. Not a new subsystem.
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
 flowchart LR
+    classDef port fill:#F0EBFB,stroke:#7C5CD1,stroke-width:2px,color:#3D3630
+    classDef svc fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
+    classDef adap fill:#E8F1FD,stroke:#3B82C4,stroke-width:2px,color:#3D3630
+    classDef entry fill:#FFF4E5,stroke:#E8A33D,stroke-width:2px,color:#3D3630
+    classDef ext fill:#E9F7EC,stroke:#3FA65A,stroke-width:2px,color:#3D3630
+
     subgraph Domain["domox-domain (no infra deps)"]
-        PORT["PatternCataloguePort<br/>(port)"]
-        SVC["Patterns (domain service)<br/>lookup + suggest + validate"]
-        ADVISOR["ReviewAdvisor<br/>+ pattern signals"]
+        PORT["PatternCataloguePort<br/>(port)"]:::port
+        SVC["Patterns (domain service)<br/>lookup + suggest + validate"]:::svc
+        ADVISOR["ReviewAdvisor<br/>+ pattern signals"]:::svc
     end
     subgraph Adapter["domox-adapter"]
-        JENA["JenaRdfAdapter<br/>(existing RdfPort)"]
-        OLS["OlsPatternAdapter<br/>(optional REST)"]
+        JENA["JenaRdfAdapter<br/>(existing RdfPort)"]:::adap
+        OLS["OlsPatternAdapter<br/>(optional REST)"]:::adap
     end
     subgraph Web["domox-webapp"]
-        MCP["PatternMcpTools<br/>@McpTool"]
+        MCP["PatternMcpTools<br/>@McpTool"]:::entry
     end
-    FUSEKI[("Fuseki:<br/>gist + GoodRelations<br/>+ existing 4")]
+    FUSEKI[("Fuseki:<br/>gist + GoodRelations<br/>+ existing 4")]:::ext
     SVC --> PORT
     ADVISOR --> SVC
     PORT -.implements.-> JENA

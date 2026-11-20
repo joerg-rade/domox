@@ -34,13 +34,15 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   trap) → `~/.clinerules/maven.md`
 - **Persistence / schema / JPA field migration** (TABLE_PER_CLASS trap, `create-tables.sql`,
   drift check) → `.clinerules/memory-bank/technical/SCHEMA.md`
-- **Candidate-review pipeline over MCP** (review all N candidates) →
-  `.clinerules/memory-bank/workflows/mcp-review-pipeline.md` — open it *before* touching the
-  review tools, not mid-run.
-- **Sub-domain pass (partition the domain, classify core/supporting/generic) over MCP** →
-  `.clinerules/memory-bank/workflows/mcp-subdomain-pass.md` (DoMoX wiring: `SubDomains`,
-  `ClassCdd.subDomain`, the eight `SubDomainMcpTools`; generic method → the `identify-subdomains`
-  skill)
+- **Candidate review → sub-domain partition → model assembly, and ontology grounding over MCP**
+  (approve/reject candidates, assign & classify sub-domains, ground a term against the Fuseki
+  vocabularies, re-measure the UML model) → the `review-and-assemble-model` skill
+  (`.clinerules/skills/review-and-assemble-model.md`) — it is the entry point and the map; open it
+  *before* touching the review tools, not mid-run. Its wiring detail:
+  `.clinerules/memory-bank/workflows/mcp-review-pipeline.md` (pass 1 — session driver, decisions
+  pre-flight, the `/mcp` 404 fix, per-pass verification SQL) and
+  `.clinerules/memory-bank/workflows/mcp-subdomain-pass.md` (pass 2 — the evidence chain, the eight
+  `SubDomainMcpTools`; generic method → the `identify-subdomains` skill)
 - **Domain-modeling (CRC) extraction rules** → `.clinerules/crc_domain_modeling_guide.md` (full guide: `docs/domain-modeling/crc-guide.md`)
 - **Run the app & confirm boot** → use `bash scripts/run-app.sh [--spring.args…]`. It does the three
   things that are easy to get wrong, in order: (1) `install`s `domox-domain`/`domox-adapter` into

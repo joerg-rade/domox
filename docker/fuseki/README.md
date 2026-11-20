@@ -16,21 +16,26 @@ The DoMoX OntoUML model (`domox-domain/src/main/resources/ontology.ttl`) is **no
 this image serves the reference vocabularies only.
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
 flowchart LR
+    classDef upstream fill:#F0EBFB,stroke:#7C5CD1,stroke-width:2px,color:#3D3630
+    classDef image fill:#E8F1FD,stroke:#3B82C4,stroke-width:2px,color:#3D3630
+    classDef client fill:#FFF4E5,stroke:#E8A33D,stroke-width:2px,color:#3D3630
+
     subgraph Upstream["Upstream (downloaded at build, best-effort)"]
-        SCHEMA["Schema.org (ttl)"]
-        BFO["BFO (owl)"]
-        GIST["gist (ttl)"]
-        BBO["BBO / BPMN (owl)"]
-        SBPMN["sBPMN (ttl)"]
+        SCHEMA["Schema.org (ttl)"]:::upstream
+        BFO["BFO (owl)"]:::upstream
+        GIST["gist (ttl)"]:::upstream
+        BBO["BBO / BPMN (owl)"]:::upstream
+        SBPMN["sBPMN (ttl)"]:::upstream
     end
     subgraph Image["domox-fuseki image"]
-        DF["docker/fuseki/Dockerfile"]
-        LOADER["tdb2.tdbloader"]
-        DB[("/opt/domox/databases/ds<br/>TDB2 index - named graphs only<br/>schema.org, BFO, gist, BBO, sBPMN")]
-        FS["fuseki-server<br/>--loc ... /ds"]
+        DF["docker/fuseki/Dockerfile"]:::image
+        LOADER["tdb2.tdbloader"]:::image
+        DB[("/opt/domox/databases/ds<br/>TDB2 index - named graphs only<br/>schema.org, BFO, gist, BBO, sBPMN")]:::image
+        FS["fuseki-server<br/>--loc ... /ds"]:::image
     end
-    CLIENT["SPARQL client"]
+    CLIENT["SPARQL client"]:::client
     SCHEMA --> LOADER
     BFO --> LOADER
     GIST --> LOADER

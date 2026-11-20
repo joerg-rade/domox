@@ -15,14 +15,18 @@ the `domox-domain` package tree — **while keeping every persisted name (tables
 types, `candidateType` strings) unchanged**.
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
 flowchart LR
+    classDef before fill:#FDEAEC,stroke:#D9536B,stroke-width:2px,color:#3D3630
+    classDef after fill:#E9F7EC,stroke:#3FA65A,stroke-width:2px,color:#3D3630
+
     subgraph Before["Before"]
-        A1["ActionCdd"] --> A2["AssociationCdd"]
-        A3["PropertyCdd"] --> A4["ParameterCdd"]
+        A1["ActionCdd"]:::before --> A2["AssociationCdd"]:::before
+        A3["PropertyCdd"]:::before --> A4["ParameterCdd"]:::before
     end
     subgraph After["After — CRC guide vocabulary"]
-        B1["ResponsibilityCdd"] --> B2["CollaboratorCdd"]
-        B3["AttributeCdd"] --> B4["ResponsibilityParameter"]
+        B1["ResponsibilityCdd"]:::after --> B2["CollaboratorCdd"]:::after
+        B3["AttributeCdd"]:::after --> B4["ResponsibilityParameter"]:::after
     end
     A1 -.->|rename| B1
     A2 -.->|rename| B2
@@ -160,7 +164,7 @@ by probing the running app.
 
 - `.clinerules/memory-bank/technical/SCHEMA.md` — entity↔table map, the two derived-name traps,
   and a **"Remaining work — deferred persisted-name migration"** section.
-- `.clinerules/mcp-review-pipeline.md` — vocabulary note (classes renamed, candidate types not)
+- `.clinerules/memory-bank/workflows/mcp-review-pipeline.md` — vocabulary note (classes renamed, candidate types not)
   and the orphaned `packagecdd` table.
 - `.clinerules/d3-diagram.md`, `.clinerules/commands.md` — updated file paths.
 - `docs/scratch_pad/D3_DIAGRAM.md`, `docs/scratch_pad/apache_causeway_vega_integration_guide.md`,

@@ -25,24 +25,30 @@ edges with dependency-type labels (e.g. `nsubj`, `dobj`).
 | **Interactivity** | Drag nodes, zoom/pan (`0.1×–10×`), click nodes to invoke domain action |
 
 ```mermaid
+%%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
 flowchart LR
+    classDef data fill:#FFF4E5,stroke:#E8A33D,stroke-width:2px,color:#3D3630
+    classDef cfg fill:#F0EBFB,stroke:#7C5CD1,stroke-width:2px,color:#3D3630
+    classDef js fill:#E8F1FD,stroke:#3B82C4,stroke-width:2px,color:#3D3630
+    classDef css fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
+
     subgraph Data["Java (domain)"]
-        DM[DomainModelDiagramsD3.java]
-        CD[Candidate entities]
-        RV[Review entities]
+        DM[DomainModelDiagramsD3.java]:::data
+        CD[Candidate entities]:::data
+        RV[Review entities]:::data
     end
     subgraph Config["D3Config (applib)"]
-        INW[initialWidth=800]
-        INH[initialHeight=600]
+        INW[initialWidth=800]:::cfg
+        INH[initialHeight=600]:::cfg
     end
     subgraph JS["d3-integration.mjs"]
-        INIT["init(config)"]
-        SVG["<svg> element"]
-        RENDER["Rounded rect nodes + 3-line labels"]
-        SIM["forceSimulation"]
+        INIT["init(config)"]:::js
+        SVG["<svg> element"]:::js
+        RENDER["Rounded rect nodes + 3-line labels"]:::js
+        SIM["forceSimulation"]:::js
     end
     subgraph CSS["D3Panel.css"]
-        CT["div.d3GraphCanvas<br/>width: 100%"]
+        CT["div.d3GraphCanvas<br/>width: 100%"]:::css
     end
     DM -->|"JSON data"| INIT
     CD --> DM

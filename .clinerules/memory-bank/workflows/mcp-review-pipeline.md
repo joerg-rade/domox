@@ -5,6 +5,10 @@ MCP `ReviewMcpTools` pipeline, with LLM judgment."** Read this top-to-bottom onc
 use; future runs can jump straight to the phase you need. All facts below were verified
 against the running system on 2026-09-25.
 
+> **Pass 1 of three.**  The umbrella view — pass 1 *review* → pass 2 *partition* → pass 3 *assemble
+> & ground* — is the `review-and-assemble-model` skill
+> (`.clinerules/skills/review-and-assemble-model.md`).  This file is the wiring for pass 1 only.
+
 ---
 
 ## 1. When to use this runbook

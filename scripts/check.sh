@@ -3,8 +3,8 @@
 # DoMoX fast-check bundle (local guardrail).
 #
 # Usage:
-#   bash scripts/check.sh            # schema drift + JS/Python syntax + layout XML + dep alignment + unit tests + UI/UML/ontology render + webjar + metamodel guardrail
-#   bash scripts/check.sh --quick    # the four instant, Maven-free steps: schema drift + layout XML + script syntax + dep alignment
+#   bash scripts/check.sh            # schema drift + layout XML + script syntax + dep alignment + mermaid styling + unit tests + UI/UML/ontology render + webjar + metamodel guardrail
+#   bash scripts/check.sh --quick    # the five instant, Maven-free steps: schema drift + layout XML + script syntax + dep alignment + mermaid styling
 #
 # This mirrors what CI runs (.github/workflows/ci.yml) but exploits the local dev DB where the
 # schema-drift guardrail applies. Steps that cannot run right now (e.g. the domox-db container
@@ -32,7 +32,7 @@ if [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
 fi
 
 # --- 1. Schema drift (dev-DB guardrail) ------------------------------------------------
-step "1/8  Schema drift (DDL vs live domox-db)"
+step "1/9  Schema drift (DDL vs live domox-db)"
 if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx domox-db; then
   if bash scripts/check-schema-drift.sh; then ok "no drift"; else bad "drift detected"; fi
 else
@@ -43,7 +43,7 @@ fi
 # Causeway SILENTLY DISCARDS a *.layout.xml that breaks its structural rules and falls back to the
 # span-4 default grid — the build stays green and only a buried boot-log ERROR hints at it.  Cheap
 # enough to run in --quick too, so a layout mistake is caught at commit time.
-step "2/8  Layout XML (unreferencedCollections marker, properties inside fieldSets)"
+step "2/9  Layout XML (unreferencedCollections marker, properties inside fieldSets)"
 if LO=$(bash scripts/check-layout-xml.sh 2>&1); then
   printf '%s\n' "$LO" | sed 's/^/    /'
   ok "layout XML structure valid"
@@ -53,7 +53,7 @@ else
 fi
 
 # --- 3. Script syntax check (hand-edited .mjs files, and scripts/*.py) ------------------
-step "3/8  Script syntax check (JS + Python)"
+step "3/9  Script syntax check (JS + Python)"
 JSOK=0
 # Source only: a scratch .mjs under target/ (or in venv/) is build output, not something we maintain.
 for f in $(find . \( -name node_modules -o -name target -o -name venv -o -name .git \) -prune -o -name '*.mjs' -print 2>/dev/null); do
@@ -72,7 +72,7 @@ done
 [ $PYOK -gt 0 ] && ok "$PYOK scripts/*.py files compile" || skip "no scripts/*.py files found"
 
 # --- 4. Dependency alignment (pom vs the Causeway parent chain) -------------------------
-step "4/8  Dependency alignment (pom vs Causeway parent BOM)"
+step "4/9  Dependency alignment (pom vs Causeway parent BOM)"
 # The parent chain (causeway-app-starter-parent -> causeway-bom) pins spring-boot.version;
 # this pom overrides it, so the two must be kept in step by hand.  Drift mixes releases on the
 # classpath and fails at startup, not at build time — see the script header.
@@ -82,6 +82,27 @@ else
   bad "version skew — see the FAIL lines above"
 fi
 
+# --- 5. Mermaid guardrail (diagram text legibility; instant, Maven-free) -----------------
+# A mermaid node with no `:::class` is drawn with the *renderer's* own fill while the diagram's text
+# colour still applies.  In the IntelliJ Cline plugin — whose canvas is the chat's own background,
+# transparent SVG over it — that is black text on a black box: the label is invisible and the diagram
+# reads as a row of empty rectangles.  Nothing else catches it: the source looks right, and a
+# light-themed preview looks right.  Verified 2026-11: theme line alone is NOT enough, the per-node
+# `classDef` is what carries the contrast.  See scripts/check-mermaid.py.
+step "5/9  Mermaid diagrams (theme pin + every node styled)"
+if command -v python3 >/dev/null 2>&1; then
+  if MERMAIDOUT=$(python3 scripts/check-mermaid.py 2>&1); then
+    printf '%s\n' "$MERMAIDOUT" | sed 's/^/    /'
+    ok "mermaid blocks carry a theme pin and style every node"
+  else
+    printf '%s\n' "$MERMAIDOUT" | sed 's/^/    /'
+    bad "a mermaid diagram would render with invisible labels (see FAIL lines above)"
+  fi
+else
+  skip "python3 not available — the mermaid guardrail can't run"
+fi
+
+
 # --- Quick mode: every step above is instant and Maven-free, so the pre-commit hook can afford
 # them all.  The Maven steps below are what --quick exists to skip.
 if [ "${1:-}" = "--quick" ]; then
@@ -90,8 +111,8 @@ if [ "${1:-}" = "--quick" ]; then
   exit $FAILED
 fi
 
-# --- 5. Unit tests (domox-domain + domox-adapter + domox-webapp unit tests) ------------
-step "5/8  Unit tests (domain + adapter + webapp unit)"
+# --- 6. Unit tests (domox-domain + domox-adapter + domox-webapp unit tests) ------------
+step "6/9  Unit tests (domain + adapter + webapp unit)"
 LOG=/tmp/domox-check-unit.log
 # -Dmaven.build.cache.enabled=false: the maven-build-cache extension (.mvn/) restores cached
 # surefire executions and skips re-running them; a guardrail script's job is to actually run
@@ -136,8 +157,8 @@ else
   bad "uml-diagram-report.py disagrees (log: /tmp/domox-check-uml.log)"
 fi
 
-# --- 6. UI render check (headless browser; CSS/JS in list views) ------------------------
-step "6/8  UI render check (headless browser)"
+# --- 7. UI render check (headless browser; CSS/JS in list views) ------------------------
+step "7/9  UI render check (headless browser)"
 # Asserts the user-visible behaviour of the D3 graph column (content actually on screen, popup
 # only over the graph column, row height stable) — the class of bug no other check can see.
 # Skips (exit 0 + "SKIP:") when node / a Chromium binary / the fixture jars are unavailable.
@@ -181,16 +202,16 @@ else
   bad "ontology render check failed"
 fi
 
-# --- 7. Webjar resource check (dev-instance guardrail) ---------------------------------
-step "7/8  Webjar resources served correctly (not through Wicket)"
+# --- 8. Webjar resource check (dev-instance guardrail) ---------------------------------
+step "8/9  Webjar resources served correctly (not through Wicket)"
 if curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/webjars/pdfjs-dist/5.4.624/build/pdf.min.mjs 2>/dev/null | grep -q 200; then
   ok "webjar resource accessible at /webjars/... (not /wicket/wicket/...)"
 else
   bad "webjar resource not accessible — double-wicket URL regression? (app must be running on :8080)"
 fi
 
-# --- 8. Metamodel guardrail (boot-time DomainModelValidator veto) ----------------------
-step "8/8  Metamodel guardrail (ValidateDomainModelIntegTest)"
+# --- 9. Metamodel guardrail (boot-time DomainModelValidator veto) ----------------------
+step "9/9  Metamodel guardrail (ValidateDomainModelIntegTest)"
 # This test boots a Spring context, but NOT against the dev instance or the dev database: it is a
 # @SpringBootTest with the default MOCK web environment and gets its own throwaway Testcontainers
 # Postgres (see ApplicationIntegTestAbstract).  So a dev instance owning :8080 does NOT contend with

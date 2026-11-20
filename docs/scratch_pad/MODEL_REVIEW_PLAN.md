@@ -1,9 +1,13 @@
 # Candidate review plan — what to review, in what order, and how
 
-**Companion documents.** What the reviews are *for*: `MODEL_UML_READINESS_REVIEW.md`.
+**Companion documents.** **Read first** — the three-pass overview and the map of which document
+owns what: the `review-and-assemble-model` skill
+(`.clinerules/skills/review-and-assemble-model.md`).
+What the reviews are *for*: `MODEL_UML_READINESS_REVIEW.md`.
 The code changes that must land first: `UML_GAP_FIX_PLAN.md`.
-The mechanics of the pass (MCP driver, `/mcp` 404 trap, TSV pre-flight): `.clinerules/mcp-review-pipeline.md`.
-The pass that follows this one: `.clinerules/mcp-subdomain-pass.md`.
+The mechanics of the pass (MCP driver, `/mcp` 404 trap, TSV pre-flight):
+`.clinerules/memory-bank/workflows/mcp-review-pipeline.md`.
+The pass that follows this one: `.clinerules/memory-bank/workflows/mcp-subdomain-pass.md`.
 **Date.** 2026-11-18. All counts read from the live `domox-db`.
 
 ---
@@ -27,12 +31,22 @@ classes is already assigned to one of **10 sub-domains** (0 unassigned).
 ## 2. The ordering principle (read this before scheduling anything)
 
 ```mermaid
-flowchart LR
-    A["Code fixes<br/>FIX-5, FIX-6"] --> B["Re-run Phase 1/2<br/>(regenerates candidates)"]
-    B --> C["Pass 1 — classes"]
-    C --> D["Pass 2 — attributes<br/>Pass 3 — responsibilities"]
-    D --> E["Pass 4 — collaborators<br/>(needs both ends decided)"]
-    E --> F["Sub-domain pass<br/>+ UML re-measure"]
+%%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
+%% Vertical: the horizontal version measured 1617px natural and was shrunk to 4.8px in a narrow
+%% viewer.  This one measures 276px, so it renders at the full 18px.
+%% Every node carries an explicit classDef — an UNSTYLED box renders dark-on-dark in the
+%% IntelliJ Cline plugin, whatever the init theme says.  See docs/formatting/readability-guide.md.
+flowchart TD
+    classDef fix fill:#FDEAEC,stroke:#D9536B,stroke-width:2px,color:#3D3630
+    classDef rerun fill:#E8F1FD,stroke:#3B82C4,stroke-width:2px,color:#3D3630
+    classDef pass fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
+    classDef done fill:#E9F7EC,stroke:#3FA65A,stroke-width:2px,color:#3D3630
+
+    A["Code fixes · FIX-5, FIX-6"]:::fix --> B["Re-run Phase 1/2<br/>regenerates candidates"]:::rerun
+    B --> C["Pass 1 · classes"]:::pass
+    C --> D["Pass 2 · attributes<br/>Pass 3 · responsibilities"]:::pass
+    D --> E["Pass 4 · collaborators<br/>needs both ends decided"]:::pass
+    E --> F["Sub-domain pass<br/>+ UML re-measure"]:::done
 ```
 
 **Three rules, each of which avoids redoing work:**
@@ -223,7 +237,7 @@ Shell: `docker exec domox-db psql -U postgres -d postgres -c "..."`.
 
 - [ ] **Sub-domain pass.** Newly approved classes need a sub-domain; the existing 131 already have
       one (0 unassigned, 10 sub-domains, `Shared` classified `GENERIC`, the rest `UNCLASSIFIED`).
-      Follow `.clinerules/mcp-subdomain-pass.md` — and remember **`suggestSubDomains()` lists only
+      Follow `.clinerules/memory-bank/workflows/mcp-subdomain-pass.md` — and remember **`suggestSubDomains()` lists only
       unassigned *approved* classes**, so it is empty until Pass 1 lands.
 - [ ] **Re-measure the diagram.** `python3 scripts/ro.py invoke domox.DomainModels
       generateUmlDiagram domainModel=DomainModel:653`, then compare against the review's §2 table
