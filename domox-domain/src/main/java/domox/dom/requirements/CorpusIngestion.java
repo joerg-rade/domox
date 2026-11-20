@@ -11,7 +11,7 @@ import domox.dom.crc.service.DomainModels;
 import domox.dom.nlp.Sentence;
 import domox.dom.rules.CandidateResolver;
 import domox.dom.rules.RuleMatches;
-import domox.dom.rules.TypedDependencyRule;
+import domox.dom.rules.tdr.TypedDependencyRule;
 import domox.port.DocumentTO;
 import domox.port.NlpPort;
 import domox.util.FileUtil;

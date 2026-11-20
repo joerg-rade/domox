@@ -11,7 +11,7 @@ import java.util.Set;
  * <p>
  * Owns the registry that previously lived as a static field on
  * {@code TypedDependencyPredicates}; populated from config by
- * {@code domox.dom.rules.SynonymCatalog}.  Registration and lookup are case-insensitive.
+ * {@code domox.dom.rules.catalog.SynonymCatalog}.  Registration and lookup are case-insensitive.
  */
 public final class SynonymVocabulary {
 

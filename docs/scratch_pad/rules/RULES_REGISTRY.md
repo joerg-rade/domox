@@ -6,18 +6,18 @@ The TypedDependency Rules (TDR) system is a rule-based framework for extracting 
 ## Rule Registration & Autowiring
 
 ### Spring Configuration
-All rules are automatically registered as Spring beans through the `@RuleBean` annotation. The framework scans the `domox.dom.rules` package at application startup.
+All rules are automatically registered as Spring beans through the `@RuleBean` annotation. The framework scans the `domox.dom.rules` package **tree** at application startup (`RuleBookRunner` matches every sub-package with `startsWith("domox.dom.rules")`), and the 41 rules themselves live in `domox.dom.rules.tdr`.
 
 **Key Details:**
 - **Framework**: RuleBook (Delivered Technologies)
 - **Integration**: Spring with @RuleBean annotation
-- **Package**: `domox.dom.rules`
+- **Package**: `domox.dom.rules.tdr` (the rules); the package tree root is `domox.dom.rules`
 - **Rule Execution**: Sequential by order number (TDR1.order=1 through TDR41.order=41)
 
 ### Automatic Bean Discovery
 Rules are discovered through Spring's component scanning:
 ```java
-RuleBookRunner ruleBookRunner = new RuleBookRunner("domox.dom.rules");
+RuleBookRunner ruleBookRunner = new RuleBookRunner("domox.dom.rules");  // scans the whole tree, incl. .tdr
 ```
 
 ## Rule Categories
@@ -152,7 +152,7 @@ facts.setValue("previousTd", previousDependency);  // optional
 facts.setValue("nextTd", nextDependency);          // optional
 
 // 2. Run rule book
-RuleBookRunner ruleBookRunner = new RuleBookRunner("domox.dom.rules");
+RuleBookRunner ruleBookRunner = new RuleBookRunner("domox.dom.rules");  // scans the whole tree, incl. .tdr
 ruleBookRunner.run(facts);
 
 // 3. Extract result
@@ -191,15 +191,20 @@ All rules depend on methods in `TypedDependency` class:
 ## File Structure
 
 ```
-domox-domain/src/main/java/domox/dom/rules/
-├── TypedDependencyRule.java           (base class)
-├── TypedDependencyRuleWithPreviousAndNext.java (extended base)
-├── TDR1.java through TDR37.java       (37 rule implementations)
-└── [other supporting classes]
+domox-domain/src/main/java/domox/dom/rules/          (the engine, 7 files)
+├── RuleMatch.java / RuleMatchRepository.java / RuleMatchSignature.java
+├── RuleMatches.java / CandidateFactory.java / CandidateResolver.java
+├── NlpProperties.java
+├── tdr/          (42)  ← TypedDependencyRule.java + TDR1.java through TDR41.java
+├── catalog/      (5)   ← Action/ActionVocabulary/BasicAttribute/Generalization/SynonymCatalog
+└── lexicon/      (8)   ← NounType, NounTypeLexicon, UseCaseBlockedNouns, AssociationLabel,
+                          MultiplicityEvidence/Notation, ResponsibilityOwner/ParameterExtraction
 
-domox-domain/src/test/java/domox/dom/rules/
-├── TypedDependencyRulesTest.java      (integration tests)
-└── [rule-specific test files]
+domox-domain/src/test/java/domox/dom/rules/          (mirrors the packages)
+├── RuleMatchesTest.java / CandidateFactoryTest.java / CandidateResolverTest.java
+├── RuleMatchSignatureTest.java
+├── tdr/          ← TypedDependencyRulesTest.java (integration), TDR2Test.java
+└── lexicon/      ← the five unit tests for the lexicon classes
 ```
 
 ## Compilation & Testing
@@ -216,10 +221,10 @@ mvn test -Dtest=TypedDependencyRulesTest
 
 ### Verify All Rules
 ```bash
-ls -1 domox-domain/src/main/java/domox/dom/rules/TDR*.java | wc -l
+ls -1 domox-domain/src/main/java/domox/dom/rules/tdr/TDR*.java | wc -l
 ```
 
-Expected: 37 files
+Expected: 41 files
 
 ## Notes
 

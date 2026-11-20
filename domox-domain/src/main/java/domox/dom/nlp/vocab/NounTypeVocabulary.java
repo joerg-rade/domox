@@ -1,6 +1,6 @@
 package domox.dom.nlp.vocab;
 
-import domox.dom.rules.NounType;
+import domox.dom.rules.lexicon.NounType;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -11,7 +11,7 @@ import java.util.Map;
  * <p>
  * Owns the registry that previously lived as a static field on
  * {@code TypedDependencyPredicates}; populated from config by
- * {@code domox.dom.rules.NounTypeLexicon}.  Keys are stored and looked up lower-cased.
+ * {@code domox.dom.rules.lexicon.NounTypeLexicon}.  Keys are stored and looked up lower-cased.
  */
 public final class NounTypeVocabulary {
 

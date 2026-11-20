@@ -7,6 +7,7 @@ import domox.dom.nlp.TypedDependency;
 import domox.dom.requirements.Document;
 import domox.dom.crc.model.Candidate;
 import domox.dom.crc.model.DomainModel;
+import domox.dom.rules.lexicon.UseCaseBlockedNouns;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;

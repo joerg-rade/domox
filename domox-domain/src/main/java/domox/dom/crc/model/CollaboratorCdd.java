@@ -1,6 +1,6 @@
 package domox.dom.crc.model;
 import domox.DomainModule;
-import domox.dom.rules.AssociationLabel;
+import domox.dom.rules.lexicon.AssociationLabel;
 import jakarta.inject.Named;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

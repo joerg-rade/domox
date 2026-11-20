@@ -84,6 +84,23 @@ constraint/index name moved with them, and the persisted `candidatetype` values 
 regenerated `create-tables.sql` carries only the new names, so a fresh DB and the migrated dev DB
 agree. Recorded in `SCHEMA.md` ("Persisted-name migration") and `CRC_VOCABULARY_RENAME_SUMMARY.md`.
 
+**Closed 2026-11-20 (seventh sweep)** — TODO-18 (the flat `domox.dom.rules` package), the last item owned
+by `CRC_VOCABULARY_RENAME_SUMMARY.md`. The 61-file package was split exactly as that document's item 5
+prescribed: the 41 rules plus `TypedDependencyRule` into `domox.dom.rules.tdr`, the five config-backed
+vocabularies into `domox.dom.rules.catalog`, and the linguistic knowledge + its derivations
+(`NounType`, `NounTypeLexicon`, `UseCaseBlockedNouns`, `AssociationLabel`, `MultiplicityEvidence`,
+`MultiplicityNotation`, `ResponsibilityOwnerExtraction`, `ResponsibilityParameterExtraction`) into
+`domox.dom.rules.lexicon`. What remains in `domox.dom.rules` is the engine itself — `RuleMatch`,
+`RuleMatches`, `RuleMatchRepository`, `RuleMatchSignature`, `CandidateFactory`, `CandidateResolver`,
+`NlpProperties` — **7 files**. No configuration change was needed: `RuleBookRunner` matches every
+sub-package with `startsWith(pkg)` and `@ComponentScan` / `@EntityScan` / `@EnableJpaRepositories` are all
+rooted at `domox`, which the 46 `TypedDependencyRulesTest` cases (Spring context + `RuleBook`) confirm by
+still firing all 41 rules. The only visibility change is `UseCaseBlockedNouns` (and its two predicates),
+package-private while it sat beside its callers, now `public`. Tests mirror the new packages, and the
+misfiled `DependencyVocabularyPredicatesTest` (it tests a `domox.dom.nlp` class) moved to its class's
+package. Verified: `mvn -o -pl domox-domain test` → **1 057 tests, 0 failures**; `scripts/check.sh` →
+**10/10**.
+
 ---
 
 ## 1. Scales
@@ -151,7 +168,6 @@ already-approved core set. No open item now sits off this path.
 | **TODO-06** | Review pipeline | Pass 4 — review **237** `AssociationCdd` (last: needs both ends approved) | P2 | M | Medium |
 | **TODO-07** | Review pipeline | Sub-domain pass for the newly approved classes | P2 | S | Low |
 | **TODO-08** | Review pipeline | Re-measure the UML diagram and update the readiness review | P2 | S | Medium |
-| **TODO-18** | Architecture | `domox.dom.rules` is a flat package of 61 files | P3 | M | Low |
 | **TODO-24** | Build hygiene | Nexus snapshot-metadata timeout noise on every build | P3 | S | Low |
 | **TODO-25** | Capability | gist into Fuseki + MCP-exposed pattern repositories | P3 | L | Low |
 | **TODO-26** | Capability | "Suggest missing model elements" (DoMoX only reviews what exists) | P3 | XL | Low |
@@ -159,8 +175,8 @@ already-approved core set. No open item now sits off this path.
 | **TODO-28** | Capability | The "(future)" association patterns in `association-type-categorization.md` | P3 | M | Low |
 | **TODO-29** | Capability | Generalization literature gaps + the stale "not yet implemented" Group-6 header | P3 | M | Low |
 
-**Counts.** 15 open items — 1 × P0, 2 × P1, 5 × P2, 7 × P3. (Sixteen further items — TODO-09, 10, 11,
-12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 30, 31 — were closed 2026-11-19/20; see the header.)
+**Counts.** 14 open items — 1 × P0, 2 × P1, 5 × P2, 6 × P3. (Seventeen further items — TODO-09, 10, 11,
+12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 30, 31 — were closed 2026-11-19/20; see the header.)
 
 ---
 
@@ -277,15 +293,11 @@ migration", and `scripts/migrate-crc-persisted-names.sql`.
 
 
 
-#### TODO-18 — `domox.dom.rules` is a flat package of 61 files · P3 · M · Risk Low
+#### TODO-18 — `domox.dom.rules` was a flat package of 61 files · **closed 2026-11-20**
 
-- **Source:** `CRC_VOCABULARY_RENAME_SUMMARY.md` item 5.
-- **Open:** 41 `TDR*.java` rules plus ~20 catalogs / factories / collaborators share one package.
-- **Risk if skipped:** low — but navigation and the "which file owns this?" question get slower with
-  every extracted collaborator.
-- **Area of improvement:** split into `rules/tdr`, `rules/catalog`, `rules/lexicon` (the package move
-  also makes the new path untracked — diff it with `git status --short`, see `commands.md`).
-- **Done when:** the rules package holds no more than ~10 files.
+**Closed** — the package now holds **7** files (the engine); the rules are in `domox.dom.rules.tdr`,
+the vocabularies in `domox.dom.rules.catalog`, the language knowledge in `domox.dom.rules.lexicon`.
+See the header and `CRC_VOCABULARY_RENAME_SUMMARY.md` item 5.
 
 ---
 

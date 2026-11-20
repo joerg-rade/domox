@@ -1,0 +1,65 @@
+package domox.dom.rules.tdr;
+
+import com.deliveredtechnologies.rulebook.annotation.Rule;
+import com.deliveredtechnologies.rulebook.annotation.Then;
+import com.deliveredtechnologies.rulebook.spring.RuleBean;
+import domox.dom.nlp.PartOfSpeechType;
+
+import static domox.dom.nlp.DependencyPosPredicates.*;
+import static domox.dom.nlp.DependencyTypePredicates.*;
+import static domox.dom.nlp.DependencyVocabularyPredicates.*;
+
+@RuleBean
+@Rule(order = 11)
+/*
+ * Purpose: Identifies entities/attributes from adjectival modifiers (amod).
+ * Example: "the full name" → "full name" is an attribute; "the active order" → order is an entity.
+ * Candidate Type: AttributeCdd (attribute) or ClassCdd (entity).
+ */
+public class TDR11 extends TypedDependencyRule {
+
+    @Override
+    public boolean when() {
+        // Guard against null currentTd when not in FactMap
+        if (currentTd == null) {
+            return false;
+        }
+        // if Dependencies = amod(A,B) with A=Noun and B=JJ/VBG
+        return amod(currentTd) && isNounA(currentTd)
+                && (isAdjectiveB(currentTd) || currentTd.getDependentPos() == PartOfSpeechType.VBG);
+    }
+
+    @Then
+    public void then() {
+        if (isBasicAttributeA(currentTd)) {
+            // if A=Noun and B = JJ and A=basic_Attrib then Attributes.add(B + A)
+            // The attribute's owner is the possessor when the sentence possesses A ("their full
+            // name"), else the class the attribute noun names ("the full name" → on Name).
+            final String possessor = possessorClassIfPossessed(
+                    currentTd.getA(), currentTd.getSentence());
+            final String owner = possessor != null ? possessor : capitalizeFirstLetter(currentTd.getA());
+            result = "Attributes.add(" + currentTd.getB() + " " + currentTd.getA() + ")";
+
+            // Phase 1: persist the match — combined attribute "B A" (e.g. "full name")
+            if (ruleMatches != null && currentTd != null) {
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
+                        currentTd.getB() + " " + currentTd.getA(), "ClassCdd",
+                        owner, result);
+            }
+        } else {
+            // else if A=Noun and B=JJ and A ≠ Basic_Attrib then Entity.add(A)
+            // Scope guard (UML_GAP_FIX_PLAN.md §13.6): a possessed *class* noun stays an entity.
+            // "their beloved pets" used to become the attribute "beloved pets" of Owners; "pets"
+            // names a class, and a reference to another class is an association, not an attribute —
+            // the same guard FIX-5 applied to TDR25/TDR26.
+            result = "Entity.add(" + currentTd.getA() + ")";
+
+            // Phase 1: persist the match — A is an entity
+            if (ruleMatches != null && currentTd != null) {
+                ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
+                        capitalizeFirstLetter(currentTd.getA()), null, null, result);
+            }
+        }
+    }
+
+}

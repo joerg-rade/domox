@@ -6,7 +6,7 @@ import domox.dom.nlp.vocab.BlockedVerbVocabulary;
 import domox.dom.nlp.vocab.GeneralizationVocabulary;
 import domox.dom.nlp.vocab.NounTypeVocabulary;
 import domox.dom.nlp.vocab.SynonymVocabulary;
-import domox.dom.rules.NounType;
+import domox.dom.rules.lexicon.NounType;
 
 /**
  * <b>Predicates answered by a vocabulary</b> — "does a registered word list know this lemma?".

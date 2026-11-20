@@ -7,7 +7,7 @@ import java.util.Set;
 
 /**
  * The action vocabulary: action verbs and service nouns, both populated from config by
- * {@code domox.dom.rules.ActionVocabularyCatalog}.
+ * {@code domox.dom.rules.catalog.ActionVocabularyCatalog}.
  * <p>
  * Owns the two registries that previously lived as static fields on
  * {@code TypedDependencyPredicates}.  Registration and lookup are case-insensitive.

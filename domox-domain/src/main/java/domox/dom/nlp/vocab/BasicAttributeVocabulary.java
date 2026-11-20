@@ -10,7 +10,7 @@ import java.util.Set;
  * <p>
  * Owns the registry that previously lived as a static field on
  * {@code TypedDependencyPredicates}.  It is populated from {@code domox.nlp.basic-attributes} by
- * {@code domox.dom.rules.BasicAttributeCatalog}.
+ * {@code domox.dom.rules.catalog.BasicAttributeCatalog}.
  * <p>
  * Registration is <em>verbatim</em> (no case folding) — callers register already-lower-cased
  * lemmas, and the membership test is likewise case-sensitive.

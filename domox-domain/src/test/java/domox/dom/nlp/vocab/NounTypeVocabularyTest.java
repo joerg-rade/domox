@@ -1,6 +1,6 @@
 package domox.dom.nlp.vocab;
 
-import domox.dom.rules.NounType;
+import domox.dom.rules.lexicon.NounType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

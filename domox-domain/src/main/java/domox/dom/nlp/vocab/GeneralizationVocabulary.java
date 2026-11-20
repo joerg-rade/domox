@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * The generalization vocabularies — the copular "be" verbs, indefinite articles, kind/type/sort
  * terms and stop adjectives — all populated from config by
- * {@code domox.dom.rules.GeneralizationCatalog}.
+ * {@code domox.dom.rules.catalog.GeneralizationCatalog}.
  * <p>
  * Owns the four registries that previously lived as static fields on
  * {@code TypedDependencyPredicates}.  They are grouped here because they share one registrar and

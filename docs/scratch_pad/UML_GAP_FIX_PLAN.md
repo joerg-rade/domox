@@ -236,7 +236,7 @@ sentence each came from:
 
 Only ~10 of the 44 are usable; the 87 TDR26 matches (`det`) are the sound ones.
 
-**Root cause.** `TDR25.when()` (`domox/dom/rules/TDR25.java:24`) fires on **any**
+**Root cause.** `TDR25.when()` (`domox/dom/rules/tdr/TDR25.java:24`) fires on **any**
 `nummod(noun, CD)`. `UC` is already in `domox.nlp.use-case-blocked-nouns` and the persistence
 guard at `RuleMatches.java:91-96` drops blocked-noun `ClassCdd` matches — so the 15 `UC` rows
 disappear on a Phase-1 re-run. `sentence`, `second`, `off`, `Partner`, `Accessories` are **not**

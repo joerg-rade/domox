@@ -6,6 +6,7 @@ import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.service.AttributeCandidates;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
+import domox.dom.rules.catalog.BasicAttributeCatalog;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -6,6 +6,7 @@ import domox.dom.crc.repository.*;
 import domox.dom.crc.service.*;
 import domox.dom.nlp.TdType;
 import domox.dom.nlp.TypedDependency;
+import domox.dom.rules.catalog.BasicAttributeCatalog;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.apache.causeway.applib.annotation.DomainService;
