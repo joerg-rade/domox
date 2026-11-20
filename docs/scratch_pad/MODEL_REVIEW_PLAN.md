@@ -17,9 +17,9 @@ The pass that follows this one: `.clinerules/memory-bank/workflows/mcp-subdomain
 | Type | Total | Reviewed | Approved | **Unreviewed** |
 |---|---|---|---|---|
 | `ClassCdd` | 971 | 202 | 131 | **769** |
-| `PropertyCdd` (attributes) | 109 | 9 | 2 | **100** |
-| `ActionCdd` (responsibilities) | 191 | 91 | 57 | **100** |
-| `AssociationCdd` (collaborators) | 237 | 0 | 0 | **237** |
+| `AttributeCdd` (attributes) | 109 | 9 | 2 | **100** |
+| `ResponsibilityCdd` (responsibilities) | 191 | 91 | 57 | **100** |
+| `CollaboratorCdd` (collaborators) | 237 | 0 | 0 | **237** |
 | **Total** | **1 508** | **302** | **190** | **1 206** |
 
 Existing decisions (all `username='agent'`, idempotent): APPROVED 190, REJECTED
@@ -128,7 +128,7 @@ that the association pass can rely on it.
 
 ---
 
-## 5. Pass 2 — attributes (`PropertyCdd`, 100 candidates) — **new policy needed**
+## 5. Pass 2 — attributes (`AttributeCdd`, 100 candidates) — **new policy needed**
 
 **Why a new policy.** `mcp-review-pipeline.md` §5 has no attribute table, and only 2 attributes are
 approved today. This pass is also the **evidence source for FIX-6b**: the names you approve are
@@ -147,7 +147,7 @@ owner — it feeds FIX-6c directly. Reject decisions are equally informative: th
 whether the extraction is producing associations where attributes were expected.
 
 **The extraction side now applies the same rule (2026-11-19).** The TDR10/TDR11 possessive branches
-create a `PropertyCdd` only when the possessed noun is in the `domox.nlp.basic-attributes` lexicon
+create an `AttributeCdd` only when the possessed noun is in the `domox.nlp.basic-attributes` lexicon
 (`UML_GAP_FIX_PLAN.md` §13.6), so an entity name no longer arrives here as an attribute. The measured
 counts above (26 from TDR10, 18 from TDR11) therefore shrink on the next Phase-1/2 re-run, and the
 `WRONG_CANDIDATE_TYPE` row should become rare: a `pet`/`cart`-style name turning up as an attribute is
@@ -156,7 +156,7 @@ a rule defect to re-open.
 
 ---
 
-## 6. Pass 3 — responsibilities (`ActionCdd`, 100 candidates)
+## 6. Pass 3 — responsibilities (`ResponsibilityCdd`, 100 candidates)
 
 **Policy** (from `mcp-review-pipeline.md` §5, unchanged):
 
@@ -174,7 +174,7 @@ right class. The review measured the owner to be the sentence *object* (`supervi
 
 > **Resolved before the pass — FIX-3d applied 2026-11-20** (`UML_GAP_FIX_PLAN.md` §13.8). The
 > observation no longer has to wait for this pass: it was re-expressed as a measurement over the
-> candidates themselves, and it came out **systematic** — of the 191 `ActionCdd` candidates, 149 have
+> candidates themselves, and it came out **systematic** — of the 191 `ResponsibilityCdd` candidates, 149 have
 > an owner and **all 149 are owned by their object noun**, none by their actor (every one from `TDR3`,
 > which fires on the object dependency). The owner is now the sentence's `nsubj` actor, with the object
 > kept only as the fallback when the sentence names no usable actor. This pass therefore only
@@ -183,12 +183,12 @@ right class. The review measured the owner to be the sentence *object* (`supervi
 
 ---
 
-## 7. Pass 4 — collaborators (`AssociationCdd`, 237 candidates) — **last, and new policy**
+## 7. Pass 4 — collaborators (`CollaboratorCdd`, 237 candidates) — **last, and new policy**
 
 **Why last.** 171 are `GENERALIZATION`, 52 `SYNONYM`, 14 `ASSOCIATION`. A generalization is only
 meaningful between two real classes, so this pass is worthless until Pass 1 is complete.
 
-**Evidence.** The association **is** linked to its rule matches (`associationcdd_rulematch`, 237
+**Evidence.** The association **is** linked to its rule matches (`collaboratorcdd_rulematch`, 237
 rows) — the verb is in `rulematch.description`
 (`relationship.add(inventory (has) product)`), which is also the natural edge label (FIX-7).
 
@@ -237,18 +237,18 @@ SELECT t.ctype, count(*) AS total, count(r.id) AS reviewed,
        count(*)-count(r.id) AS unreviewed,
        count(*) FILTER (WHERE r.status='APPROVED') AS approved
 FROM ( SELECT id,'ClassCdd' AS ctype FROM domox.classcdd
-       UNION ALL SELECT id,'PropertyCdd' FROM domox.propertycdd
-       UNION ALL SELECT id,'ActionCdd'   FROM domox.actioncdd
-       UNION ALL SELECT id,'AssociationCdd' FROM domox.associationcdd ) t
+       UNION ALL SELECT id,'AttributeCdd' FROM domox.attributecdd
+       UNION ALL SELECT id,'ResponsibilityCdd'   FROM domox.responsibilitycdd
+       UNION ALL SELECT id,'CollaboratorCdd' FROM domox.collaboratorcdd ) t
 LEFT JOIN domox.review r ON r.candidate_id = t.id
 GROUP BY 1 ORDER BY 1;
 
 -- 2. candidates that escaped the pass entirely (must be 0)
 SELECT count(*) FROM (
   SELECT id FROM domox.classcdd UNION ALL
-  SELECT id FROM domox.propertycdd UNION ALL
-  SELECT id FROM domox.actioncdd UNION ALL
-  SELECT id FROM domox.associationcdd
+  SELECT id FROM domox.attributecdd UNION ALL
+  SELECT id FROM domox.responsibilitycdd UNION ALL
+  SELECT id FROM domox.collaboratorcdd
 ) c WHERE c.id NOT IN (SELECT candidate_id FROM domox.review);
 
 -- 3. every decision is the agent's, and the rationale breakdown is sane
@@ -256,7 +256,7 @@ SELECT username, status, rationale, count(*) FROM domox.review GROUP BY 1,2,3 OR
 
 -- 4. associations approvable in principle (both ends approved) — the Pass-4 health check
 SELECT a.type, count(*) AS approved_associations
-FROM domox.associationcdd a
+FROM domox.collaboratorcdd a
 WHERE EXISTS (SELECT 1 FROM domox.review r WHERE r.candidate_id=a.id AND r.status='APPROVED')
 GROUP BY 1;
 ```
@@ -277,8 +277,15 @@ Shell: `docker exec domox-db psql -U postgres -d postgres -c "..."`.
       0 cardinalities). The approved subset is the number that matters.
 - [ ] **Update `MODEL_UML_READINESS_REVIEW.md`** with the post-pass measurements, and close the
       gaps that the passes have answered (attribute vocabulary → FIX-6c).
-- [ ] **Optional — ontology grounding.** `ontologySearch` / `suggestReview` on the approved set is a
-      cheap sanity check for the ~15 core commerce classes; it is not evidence for completeness.
+- [x] **Optional — ontology grounding.** Run 2026-11-20 (TODO-09) over the ~15 core commerce classes
+      — the ones §3.6 of `MODEL_UML_READINESS_REVIEW.md` names as genuine matches: all 15 return
+      `typeAgreement = AGREES` and `suggestReview` → `APPROVE`, and the spot-check's real output is the
+      **false homonyms** it documents (see the new §3.6.1 there). Two classes read as false friends
+      (`Claim` = insurance claim, not a fact-checking assertion; `Class` = training class, not
+      `rdfs:Class`), and the *advisor* mis-advises `REJECT`/`WRONG_CANDIDATE_TYPE` on four approved
+      classes whose names collide with a schema.org PROPERTY/INDIVIDUAL (`Pet`, `Owner`, `Customer`,
+      `Provider`). It remains a sanity check, **not** evidence for completeness — and its advice is
+      never to be followed on a name collision.
 
 ---
 

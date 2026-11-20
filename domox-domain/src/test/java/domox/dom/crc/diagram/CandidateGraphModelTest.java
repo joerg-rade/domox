@@ -256,21 +256,21 @@ class CandidateGraphModelTest {
     private static ResponsibilityCdd actionCandidate(final String name) {
         final ResponsibilityCdd a = new ResponsibilityCdd();
         a.setCandidateName(name);
-        a.setCandidateType("ActionCdd");
+        a.setCandidateType("ResponsibilityCdd");
         return a;
     }
 
     private static AttributeCdd propertyCandidate(final String name) {
         final AttributeCdd p = new AttributeCdd();
         p.setCandidateName(name);
-        p.setCandidateType("PropertyCdd");
+        p.setCandidateType("AttributeCdd");
         return p;
     }
 
     private static CollaboratorCdd associationCandidate(final String name) {
         final CollaboratorCdd a = new CollaboratorCdd();
         a.setCandidateName(name);
-        a.setCandidateType("AssociationCdd");
+        a.setCandidateType("CollaboratorCdd");
         return a;
     }
 

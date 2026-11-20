@@ -78,7 +78,7 @@ class CandidateFactoryTest {
     void createCandidatesFrom_createsClassAndAttributeCandidates() {
         // given
         final RuleMatch classMatch = match("ClassCdd", "Customer", null, null);
-        final RuleMatch propertyMatch = match("PropertyCdd", "name", null, "Customer");
+        final RuleMatch propertyMatch = match("AttributeCdd", "name", null, "Customer");
 
         final ClassCdd classCdd = new ClassCdd();
         final AttributeCdd propertyCdd = new AttributeCdd();
@@ -100,7 +100,7 @@ class CandidateFactoryTest {
     @Test
     void createCandidatesFrom_createsResponsibilityCandidates() {
         // given
-        final RuleMatch actionMatch = match("ActionCdd", "process", null, null);
+        final RuleMatch actionMatch = match("ResponsibilityCdd", "process", null, null);
 
         final ResponsibilityCdd responsibilityCdd = new ResponsibilityCdd();
         when(mockResponsibilityCandidates.findOrCreate("process", null, null, null)).thenReturn(responsibilityCdd);
@@ -116,7 +116,7 @@ class CandidateFactoryTest {
     @Test
     void createCandidatesFrom_createsResponsibilityCandidates_withOwningClass() {
         // given — the object noun is the only owner evidence (no sentence, so no actor)
-        final RuleMatch actionMatch = match("ActionCdd", "offer", "ClassCdd", "Offer");
+        final RuleMatch actionMatch = match("ResponsibilityCdd", "offer", "ClassCdd", "Offer");
 
         final ClassCdd offerClassCdd = new ClassCdd();
         final ResponsibilityCdd offerAction = new ResponsibilityCdd();
@@ -144,7 +144,7 @@ class CandidateFactoryTest {
     void createCandidatesFrom_ownsTheOperationByTheSentencesActor() {
         // given — TDR3's match: the verb with its object as the related candidate …
         final Sentence sentence = sentenceWithId(11L);
-        final RuleMatch actionMatch = match("ActionCdd", "select", "ClassCdd", "Product");
+        final RuleMatch actionMatch = match("ResponsibilityCdd", "select", "ClassCdd", "Product");
         actionMatch.setTypedDependency(dependencyIn(sentence));
         sentence.addTypedDependency(actorDependency(sentence, "select", "customer"));
         sentence.addTypedDependency(objectDependency(sentence, "select", "product"));
@@ -175,7 +175,7 @@ class CandidateFactoryTest {
         // given
         when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("system"));
         final Sentence sentence = sentenceWithId(12L);
-        final RuleMatch actionMatch = match("ActionCdd", "validate", "ClassCdd", "Availability");
+        final RuleMatch actionMatch = match("ResponsibilityCdd", "validate", "ClassCdd", "Availability");
         actionMatch.setTypedDependency(dependencyIn(sentence));
         sentence.addTypedDependency(actorDependency(sentence, "validate", "system"));
 
@@ -203,7 +203,7 @@ class CandidateFactoryTest {
     void createCandidatesFrom_addsTheOperationsParameters() {
         // given — an action match carrying the sentence it came from
         final Sentence sentence = sentenceWithId(9L);
-        final RuleMatch actionMatch = match("ActionCdd", "Browse", null, "Customer");
+        final RuleMatch actionMatch = match("ResponsibilityCdd", "Browse", null, "Customer");
         actionMatch.setTypedDependency(dependencyIn(sentence));
         sentence.addTypedDependency(objectDependency(sentence, "browse", "pet"));
 
@@ -227,7 +227,7 @@ class CandidateFactoryTest {
     void createCandidatesFrom_infersTheParameterTypeWhenNoClassOfThatNameExists() {
         // given — no class candidate is found for "reference"
         final Sentence sentence = sentenceWithId(10L);
-        final RuleMatch actionMatch = match("ActionCdd", "Provide", null, "Shop");
+        final RuleMatch actionMatch = match("ResponsibilityCdd", "Provide", null, "Shop");
         actionMatch.setTypedDependency(dependencyIn(sentence));
         sentence.addTypedDependency(objectDependency(sentence, "provide", "reference"));
 
@@ -500,13 +500,13 @@ class CandidateFactoryTest {
      * The old behaviour invented a class literally called {@code Unknown} to own such a property —
      * 12 attribute candidates hung off it in the PetShop model.  TDR12's "both sides are basic
      * attributes" branch ("size color", "description description") records exactly this shape: a
-     * {@code PropertyCdd} whose {@code relatedCandidateName} is null, because the rule never
+     * {@code AttributeCdd} whose {@code relatedCandidateName} is null, because the rule never
      * identifies an owning class for it.  With no owner there is no attribute.
      */
     @Test
     void createCandidatesFrom_skipsAPropertyWhoseOwnerCannotBeResolved() {
         // given
-        final RuleMatch propMatch = match("PropertyCdd", "name", null, null);
+        final RuleMatch propMatch = match("AttributeCdd", "name", null, null);
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(propMatch));
@@ -574,7 +574,7 @@ class CandidateFactoryTest {
     void createCandidatesFrom_blocksOwningClassForAction_whenOwnerIsBlocked() {
         // given
         when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("system"));
-        final RuleMatch actionMatch = match("ActionCdd", "validate", "ClassCdd", "System");
+        final RuleMatch actionMatch = match("ResponsibilityCdd", "validate", "ClassCdd", "System");
 
         final ResponsibilityCdd action = new ResponsibilityCdd();
         when(mockResponsibilityCandidates.findOrCreate("validate", null, null, null)).thenReturn(action);
@@ -623,7 +623,7 @@ class CandidateFactoryTest {
     void createCandidatesFrom_skipsPropertyWhenOwnerClassIsBlocked() {
         // given
         when(mockNlpProperties.getUseCaseBlockedNouns()).thenReturn(List.of("condition"));
-        final RuleMatch propMatch = match("PropertyCdd", "description", "ClassCdd", "Condition");
+        final RuleMatch propMatch = match("AttributeCdd", "description", "ClassCdd", "Condition");
 
         // when
         final List<Candidate> result = classUnderTest.createCandidatesFrom(Collections.singletonList(propMatch));

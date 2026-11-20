@@ -57,6 +57,33 @@ return type. 87 owners corrected, 21 owner-less operations gain an owner, 0 lost
 only *confirms* it — it still records the owner-correctness column (`MODEL_REVIEW_PLAN.md` §6). A
 rule-set change, so it takes effect on the next Phase-1/2 run (TODO-01); no migration.
 
+**Closed 2026-11-20 (fifth sweep)** — TODO-09 (optional ontology grounding), the last open item owned by
+`MODEL_UML_READINESS_REVIEW.md`, recorded there as §3.6.1. It was run as written: `ontologySearch`,
+`ontologyEvidenceForCandidate` and `suggestReview` (`OntologyReviewMcpTools`) over the ~15 core commerce
+classes §3.6 names as genuine matches, against the live Fuseki graphs. All 15 agree (`typeAgreement =
+AGREES`, `suggestReview` → `APPROVE`), so the grounding *confirms* the approved core set rather than
+changing it — but the run's real deliverable is the **false homonyms** it documents: `Claim` is the
+corpus's *insurance* claim, not schema.org's fact-checking assertion, and `Class` is a *training* class,
+not `rdfs:Class`. It also exposed the trap in the tool itself: `suggestReview` advises
+`REJECT`/`WRONG_CANDIDATE_TYPE` on four **approved** classes whose names collide with a schema.org
+PROPERTY/INDIVIDUAL (`Pet` → `schema.org/PET`, a medical-imaging individual; `Owner`, `Customer`,
+`Provider` → schema.org properties) and `REJECT`/`DUPLICATE` on the class `Review` because an approved
+*action* `review` shares its name. No decision follows from it — the advisor is advisory, and a name
+collision is not evidence.
+
+**Closed 2026-11-20 (sixth sweep)** — TODO-15 (deferred persisted-name migration), the last item owned
+by `.clinerules/memory-bank/technical/SCHEMA.md`. It was the *persistence* half of the 2026-10 CRC
+rename: the Java classes had been renamed while `@Table`, `@Entity(name=…)`, `@Named` and the
+`candidateType` literals were pinned to the historical values, so class name and object type differed
+and every reader had to re-derive it. The migration is applied — eight tables (four per-type + their
+four `_rulematch` join tables) renamed, the derived columns (`responsibilitycdd_id` etc.) and every
+constraint/index name moved with them, and the persisted `candidatetype` values rewritten
+(`rulematch` 507 + 105 rows, the per-type rows 191 + 109 + 237) — by the committed one-shot script
+`scripts/migrate-crc-persisted-names.sql`, after a `db-backup.sh` backup. Counts are unchanged
+(971 classes / 302 reviews / 2 476 rule matches), `scripts/check-schema-drift.sh` is clean, and the
+regenerated `create-tables.sql` carries only the new names, so a fresh DB and the migrated dev DB
+agree. Recorded in `SCHEMA.md` ("Persisted-name migration") and `CRC_VOCABULARY_RENAME_SUMMARY.md`.
+
 ---
 
 ## 1. Scales
@@ -108,7 +135,8 @@ sub-domain pass and the re-measurement**. The three independent rule gaps (TODO-
 CI-guardrail items (TODO-19…22) landed 2026-11-20 and were never on this path either, and neither was
 TODO-14 (operation-owner correctness, landed 2026-11-20): it waited on Pass 3's owner tally, which
 turned out to be derivable from the candidates themselves, so the decision was made ahead of the pass.
-No open item now sits off this path.
+TODO-09 (ontology grounding, landed 2026-11-20) never needed a pass either — it is a spot-check over the
+already-approved core set. No open item now sits off this path.
 
 ---
 ## 3. Summary — every open item
@@ -123,8 +151,6 @@ No open item now sits off this path.
 | **TODO-06** | Review pipeline | Pass 4 — review **237** `AssociationCdd` (last: needs both ends approved) | P2 | M | Medium |
 | **TODO-07** | Review pipeline | Sub-domain pass for the newly approved classes | P2 | S | Low |
 | **TODO-08** | Review pipeline | Re-measure the UML diagram and update the readiness review | P2 | S | Medium |
-| **TODO-09** | Ontology grounding | Optional grounding of the ~15 core commerce classes | P3 | S | Low |
-| **TODO-15** | Schema / DDL | Deferred persisted-name migration (`@Table`/`@Named`/`candidateType`) | P3 | L | Medium |
 | **TODO-18** | Architecture | `domox.dom.rules` is a flat package of 61 files | P3 | M | Low |
 | **TODO-24** | Build hygiene | Nexus snapshot-metadata timeout noise on every build | P3 | S | Low |
 | **TODO-25** | Capability | gist into Fuseki + MCP-exposed pattern repositories | P3 | L | Low |
@@ -133,8 +159,8 @@ No open item now sits off this path.
 | **TODO-28** | Capability | The "(future)" association patterns in `association-type-categorization.md` | P3 | M | Low |
 | **TODO-29** | Capability | Generalization literature gaps + the stale "not yet implemented" Group-6 header | P3 | M | Low |
 
-**Counts.** 17 open items — 1 × P0, 2 × P1, 5 × P2, 9 × P3. (Fourteen further items — TODO-10, 11,
-12, 13, 14, 16, 17, 19, 20, 21, 22, 23, 30, 31 — were closed 2026-11-19/20; see the header.)
+**Counts.** 15 open items — 1 × P0, 2 × P1, 5 × P2, 7 × P3. (Sixteen further items — TODO-09, 10, 11,
+12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 30, 31 — were closed 2026-11-19/20; see the header.)
 
 ---
 
@@ -241,34 +267,15 @@ concrete improvement, and the condition that closes it.
   domainModel=DomainModel:653`, compare against the §2 table, and write the delta back.
 - **Done when:** the readiness review carries the post-pass table and the answered gaps are closed.
 
-#### TODO-09 — Optional ontology grounding of the core classes · P3 · S · Risk Low
-
-- **Source:** `MODEL_REVIEW_PLAN.md` §4 (Optional grounding), §10; `MODEL_UML_READINESS_REVIEW.md` §3.6.
-- **Open:** never run over the approved set.
-- **Risk if skipped:** none material — it is a sanity check, not evidence of completeness.
-- **Area of improvement:** `ontologySearch` / `suggestReview` on the ~15 core commerce classes only,
-  remembering that a *miss* is not evidence against and that `Pet` matches `schema.org/PET` (medical
-  imaging), not a pet.
-- **Done when:** the ~15 core names have been spot-checked and any false homonym is documented.
-
 ---
 
 ### B. Schema / DDL hygiene — `SCHEMA.md`, `CRC_VOCABULARY_RENAME_SUMMARY.md`
 
-#### TODO-15 — Deferred persisted-name migration · P3 · L · Risk Medium
+**TODO-15 (deferred persisted-name migration) used to head this section** and was closed 2026-11-20 —
+the persisted names now carry the CRC vocabulary. See the header, `SCHEMA.md` → "Persisted-name
+migration", and `scripts/migrate-crc-persisted-names.sql`.
 
-- **Source:** `.clinerules/memory-bank/technical/SCHEMA.md` → "Remaining work";
-  `CRC_VOCABULARY_RENAME_SUMMARY.md` item 1.
-- **Open:** the 2026-10 CRC rename changed **Java class names only** — `@Table`, `@Named`,
-  `@Entity(name=…)` and the `candidateType` literals are still the historical values
-  (`actioncdd`, `propertycdd`, `associationcdd`, `parametercdd`), so class name and object type
-  differ (`Candidate.getObjectType()` exists for exactly that reason).
-- **Risk if skipped:** every new reader of the code (or of `domox.rulematch.candidatetype`) meets the
-  mismatch and must re-derive it; the divergence is permanent and grows with each rename.
-- **Area of improvement:** follow the recipe in `SCHEMA.md` — `ALTER TABLE … RENAME TO` for each
-  per-type table plus its join table and FK columns, `UPDATE domox.rulematch SET candidatetype=…`,
-  then flip the annotations together (Causeway object types are persisted in `bookmark`/`command`).
-- **Done when:** class name and object type agree and `check-schema-drift.sh` is clean.
+
 
 #### TODO-18 — `domox.dom.rules` is a flat package of 61 files · P3 · M · Risk Low
 
@@ -385,7 +392,7 @@ flowchart TD
     C["the gate — TODO-01<br/>Phase-1/2 re-run"]:::gate
     D["bulk passes — TODO-03, 04, 05, 06<br/>classes then attributes / actions / collaborators"]:::bulk
     E["then — TODO-07, 08<br/>sub-domains · re-measure"]:::bulk
-    F["backlog — TODO-09, 14, 15, 18, 24-29"]:::later
+    F["backlog — TODO-18, 24-29"]:::later
 
     B --> C --> D --> E --> F
 ```

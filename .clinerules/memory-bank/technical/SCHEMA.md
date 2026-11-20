@@ -19,38 +19,42 @@ CLI boots need `-Dspring-boot.run.workingDirectory=<repo root>`.
 
 `Candidate` uses `TABLE_PER_CLASS`. Real rows live in the **per-type tables**, not the base:
 
-| Entity (Java, post-CRC-rename) | Table (persisted name — unchanged) |
+| Entity (Java) | Table |
 |---|---|
 | `ClassCdd` | `domox.classcdd` |
-| `AttributeCdd` | `domox.propertycdd` |
-| `ResponsibilityCdd` | `domox.actioncdd` |
-| `CollaboratorCdd` | `domox.associationcdd` |
-| `ResponsibilityParameter` | `domox.parametercdd` |
+| `AttributeCdd` | `domox.attributecdd` |
+| `ResponsibilityCdd` | `domox.responsibilitycdd` |
+| `CollaboratorCdd` | `domox.collaboratorcdd` |
+| `ResponsibilityParameter` | `domox.responsibilityparameter` |
 
 `PackageCdd` was deleted in the CRC rename; its two tables (`domox.packagecdd`,
 `domox.packagecdd_rulematch`) were dropped on 2026-11-19, so there is no `packagecdd` row to keep.
 
-> **Class names ≠ table names (deliberate).** The CRC-vocabulary rename
+> **Class names = table names (since 2026-11-20).** The 2026-10 CRC-vocabulary rename
 > (`ActionCdd`→`ResponsibilityCdd`, `PropertyCdd`→`AttributeCdd`,
-> `AssociationCdd`→`CollaboratorCdd`, `ParameterCdd`→`ResponsibilityParameter`) pinned
-> `@Table`/`@Named`/`candidateType` to the historical values so **no DB migration was
-> needed**. See the "Remaining work" section for the deferred migration.
+> `AssociationCdd`→`CollaboratorCdd`, `ParameterCdd`→`ResponsibilityParameter`) originally
+> pinned `@Table`/`@Named`/`@Entity`/`candidateType` to the historical values so **no DB
+> migration was needed**.  The deferred migration (TODO-15) has since been applied, so all
+> five names now agree — see "Persisted-name migration (applied 2026-11-20)" below.
 >
-> ⚠️ **Pinning `@Table` alone is NOT enough.** Two more names are *derived* from the Java
-> class name and silently drift if you forget them (both were caught by
-> `scripts/check-schema-drift.sh` after the rename):
+> ⚠️ **Two names are *derived* from the JPA entity name, not from `@Table`.** They drifted
+> once during the rename and are caught only by `scripts/check-schema-drift.sh`:
 >
-> 1. **The `ruleMatches` M:N join table columns.** EclipseLink derives
->    `<entityName>_RuleMatch` / `<entityName>_ID` from the **JPA entity name**, not from
->    `@Table`.  Fix: `@Entity(name = "ActionCdd")` (etc.) on each renamed entity — this keeps
->    `domox.ActionCdd_RuleMatch(ActionCdd_ID, ruleMatches_ID)` intact.
+> 1. **The `ruleMatches` M:N join table + its column.** EclipseLink derives
+>    `<entityName>_RuleMatch` / `<entityName>_ID`, so `@Entity(name = …)` and the table name
+>    must move **together** — otherwise you get
+>    `domox.ActionCdd_RuleMatch(ActionCdd_ID, ruleMatches_ID)` for a table called
+>    `ResponsibilityCdd`.
 > 2. **A `@JoinColumn` with no explicit `name`.** The column name defaults to
->    `<propertyName>_<pk>`, so renaming the `actionCdd` field broke
->    `domox.parametercdd.actioncdd_id`.  Fix: `@JoinColumn(name = "actioncdd_id", …)`.
+>    `<propertyName>_<pk>`, so renaming the `actionCdd` field silently broke
+>    `domox.parametercdd.actioncdd_id`.  `ResponsibilityParameter.responsibilityCdd` therefore
+>    still carries an explicit `@JoinColumn(name = "responsibilitycdd_id", …)` — keep it in
+>    step with the field name.
 >
-> Also note the **Causeway object type** is *not* the class name — `Candidate.getObjectType()`
-> reads it back from `@Named` because the diagram JSON feeds it into
-> `/wicket/object/<objectType>:<id>` click-through URLs.
+> Also note the **Causeway object type** (`@Named`) is what
+> `Candidate.getObjectType()` reads back and what the diagram JSON feeds into
+> `/wicket/object/<objectType>:<id>` click-through URLs — it must match the framework's type
+> exactly, which is why it is read from the annotation rather than derived from the class.
 
 `domox.candidate` (base) is an empty stub — never depend on it.
 
@@ -60,10 +64,10 @@ that references the field fail at runtime. Example — the `hopDepth` migration:
 
 ```sql
 ALTER TABLE domox.classcdd       ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE domox.propertycdd    ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE domox.actioncdd      ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE domox.associationcdd ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
-ALTER TABLE domox.parametercdd   ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE domox.attributecdd   ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE domox.responsibilitycdd ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE domox.collaboratorcdd ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE domox.responsibilityparameter ADD COLUMN hopdepth INTEGER NOT NULL DEFAULT 1;
 ```
 
 (Names fold to lowercase in Postgres; unquoted DDL `HOPDEPTH` -> stored `hopdepth`.)
@@ -86,21 +90,41 @@ There is no Flyway/Liquibase baseline yet. If a durable migration mechanism is a
 drift check above should become redundant — until then it is the cheapest guardrail the repo
 has.
 
-## Remaining work — deferred persisted-name migration
+## Persisted-name migration (applied 2026-11-20 — TODO-15, closed)
 
-The 2026-10 CRC rename changed **Java class names only**; `@Table`, `@Named` and the
-`candidateType` string literals were pinned to the historical values so the live DB keeps
-working. Still outstanding:
+The 2026-10 CRC rename changed **Java class names only**; `@Table`, `@Entity`, `@Named` and the
+`candidateType` string literals were pinned to the historical values so the live DB kept working.
+That deferred migration has now been **applied**, so the class name, the JPA entity name, the table
+name, the Causeway object type and the persisted `candidateType` all agree.
 
-| Item | What is needed |
+| Item | State |
 |---|---|
-| `@Table(name = "ActionCdd")` on `ResponsibilityCdd` | `ALTER TABLE domox.actioncdd RENAME TO responsibilitycdd` (+ join table + FK columns), then flip the annotation |
-| `@Table(name = "PropertyCdd")` on `AttributeCdd` | same for `domox.propertycdd` |
-| `@Table(name = "AssociationCdd")` on `CollaboratorCdd` | same for `domox.associationcdd` (+ `source_id`/`target_id` FKs) |
-| `@Table(name = "ParameterCdd")` on `ResponsibilityParameter` | same for `domox.parametercdd` |
-| `@Named(... ".ActionCdd")` etc. | flip together with the table rename (Causeway object types are persisted in `bookmark`/`command` tables) |
-| `candidateType` literals (`RuleMatches`, `*Candidates`, `CandidateD3Graph.typeLabel`) | `UPDATE domox.rulematch SET candidatetype='ResponsibilityCdd' WHERE candidatetype='ActionCdd';` etc. |
-| Orphaned `domox.packagecdd` + `domox.packagecdd_rulematch` tables | ✅ **done 2026-11-19** — dropped; the live schema and `create-tables.sql` hold no `packagecdd` table |
-| `@Entity(name = "ActionCdd")` / `"PropertyCdd"` / `"AssociationCdd"` / `"ParameterCdd"` pins | flip together with the table rename — they exist only to keep the derived join-table columns stable |
-| `@JoinColumn(name = "actioncdd_id")` on `ResponsibilityParameter.responsibilityCdd` | rename the column together with the field (or drop the explicit name once the property is renamed back) |
-| `scripts/check-schema-drift.sh` comment listing `packagecdd` | ✅ **done 2026-11-19** — `packagecdd` dropped from both comment lines |
+| `domox.actioncdd` → `domox.responsibilitycdd` (+ `_rulematch` + `responsibilitycdd_id`) | ✅ done |
+| `domox.propertycdd` → `domox.attributecdd` (+ `_rulematch` + `attributecdd_id`) | ✅ done |
+| `domox.associationcdd` → `domox.collaboratorcdd` (+ `_rulematch` + `collaboratorcdd_id`) | ✅ done |
+| `domox.parametercdd` → `domox.responsibilityparameter` (+ `_rulematch` + `responsibilityparameter_id`) | ✅ done |
+| `domox.responsibilityparameter.actioncdd_id` → `responsibilitycdd_id` | ✅ done |
+| constraint + index names follow the new table names | ✅ done |
+| `@Table` / `@Entity(name=…)` / `@Named(…)` on the four entities | ✅ done |
+| `candidateType` literals (`RuleMatches` callers, `*Candidates`, `CandidateFactory` dispatch) | ✅ done |
+| `domox.rulematch.candidatetype` / `relatedcandidatetype` values | ✅ done (507 + 105 rows) |
+| per-type `candidatetype` column values (`actioncdd` 191, `propertycdd` 109, `associationcdd` 237) | ✅ done |
+| Orphaned `domox.packagecdd` + `domox.packagecdd_rulematch` tables | ✅ done 2026-11-19 |
+
+**The migration script is `scripts/migrate-crc-persisted-names.sql`** — it renames the constraints
+(a `DO` block), the eight tables, the derived columns and the persisted type values in one
+transaction, then verifies counts and prints three `should_be_zero` queries.  Apply it with:
+
+```bash
+bash scripts/db-backup.sh                                    # always back up first
+docker exec -i domox-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+    < scripts/migrate-crc-persisted-names.sql
+```
+
+It is a **one-shot**: re-running it fails loudly on the first `ALTER TABLE`.  A fresh database needs
+no migration — EclipseLink `create-tables` builds the new names directly.
+
+Two names are still *derived* rather than declared and must be moved together with the entity name:
+the `ruleMatches` join table (`<entityName>_RuleMatch`, `<entityName>_ID`) and a bare `@JoinColumn`
+column (`<propertyName>_<pk>`).  `scripts/check-schema-drift.sh` is what catches a mismatch.
+

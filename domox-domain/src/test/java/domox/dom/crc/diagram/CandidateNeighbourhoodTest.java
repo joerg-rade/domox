@@ -419,7 +419,7 @@ class CandidateNeighbourhoodTest {
     private static ClassCdd associationCandidate(final String name) {
         final ClassCdd candidate = new ClassCdd();
         candidate.setCandidateName(name);
-        candidate.setCandidateType("AssociationCdd");
+        candidate.setCandidateType("CollaboratorCdd");
         return candidate;
     }
 

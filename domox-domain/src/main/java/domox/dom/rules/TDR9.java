@@ -37,7 +37,7 @@ public class TDR9 extends TypedDependencyRule {
 
             // Phase 1: persist the match — B is an attribute of the governor A
             if (ruleMatches != null && currentTd != null) {
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getB(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getA()), result);
             }

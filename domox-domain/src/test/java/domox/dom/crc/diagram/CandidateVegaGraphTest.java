@@ -164,7 +164,7 @@ class CandidateVegaGraphTest {
 
         final ResponsibilityCdd purchase = new ResponsibilityCdd();
         purchase.setCandidateName("Purchase");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
 
         when(classCandidates.listAll()).thenReturn(List.of(customer));
         when(responsibilityCandidates.listAll()).thenReturn(List.of(purchase));
@@ -193,7 +193,7 @@ class CandidateVegaGraphTest {
 
         final ResponsibilityCdd purchase = new ResponsibilityCdd();
         purchase.setCandidateName("Purchase");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
 
         when(classCandidates.listAll()).thenReturn(List.of(customer));
         when(responsibilityCandidates.listAll()).thenReturn(List.of(purchase));
@@ -218,7 +218,7 @@ class CandidateVegaGraphTest {
 
         final ResponsibilityCdd purchase = new ResponsibilityCdd();
         purchase.setCandidateName("Purchase");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
         purchase.getRuleMatches().add(ruleMatchWith(
                 dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
                     "order", PartOfSpeechType.NN)));
@@ -250,7 +250,7 @@ class CandidateVegaGraphTest {
 
         final ResponsibilityCdd purchase = new ResponsibilityCdd();
         purchase.setCandidateName("Purchase");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
         purchase.getRuleMatches().add(ruleMatchWith(
                 dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
                     "order", PartOfSpeechType.NN)));
@@ -283,11 +283,11 @@ class CandidateVegaGraphTest {
 
         final AttributeCdd age = new AttributeCdd();
         age.setCandidateName("Age");
-        age.setCandidateType("PropertyCdd");
+        age.setCandidateType("AttributeCdd");
 
         final CollaboratorCdd coverageAge = new CollaboratorCdd();
         coverageAge.setCandidateName("Coverage_Age");
-        coverageAge.setCandidateType("AssociationCdd");
+        coverageAge.setCandidateType("CollaboratorCdd");
 
         when(classCandidates.listAll()).thenReturn(List.of(coverage));
         when(responsibilityCandidates.listAll()).thenReturn(List.of());
@@ -317,7 +317,7 @@ class CandidateVegaGraphTest {
 
         final ResponsibilityCdd purchase = new ResponsibilityCdd();
         purchase.setCandidateName("Purchase");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
 
         when(classCandidates.listAll()).thenReturn(List.of(customer));
         when(responsibilityCandidates.listAll()).thenReturn(List.of(purchase));
@@ -340,7 +340,7 @@ class CandidateVegaGraphTest {
 
         final ResponsibilityCdd purchase = new ResponsibilityCdd();
         purchase.setCandidateName("Purchase");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
 
         when(classCandidates.listAll()).thenReturn(List.of(customer));
         when(responsibilityCandidates.listAll()).thenReturn(List.of(purchase));

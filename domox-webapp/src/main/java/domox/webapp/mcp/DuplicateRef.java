@@ -8,7 +8,7 @@ import domox.dom.crc.model.Candidate;
  *
  * @param candidateId   the colliding candidate's id
  * @param candidateName its name (as stored)
- * @param candidateType its candidate type, e.g. {@code ClassCdd} / {@code ActionCdd}
+ * @param candidateType its candidate type, e.g. {@code ClassCdd} / {@code ResponsibilityCdd}
  */
 public record DuplicateRef(long candidateId, String candidateName, String candidateType) {
 

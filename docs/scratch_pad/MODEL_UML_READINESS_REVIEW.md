@@ -177,6 +177,50 @@ Matching the 131 approved class names against every label / IRI local name: **31
 **Conclusion:** the ontologies are a *classification aid for the ~15 core commerce classes and for
 archetypes*, not an evidence source for completeness, and never a naming oracle.
 
+#### 3.6.1 The 15 core names, spot-checked through the tools (2026-11-20, TODO-09)
+
+Run over the 15 approved classes the list above calls genuinely useful, with `ontologySearch`,
+`ontologyEvidenceForCandidate` and `suggestReview` (`OntologyReviewMcpTools`; Fuseki at
+`http://localhost:3030/ds/sparql`, five named graphs). All 15 return `typeAgreement = AGREES` — a
+**CLASS** match in the graph named above, `suggestReview` → `APPROVE` / MEDIUM:
+
+| Approved class (id) | graph · IRI | super-class | verdict |
+|---|---|---|---|
+| `Order` (7844) | schema.org · `schema.org/Order` | `LegalDocument` | ✅ genuine — "a confirmation of a transaction (a receipt)" |
+| `Product` (863) | schema.org · `schema.org/Product` | `Thing` | ✅ genuine |
+| `Service` (1909) | schema.org · `schema.org/Service` | `Intangible` | ✅ genuine |
+| `Store` (882) | schema.org · `schema.org/Store` | `LocalBusiness` | ✅ genuine |
+| `Event` (6856) | gist · BBO · schema.org · sBPMN | — / `FlowNode` / `Thing` | ⚠️ genuine, but four graphs give two **archetypes**: a scheduled happening (schema.org, gist) vs a process occurrence (BBO) |
+| `Course` (2957) | schema.org · `schema.org/Course` | `LearningResource` | ✅ genuine |
+| `Ticket` (12583) | schema.org · `schema.org/Ticket` | `Intangible` | ✅ genuine |
+| `Review` (4014) | schema.org · `schema.org/Review` | `CreativeWork` | ✅ genuine (the *advisor* still says REJECT — see below) |
+| `Claim` (4883) | schema.org · `schema.org/Claim` | `CreativeWork` | ❌ **false friend** — schema.org's Claim is a fact-checking assertion; the corpus's is an **insurance claim** ("payment (or insurance claim) is handled") |
+| `Collection` (7920) | gist · `gist/Collection` | `Composite` | ✅ genuine |
+| `Guide` (2972) | schema.org · `schema.org/Guide` | `CreativeWork` | ✅ genuine |
+| `Class` (2930) | schema.org · `schema.org/Class` | `Intangible` | ❌ **false friend** — schema.org's Class is the metamodel "Type" (`rdfs:Class`); the corpus's is a **training class** ("signs up for a training class", "The selected class has no openings") |
+| `Contract` (3955) | gist · `gist/Contract` | — | ✅ genuine — "an agreement which can be enforced by law" |
+| `Category` (910) | gist · `gist/Category` | — | ✅ genuine (schema.org offers only the PROPERTY `category`) |
+| `Activity` (5866) | BBO · `BBO#Activity` | — / `flowNode` | ✅ genuine, but on the *stereotype* axis — a BPMN process element, not an inventory entry |
+
+**The false homonyms — and why the advisor must not be followed on a name collision.** The advisor
+rejects a `ClassCdd` whose only match is a PROPERTY or an INDIVIDUAL, so four *approved* core classes
+come back as `REJECT` / `WRONG_CANDIDATE_TYPE` / MEDIUM:
+
+| Approved class | what the ontology actually has | the advice |
+|---|---|---|
+| `Pet` (895) | `schema.org/PET` — an **INDIVIDUAL**, "Positron emission tomography imaging" | ❌ REJECT |
+| `Owner` (893) | `schema.org/owner` — a **PROPERTY**, "A person or organization who owns this Thing" | ❌ REJECT |
+| `Customer` (864) | `schema.org/customer` — a **PROPERTY**, "Party placing the order or paying the invoice" | ❌ REJECT |
+| `Provider` (13485) | `schema.org/provider` — a **PROPERTY** | ❌ REJECT |
+
+All four are correct model classes; the advice is an artifact of the collision. A second artifact, of
+the same family: `suggestReview(4014)` returns `REJECT` / `DUPLICATE` / **HIGH** for the class
+`Review`, because an already-approved **action** `review` (id 1963) shares its name —
+`findApprovedWithSameName` compares names *across* candidate types. That is exactly why §4 of
+`MODEL_REVIEW_PLAN.md` calls the advisor **advisory**, and why `ontologySearch`'s own description says
+a miss — or a kind mismatch — is **not** evidence against a candidate. Nothing in this spot-check
+changes a decision; it closes TODO-09 and confirms the §3.6 conclusion.
+
 ---
 
 ## 4. Defects found while producing the diagram

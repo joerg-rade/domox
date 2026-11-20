@@ -46,7 +46,7 @@ public class TDR10 extends TypedDependencyRule {
                 // nothing, because "cart" names a class and a reference to another class is an
                 // association, not an attribute (the same guard FIX-5 applied to TDR25/TDR26).
                 if (isBasicAttributeA(currentTd)) {
-                    ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                    ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                             currentTd.getA(), "ClassCdd",
                             capitalizeFirstLetter(currentTd.getB()), result);
                 }
@@ -59,7 +59,7 @@ public class TDR10 extends TypedDependencyRule {
 
             // Phase 1: persist the match — B is an attribute
             if (ruleMatches != null && currentTd != null) {
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getB(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getA()), result);
             }
@@ -83,7 +83,7 @@ public class TDR10 extends TypedDependencyRule {
 
                 // Phase 1: persist the match — A is a property of the resolved possessor
                 if (ruleMatches != null && currentTd != null) {
-                    ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                    ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                             propertyName, "ClassCdd",
                             owningClass, result);
                 }

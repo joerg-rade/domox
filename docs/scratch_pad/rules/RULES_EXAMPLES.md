@@ -248,7 +248,7 @@ Input:  nmod:poss(pets, their)  in "pet owners train their pets"
         Sentence also has nsubj(train, owners)
 
 Output: Attributes.add(pets)
-        >> PropertyCdd "pets" on resolved possessor ClassCdd "Owners"
+        >> AttributeCdd "pets" on resolved possessor ClassCdd "Owners"
 ```
 
 **Example 4 (PRP$ + amod enrichment)**:
@@ -258,7 +258,7 @@ Input:  nmod:poss(pets, their)  in "pet owners train their beloved pets"
         Sentence also has amod(pets, beloved)
 
 Output: Attributes.add(beloved pets)
-        >> PropertyCdd "beloved pets" on ClassCdd "Owners"
+        >> AttributeCdd "beloved pets" on ClassCdd "Owners"
 ```
 
 ### TDR11: Adjective Modifier
@@ -289,7 +289,7 @@ Input:  amod(pets, beloved)  in "owners love their beloved pets"
         Sentence also has nmod:poss(pets, their) and nsubj(love, owners)
 
 Output: Attributes.add(beloved pets)
-        >> PropertyCdd "beloved pets" on ClassCdd "Owners" (not a standalone entity)
+        >> AttributeCdd "beloved pets" on ClassCdd "Owners" (not a standalone entity)
 ```
 
 ### TDR12: Compound Words
@@ -735,7 +735,7 @@ Input:  nsubj(animal, dog)
 
 Output: generalization(dog --|> animal)
         >> Domain has generalization: Dog --|> Animal
-        >> (creates AssociationCdd with AssociationType.GENERALIZATION)
+        >> (creates CollaboratorCdd with AssociationType.GENERALIZATION)
 ```
 
 **Example 2: Copula with other sentence elements**
@@ -862,7 +862,7 @@ Input:  appos(store, shop)
 
 Output: synonym(Store == Shop)
         >> Domain has synonyms: Store == Shop
-        >> (creates two ClassCdd and an AssociationCdd with AssociationType.SYNONYM)
+        >> (creates two ClassCdd and an CollaboratorCdd with AssociationType.SYNONYM)
 ```
 
 **Example 2: "X, also known as Y" ("Acetaminophen, also known as paracetamol")**

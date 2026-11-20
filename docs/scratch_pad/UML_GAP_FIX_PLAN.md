@@ -5,7 +5,7 @@ The review work that runs *after* these fixes: `MODEL_REVIEW_PLAN.md`.
 **Method.** Every root cause below was re-verified against the working tree and the live
 `domox-db` / running instance (port 8080, all four compose services healthy) on 2026-11-18;
 file:line anchors are current as of that date.
-**Correction to the review.** `domox.associationcdd_rulematch` holds **237 rows**, so an
+**Correction to the review.** `domox.collaboratorcdd_rulematch` holds **237 rows**, so an
 association *is* linked to the rule matches that produced it — the review's "no rule-match
 connection" statement was wrong and is corrected here (it is what makes FIX-2 cheap).
 
@@ -116,7 +116,7 @@ python3 scripts/ro.py invoke domox.DomainModels generateUmlDiagram domainModel=D
 
 ## 5. FIX-2 — Multiplicities are extracted but persisted nowhere  ·  S2 · P1 · M
 
-**Symptom.** `associationcdd.sourcecardinality` / `targetcardinality` are `''` for **237/237**
+**Symptom.** `collaboratorcdd.sourcecardinality` / `targetcardinality` are `''` for **237/237**
 rows, so the diagram has **0 edges carrying a cardinality**. The values exist only as text inside
 `rulematch.description` (`multiplicity.add(pet, 1)`).
 
@@ -128,7 +128,7 @@ rows, so the diagram has **0 edges carrying a cardinality**. The values exist on
 | Setters | Lombok `@Setter` on both | present |
 | Rendering | `CollaboratorCdd.toPlantUmlString()` line 84 — `quote(src) + arrow + quote(target)` | **already renders** `"1" -> "0..*"` |
 | Test | `DomainModelsTest.java:70` sets `targetCardinality("2")` | already asserted end-to-end |
-| Evidence link | `domox.associationcdd_rulematch` — **237 rows** | present |
+| Evidence link | `domox.collaboratorcdd_rulematch` — **237 rows** | present |
 | Value normaliser | `MultiplicityNotation.umlNotation(...)` | present, covered by `MultiplicityNotationTest` |
 
 So nothing has to be added to the schema or the generator: `CandidateFactory` simply never calls
@@ -167,7 +167,7 @@ deterministic winner). Plus an extension of `DomainModelsTest` asserting an edge
 
 ```shell
 docker exec domox-db psql -U postgres -d postgres -c \
-  "SELECT count(*) FROM domox.associationcdd WHERE sourcecardinality <> '' OR targetcardinality <> '';"
+  "SELECT count(*) FROM domox.collaboratorcdd WHERE sourcecardinality <> '' OR targetcardinality <> '';"
 ```
 
 ---
@@ -267,7 +267,7 @@ blocked and survive.
 
 ## 8. FIX-3 — Operation signatures: no parameters, `outputType` always `void`  ·  S2 · P2 · L
 
-**Symptom.** 191 actions, `parametercdd` has **0 rows**, and `actioncdd.outputtype` is `void` for
+**Symptom.** 191 actions, `responsibilityparameter` has **0 rows**, and `responsibilitycdd.outputtype` is `void` for
 **191/191**. The rendered operation is a name with no signature.
 
 **Where the two halves come from.**
@@ -277,14 +277,14 @@ blocked and survive.
 | `outputType` | `ResponsibilityCandidates.java:62` | `obj.setOutputType("void")` — hardcoded, no inference |
 | parameters | `ResponsibilityCdd.inputTypeList` never populated | no rule or factory step ever creates a `ResponsibilityParameter` |
 
-**What already exists.** `ResponsibilityParameter` (entity, `parametercdd`, FK
-`actioncdd_id`), the `ParameterCdd_RuleMatch` join table, and
+**What already exists.** `ResponsibilityParameter` (entity, `responsibilityparameter`, FK
+`responsibilitycdd_id`), the `ResponsibilityParameter_RuleMatch` join table, and
 `ResponsibilityCdd.toPlantUmlString()` which already renders `name(p: Type): Out`. So again:
 **no schema change**.
 
 **Fix.**
 
-- [ ] **F3a.** In Phase 2, for an `ActionCdd` match, walk the **same sentence's** typed
+- [ ] **F3a.** In Phase 2, for an `ResponsibilityCdd` match, walk the **same sentence's** typed
   dependencies for `nsubj` / `dobj` / `iobj` / `nmod` / `pobj` whose governor gloss equals the
   action's verb and whose dependent is a noun → create one `ResponsibilityParameter(name, type)`
   each, where `type` is the owning `ClassCdd`'s name when that class exists in the model, else
@@ -352,7 +352,7 @@ has no label field. The verb survives only in `rulematch.description`
 (`relationship.add(inventory (has) product)`).
 
 **Correction to the review.** The association **is** linked to its rule matches
-(`domox.associationcdd_rulematch` = 237 rows), so the verb is reachable from the candidate — the
+(`domox.collaboratorcdd_rulematch` = 237 rows), so the verb is reachable from the candidate — the
 review's "no rule-match connection" was wrong.
 
 **Fix — two options.**
@@ -360,7 +360,7 @@ review's "no rule-match connection" was wrong.
 | Option | Change | Cost |
 |---|---|---|
 | **A. Derive at export** | `ClassDiagram` / `CollaboratorCdd.toPlantUmlString` reads the verb from the association's own rule match | no schema change; needs the rule match on the export path |
-| **B. Store a label** | new `label` field on `CollaboratorCdd` + `ALTER TABLE domox.associationcdd ADD COLUMN label VARCHAR(255)` + regenerate `create-tables.sql` | schema change on the dev DB, per `memory-bank/technical/SCHEMA.md` (EclipseLink `create-tables` never ALTERs) |
+| **B. Store a label** | new `label` field on `CollaboratorCdd` + `ALTER TABLE domox.collaboratorcdd ADD COLUMN label VARCHAR(255)` + regenerate `create-tables.sql` | schema change on the dev DB, per `memory-bank/technical/SCHEMA.md` (EclipseLink `create-tables` never ALTERs) |
 
 **Recommendation: option A** — the label is derived evidence, and storing it would duplicate what
 the rule match already says. Revisit only if the UI must edit it.
@@ -376,7 +376,7 @@ when a rule match is present, and `source_target` when it is not.
 |---|---|
 | `AttributeCdd.cardinality` (`AttributeCdd.java:28-31`) | `private Cardinality cardinality;` — **annotations commented out**, no getter, no setter, never assigned |
 | `Cardinality.java` | `@Data` class with `min`/`max`/`hasLimit` — no other reference in the codebase |
-| `domox-webapp/create-tables.sql:1` | still declares `CARDINALITY BYTEA` on `domox.PropertyCdd` — a column the entity no longer maps |
+| `domox-webapp/create-tables.sql:1` | still declares `CARDINALITY BYTEA` on `domox.AttributeCdd` — a column the entity no longer maps |
 | `domox.packagecdd` | orphaned table (entity deleted in the CRC rename, 0 rows) — **dropped 2026-11-19** |
 
 **Fix.** This is the **same decision as FIX-2**:
@@ -431,7 +431,7 @@ operation's **return type**:
   `name(params): outputType`;
 - `DomainModelsTest:49` and `generate/JavaCodeTest:51` both pass `Integer.class.getSimpleName()`, i.e.
   a Java type;
-- the CRC element type already lives elsewhere: `Candidate.candidateType` is set to `"ActionCdd"` by
+- the CRC element type already lives elsewhere: `Candidate.candidateType` is set to `"ResponsibilityCdd"` by
   `ResponsibilityCandidates.create()`.
 
 So `outputType = "ResponsibilityCdd"` would render every operation as `browse(): ResponsibilityCdd`.
@@ -473,7 +473,7 @@ an attribute. Measured over the PetShop model's 109 attribute candidates:
 | TDR6/TDR9/TDR16/TDR8 | 25 | — |
 | TDR4/TDR5 (blocked verbs) | 4 | — |
 
-`TDR10`'s branches create the `PropertyCdd` **without** consulting `isBasicAttributeB/A`, so *any*
+`TDR10`'s branches create the `AttributeCdd` **without** consulting `isBasicAttributeB/A`, so *any*
 possessed noun becomes an attribute. Narrowing those branches to attribute nouns — the same scope
 guard FIX-5 applied to TDR25/TDR26 — is a **rule-set change** with its own tests to update
 (`tdr10_placesPropertyOnResolvedPossessor`, `tdr10_enrichesThePropertyName`,
@@ -482,7 +482,7 @@ separate, deliberate change rather than smuggled into this wave.
 
 **Applied 2026-11-19 — the guard is in.** The possessed noun (`A`, the `nmod:poss` governor / `amod`
 governor) must now be an **attribute noun** (`isBasicAttributeA`, i.e. the `domox.nlp.basic-attributes`
-lexicon) for the branch to create a `PropertyCdd`:
+lexicon) for the branch to create an `AttributeCdd`:
 
 | Rule | Branch | Before | After |
 |---|---|---|---|
@@ -510,7 +510,7 @@ the class, and **no association is created**. Measured on the current model:
 -- 30 distinct association pairs were recorded, but only 14 association rows exist
 SELECT count(*) FROM domox.rulematch
  WHERE candidatetype='ClassCdd' AND relatedcandidatename IS NOT NULL;   -- 30
-SELECT count(*) FROM domox.associationcdd WHERE type=0;                 -- 14
+SELECT count(*) FROM domox.collaboratorcdd WHERE type=0;                 -- 14
 ```
 
 The 16 pairs with no row (`Adopter_Rejection`, `Health_Pet`, `Pet_Daycare`, `Stock_Size`, …) are
@@ -538,19 +538,19 @@ review decisions hang off candidate rows that a re-run updates in place.
 **The question.** FIX-3d was deliberately left open (§8) with the instruction *"fix it only if the
 review pass shows it matters"*. That pass (TODO-05) has not run, so the gate was re-expressed as a
 **measurement**: the owner-correctness tally can be computed from data the model already holds —
-`ActionCdd.classCdd` is the owner, and the sentence behind each candidate carries both its subject and
+`ResponsibilityCdd.classCdd` is the owner, and the sentence behind each candidate carries both its subject and
 its object.
 
-**The tally** (`ActionCdd` candidates, PetShop model, 2026-11-20):
+**The tally** (`ResponsibilityCdd` candidates, PetShop model, 2026-11-20):
 
 ```sql
 -- the actor each operation's own evidence sentences state, per candidate
 WITH ev AS (
   SELECT DISTINCT a.id AS action_id, c.candidatename AS owner,
          lower(rm.candidatename) AS verb, td.sentence_id AS sid
-    FROM domox.actioncdd a
+    FROM domox.responsibilitycdd a
     LEFT JOIN domox.classcdd c ON c.id = a.classcdd_id
-    JOIN domox.actioncdd_rulematch am ON am.actioncdd_id = a.id
+    JOIN domox.responsibilitycdd_rulematch am ON am.responsibilitycdd_id = a.id
     JOIN domox.rulematch rm ON rm.id = am.rulematches_id
     JOIN domox.typeddependency td ON td.id = rm.typed_dependency_id
 ), actors AS (
@@ -577,7 +577,7 @@ SELECT count(*) AS actions,
 
 | Measure | n |
 |---|---|
-| `ActionCdd` candidates | **191** |
+| `ResponsibilityCdd` candidates | **191** |
 | owned today | **149** — **all 149 by the sentence object**; **0** by the actor |
 | have a usable actor (`nsubj`, noun, not a blocked use-case noun) | **108** |
 | owners that change (object → actor) | **87** |
@@ -598,7 +598,7 @@ the model the rules were meant to build; the implementation did the opposite.
 | Piece | Change |
 |---|---|
 | new `ResponsibilityOwnerExtraction` | the actor noun of the verb: the dependent of an `nsubj` whose governor **is that verb** and whose dependent is a noun. A pure static utility, mirroring `ResponsibilityParameterExtraction` (which reads the verb's objects, the parameters) |
-| `CandidateFactory` (ActionCdd branch) | owner = the actor class; the object class is kept as owner **only** when the sentence names no usable actor, and is always passed as the *received class* |
+| `CandidateFactory` (ResponsibilityCdd branch) | owner = the actor class; the object class is kept as owner **only** when the sentence names no usable actor, and is always passed as the *received class* |
 | `ResponsibilityCandidates` | `create`/`findOrCreate` take the received class separately from the owner, so FIX-3b's mapping survives the owner move (§13.2) |
 | floors | `ResponsibilityOwnerExtraction` floored at 85 % (`scripts/pitest-floors.py`) |
 

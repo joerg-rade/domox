@@ -42,7 +42,7 @@ public class TDR11 extends TypedDependencyRule {
 
             // Phase 1: persist the match — combined attribute "B A" (e.g. "full name")
             if (ruleMatches != null && currentTd != null) {
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getB() + " " + currentTd.getA(), "ClassCdd",
                         owner, result);
             }

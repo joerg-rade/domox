@@ -100,20 +100,20 @@ package type_system {
         name: String
     }
     class ClassCdd extends Candidate {}
-    class PropertyCdd extends Candidate {
+    class AttributeCdd extends Candidate {
         type: Type
     }
-    class ActionCdd extends Candidate {
+    class ResponsibilityCdd extends Candidate {
         inputTypes: List<Type>
         outputType: Type
     }
-    class AssociationCdd extends Candidate {
+    class CollaboratorCdd extends Candidate {
         sourceCardinality: Integer
         targetCardinality: Integer
     }
-    ClassCdd -up-> "0..n" PropertyCdd : properties
-    ClassCdd -> "0..n" ActionCdd : actions
-    ClassCdd "2" -up-> "0..n" AssociationCdd : associations
+    ClassCdd -up-> "0..n" AttributeCdd : attributes
+    ClassCdd -> "0..n" ResponsibilityCdd : responsibilities
+    ClassCdd "2" -up-> "0..n" CollaboratorCdd : collaborators
 
 }
 

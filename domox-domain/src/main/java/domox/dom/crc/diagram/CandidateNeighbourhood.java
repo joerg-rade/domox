@@ -73,7 +73,7 @@ public final class CandidateNeighbourhood {
     }
 
     /**
-     * Lower-cased lemmas of synthetic {@code Association}-typed compound candidates ("X_Y").
+     * Lower-cased lemmas of synthetic {@code Collaborator}-typed compound candidates ("X_Y").
      * Such candidates are products of candidate-extraction rules and are excluded from the diagram
      * because their derived lemma is uninformative.
      */
@@ -82,7 +82,7 @@ public final class CandidateNeighbourhood {
         final Set<String> artifactLemmas = new HashSet<>();
         for (final Candidate c : candidates) {
             if (c == null || c.getCandidateName() == null) continue;
-            if (!"Association".equals(DiagramLemmas.typeLabel(c.getCandidateType()))) continue;
+            if (!"Collaborator".equals(DiagramLemmas.typeLabel(c.getCandidateType()))) continue;
             final String lemma = DiagramLemmas.lower(c.getCandidateName());
             final int sep = lemma.indexOf('_');
             if (sep <= 0 || sep >= lemma.length() - 1) continue;

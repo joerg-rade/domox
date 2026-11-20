@@ -36,7 +36,7 @@ class RuleMatchSignatureTest {
 
         assertThat(RuleMatchSignature.equal(base, match("TDR11", "ClassCdd", "Customer", "Order", "places", "an actor")))
                 .as("ruleClassName").isFalse();
-        assertThat(RuleMatchSignature.equal(base, match("TDR10", "ActionCdd", "Customer", "Order", "places", "an actor")))
+        assertThat(RuleMatchSignature.equal(base, match("TDR10", "ResponsibilityCdd", "Customer", "Order", "places", "an actor")))
                 .as("candidateType").isFalse();
         assertThat(RuleMatchSignature.equal(base, match("TDR10", "ClassCdd", "Client", "Order", "places", "an actor")))
                 .as("candidateName").isFalse();

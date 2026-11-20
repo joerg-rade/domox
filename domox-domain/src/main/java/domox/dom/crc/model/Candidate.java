@@ -185,16 +185,16 @@ public abstract class Candidate extends AbstractEntity {
     }
 
     /**
-     * The Causeway object type of this candidate — e.g. {@code domox.ActionCdd}.
+     * The Causeway object type of this candidate — e.g. {@code domox.ResponsibilityCdd}.
      * <p>
      * Read from the {@link Named} annotation rather than derived from
-     * {@link Class#getSimpleName()}: the entities were renamed to CRC vocabulary
-     * ({@code ResponsibilityCdd}, {@code AttributeCdd}, {@code CollaboratorCdd},
-     * {@code ResponsibilityParameter}) while their persisted names — {@code @Named},
-     * {@code @Table} and the {@code candidateType} strings — were deliberately pinned to the
-     * historical values.  The diagram JSON exposes this value so the client can build a
-     * {@code /wicket/object/<objectType>:<id>} click-through link, so it must match Causeway's
-     * object type exactly.
+     * {@link Class#getSimpleName()}, because it is the framework's own object type and must
+     * match exactly: the diagram JSON exposes this value so the client can build a
+     * {@code /wicket/object/<objectType>:<id>} click-through link.  Since the 2026-11
+     * persisted-name migration (TODO-15) the annotation, the table name, the entity name and
+     * the persisted {@code candidateType} strings all carry the CRC vocabulary, so this
+     * coincides with the simple class name — but the annotation remains the source of truth,
+     * not the convention.
      * <p>
      * Marked {@link Programmatic} so Causeway does not expose it as a metamodel property.
      */
@@ -275,9 +275,9 @@ public abstract class Candidate extends AbstractEntity {
      * {@code candidateType}, {@code candidateName}, {@code relatedCandidateType},
      * {@code relatedCandidateName}, {@code description}), so a candidate can never
      * expose two equivalent matches — regardless of candidate type (ClassCdd,
-     * ResponsibilityCdd, AttributeCdd, CollaboratorCdd).  Note the persisted
-     * {@code candidateType} strings still carry the historical names
-     * ({@code ActionCdd} / {@code PropertyCdd} / {@code AssociationCdd}).  This also collapses duplicate M:N
+     * ResponsibilityCdd, AttributeCdd, CollaboratorCdd).  The persisted
+     * {@code candidateType} strings carry the same CRC vocabulary as the classes (the 2026-11
+     * persisted-name migration, TODO-15).  This also collapses duplicate M:N
      * association rows left over from runs that predate RuleMatch de-duplication.
      *
      * @param match The rule match to add.

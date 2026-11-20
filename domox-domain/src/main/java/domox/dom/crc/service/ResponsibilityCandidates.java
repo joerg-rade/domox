@@ -89,7 +89,7 @@ public class ResponsibilityCandidates {
             String candidateName, ClassCdd owner, ClassCdd receivedClass, DomainModel domainModel) {
         final ResponsibilityCdd obj = factoryService.detachedEntity(ResponsibilityCdd.class);
         obj.setCandidateName(candidateName);
-        obj.setCandidateType("ActionCdd");
+        obj.setCandidateType("ResponsibilityCdd");
         obj.setOutputType(outputTypeFor(candidateName, receivedClass));
         obj.classCdd = owner;
         obj.domainModel = domainModel;
@@ -230,7 +230,7 @@ public class ResponsibilityCandidates {
         final ResponsibilityParameter parameter =
                 factoryService.detachedEntity(ResponsibilityParameter.class);
         parameter.setCandidateName(name);
-        parameter.setCandidateType("ParameterCdd");
+        parameter.setCandidateType("ResponsibilityParameter");
         parameter.setType(type);
         parameter.responsibilityCdd = responsibility;
         responsibility.inputTypeList.add(parameter);

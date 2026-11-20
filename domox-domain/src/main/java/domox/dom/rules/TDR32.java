@@ -48,7 +48,7 @@ public class TDR32 extends TypedDependencyRule {
                 ruleMatches.create(
                         currentTd,
                         getRuleName(),
-                        "ActionCdd",
+                        "ResponsibilityCdd",
                         capitalizeFirstLetter(verb),
                         null,
                         null,
@@ -61,7 +61,7 @@ public class TDR32 extends TypedDependencyRule {
                 ruleMatches.create(
                         currentTd,
                         getRuleName(),
-                        "ActionCdd",
+                        "ResponsibilityCdd",
                         capitalizeFirstLetter(verb),
                         null,
                         null,

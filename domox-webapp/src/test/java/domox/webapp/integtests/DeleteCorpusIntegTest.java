@@ -61,7 +61,7 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
         final ClassCdd store = classCdd("Store", dm);
 
         final AttributeCdd age = new AttributeCdd("age", "int");
-        age.setCandidateType("PropertyCdd");
+        age.setCandidateType("AttributeCdd");
         age.domainModel = dm;
         age.classCdd = customer;
         customer.attributeList.add(age);
@@ -77,7 +77,7 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
         dm.responsibilityList.add(orphan);
 
         final CollaboratorCdd customerStore = new CollaboratorCdd("Customer_Store", customer, store);
-        customerStore.setCandidateType("AssociationCdd");
+        customerStore.setCandidateType("CollaboratorCdd");
         customerStore.setDomainModel(dm);
         customerStore.setType(AssociationType.ASSOCIATION);
         customer.addCollaborator(customerStore);
@@ -116,7 +116,7 @@ class DeleteCorpusIntegTest extends ApplicationIntegTestAbstract {
     private ResponsibilityCdd responsibilityCdd(final String name, final DomainModel dm) {
         final ResponsibilityCdd a = new ResponsibilityCdd();
         a.setCandidateName(name);
-        a.setCandidateType("ActionCdd");
+        a.setCandidateType("ResponsibilityCdd");
         a.setOutputType("void");
         a.domainModel = dm;
         return a;

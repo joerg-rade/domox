@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity(name = "ActionCdd")
-@Table(schema = DomainModule.SCHEMA, name = "ActionCdd")
-@Named(DomainModule.NAMESPACE + ".ActionCdd")
+@Entity(name = "ResponsibilityCdd")
+@Table(schema = DomainModule.SCHEMA, name = "ResponsibilityCdd")
+@Named(DomainModule.NAMESPACE + ".ResponsibilityCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED, entityChangePublishing = Publishing.ENABLED)
 @DomainObjectLayout(cssClassFa = "bolt")
 @ToString(onlyExplicitlyIncluded = true)

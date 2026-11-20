@@ -62,7 +62,7 @@ public class TDR3 extends TypedDependencyRule {
         }
 
         // Phase 1: record the match; dependency and sentence come from the @Given fields
-        // candidateType = "ActionCdd" — the verb represents an action, not a class
+        // candidateType = "ResponsibilityCdd" — the verb represents an action, not a class
         // candidateName  = verb lowercase — the action identifier
         // relatedCandidateType = "ClassCdd" — B (the direct object) is a class candidate
         // relatedCandidateName = capitalizeFirstLetter(objectNoun) — the noun as a class name
@@ -70,7 +70,7 @@ public class TDR3 extends TypedDependencyRule {
             ruleMatches.create(
                     currentTd,
                     getRuleName(),
-                    "ActionCdd",
+                    "ResponsibilityCdd",
                     verb,
                     "ClassCdd",
                     capitalizeFirstLetter(objectNoun),

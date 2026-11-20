@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit guardrail for {@link ResponsibilityParameterExtraction} — the operation signature's parameter
  * list.
  *
- * <p>Every rendered operation used to be a bare name (191 of them, and zero {@code ParameterCdd}
+ * <p>Every rendered operation used to be a bare name (191 of them, and zero {@code ResponsibilityParameter}
  * rows), because the operation rules record the verb and nothing else. These cases pin what counts as
  * a parameter (the verb's own objects, nouns only) and what does not (the subject — that is the
  * operation's owner — and another verb's objects).</p>

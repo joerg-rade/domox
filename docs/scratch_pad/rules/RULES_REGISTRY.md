@@ -44,7 +44,7 @@ Extract domain entities (classes) and attributes (properties) from dependency pa
 **Blocked Verbs** (TDR3-TDR5): entered, inputted, saved, added, has
 
 **Scope guard (TDR10/TDR11) — added 2026-11.** A possessive (`nmod:poss`) or adjectival (`amod`)
-branch creates a `PropertyCdd` only when its governor `A` is an **attribute noun** (the
+branch creates an `AttributeCdd` only when its governor `A` is an **attribute noun** (the
 `domox.nlp.basic-attributes` lexicon). This is a scope narrowing, **not** a spec change: the spec
 (`docs/application/RULES.txt` §TDR10/TDR11) still reads `nmod:poss(A,B) → Attributes.add(A)`; the
 guard only restricts which `A` counts as an attribute. Before it, `their cart` became the attribute
@@ -280,7 +280,7 @@ The following patterns are **not yet implemented** in any TDR rule. They are doc
 - **then()**: Creates a `GeneralizationCdd` RuleMatch with `candidateName=Adjective+Noun` (e.g. "LinkedDevice") and `relatedCandidateName=Noun` (e.g. "Device").
 
 #### Phase 2 Integration
-- `RuleMatches.createCandidateFromMatch()` handles `"GeneralizationCdd"` candidateType by creating both `ClassCdd` entities (child and parent) and an `AssociationCdd` with `AssociationType.GENERALIZATION`.
+- `RuleMatches.createCandidateFromMatch()` handles `"GeneralizationCdd"` candidateType by creating both `ClassCdd` entities (child and parent) and an `CollaboratorCdd` with `AssociationType.GENERALIZATION`.
 - `AssociationCandidates.create()` and `findOrCreate()` now accept an optional `AssociationType` parameter.
 
 #### New Predicates Added
@@ -309,7 +309,7 @@ The following predicates were added to `TypedDependencyPredicates`:
 - **New predicates added**: `appos(...)`, `acl(...)`, `aclRelcl(...)`, `isSynonymMarker(...)`.
 
 #### Phase 2 Integration
-- `RuleMatches.createCandidateFromMatch()` handles `"SynonymCdd"` candidateType by creating both `ClassCdd` entities (head and partner) and an `AssociationCdd` with `AssociationType.SYNONYM`.
+- `RuleMatches.createCandidateFromMatch()` handles `"SynonymCdd"` candidateType by creating both `ClassCdd` entities (head and partner) and an `CollaboratorCdd` with `AssociationType.SYNONYM`.
 - `AssociationType.SYNONYM("==")` was added to represent semantic equivalence (distinct from `GENERALIZATION "|>-"`).
 - Blocked use-case nouns are filtered for synonym participants, matching the generalization guard.
 
@@ -321,6 +321,6 @@ The following predicates were added to `TypedDependencyPredicates`:
 5. ✅ Add integration tests for TDR38-TDR40 in TypedDependencyRulesTest
 6. ✅ Update RULES_EXAMPLES.md with before/after examples for the new rules
 7. ✅ Implement TDR41 (synonym identification — apposition & defining constructions)
-8. ✅ Add Phase-2 mapping for `SynonymCdd` → `AssociationCdd(SYNONYM)` + `AssociationType.SYNONYM`
+8. ✅ Add Phase-2 mapping for `SynonymCdd` → `CollaboratorCdd(SYNONYM)` + `AssociationType.SYNONYM`
 9. ✅ Add integration tests for TDR41 in TypedDependencyRulesTest and RuleMatchesTest
 10. ✅ Update RULES_EXAMPLES.md with before/after examples for the synonym rules

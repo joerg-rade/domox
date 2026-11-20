@@ -166,7 +166,7 @@ class DomainModelDiagramsD3Test {
         final DomainModel model = new DomainModel();
         final ClassCdd customer = approvedClass("Customer");
         final ResponsibilityCdd purchase = new ResponsibilityCdd("purchase", List.of(), "void");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
         // no review → not approved
         model.classList.add(customer);
         model.responsibilityList.add(purchase);
@@ -383,21 +383,21 @@ class DomainModelDiagramsD3Test {
 
     private static ResponsibilityCdd approvedAction(String name) {
         final ResponsibilityCdd a = new ResponsibilityCdd(name, List.of(), "void");
-        a.setCandidateType("ActionCdd");
+        a.setCandidateType("ResponsibilityCdd");
         a.getReviews().add(approvedReview(a));
         return a;
     }
 
     private static AttributeCdd approvedProperty(String name) {
         final AttributeCdd p = new AttributeCdd(name, "String");
-        p.setCandidateType("PropertyCdd");
+        p.setCandidateType("AttributeCdd");
         p.getReviews().add(approvedReview(p));
         return p;
     }
 
     private static CollaboratorCdd approvedAssociation(String name) {
         final CollaboratorCdd a = new CollaboratorCdd(name, null, null);
-        a.setCandidateType("AssociationCdd");
+        a.setCandidateType("CollaboratorCdd");
         a.getReviews().add(approvedReview(a));
         return a;
     }

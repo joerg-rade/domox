@@ -76,7 +76,7 @@ public class CollaboratorCandidates {
             DomainModel domainModel, AssociationType type) {
         final CollaboratorCdd obj = factoryService.detachedEntity(CollaboratorCdd.class);
         obj.setCandidateName(associationName);
-        obj.setCandidateType("AssociationCdd");
+        obj.setCandidateType("CollaboratorCdd");
         obj.setClassCdd(source);
         obj.setDomainModel(domainModel);
         obj.setSource(source);

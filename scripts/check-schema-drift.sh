@@ -9,8 +9,8 @@
 #   startup error -- the failure only surfaces later at runtime as "column X does not exist".
 #
 #   This bites hard for a TABLE_PER_CLASS base like Candidate: a field added to it (e.g. the
-#   hopDepth migration) must be ALTERed into EVERY per-type table (classcdd, propertycdd,
-#   actioncdd, associationcdd, parametercdd), not just the base.
+#   hopDepth migration) must be ALTERed into EVERY per-type table (classcdd, attributecdd,
+#   responsibilitycdd, collaboratorcdd, responsibilityparameter), not just the base.
 #
 # What it does:
 #   Diffs the columns declared in the latest generated create-tables.sql against the live dev
@@ -104,7 +104,7 @@ ddl_columns() {
       line=$0
       sub(/ *PRIMARY KEY.*/, "", line)
       tname=line
-      sub(/\(.*/, "", tname)            # strip from first "(" -> "CREATE TABLE domox.ActionCdd "
+      sub(/\(.*/, "", tname)            # strip from first "(" -> "CREATE TABLE domox.ResponsibilityCdd "
       sub(/^CREATE TABLE +/, "", tname)
       sub(/ +$/, "", tname)
       sub(/^.*\./, "", tname)           # schema prefix -> bare table name
@@ -157,7 +157,7 @@ if [ ${#drift[@]} -gt 0 ]; then
   echo "  ALTER TABLE domox.<table> ADD COLUMN <col> <TYPE> [NOT NULL DEFAULT ...];"
   echo
   echo "Remember: a field added to the TABLE_PER_CLASS base Candidate must be added to EVERY"
-  echo "per-type table (classcdd, propertycdd, actioncdd, associationcdd, parametercdd)."
+  echo "per-type table (classcdd, attributecdd, responsibilitycdd, collaboratorcdd, responsibilityparameter)."
   exit 1
 fi
 

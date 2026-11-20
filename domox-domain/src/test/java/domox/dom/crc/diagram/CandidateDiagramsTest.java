@@ -114,7 +114,7 @@ class CandidateDiagramsTest {
 
         final ResponsibilityCdd purchase = new ResponsibilityCdd();
         purchase.setCandidateName("Purchase");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
         purchase.getRuleMatches().add(ruleMatchWith(dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
                 "order", PartOfSpeechType.NN)));          // purchase <-> order (one hop further)
         purchase.getRuleMatches().add(ruleMatchWith(dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
@@ -158,7 +158,7 @@ class CandidateDiagramsTest {
 
         final ResponsibilityCdd purchase = new ResponsibilityCdd();
         purchase.setCandidateName("Purchase");
-        purchase.setCandidateType("ActionCdd");
+        purchase.setCandidateType("ResponsibilityCdd");
         purchase.getRuleMatches().add(ruleMatchWith(dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,
                 "order", PartOfSpeechType.NN)));          // purchase <-> order (one hop further)
         purchase.getRuleMatches().add(ruleMatchWith(dep(TdType.OBJ, "purchase", PartOfSpeechType.VBZ,

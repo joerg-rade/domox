@@ -183,11 +183,11 @@ class CandidateD3GraphTest {
 
         final AttributeCdd age = new AttributeCdd();
         age.setCandidateName("Age");
-        age.setCandidateType("PropertyCdd");
+        age.setCandidateType("AttributeCdd");
 
         final CollaboratorCdd coverageAge = new CollaboratorCdd();
         coverageAge.setCandidateName("Coverage_Age");
-        coverageAge.setCandidateType("AssociationCdd");
+        coverageAge.setCandidateType("CollaboratorCdd");
 
         when(classCandidates.listAll()).thenReturn(List.of(coverage));
         when(responsibilityCandidates.listAll()).thenReturn(List.of());
@@ -296,7 +296,7 @@ class CandidateD3GraphTest {
     private static ResponsibilityCdd actionCandidate(final String name) {
         final ResponsibilityCdd a = new ResponsibilityCdd();
         a.setCandidateName(name);
-        a.setCandidateType("ActionCdd");
+        a.setCandidateType("ResponsibilityCdd");
         return a;
     }
 

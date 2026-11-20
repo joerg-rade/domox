@@ -46,7 +46,7 @@ public class TDR12 extends TypedDependencyRule {
                 // B is the entity, A is the attribute of B
                 ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getB()), null, null, result);
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getA(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getB()), result);
             }
@@ -60,7 +60,7 @@ public class TDR12 extends TypedDependencyRule {
                 // A is the entity, B is the attribute of A
                 ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getA()), null, null, result);
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getB(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getA()), result);
             }
@@ -74,7 +74,7 @@ public class TDR12 extends TypedDependencyRule {
             result = "Attributes.add(" + currentTd.getA() + ")";
 
             if (ruleMatches != null && currentTd != null) {
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getA(), null, null, result);
             }
         } else {

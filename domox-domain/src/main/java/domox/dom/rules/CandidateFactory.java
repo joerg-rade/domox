@@ -30,15 +30,16 @@ import java.util.Map;
  * <p>
  * This concern used to live inside {@link RuleMatches} — a repository/record-creation service that
  * had accreted a full candidate factory (~170 lines: the per-type dispatch over
- * {@code ClassCdd}/{@code GeneralizationCdd}/{@code SynonymCdd}/{@code ActionCdd}/{@code PropertyCdd},
+ * {@code ClassCdd}/{@code GeneralizationCdd}/{@code SynonymCdd}/{@code ResponsibilityCdd}/{@code AttributeCdd},
  * the blocked-noun guard, and the property-type inference).  Splitting it out leaves
  * {@code RuleMatches} owning only the {@code RuleMatch} lifecycle (persist, de-duplicate, query),
  * and gives the mapping from a rule match to a candidate a home of its own.
  * <p>
- * The persisted {@code candidateType} strings still carry the historical names
- * ({@code ClassCdd}, {@code PropertyCdd}, {@code ActionCdd}, {@code AssociationCdd},
- * {@code GeneralizationCdd}, {@code SynonymCdd}) — the Java classes were renamed to CRC vocabulary
- * but the DB values were deliberately left alone.
+ * The {@code candidateType} strings this dispatches on are the CRC element names
+ * ({@code ClassCdd}, {@code AttributeCdd}, {@code ResponsibilityCdd},
+ * {@code CollaboratorCdd}, {@code GeneralizationCdd}, {@code SynonymCdd}) — the same values the
+ * rules persist into {@code domox.rulematch} and the per-type candidate rows carry, since the
+ * 2026-11 persisted-name migration (TODO-15) removed the historical aliases.
  */
 @DomainService
 @Named(DomainModule.NAMESPACE + ".CandidateFactory")
@@ -206,7 +207,7 @@ public class CandidateFactory {
             partner.setCandidateName(relatedCandidateName);
             final String assocName = candidateName + "_" + relatedCandidateName;
             return collaboratorCandidates.findOrCreate(assocName, head, partner, domainModel, AssociationType.SYNONYM);
-        } else if ("ActionCdd".equals(candidateType)) {
+        } else if ("ResponsibilityCdd".equals(candidateType)) {
             // FIX-3d (UML_GAP_FIX_PLAN.md §13.8): the operation belongs to the sentence's ACTOR, not to
             // its object.  "the customer selects products" is Customer.select(products) — the owner is
             // the subject; the object noun is what the operation receives.  TDR3 fires on the object
@@ -221,7 +222,7 @@ public class CandidateFactory {
                     candidateName, actor != null ? actor : objectClass, objectClass, domainModel);
             addParameters(responsibility, match, domainModel);
             return responsibility;
-        } else if ("PropertyCdd".equals(candidateType)) {
+        } else if ("AttributeCdd".equals(candidateType)) {
             // A property match must name its owning class: a match with no owner used to be attached to
             // a class literally called "Unknown" (the fallback below), which produced a phantom class
             // with 12 attributes on it.  TDR12's "both sides are basic attributes" branch — "size color",

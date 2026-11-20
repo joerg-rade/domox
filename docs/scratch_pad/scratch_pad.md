@@ -177,7 +177,7 @@ Implemented three new rules for detecting generalization (is-a) relationships:
 ### Supporting Changes
 - `TypedDependencyPredicates`: Added `cop()`, `isBeVerbDependent()`, `isIndefiniteArticleDependent()`, `isKindTypeOrSortDependent()`, `isKindTypeOrSortGovernor()` predicates
 - `AssociationCandidates.create()` and `findOrCreate()` now accept optional `AssociationType` parameter
-- `RuleMatches.createCandidateFromMatch()` handles `"GeneralizationCdd"` candidateType → creates `AssociationCdd` with `AssociationType.GENERALIZATION`
+- `RuleMatches.createCandidateFromMatch()` handles `"GeneralizationCdd"` candidateType → creates a `CollaboratorCdd` with `AssociationType.GENERALIZATION`
 - 7 new tests added to `TypedDependencyRulesTest.java` (all pass)
 - Documentation updated: `docs/scratch_pad/rules/RULES_REGISTRY.md`, `docs/scratch_pad/rules/RULES_EXAMPLES.md`, `scratch_pad.md`
 
@@ -199,7 +199,7 @@ POS-Matching heuristic).
 - `SynonymCatalog` (new service): loads `domox.nlp.synonym-markers` into the predicates
 - `AssociationType`: added `SYNONYM("==")`
 - `NlpProperties`: added `synonymMarkers`; `application.yml`: added `synonym-markers`
-- `RuleMatches.createCandidateFromMatch()` handles `"SynonymCdd"` → creates two `ClassCdd` + `AssociationCdd` with `AssociationType.SYNONYM`
+- `RuleMatches.createCandidateFromMatch()` handles `"SynonymCdd"` → creates two `ClassCdd` + a `CollaboratorCdd` with `AssociationType.SYNONYM`
 - 5 new TDR41 tests in `TypedDependencyRulesTest.java`, 2 in `RuleMatchesTest.java`, 1 in `NlpConfigBindingTest.java` (all pass)
 
 ---

@@ -128,8 +128,8 @@ class DiagramLemmasTest {
     @Test
     void typeLabel_strips_the_trailing_Cdd_suffix() {
         assertThat(DiagramLemmas.typeLabel("ClassCdd")).isEqualTo("Class");
-        assertThat(DiagramLemmas.typeLabel("PropertyCdd")).isEqualTo("Property");
-        assertThat(DiagramLemmas.typeLabel("AssociationCdd")).isEqualTo("Association");
+        assertThat(DiagramLemmas.typeLabel("AttributeCdd")).isEqualTo("Attribute");
+        assertThat(DiagramLemmas.typeLabel("CollaboratorCdd")).isEqualTo("Collaborator");
     }
 
     @Test

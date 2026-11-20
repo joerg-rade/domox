@@ -36,9 +36,9 @@ public class TDR13 extends TypedDependencyRule {
             result = "Attributes.add(" + currentTd.getA() + "), Attributes.add(" + currentTd.getB() + ")";
 
             if (ruleMatches != null && currentTd != null) {
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getA(), null, null, result);
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getB(), null, null, result);
             }
         } else if (!aIsBasicAttrib && !bIsBasicAttrib) {

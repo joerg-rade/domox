@@ -17,7 +17,7 @@ import static domox.dom.nlp.DependencyTypePredicates.pobj;
  *
  * <p><b>Why it exists.</b> The operation rules (TDR27–TDR37) record the verb and nothing else, so every
  * rendered operation was a bare name — 191 operations in the PetShop model and <em>zero</em>
- * {@code ParameterCdd} rows.  A UML operation without its parameters is not a signature, so the
+ * {@code ResponsibilityParameter} rows.  A UML operation without its parameters is not a signature, so the
  * object nouns the verb governs are read back out of the sentence's own typed dependencies.</p>
  *
  * <p><b>What counts as a parameter.</b> The direct objects of the verb ({@code dobj}, {@code iobj},

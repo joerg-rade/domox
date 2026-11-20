@@ -116,15 +116,19 @@ When `Analysis.analyzeDocument(document)` is called, it iterates over every `Sen
 3. If true, calls `@Then` → calls `ruleMatces.create()` → persists a `RuleMatch` entity with:
     - The `TypedDependency` it matched on
     - The rule class name (e.g., "TDR1")
-    - The candidate type (e.g., "ClassCdd", "PropertyCdd")
+    - The candidate type (e.g., "ClassCdd", "AttributeCdd")
     - The candidate name (e.g., "Customer")
-    - Optionally, a related candidate (for properties: the owning class)
+    - Optionally, a related candidate (for attributes: the owning class)
 
 **Phase 2 — Candidate Creation:**
 
 `RuleMatches.createCandidatesFromMatches()` reads all `RuleMatch` records and creates actual `ClassCdd`, `AttributeCdd`, `ResponsibilityCdd` or `CollaboratorCdd` entities (or ignores unknown types). These are the persistent domain objects that the UI shows.
 
-> The persisted `candidateType` strings still carry the historical names (`ClassCdd`, `PropertyCdd`, `ActionCdd`, `AssociationCdd`, `GeneralizationCdd`, `SynonymCdd`) — the Java classes were renamed to CRC vocabulary but the DB values were left alone.
+> The persisted `candidateType` strings carry the same CRC vocabulary as the Java classes
+> (`ClassCdd`, `AttributeCdd`, `ResponsibilityCdd`, `CollaboratorCdd`, `GeneralizationCdd`,
+> `SynonymCdd`).  The 2026-10 rename originally pinned them to the historical names so no DB
+> migration was needed; the deferred migration (TODO-15) was applied 2026-11-20, so the table
+> names, the Causeway object types and every persisted `candidateType` now agree.
 
 ### 5. The UI — Apache Causeway
 

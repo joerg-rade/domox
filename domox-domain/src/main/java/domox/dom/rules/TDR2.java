@@ -46,12 +46,12 @@ public class TDR2 extends TypedDependencyRule {
             if (!isBasicAttributeA(currentTd)) {
                 String className = capitalizeFirstLetter(currentTd.getA());
                 String propertyName = currentTd.getA() + " " + currentTd.getB();
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd", propertyName, "ClassCdd", className, result);
                 ruleMatches.create(currentTd, getRuleName(), "ClassCdd", currentTd.getA(), null, null, result);
             } else {
                 String className = capitalizeFirstLetter(currentTd.getB());
                 String propertyName = currentTd.getB() + " " + currentTd.getA();
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd", propertyName, "ClassCdd", className, result);
             }
         }
     }

@@ -18,9 +18,9 @@ import org.apache.causeway.applib.annotation.Editing;
 import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
 
-@Entity(name = "ParameterCdd")
-@Table(schema = DomainModule.SCHEMA, name = "ParameterCdd")
-@Named(DomainModule.NAMESPACE + ".ParameterCdd")
+@Entity(name = "ResponsibilityParameter")
+@Table(schema = DomainModule.SCHEMA, name = "ResponsibilityParameter")
+@Named(DomainModule.NAMESPACE + ".ResponsibilityParameter")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Parameter is the Type of an argument of an Action")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
@@ -44,7 +44,7 @@ public class ResponsibilityParameter
      */
     @Setter
     @ManyToOne()
-    @JoinColumn(name = "actioncdd_id", nullable = false)
+    @JoinColumn(name = "responsibilitycdd_id", nullable = false)
     @Property()
     public ResponsibilityCdd responsibilityCdd;
 

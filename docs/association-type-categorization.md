@@ -43,7 +43,7 @@ treated as one another's synonyms rather than unrelated entities.
 | TDR41 | `acl:relcl(Head, Marker)` where Marker ∈ synonym-markers | *"Acetaminophen, also known as paracetamol"* → Acetaminophen `==` Paracetamol | Defining "also known as" |
 
 **Mapped.** `createCandidateFromMatch()` passes `AssociationType.SYNONYM` for
-`"SynonymCdd"` candidate matches, creating two `ClassCdd` and one `AssociationCdd`
+`"SynonymCdd"` candidate matches, creating two `ClassCdd` and one `CollaboratorCdd`
 of symbol `==`.
 
 ---
@@ -147,7 +147,7 @@ This requires extending `CandidateFactory.createCandidateFromMatch()` to accept 
 
 ### Phase 3 — U manual override
 
-Ensure the `AssociationCdd` viewer/editor exposes the `type` property so users can adjust automatic assigments.
+Ensure the `CollaboratorCdd` viewer/editor exposes the `type` property so users can adjust automatic assigments.
 
 ---
 

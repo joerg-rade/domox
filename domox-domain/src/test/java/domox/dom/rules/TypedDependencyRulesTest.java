@@ -673,10 +673,10 @@ public class TypedDependencyRulesTest {
         List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
         RuleMatch propertyMatch = matches.stream()
                 .filter(m -> m.getTypedDependency() == td
-                        && "PropertyCdd".equals(m.getCandidateType()))
+                        && "AttributeCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertThat(propertyMatch).as("TDR10 should have created a PropertyCdd").isNotNull();
+        assertThat(propertyMatch).as("TDR10 should have created a AttributeCdd").isNotNull();
         assertThat(propertyMatch.getCandidateName()).isEqualTo("address");
         assertThat(propertyMatch.getRelatedCandidateName())
                 .as("Pronominal possessor should resolve to the nsubj entity")
@@ -706,7 +706,7 @@ public class TypedDependencyRulesTest {
         List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
         assertThat(matches.stream()
                 .filter(m -> m.getTypedDependency() == td)
-                .filter(m -> "PropertyCdd".equals(m.getCandidateType()))
+                .filter(m -> "AttributeCdd".equals(m.getCandidateType()))
                 .toList())
                 .as("a possessed class noun must not become an attribute")
                 .isEmpty();
@@ -715,7 +715,7 @@ public class TypedDependencyRulesTest {
     /**
      * Test TDR10: possessive pronoun (PRP$) with an adjectival modifier on an <em>attribute</em> noun.
      * "pet owners update their new address" → nmod:poss(address, their) with amod(address, new).
-     * Rule fires: enriched PropertyCdd "new address" on ClassCdd "Owners".
+     * Rule fires: enriched AttributeCdd "new address" on ClassCdd "Owners".
      */
     @Test
     public void tdr10_enrichesThePropertyName() {
@@ -736,10 +736,10 @@ public class TypedDependencyRulesTest {
         List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
         RuleMatch propertyMatch = matches.stream()
                 .filter(m -> m.getTypedDependency() == td
-                        && "PropertyCdd".equals(m.getCandidateType()))
+                        && "AttributeCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertThat(propertyMatch).as("TDR10 should have created a PropertyCdd").isNotNull();
+        assertThat(propertyMatch).as("TDR10 should have created a AttributeCdd").isNotNull();
         assertThat(propertyMatch.getCandidateName())
                 .as("Property name should be enriched with the amod modifier")
                 .isEqualTo("new address");
@@ -750,7 +750,7 @@ public class TypedDependencyRulesTest {
      * Test TDR11: amod with a modifier on a possessed <em>attribute</em> noun.
      * "owners update their primary address" → amod(address, primary),
      * with nmod:poss(address, their) in the same sentence.
-     * Rule fires: PropertyCdd "primary address" on ClassCdd "Owners" (not a standalone entity).
+     * Rule fires: AttributeCdd "primary address" on ClassCdd "Owners" (not a standalone entity).
      */
     @Test
     public void tdr11_placesPossessedNounPropertyOnPossessor() {
@@ -778,10 +778,10 @@ public class TypedDependencyRulesTest {
         List<RuleMatch> matches = tdr11.ruleMatches.findByRuleClassName("TDR11");
         RuleMatch propertyMatch = matches.stream()
                 .filter(m -> m.getTypedDependency() == td
-                        && "PropertyCdd".equals(m.getCandidateType()))
+                        && "AttributeCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertThat(propertyMatch).as("TDR11 should have created a PropertyCdd for the possessed noun").isNotNull();
+        assertThat(propertyMatch).as("TDR11 should have created a AttributeCdd for the possessed noun").isNotNull();
         assertThat(propertyMatch.getCandidateName()).isEqualTo("primary address");
         assertThat(propertyMatch.getRelatedCandidateName()).isEqualTo("Owners");
     }
@@ -814,7 +814,7 @@ public class TypedDependencyRulesTest {
         List<RuleMatch> matches = tdr11.ruleMatches.findByRuleClassName("TDR11");
         assertThat(matches.stream()
                 .filter(m -> m.getTypedDependency() == td)
-                .filter(m -> "PropertyCdd".equals(m.getCandidateType()))
+                .filter(m -> "AttributeCdd".equals(m.getCandidateType()))
                 .toList())
                 .as("a possessed class noun must not become an attribute")
                 .isEmpty();
@@ -924,10 +924,10 @@ public class TypedDependencyRulesTest {
                 .isNull();
     }
 
-    /** The {@code PropertyCdd} match TDR12 recorded for the current dependency. */
+    /** The {@code AttributeCdd} match TDR12 recorded for the current dependency. */
     private static RuleMatch propertyMatchOf(final TDR12 rule) {
         return rule.ruleMatches.findByRuleClassName("TDR12").stream()
-                .filter(m -> "PropertyCdd".equals(m.getCandidateType()))
+                .filter(m -> "AttributeCdd".equals(m.getCandidateType()))
                 .reduce((first, second) -> second)
                 .orElseThrow();
     }
@@ -987,7 +987,7 @@ public class TypedDependencyRulesTest {
         List<RuleMatch> matches = tdr36.ruleMatches.findByRuleClassName("TDR36");
         RuleMatch match = matches.stream()
                 .filter(m -> m.getTypedDependency() == td
-                        && "ActionCdd".equals(m.getCandidateType()))
+                        && "ResponsibilityCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
         assertThat(match).as("TDR36 should have created an ResponsibilityCdd match").isNotNull();
@@ -1041,7 +1041,7 @@ public class TypedDependencyRulesTest {
         List<RuleMatch> matches = tdr35.ruleMatches.findByRuleClassName("TDR35");
         RuleMatch match = matches.stream()
                 .filter(m -> m.getTypedDependency() == td
-                        && "ActionCdd".equals(m.getCandidateType()))
+                        && "ResponsibilityCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
         assertThat(match).as("TDR35 should have created an ResponsibilityCdd match").isNotNull();

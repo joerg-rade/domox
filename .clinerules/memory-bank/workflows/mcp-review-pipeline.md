@@ -43,8 +43,8 @@ The task signature includes any of:
 ### 2.1 Candidate storage — IMPORTANT (TABLE_PER_CLASS)
 `Candidate` uses **TABLE_PER_CLASS** inheritance. Real candidate rows live in the **per-type
 tables**, NOT the base table:
-- `domox.classcdd` (classtype int), `domox.propertycdd`, `domox.actioncdd`, `domox.associationcdd`,
-  plus `parametercdd` (usually empty in this corpus). `packagecdd` is **gone** — the orphaned
+- `domox.classcdd` (classtype int), `domox.attributecdd`, `domox.responsibilitycdd`, `domox.collaboratorcdd`,
+  plus `responsibilityparameter` (usually empty in this corpus). `packagecdd` is **gone** — the orphaned
   table was dropped on 2026-11-19, so do not query it.
 - `domox.candidate` (base) and the `public`-schema tables (`tables.sql` legacy) are **stale/empty** — never query them for data.
 - A candidate's evidence lives in the join table `<type>cdd_rulematch` (`<type>cdd_id`,
@@ -112,21 +112,23 @@ that is not a class) → `WRONG_CANDIDATE_TYPE`; the name is **not a domain conc
 (scaffolding, a combined artifact, a generic noun, two merely co-occurring names) →
 `NOT_RELEVANT`. Apply it identically in every pass, so the rationale counts stay comparable.
 
-> **Vocabulary note (CRC rename, 2026-10).** The Java entity classes now follow the CRC guide's
-> element names — `ResponsibilityCdd` (was `ActionCdd`), `AttributeCdd` (was `PropertyCdd`),
-> `CollaboratorCdd` (was `AssociationCdd`), `ResponsibilityParameter` (was `ParameterCdd`);
-> `ClassCdd` is unchanged and `PackageCdd` was deleted.  **The persisted `candidateType`
-> strings and table names were deliberately left unchanged**, so the policy below — and every
-> `candidatetype` value in `domox.rulematch` — still uses the historical names
-> (`ActionCdd`, `PropertyCdd`, `AssociationCdd`, `ParameterCdd`).
+> **Vocabulary note (CRC rename, 2026-10 · persisted names migrated 2026-11-20).** The Java entity
+> classes follow the CRC guide's element names — `ResponsibilityCdd` (was `ActionCdd`),
+> `AttributeCdd` (was `PropertyCdd`), `CollaboratorCdd` (was `AssociationCdd`),
+> `ResponsibilityParameter` (was `ParameterCdd`); `ClassCdd` is unchanged and `PackageCdd` was
+> deleted.  The persisted names were pinned at the time so no DB migration was needed; the deferred
+> migration (TODO-15) has since been **applied**, so the table names, the Causeway object types and
+> every `candidatetype` value now use the same vocabulary as the classes.  A `candidatetype` value
+> of `ActionCdd` / `PropertyCdd` / `AssociationCdd` / `ParameterCdd` in a **backup taken before
+> 2026-11-20** is historical; nothing in the live DB carries them any more.
 
-ActionCdd policy: **approve** a genuine customer/system operation acting on a domain entity
+ResponsibilityCdd policy: **approve** a genuine customer/system operation acting on a domain entity
 (`browse`, `purchase`, `select`, `add`, `proceed`, `validate`, `Calculate`, `confirm`,
 `Receive`, `notify`, `suggest`, `request`, `present`, `process`, `display`, `load`);
 **reject** auxiliary/generic verbs (`have`, `use`, `allow`, `arrive`, `inform`, `ask`,
 `provide`, `prompt`, `decline`, `create`) and marked-as-missing artifacts.
 
-AssociationCdd (**`A --|> B`**) is `APPROVED` **only if both endpoints are approved entities**;
+CollaboratorCdd (**`A --|> B`**) is `APPROVED` **only if both endpoints are approved entities**;
 if either side is a rejected artifact, the generalization is spurious → `NOT_RELEVANT`.
 (Real approved examples: `PhysicalStore|>Store`, `OnlineStore|>Store`, `OnlineShop|>Shop`,
 `Inventory has Product`, `UnavailableItem|>Item`.)
@@ -134,9 +136,9 @@ if either side is a rejected artifact, the generalization is spurious → `NOT_R
 ### 5.1 Baseline for PetShop (this corpus) — canonical 54 approve / 94 reject
 Approved ids by type (reference for diffing/regression):
 - ClassCdd (30): 6640,6643,6644,6645,6646,6647,6652,6655,6659,6664,6666,6668,6670,6672,6676,6678,6680,6682,6684,6687,6688,6692,6694,6699,6728,6735,6739,6756,6764,6768
-- PropertyCdd (3): 6686,6696,6754
-- ActionCdd (16): 6669,6675,6698,6700,6704,6707,6708,6715,6719,6723,6724,6732,6734,6736,6745,6767
-- AssociationCdd (5): 6677,6679,6681,6685,6693
+- AttributeCdd (3): 6686,6696,6754
+- ResponsibilityCdd (16): 6669,6675,6698,6700,6704,6707,6708,6715,6719,6723,6724,6732,6734,6736,6745,6767
+- CollaboratorCdd (5): 6677,6679,6681,6685,6693
 
 Everything else REJECTED (statuses: NOT_RELEVANT 66, WRONG_CANDIDATE_TYPE 23, DUPLICATE 5).
 
@@ -212,17 +214,17 @@ SELECT rationale,count(*) FROM domox.review WHERE status='REJECTED' GROUP BY rat
 -- unprocessed candidates (per-type ids not covered by a review) MUST be 0
 SELECT count(*) FROM (
   SELECT id FROM domox.classcdd UNION ALL
-  SELECT id FROM domox.propertycdd UNION ALL
-  SELECT id FROM domox.actioncdd UNION ALL
-  SELECT id FROM domox.associationcdd
+  SELECT id FROM domox.attributecdd UNION ALL
+  SELECT id FROM domox.responsibilitycdd UNION ALL
+  SELECT id FROM domox.collaboratorcdd
 ) c WHERE c.id NOT IN (SELECT candidate_id FROM domox.review);
 -- type x status breakdown
 SELECT t.type, r.status, count(*)
 FROM domox.review r
 JOIN ( SELECT id,'ClassCdd' t FROM domox.classcdd UNION ALL
-       SELECT id,'PropertyCdd' FROM domox.propertycdd UNION ALL
-       SELECT id,'ActionCdd' FROM domox.actioncdd UNION ALL
-       SELECT id,'AssociationCdd' FROM domox.associationcdd ) t ON t.id=r.candidate_id
+       SELECT id,'AttributeCdd' FROM domox.attributecdd UNION ALL
+       SELECT id,'ResponsibilityCdd' FROM domox.responsibilitycdd UNION ALL
+       SELECT id,'CollaboratorCdd' FROM domox.collaboratorcdd ) t ON t.id=r.candidate_id
 GROUP BY t.type, r.status ORDER BY 1,2;
 ```
 

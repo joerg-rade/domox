@@ -34,7 +34,7 @@ public class TDR6 extends TypedDependencyRule {
                 // B is the entity, A is an attribute of B
                 ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getB()), null, null, result);
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getA(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getB()), result);
             }
@@ -55,7 +55,7 @@ public class TDR6 extends TypedDependencyRule {
             result = "Attributes.add(" + currentTd.getA() + " of " + currentTd.getB() + ")";
             if (ruleMatches != null && currentTd != null) {
                 // Combined attribute: A of B
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                         currentTd.getA() + "Of" + capitalizeFirstLetter(currentTd.getB()),
                         null, null, result);
             }

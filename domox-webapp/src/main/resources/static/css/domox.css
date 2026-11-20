@@ -39,7 +39,7 @@ a {
    facet, so that annotation has NO effect here — instead we hook onto the CSS
    class Causeway generates for the table cell itself
    (AssociationColumnAbstract#getCssClass -> "causeway-<objectType>-<memberId>",
-   e.g. "causeway-domox-ActionCdd-d3Graph", "causeway-domox-DomainModel-diagram").
+   e.g. "causeway-domox-ResponsibilityCdd-d3Graph", "causeway-domox-DomainModel-diagram").
 
    Those <td> classes only exist inside tables, so the object page (properties
    rendered in a fieldSet) is never affected.

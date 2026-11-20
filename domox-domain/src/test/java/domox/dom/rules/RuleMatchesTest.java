@@ -162,19 +162,19 @@ class RuleMatchesTest {
         // candidate name/type, rule class, description and related candidate.
         final RuleMatch existing = new RuleMatch();
         existing.setRuleClassName("TDR11");
-        existing.setCandidateType("PropertyCdd");
+        existing.setCandidateType("AttributeCdd");
         existing.setCandidateName("range");
         existing.setRelatedCandidateType("ClassCdd");
         existing.setRelatedCandidateName("ClassCdd");
         existing.setDescription("Entity.add(range)");
         when(mockRuleMatchRepository
                 .findByCandidateNameAndCandidateTypeAndRuleClassNameAndDescriptionAndRelatedCandidateNameAndRelatedCandidateType(
-                        "range", "PropertyCdd", "TDR11", "Entity.add(range)", "ClassCdd", "ClassCdd"))
+                        "range", "AttributeCdd", "TDR11", "Entity.add(range)", "ClassCdd", "ClassCdd"))
                 .thenReturn(Collections.singletonList(existing));
 
         // when — create the same signature again
         final RuleMatch result = classUnderTest.create(
-                null, "TDR11", "PropertyCdd", "range", "ClassCdd", "ClassCdd", "Entity.add(range)");
+                null, "TDR11", "AttributeCdd", "range", "ClassCdd", "ClassCdd", "Entity.add(range)");
 
         // then — no second match is persisted; the existing one is returned
         assertThat(result).isSameAs(existing);
@@ -194,7 +194,7 @@ class RuleMatchesTest {
 
         // when
         final RuleMatch result = classUnderTest.create(
-                null, "TDR6", "PropertyCdd", "range", "ClassCdd", "ClassCdd", "Entity.add(range)");
+                null, "TDR6", "AttributeCdd", "range", "ClassCdd", "ClassCdd", "Entity.add(range)");
 
         // then — a fresh match is persisted and returned
         assertThat(result).isSameAs(persisted);

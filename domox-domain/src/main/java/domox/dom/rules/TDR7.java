@@ -34,7 +34,7 @@ public class TDR7 extends TypedDependencyRule {
             ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
                     capitalizeFirstLetter(currentTd.getB()), null, null, result);
             // A is an attribute of B
-            ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+            ruleMatches.create(currentTd, getRuleName(), "AttributeCdd",
                     currentTd.getA(), "ClassCdd",
                     capitalizeFirstLetter(currentTd.getB()), result);
         }

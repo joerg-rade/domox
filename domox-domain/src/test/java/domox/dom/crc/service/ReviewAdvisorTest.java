@@ -33,7 +33,7 @@ class ReviewAdvisorTest {
     private static AttributeCdd attributeCandidate(final String name) {
         final AttributeCdd candidate = new AttributeCdd();
         candidate.setCandidateName(name);
-        candidate.setCandidateType("PropertyCdd");
+        candidate.setCandidateType("AttributeCdd");
         return candidate;
     }
 

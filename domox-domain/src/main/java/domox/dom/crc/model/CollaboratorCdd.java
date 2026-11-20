@@ -19,9 +19,9 @@ import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
 
-@Entity(name = "AssociationCdd")
-@Table(schema = DomainModule.SCHEMA, name = "AssociationCdd")
-@Named(DomainModule.NAMESPACE + ".AssociationCdd")
+@Entity(name = "CollaboratorCdd")
+@Table(schema = DomainModule.SCHEMA, name = "CollaboratorCdd")
+@Named(DomainModule.NAMESPACE + ".CollaboratorCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Class candidate ...")
 @NoArgsConstructor

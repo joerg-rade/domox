@@ -68,7 +68,7 @@ public class AttributeCandidates {
     public AttributeCdd create(String className, String propertyName, String type, DomainModel domainModel) {
         final AttributeCdd obj = factoryService.detachedEntity(AttributeCdd.class);
         obj.setCandidateName(propertyName);
-        obj.setCandidateType("PropertyCdd");
+        obj.setCandidateType("AttributeCdd");
         obj.type = type;
 
         // Retrieve the ClassCdd and set the relationship

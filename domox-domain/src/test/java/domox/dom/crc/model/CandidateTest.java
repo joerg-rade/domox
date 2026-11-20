@@ -100,23 +100,23 @@ class CandidateTest {
 
         // ResponsibilityCdd
         final ResponsibilityCdd action = new ResponsibilityCdd("process", new ArrayList<>(), "void");
-        action.addMatchingRule(match("ActionCdd", "process", "TDR12", "Customer", null, null));
-        action.addMatchingRule(match("ActionCdd", "process", "TDR12", "Customer", null, null));
-        assertThat(action.getRuleMatches()).as("ActionCdd").hasSize(1);
+        action.addMatchingRule(match("ResponsibilityCdd", "process", "TDR12", "Customer", null, null));
+        action.addMatchingRule(match("ResponsibilityCdd", "process", "TDR12", "Customer", null, null));
+        assertThat(action.getRuleMatches()).as("ResponsibilityCdd").hasSize(1);
 
         // AttributeCdd
         final AttributeCdd property = new AttributeCdd("name", "String");
-        property.addMatchingRule(match("PropertyCdd", "name", "TDR10", "Customer", null, null));
-        property.addMatchingRule(match("PropertyCdd", "name", "TDR10", "Customer", null, null));
-        assertThat(property.getRuleMatches()).as("PropertyCdd").hasSize(1);
+        property.addMatchingRule(match("AttributeCdd", "name", "TDR10", "Customer", null, null));
+        property.addMatchingRule(match("AttributeCdd", "name", "TDR10", "Customer", null, null));
+        assertThat(property.getRuleMatches()).as("AttributeCdd").hasSize(1);
 
         // CollaboratorCdd
         final ClassCdd source = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         final ClassCdd target = new ClassCdd("Order", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         final CollaboratorCdd association = new CollaboratorCdd("places", source, target);
-        association.addMatchingRule(match("AssociationCdd", "places", "TDR24", "Customer", "Order", null));
-        association.addMatchingRule(match("AssociationCdd", "places", "TDR24", "Customer", "Order", null));
-        assertThat(association.getRuleMatches()).as("AssociationCdd").hasSize(1);
+        association.addMatchingRule(match("CollaboratorCdd", "places", "TDR24", "Customer", "Order", null));
+        association.addMatchingRule(match("CollaboratorCdd", "places", "TDR24", "Customer", "Order", null));
+        assertThat(association.getRuleMatches()).as("CollaboratorCdd").hasSize(1);
     }
 
     @Test
@@ -131,34 +131,35 @@ class CandidateTest {
         assertThat(candidate.getRuleMatches()).isEmpty();
     }
 
-    // -- object type (CRC rename guardrail)
+    // -- object type (Causeway object type guardrail)
 
     /**
-     * The CRC rename changed the Java class names but pinned {@code @Named} to the historical
-     * values.  The D3/Vega diagram JSON exposes {@code objectType} so the client can build a
-     * {@code /wicket/object/<objectType>:<id>} click-through link, so it must come from
-     * {@link Candidate#getObjectType()} (i.e. {@code @Named}) and never from
-     * {@code getClass().getSimpleName()}.
+     * {@code objectType} comes from {@code @Named} — the framework's own type — because the
+     * D3/Vega diagram JSON exposes it so the client can build a
+     * {@code /wicket/object/<objectType>:<id>} click-through link.  Since the 2026-11
+     * persisted-name migration (TODO-15) the annotation, the table/entity name and the class
+     * name all agree, so the assertion is the identity it always should have been — but the
+     * annotation, not {@code getClass().getSimpleName()}, remains the source of truth.
      */
     @Test
-    void getObjectType_usesPinnedNamedValue_notTheRenamedClassName() {
-        // given — class names follow CRC vocabulary, @Named keeps the historical names
+    void getObjectType_isTheNamedCausewayObjectType() {
+        // given
         final ClassCdd classCdd = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         final ResponsibilityCdd responsibility = new ResponsibilityCdd();
         final AttributeCdd attribute = new AttributeCdd("name", "String");
         final CollaboratorCdd collaborator = new CollaboratorCdd("Customer_Order", classCdd, classCdd);
         final ResponsibilityParameter parameter = new ResponsibilityParameter("qty", "int");
 
-        // when / then — objectType is the persisted (pinned) Causeway object type
+        // when / then — objectType is the Causeway object type, namespace + simple class name
         assertThat(classCdd.getObjectType()).isEqualTo("domox.ClassCdd");
-        assertThat(responsibility.getObjectType()).isEqualTo("domox.ActionCdd");
-        assertThat(attribute.getObjectType()).isEqualTo("domox.PropertyCdd");
-        assertThat(collaborator.getObjectType()).isEqualTo("domox.AssociationCdd");
-        assertThat(parameter.getObjectType()).isEqualTo("domox.ParameterCdd");
+        assertThat(responsibility.getObjectType()).isEqualTo("domox.ResponsibilityCdd");
+        assertThat(attribute.getObjectType()).isEqualTo("domox.AttributeCdd");
+        assertThat(collaborator.getObjectType()).isEqualTo("domox.CollaboratorCdd");
+        assertThat(parameter.getObjectType()).isEqualTo("domox.ResponsibilityParameter");
 
-        // and it is NOT derived from the (renamed) simple class name
+        // and it agrees with the class name — the divergence the 2026-10 rename introduced is gone
         assertThat(responsibility.getClass().getSimpleName()).isEqualTo("ResponsibilityCdd");
-        assertThat(responsibility.getObjectType()).isNotEqualTo("domox.ResponsibilityCdd");
+        assertThat(responsibility.getObjectType()).isEqualTo("domox.ResponsibilityCdd");
     }
 
     // -- helper

@@ -14,9 +14,9 @@ import org.apache.causeway.applib.annotation.Editing;
 import org.apache.causeway.applib.annotation.Property;
 import org.jetbrains.annotations.NotNull;
 
-@Entity(name = "PropertyCdd")
-@Table(schema = DomainModule.SCHEMA, name = "PropertyCdd")
-@Named(DomainModule.NAMESPACE + ".PropertyCdd")
+@Entity(name = "AttributeCdd")
+@Table(schema = DomainModule.SCHEMA, name = "AttributeCdd")
+@Named(DomainModule.NAMESPACE + ".AttributeCdd")
 @DomainObject(bounding = Bounding.BOUNDED, editing = Editing.ENABLED)
 @DomainObjectLayout(cssClassFa = "road", describedAs = "A Property is a Member of a Class")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)

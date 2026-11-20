@@ -55,13 +55,13 @@ public class TDR4 extends TypedDependencyRule {
                 // A is a non-basic-attrib noun → use A as the owning class
                 String className = capitalizeFirstLetter(currentTd.getA());
                 String propertyName = currentTd.getA() + " " + currentTd.getB();
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd", propertyName, "ClassCdd", className, result);
                 ruleMatches.create(currentTd, getRuleName(), "ClassCdd", currentTd.getA(), null, null, result);
             } else {
                 // Both A and B are basic attributes (or A is verb), use B as the class
                 String className = capitalizeFirstLetter(currentTd.getB());
                 String propertyName = currentTd.getB() + " " + currentTd.getA();
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd", propertyName, "ClassCdd", className, result);
+                ruleMatches.create(currentTd, getRuleName(), "AttributeCdd", propertyName, "ClassCdd", className, result);
             }
         }
     }
