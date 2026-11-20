@@ -60,6 +60,14 @@ jobs:
       # falls back to the span-4 default grid, with only a buried boot-log ERROR as evidence).
       - name: Layout XML structure (unreferencedCollections marker, properties inside fieldSets)
         run: bash scripts/check-layout-xml.sh
+      # A mermaid node with no `:::class` is drawn with the renderer's OWN fill while the diagram's
+      # text colour still applies: in the IntelliJ Cline plugin (whose canvas is the chat's own
+      # background) that is black text on a black box, and the diagram reads as a row of empty
+      # rectangles.  Nothing else catches it — the source looks right and a light-themed preview
+      # looks right.  Mirrors check.sh step 5, so a PR pushed from a clone without the pre-commit
+      # hook (which runs the same check via `check.sh --quick`) is caught here instead.
+      - name: Mermaid diagram guardrail (theme pin + every node styled)
+        run: python3 scripts/check-mermaid.py
       - name: Run unit tests (domain + adapter)
         run: mvn -B -q test -pl domox-domain -am
 

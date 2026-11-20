@@ -116,6 +116,12 @@ String webjarUrl = resourceName.startsWith("/") ? resourceName : "/" + resourceN
       (also in `check.sh --quick` and CI). Causeway *discards* a grid that lacks an
       `unreferencedCollections` marker or puts a `cpt:property` outside a `cpt:fieldSet`, and falls
       back to a span-4 default layout with only a buried boot-log ERROR as evidence.
+- [ ] **A config property the framework reads via `@Value` is supplied by the committed file** —
+      `ConfigPlaceholderSmokeTest` (webapp unit tests, so `check.sh` step 7 and the `test` CI job
+      both run it) resolves every no-default `${causeway.*}` placeholder it finds on the classpath
+      against `application.yml`. A placeholder whose default lives only in a `@ConfigurationProperties`
+      class is invisible to `Environment`, so a missing or misspelled key fails at *bean creation* —
+      which is how `causeway.viewer.restfulobjects.base-path` broke the first Boot 4 boot.
 - [ ] **A guardrail that can only warn is not a guardrail** — if a rule would fail on the first run
       for reasons the codebase does not actually follow, narrow it or drop it (the `@Entity ⇒
       @XmlJavaTypeAdapter` ArchUnit rule failed 14 times on the classes that legitimately omit it).

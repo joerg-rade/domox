@@ -99,3 +99,35 @@ Over 35 warnings per build run (visible in `domox-build2.log` lines 2–155). Th
 | **3** | Automated checks | 🟠 Medium | Missing config property (`@Value` placeholder) only caught at boot time | Add config-property smoke test |
 | **4** | Information access | 💡 Low | Boot logs overwritten per session, lost after session ends | Standardize to timestamped log path |
 | **5** | Tool economy | 💡 Low | 35+ Nexus metadata timeout warnings per build command | Disable metadata checks on the unreachable snapshot repo |
+
+---
+
+## Candidates implemented (2026-11-20)
+
+The three automated-check candidates were closed in one sweep, tracked as TODO-19…22 in `TODO.md`.
+Each one is a *guardrail*, so each was proved by a **negative test** — the failure it exists for was
+reproduced and observed to fail — not by inspection.
+
+| # | Candidate | Where it landed | Negative test that proves it |
+|---|---|---|---|
+| **1** | Ban sub-6.0 JUnit | `pom.xml` — `bannedDependencies` inside the `enforce-constraints` execution (pluginManagement) | `mvn -o -B enforcer:enforce@enforce-constraints -Djunit-jupiter.version=5.11.0` → **BUILD FAILURE**, `junit-jupiter-api:jar:5.11.0 <--- banned via the exclude/include list`. With the 6.1.3 pin: `Rule 3 … BannedDependencies passed`. |
+| **2** | `check.sh` runs the enforcer | `scripts/check.sh` **step 6/10** (the bundle now has ten steps) | The same re-pin is reported as step 6 `[FAIL]`, before the unit tests, with the failing rule name echoed from the log. |
+| **3** | Config-property placeholder smoke test | `domox-webapp/src/test/java/domox/webapp/unittests/ConfigPlaceholderSmokeTest.java` | Renaming `causeway.viewer.restfulobjects.base-path` to `base-path-typo` in `application.yml` fails the test **naming that key**; restored afterwards (`git diff` clean). |
+| **4** | Boot logs lost per session | Not a code change — addressed by the persistent `logs/domox-webapp.log` (appended across restarts, rolling) plus the fixed `/tmp/domox-boot.log` recipe in `.clinerules/commands.md`. | `grep -c 'Starting Application' logs/domox-webapp.log` counts restarts after the fact. |
+| **5** | Nexus metadata timeout noise | **Still open** — TODO-24. | — |
+
+**Two corrections to the findings above, for the next reader:**
+
+- Candidate 3's premise — *"there is no integration test that bootstraps the full Spring context in
+  CI"* — is no longer true: the `integration-test` job runs `Smoke_IntegTest` /
+  `ValidateDomainModelIntegTest`, which boot the whole context and **would** fail on an unresolvable
+  `@Value` placeholder. The new unit test does not duplicate that; it makes the same failure cheap,
+  local, and reported as itself (it names the key) instead of as a bean-creation stack trace in the
+  second CI job. It also covers the placeholder set **derived from the classpath**, so a Causeway
+  upgrade that starts requiring a new key is caught without editing the test.
+- Candidate 2's premise is partly wrong too: the enforcer *already ran* on every `mvn test`, because
+  the execution has no explicit `<phase>` and `enforcer:enforce` defaults to `validate`. What was
+  missing was not the invocation but (a) a rule that had anything to say about the JUnit skew
+  (candidate 1) and (b) a *labelled* step, so a reader can see the guardrail run. Note the trap the
+  step's comment records: a bare `mvn enforcer:enforce` on the command line ignores the
+  `<execution>`'s `<configuration>` and runs **no rules at all** — hence `@enforce-constraints`.

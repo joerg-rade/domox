@@ -395,7 +395,7 @@ when a rule match is present, and `source_target` when it is not.
 | Step | Command | When |
 |---|---|---|
 | **Instant guardrails** | `bash scripts/check.sh --quick` | after any edit (drift, layout XML, script syntax, dependency alignment) |
-| **Full local bundle** | `bash scripts/check.sh` | before handing over (adds unit tests, UI/UML/ontology render, metamodel guardrail) |
+| **Full local bundle** | `bash scripts/check.sh` | before handing over (adds enforcer rules, unit tests, UI/UML/ontology render, metamodel guardrail) |
 | **Domain unit tests** | `setsid mvn -o -pl domox-domain test >/tmp/domain-tests.log 2>&1 </dev/null &` | FIX-1/2/3/5/6 — **detached**, the shell caps a call at ~30 s |
 | **Schema drift** | `bash scripts/check-schema-drift.sh` | after any entity-field change (FIX-7, FIX-8) |
 | **Mutation floors** | `setsid bash scripts/check-mutation.sh >/tmp/mutation.log 2>&1 </dev/null &` | after FIX-2/5/6 touch a floored class — **run last** (pitest consumes test classes) |

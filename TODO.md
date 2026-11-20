@@ -34,6 +34,18 @@ type mapping — receive verb → the received class, output/notify verb → `St
 §13.2). All three take effect on the next Phase-1/2 run (TODO-01); no migration is needed.
 **TODO-14 stays open** — it is gated on TODO-05's owner tally, which needs Pass 3 to run.
 
+**Closed 2026-11-20 (third sweep)** — the four CI-guardrail items, each proved by a **negative test**
+(the failure the rule exists for was reproduced and observed to fail) and recorded in
+`retro-boot4-upgrade-2026-10-14.md`, which is the owning document: TODO-19 (`check-mermaid.py` is now a
+step of the CI `test` job, so a PR from a clone without the pre-commit hook cannot ship an invisible
+diagram); TODO-20 (the root pom's enforcer bans `junit-jupiter-api`/`-engine` `[5.0.0,6.0.0)` —
+re-pinning `junit-jupiter.version=5.11.0` now fails the *build* instead of the test run);
+TODO-21 (`check.sh` step 6/10 runs the enforcer **by execution id**, `@enforce-constraints`, because a
+bare `mvn enforcer:enforce` ignores the execution's configuration and would check nothing);
+TODO-22 (`ConfigPlaceholderSmokeTest` resolves every no-default `causeway.*` placeholder it scrapes
+from the classpath against `application.yml`). The last three are Maven/test work, so `check.sh` now
+has **ten** steps.
+
 ---
 
 ## 1. Scales
@@ -81,7 +93,8 @@ flowchart TD
 
 Read it as one column: the **re-run gates the review passes**, and the **collaborator pass gates the
 sub-domain pass and the re-measurement**. The three independent rule gaps (TODO-11/12/13) landed
-2026-11-19, so they no longer branch off this path — the re-run above simply carries them. The one
+2026-11-19, so they no longer branch off this path — the re-run above simply carries them. The four
+CI-guardrail items (TODO-19…22) landed 2026-11-20 and were never on this path either. The one
 remaining rule item, TODO-14 (operation-owner correctness), is *not* independent: it waits on Pass 3's
 owner tally, so it has no place on this diagram until TODO-05 has run.
 
@@ -102,10 +115,6 @@ owner tally, so it has no place on this diagram until TODO-05 has run.
 | **TODO-14** | Extraction rules | Operation owner correctness (`supervise → Day`) — gated on TODO-05's owner tally | P3 | M | Medium |
 | **TODO-15** | Schema / DDL | Deferred persisted-name migration (`@Table`/`@Named`/`candidateType`) | P3 | L | Medium |
 | **TODO-18** | Architecture | `domox.dom.rules` is a flat package of 61 files | P3 | M | Low |
-| **TODO-19** | CI guardrails | `check-mermaid.py` is not wired into CI | **P1** | XS | Medium |
-| **TODO-20** | CI guardrails | No enforcer `bannedDependencies` rule for JUnit 5.x | P2 | S | Medium |
-| **TODO-21** | CI guardrails | `check.sh` never runs `mvn enforcer:enforce` | P2 | XS | Medium |
-| **TODO-22** | CI guardrails | No config-property placeholder smoke test | P2 | M | Medium |
 | **TODO-24** | Build hygiene | Nexus snapshot-metadata timeout noise on every build | P3 | S | Low |
 | **TODO-25** | Capability | gist into Fuseki + MCP-exposed pattern repositories | P3 | L | Low |
 | **TODO-26** | Capability | "Suggest missing model elements" (DoMoX only reviews what exists) | P3 | XL | Low |
@@ -113,8 +122,8 @@ owner tally, so it has no place on this diagram until TODO-05 has run.
 | **TODO-28** | Capability | The "(future)" association patterns in `association-type-categorization.md` | P3 | M | Low |
 | **TODO-29** | Capability | Generalization literature gaps + the stale "not yet implemented" Group-6 header | P3 | M | Low |
 
-**Counts.** 22 open items — 1 × P0, 3 × P1, 8 × P2, 10 × P3. (Nine further items — TODO-10, 11, 12,
-13, 16, 17, 23, 30, 31 — were closed 2026-11-19; see the header.)
+**Counts.** 18 open items — 1 × P0, 2 × P1, 5 × P2, 10 × P3. (Thirteen further items — TODO-10, 11,
+12, 13, 16, 17, 19, 20, 21, 22, 23, 30, 31 — were closed 2026-11-19/20; see the header.)
 
 ---
 
@@ -281,52 +290,13 @@ concrete improvement, and the condition that closes it.
 
 ---
 
-### D. Build / CI guardrails — `retro-boot4-upgrade-2026-10-14.md`, this session
+### D. Build hygiene — `retro-boot4-upgrade-2026-10-14.md`
 
-#### TODO-19 — `check-mermaid.py` is not wired into CI · **P1** · XS · Risk Medium
-
-- **Source:** `scripts/check.sh` step 5/9; `.github/workflows/ci.yml` (no mermaid step).
-- **Open:** the guardrail runs locally (and in `--quick`, so the pre-commit hook gets it) but CI never
-  invokes it — so a PR pushed from a clone without the hook can ship an invisible diagram.
-- **Risk if skipped:** the exact defect the guardrail exists for (an unstyled node → black-on-black in
-  the plugin) reaches `main`, and only a human reading the rendered chat notices.
-- **Area of improvement:** add one `- name: Mermaid diagram guardrail` step running
-  `python3 scripts/check-mermaid.py` to the `test` job, next to the layout-XML step.
-- **Done when:** CI fails on a deliberately unstyled node (negative-test the step).
-
-#### TODO-20 — No enforcer `bannedDependencies` rule for JUnit 5.x · P2 · S · Risk Medium
-
-- **Source:** `retro-boot4-upgrade-2026-10-14.md` candidate 1.
-- **Open:** the root pom pins `junit-jupiter.version` while the Boot BOM manages a newer major; the
-  mismatch surfaced as a runtime `NoSuchMethodError`, and the build cache masked it.
-- **Risk if skipped:** a mixed-version JUnit lands again and fails *at test runtime*, in a way the
-  cache can hide on a workstation.
-- **Area of improvement:** add a `bannedDependencies` rule banning
-  `org.junit.jupiter:junit-jupiter-api:[5.0.0,6.0.0)` and `…-engine:[5.0.0,6.0.0)`.
-- **Done when:** `mvn enforcer:enforce` fails on a re-pinned 5.x JUnit.
-
-#### TODO-21 — `check.sh` never runs `mvn enforcer:enforce` · P2 · XS · Risk Medium
-
-- **Source:** `retro-boot4-upgrade-2026-10-14.md` candidate 2.
-- **Open:** the bundle runs drift → layout → syntax → alignment → mermaid → tests → render → webjar →
-  metamodel, but no enforcer step, so a rule added per TODO-20 would not run locally.
-- **Risk if skipped:** TODO-20 is a guardrail that only CI runs — the "a guardrail that never runs is
-  not a guardrail" failure `CODING_STANDARDS.md` §4 names.
-- **Area of improvement:** add the enforcer step to `check.sh` (keep `--quick` Maven-free, so it goes
-  in the full bundle only).
-- **Done when:** `check.sh` reports the enforcer step and fails on a deliberate violation.
-
-#### TODO-22 — No config-property placeholder smoke test · P2 · M · Risk Medium
-
-- **Source:** `retro-boot4-upgrade-2026-10-14.md` candidate 3.
-- **Open:** a `@Value("${causeway.*}")` placeholder whose default lives only in a
-  `@ConfigurationProperties` class is invisible to `Environment` and fails at bean creation; no test
-  resolves the placeholders.
-- **Risk if skipped:** a missing/renamed config key is found at boot, not at CI — the most expensive
-  place to find it.
-- **Area of improvement:** a smoke test (e.g. an `ApplicationContextRunner`) that asserts every
-  `causeway.*` placeholder resolves.
-- **Done when:** the test fails on a deliberately misspelled `causeway.*` key.
+The four CI-guardrail items that used to live here — TODO-19 (mermaid check not wired into CI),
+TODO-20 (no JUnit 5.x `bannedDependencies` rule), TODO-21 (`check.sh` never ran the enforcer) and
+TODO-22 (no config-property placeholder smoke test) — were **closed 2026-11-20**. Each fix and the
+negative test that proves it is recorded in the retro's *Candidates implemented* table; the one
+build-hygiene item is what remains here.
 
 #### TODO-24 — Nexus snapshot-metadata timeout noise · P3 · S · Risk Low
 
@@ -410,20 +380,21 @@ concrete improvement, and the condition that closes it.
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
-%% One column, stacked bands — the cheap wins first, then the gate, then the bulk passes.
+%% C4 level 2 (container) — the ordering of the remaining work: a decision, the gate, then the bulk
+%% passes.  Deliberately ONE column: a wide diagram is shrunk to unreadable in a narrow viewer, and
+%% every node carries an explicit classDef (an UNSTYLED box renders dark-on-dark in the IntelliJ
+%% Cline plugin, whatever the init theme says).  See docs/formatting/readability-guide.md.
 flowchart TD
-    classDef cheap fill:#E9F7EC,stroke:#3FA65A,stroke-width:2px,color:#3D3630
     classDef gate fill:#FDEAEC,stroke:#D9536B,stroke-width:2px,color:#3D3630
     classDef bulk fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
     classDef later fill:#F0EBFB,stroke:#7C5CD1,stroke-width:2px,color:#3D3630
 
-    A["cheap, now — TODO-19<br/>wire the mermaid check into CI"]:::cheap
     B["decision — TODO-02<br/>attribute-review policy"]:::gate
     C["the gate — TODO-01<br/>Phase-1/2 re-run"]:::gate
     D["bulk passes — TODO-03, 04, 05, 06<br/>classes then attributes / actions / collaborators"]:::bulk
     E["then — TODO-07, 08<br/>sub-domains · re-measure"]:::bulk
-    F["backlog — TODO-09, 14, 15, 18, 20-22, 24-29"]:::later
+    F["backlog — TODO-09, 14, 15, 18, 24-29"]:::later
 
-    A --> B --> C --> D --> E --> F
+    B --> C --> D --> E --> F
 ```
 

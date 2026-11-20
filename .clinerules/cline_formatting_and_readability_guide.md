@@ -48,7 +48,7 @@ disable-model-invocation: true
   ```text
   %%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
   ```
-  **Enforced:** `python3 scripts/check-mermaid.py`, run as step **5/9** of `bash scripts/check.sh`
+  **Enforced:** `python3 scripts/check-mermaid.py`, run as step **5/10** of `bash scripts/check.sh`
   (and of `--quick`, so the pre-commit hook gets it), fails on a node with no `:::class`, a block
   whose first line is not the `%%{init` pin, or a `flowchart` with no `classDef` at all. It checks
   each node **individually**, so a partly styled line (`A["x"]:::ok --> B["y"]`) still fails — that

@@ -177,6 +177,27 @@
                                         <version>[21,)</version>
                                     </requireJavaVersion>
                                     <dependencyConvergence/>
+                                    <!-- JUnit major-version guardrail.  This pom pins
+                                         junit-jupiter.version while the Spring Boot BOM also manages it,
+                                         so the two can drift apart.  They did: the root pom once
+                                         pinned 5.11.0 while Boot 4.x manages 6.1.3, and the mixed line
+                                         failed at TEST RUNTIME with NoSuchMethodError:
+                                         ExtensionContext$Store.computeIfAbsent(...) — a
+                                         build-cache-restored entry then hid it on the workstation, so
+                                         neither `mvn compile` nor a cached `mvn test` noticed.  Nothing
+                                         else catches this: the drift script compares spring-* versions
+                                         only, and surefire reports the NoSuchMethodError as an opaque
+                                         test error.  See retro-boot4-upgrade-2026-10-14.md candidate 1.
+                                         junit-jupiter-api/engine are the two artifacts surefire
+                                         resolves directly (see the surefire plugin dependency below);
+                                         banning the whole 5.x line is what makes a re-pin fail the
+                                         build instead of the test run. -->
+                                    <bannedDependencies>
+                                        <excludes>
+                                            <exclude>org.junit.jupiter:junit-jupiter-api:[5.0.0,6.0.0)</exclude>
+                                            <exclude>org.junit.jupiter:junit-jupiter-engine:[5.0.0,6.0.0)</exclude>
+                                        </excludes>
+                                    </bannedDependencies>
                                 </rules>
                             </configuration>
                         </execution>

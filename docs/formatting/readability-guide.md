@@ -113,7 +113,7 @@ Text is `#3D3630` throughout — a *warm* charcoal, never neutral grey. Label ev
 ⚠️ **`sequenceDiagram` and `classDiagram` accept no `classDef`** — the theme line is the only lever
 available, so their boxes are at the renderer's mercy. For anything whose legibility matters, use
 `flowchart`, where every node can be given an explicit `fill` *and* `color`.
-**Enforced.** `python3 scripts/check-mermaid.py`, run as step **5/9** of `bash scripts/check.sh` (and
+**Enforced.** `python3 scripts/check-mermaid.py`, run as step **5/10** of `bash scripts/check.sh` (and
 of `--quick`, so the pre-commit hook gets it), fails on a node with no `:::class`, a block whose first
 line is not the `%%{init` pin, or a `flowchart` with no `classDef` at all — and it checks each node
 **individually**, so a partly styled line (`A["x"]:::ok --> B["y"]`) still fails. (That was a false

@@ -32,3 +32,13 @@ disable-model-invocation: true
 
 - **Guardrail runs:** always pass `-Dmaven.build.cache.enabled=false` (see
   `~/.clinerules/maven.md` for why); `scripts/check.sh` already does this.
+
+- **Enforcer rules run at `validate`:** the root pom's `enforce-constraints` execution
+  (`requireMavenVersion`, `requireJavaVersion`, `dependencyConvergence`, and a `bannedDependencies`
+  rule banning `junit-jupiter-api`/`-engine` `[5.0.0,6.0.0)` so a re-pinned 5.x JUnit fails the
+  *build* instead of the test run) has no explicit `<phase>`, and `enforcer:enforce` defaults to
+  `validate` — so it already runs on every lifecycle invocation, in all four reactor projects.
+  To run it **alone**, select it by execution id:
+  `mvn -o -B enforcer:enforce@enforce-constraints`. A bare `mvn enforcer:enforce` ignores the
+  execution's `<configuration>` and runs **no rules at all** — a guardrail reporting "passed" while
+  checking nothing. `scripts/check.sh` step 6/10 uses the `@enforce-constraints` form.
