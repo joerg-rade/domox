@@ -75,6 +75,11 @@ MCP endpoint, session handling and the **`spring.ai.mcp.server.protocol` 404 tra
 
 ## 4. The pass, in order
 
+- **Phase 0 — Pre-flight.** `listUnassignedClassCandidates()` — **if it is empty, stop**: the pass has no
+  input yet, and `suggestSubDomains()` will answer *"No unassigned class candidates"*. Do not start
+  phases 1–5 hoping for clusters. The queue is *approved* classes without a sub-domain, so a sub-domain
+  pass run before the review pass has nothing to partition; it is **not** a failure, and it is not the
+  same thing as a cluster that came back empty. The §7 SQL measures the same thing from the database.
 - **Phase 1 — Scope.** `listUseCases()` → the 15 areas. Read them as *business areas*, not as
   sub-domains (see §5).
 - **Phase 2 — Evidence.** `suggestSubDomains()` → clusters, cross-cutting candidates, unevidenced
@@ -182,7 +187,8 @@ Shell: `docker exec domox-db psql -U postgres -d postgres -c "..."`.
   converges. This is a caller discipline, not a server bug — and because every write is idempotent,
   re-running the offending call is the whole fix.
 - **`suggestSubDomains()` is empty?** It lists *unassigned, approved* candidates only. Zero reviews
-  → zero clusters, with the note *"No unassigned class candidates"*. That is not a failure.
+  → zero clusters, with the note *"No unassigned class candidates"*. That is not a failure — it means
+  the pass has no input yet; check the Phase 0 pre-flight in §4 before starting.
 - **Re-running is safe**, but re-running with a *renamed* sub-domain creates a second one (the name
   is the identity). Rename via the UI, or `clearCandidateSubDomain` and re-assign.
 - **Nothing constrains the sub-domain name to be unique.** The look-up is case-insensitive and takes

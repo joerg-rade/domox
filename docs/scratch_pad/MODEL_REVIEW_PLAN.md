@@ -17,13 +17,13 @@ The pass that follows this one: `.clinerules/memory-bank/workflows/mcp-subdomain
 | Type | Total | Reviewed | Approved | **Unreviewed** |
 |---|---|---|---|---|
 | `ClassCdd` | 971 | 202 | 131 | **769** |
-| `AttributeCdd` (attributes) | 109 | 9 | 2 | **100** |
+| `AttributeCdd` (attributes) | 109 | 9 | 1 | **100** |
 | `ResponsibilityCdd` (responsibilities) | 191 | 91 | 57 | **100** |
 | `CollaboratorCdd` (collaborators) | 237 | 0 | 0 | **237** |
-| **Total** | **1 508** | **302** | **190** | **1 206** |
+| **Total** | **1 508** | **302** | **189** | **1 206** |
 
-Existing decisions (all `username='agent'`, idempotent): APPROVED 190, REJECTED
-`NOT_RELEVANT` 80, `WRONG_CANDIDATE_TYPE` 18, `DUPLICATE` 14. Every one of the 131 approved
+Existing decisions (all `username='agent'`, idempotent): APPROVED 189, REJECTED
+`NOT_RELEVANT` 81, `WRONG_CANDIDATE_TYPE` 18, `DUPLICATE` 14. Every one of the 131 approved
 classes is already assigned to one of **10 sub-domains** (0 unassigned).
 
 ---
@@ -37,24 +37,35 @@ classes is already assigned to one of **10 sub-domains** (0 unassigned).
 %% Every node carries an explicit classDef — an UNSTYLED box renders dark-on-dark in the
 %% IntelliJ Cline plugin, whatever the init theme says.  See docs/formatting/readability-guide.md.
 flowchart TD
-    classDef fix fill:#FDEAEC,stroke:#D9536B,stroke-width:2px,color:#3D3630
-    classDef rerun fill:#E8F1FD,stroke:#3B82C4,stroke-width:2px,color:#3D3630
-    classDef pass fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
-    classDef done fill:#E9F7EC,stroke:#3FA65A,stroke-width:2px,color:#3D3630
+    classDef landed fill:#E9F7EC,stroke:#3FA65A,stroke-width:2px,color:#3D3630
+    classDef gate fill:#FDEAEC,stroke:#D9536B,stroke-width:2px,color:#3D3630
+    classDef work fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
 
-    A["Code fixes · FIX-5, FIX-6"]:::fix --> B["Re-run Phase 1/2<br/>regenerates candidates"]:::rerun
-    B --> C["Pass 1 · classes"]:::pass
-    C --> D["Pass 2 · attributes<br/>Pass 3 · responsibilities"]:::pass
-    D --> E["Pass 4 · collaborators<br/>needs both ends decided"]:::pass
-    E --> F["Sub-domain pass<br/>+ UML re-measure"]:::done
+    A["✅ Code fixes FIX-1…FIX-8<br/>six waves, all landed"]:::landed
+    B["⏳ Re-run Phase 1/2 · TODO-01<br/>regenerates the candidates"]:::gate
+    C["⏳ Pass 1 · classes"]:::work
+    D["⏳ Pass 2 · attributes<br/>Pass 3 · responsibilities"]:::work
+    E["⏳ Pass 4 · collaborators<br/>needs both ends decided"]:::work
+    F["⏳ Sub-domain pass<br/>+ UML re-measure"]:::work
+
+    A -->|"gates"| B
+    B -->|"gates"| C
+    C -->|"then"| D
+    D -->|"then"| E
+    E -->|"then"| F
 ```
 
 **Three rules, each of which avoids redoing work:**
 
 1. **Fix the extraction before reviewing what it produces.** The review pass is 1 206 human
    judgements; a Phase-1/2 re-run replaces candidates and their ids. Reviewing first means the
-   decisions are orphaned. FIX-5 (multiplicity scope) and FIX-6 (attribute vocabulary) change
-   *what is extracted* → land them, re-run, then review.
+   decisions are orphaned. The fixes that change *what is extracted* have **landed** — all six
+   waves, FIX-1…FIX-8 plus the §13.2/13.6/13.7/13.8 rule-set decisions (`UML_GAP_FIX_PLAN.md`
+   §14) — so this rule is now satisfied on the code side, and **the re-run is the only step left**
+   (`TODO-01`, red in the diagram). Measured 2026-11-20 against the live DB, its effect is still
+   absent: the 131 `multiplicity.add(…)` rule matches carry **0** UML multiplicities, the
+   `Unknown` class still owns 12 attributes, and all 191 operations still read `void` with 0
+   parameter rows — i.e. the candidate set in §1 is the **pre-fix** one.
 2. **Classes before collaborators.** 171 of 237 collaborators are generalizations, and an
    association is only approvable when **both** ends are approved classes. Today **0/171** have
    both ends approved — because 769 classes are still unreviewed. Rejecting a generalization
@@ -115,8 +126,9 @@ four passes so the rationale counts stay comparable between them:
 Rule of thumb: **"right kind of thing, wrong place" → `WRONG_CANDIDATE_TYPE`; "not a thing we model"
 → `NOT_RELEVANT`.**
 
-**Calibration.** The 302 existing decisions are the worked examples (190 approve / 112 reject;
-`NOT_RELEVANT` dominates). Use them as the style guide; the PetShop baseline id list in
+**Calibration.** The **202** existing *class* decisions are the worked examples (131 approve / 71
+reject; `NOT_RELEVANT` dominates) — *not* the corpus-wide 302, which counts all four candidate types.
+Use them as the style guide; the PetShop baseline id list in
 `mcp-review-pipeline.md` §5.1 is the reference for the already-reviewed portion.
 
 **Optional grounding.** `ontologyEvidenceForCandidate(id)` / `suggestReview(id)` — advisory only.
@@ -128,23 +140,50 @@ that the association pass can rely on it.
 
 ---
 
-## 5. Pass 2 — attributes (`AttributeCdd`, 100 candidates) — **new policy needed**
+## 5. Pass 2 — attributes (`AttributeCdd`, 100 candidates) — **policy ratified 2026-11-20**
 
-**Why a new policy.** `mcp-review-pipeline.md` §5 has no attribute table, and only 2 attributes are
-approved today. This pass is also the **evidence source for FIX-6b**: the names you approve are
+**Why a policy was needed.** `mcp-review-pipeline.md` §5 had no attribute table, and only 2 attributes
+were approved. This pass is also the **evidence source for FIX-6b**: the names you approve are
 the vocabulary the `basic-attributes` list is missing.
 
 | Decision | Applies to |
 |---|---|
 | `APPROVE` | a **value** that describes its owner — `Pet.breed`, `Order.total`, `Policy.expiryDate`; the name is a noun/measure, not a class |
-| `REJECT / WRONG_CANDIDATE_TYPE` | the name is an entity (`pet`, `product`, `cart`, `role`) — it is a class or an association, not an attribute |
-| `REJECT / NOT_RELEVANT` | the owner is the fabricated class `Unknown` (12 rows today; FIX-6a removes the cause, the re-run removes the rows) |
-| `REJECT / DUPLICATE` | the same attribute twice on the same owner |
+| `REJECT / WRONG_CANDIDATE_TYPE` | the name is **itself a class** (`pet`, `product`, `cart`, `role`, `status`, `type`) — the possessive rule mirrored a noun into the wrong slot; this is the association FIX-6e expects to see |
+| `REJECT / WRONG_CANDIDATE_TYPE` | the name is a **verb** (`update`), not a value — the same boundary the class pass applies to `Update`, `groom`, `have` (§4) |
+| `REJECT / DUPLICATE` | a **true mirror**: the same noun pair extracted in both directions, `X.y` *and* `y.x` (today `Sign.illness` / `Illness.sign`) |
+| `REJECT / NOT_RELEVANT` | the owner is the fabricated class `Unknown` (FIX-6a removes the cause, the re-run removes the rows) |
 | `REJECT / INSUFFICIENT_INFORMATION` | phrase artifacts (`size color`, `description description`) with no resolvable single property |
 
-**Record the vocabulary.** While reviewing, keep a running list of approved attribute names per
-owner — it feeds FIX-6c directly. Reject decisions are equally informative: they tell FIX-6e
-whether the extraction is producing associations where attributes were expected.
+**The entity-name vs mirror boundary (ratified 2026-11-20).** An attribute whose name is a class is
+`WRONG_CANDIDATE_TYPE`, **not** `DUPLICATE`. §4's convention is the ratified one — "right kind of thing,
+wrong place" — and the two rationales are not interchangeable: recorded as `DUPLICATE`, FIX-6e cannot
+tell *"the extraction produced an association where an attribute was expected"* from *"the same
+attribute twice"*. `DUPLICATE` is reserved for a mirror pair, where the **pair** is the finding. The 7
+pre-existing attribute rejects all used `DUPLICATE` for entity-named rows; this rule keeps their
+**outcome** (reject) and refines the **rationale**.
+
+**The measured shape of the 100 unreviewed candidates (2026-11-20)** — what the rows above resolve to,
+and why the policy had to exist before Pass 2 runs. Precedence as listed:
+
+| Bucket | Rows | Decision |
+|---|---|---|
+| owner = `Unknown` | 11 | `NOT_RELEVANT` |
+| name has a space (phrase) | 47 | `INSUFFICIENT_INFORMATION` |
+| **name is itself a class** | **37** | `WRONG_CANDIDATE_TYPE` (one live mirror pair → `DUPLICATE`) |
+| plain value noun | 5 | `APPROVE` |
+
+**The re-run shrinks the hard buckets.** 21 of the 37 class-named rows come from TDR10, and 16 of the
+47 phrase rows from TDR11 — the two possessive rules §13.6 lexicon-guarded on 2026-11-19. Decide for
+the **post-re-run** shape, not today's counts.
+
+**`Unknown.size` re-decided 2026-11-20.** It was the one attribute approved on the fabricated class
+(it predates FIX-6a); it is now `REJECTED / NOT_RELEVANT`, so the `Unknown` row above has no exception.
+
+**Record the vocabulary — it *is* the deliverable.** While reviewing, keep a running list of approved
+attribute names per owner: it feeds FIX-6c directly, and the pass is not finished until that list is
+written back into `UML_GAP_FIX_PLAN.md` §9 beside F6b/F6c. Reject decisions are equally informative:
+they tell FIX-6e whether the extraction is producing associations where attributes were expected.
 
 **The extraction side now applies the same rule (2026-11-19).** The TDR10/TDR11 possessive branches
 create an `AttributeCdd` only when the possessed noun is in the `domox.nlp.basic-attributes` lexicon
@@ -310,11 +349,22 @@ Shell: `docker exec domox-db psql -U postgres -d postgres -c "..."`.
    ("the re-run replaces candidate ids") therefore does not materialise **as long as the model is not
    dropped** — re-analyse into the existing `DomainModel` (`DomainModel:653`), do not delete it. If a
    fresh model is ever used, the decisions must be re-keyed by name + type first.
-2. **Attribute policy sign-off** — open; §5 is still a proposal. The measured input for it is now
-   available (`UML_GAP_FIX_PLAN.md` §13.6: 42 of the 109 attributes come from TDR12, 26 from TDR10,
-   18 from TDR11), and the rule "an attribute is a built-in value; a reference to a class is an
-   association" is settled — what is undecided is whether the *possessive* rules may keep producing
-   attributes for class nouns.
+2. **Attribute policy sign-off** — **decided 2026-11-20** (TODO-02, closed). §5's approve/reject
+   table is ratified, with one rationale refined and two rows added during the sign-off: an attribute
+   whose name is **itself a class** is `WRONG_CANDIDATE_TYPE` (§4's convention — *not* `DUPLICATE`,
+   because FIX-6e must be able to tell "an association was emitted where an attribute was expected"
+   from "the same attribute twice"); `DUPLICATE` is reserved for a **true mirror pair** (`X.y` *and*
+   `y.x`); and a bare **verb** in the attribute slot is `WRONG_CANDIDATE_TYPE`, as in the class pass.
+   The premise was already settled: "an attribute is a built-in value; a reference to a class is an
+   association", and the follow-up this entry used to leave open ("may the *possessive* rules keep
+   producing attributes for class nouns?") was **answered no** on 2026-11-19 — TDR10/TDR11 create an
+   `AttributeCdd` only when the possessed noun is in the `domox.nlp.basic-attributes` lexicon
+   (`UML_GAP_FIX_PLAN.md` §13.6; TODO-12, closed). An entity name reaching Pass 2 is therefore a
+   **lexicon gap** to close in `basic-attributes`, not a rule defect to re-open. The measured input
+   the sign-off used: 42 of the 109 attributes come from TDR12, 26 from TDR10, 18 from TDR11 — and the
+   TDR10/TDR11 share shrinks on the next Phase-1/2 re-run. The one pre-existing exception —
+   `Unknown.size`, approved on the fabricated class before FIX-6a — was re-decided to
+   `REJECTED / NOT_RELEVANT` at the same time.
 3. **`WRONG_CANDIDATE_TYPE` vs `NOT_RELEVANT`** — **decided 2026-11-19** (a consistency call; it
    only affects the counts, not the decision). The boundary is stated once in §4 ("Rationale
    convention"): an element that *is* a domain concept but sits in the wrong slot — an attribute or
@@ -327,8 +377,10 @@ Shell: `docker exec domox-db psql -U postgres -d postgres -c "..."`.
 
 ### 12.5 what changed in the pipeline since this plan was written
 
-The four gap-fix waves have landed (`UML_GAP_FIX_PLAN.md` §14). Three of them change what a reviewer
-will see, so the passes below must be read against the **new** code:
+All **six** gap-fix waves have landed (`UML_GAP_FIX_PLAN.md` §14 — Waves 1-6, FIX-1…FIX-8 plus the
+§13.2/13.6/13.7/13.8 rule-set decisions). Five of them change what a reviewer
+will see, so the passes below must be read against the **new** code — and note that §1's candidate
+counts are still the **pre-fix** ones until the re-run of §3's last prerequisite lands:
 
 | Fix | Effect on the review material |
 |---|---|

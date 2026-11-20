@@ -1310,6 +1310,73 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+
+        <!-- The four repositories below are NOT ours: they are declared by *transitive* dependency
+             POMs (de.agilecoders.wicket:bootstrap-parent — a parent of wicket-bootstrap, pulled in
+             by causeway-viewer-wicket-* — plus netty/airbase/oss-parent/guava-parent), and Maven
+             aggregates repositories from dependency POMs into the resolution list.
+
+             All four are snapshot-only Apache/Sonatype/Clojars endpoints, and all four are
+             unreachable from this network.  They are contacted only to probe
+             `maven-metadata.xml` for the org.webjars.npm:* version ranges, and every probe fails:
+
+                 Could not transfer metadata org.webjars.npm:animejs/maven-metadata.xml
+                 from/to Apache Nexus snapshots (...): Connect timed out
+
+             That is 35+ warnings per build (3 repos x ~10 webjars, plus the offline-then-cached
+             retries), which buries the real warnings in a build log.
+
+             Re-declaring each id here is what silences them: Maven merges repositories by id and
+             the project's own declaration is the dominant one, so these policies win over the
+             ones inherited from the dependency POMs.  Both policies are disabled because nothing
+             in this build has ever been fetched from them (verified: only maven-metadata.xml
+             probes, no artifacts).
+
+             See docs/scratch_pad/retro-boot4-upgrade-2026-10-14.md candidate 5 / TODO-24. -->
+        <repository>
+            <id>Apache Nexus snapshots</id>
+            <name>Apache Nexus snapshots (disabled — unreachable)</name>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>Sonatype OSS snapshots</id>
+            <name>Sonatype OSS snapshots (disabled — unreachable)</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus snapshots (disabled — unreachable)</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>repo.clojars.org</id>
+            <name>Clojars (disabled — unused; probed only for webjar version ranges)</name>
+            <url>https://repo.clojars.org</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <pluginRepositories>

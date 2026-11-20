@@ -86,7 +86,12 @@ in Wicket UI" as proof — that is unrelated to MCP registration.
 ## 4. Phase checklist (run in order)
 
 - **Phase 0.5 — Sanity.** Docker up (`domox-db`), instance on 8080 returns `/mcp` 200 (if 404 → §3).
-- **Phase 1 — Evidence.** Extract candidate ↔ evidence rows to a TSV (SQL in §6).
+- **Phase 1 — Evidence.** Extract candidate ↔ evidence rows to a TSV (SQL in §6) — **one type at a
+  time**, because `nextCandidateForReview` is **not** type-scoped: it returns the highest-evidence
+  candidate of *any* type (`Reviews.nextUnprocessed()` → `nextUnprocessedOfType(null)`), whereas the
+  Wicket UI's `CandidateReviewWorkflow` restricts to the current candidate's own type. Drive a pass
+  from the per-type id list (§6.1), as the §7 driver does — never from the fetch loop, or the
+  "attribute pass" hands you classes.
 - **Phase 2 — Decisions.** Build `/tmp/decisions.tsv` (`id<TAB>APPROVE[<TAB>]` or `id<TAB>REJECT<TAB>RATIONALE`); apply §5 policy.
 - **Phase 3 — Write.** Loop `approveCandidate`/`rejectCandidate` via the driver (§7).
 - **Phase 4 — Verify.** DB counts (§8): reviews == candidate count, no unprocessed, all `agent`.
@@ -111,6 +116,15 @@ attribute or unit in the entity slot, a bare verb, a measure phrase; for a colla
 that is not a class) → `WRONG_CANDIDATE_TYPE`; the name is **not a domain concept at all**
 (scaffolding, a combined artifact, a generic noun, two merely co-occurring names) →
 `NOT_RELEVANT`. Apply it identically in every pass, so the rationale counts stay comparable.
+
+> **Which policy applies.** The table above is the **class** policy (Pass 1). Each later pass has its
+> own table in `MODEL_REVIEW_PLAN.md` — attributes §5, responsibilities §6, collaborators §7. The
+> attribute table was **ratified 2026-11-20** (§12.2), so Pass 2 (TODO-04) is no longer gated on a
+> policy decision — only on the TODO-01 re-run. Two rows there are attribute-specific and belong in the
+> pass: an attribute whose name is **itself a class** is `WRONG_CANDIDATE_TYPE` (the possessive rule
+> mirrored a noun into the wrong slot — the association FIX-6e expects), and `DUPLICATE` is reserved
+> for a **true mirror pair** (`X.y` *and* `y.x`). The `NOT_RELEVANT` / `WRONG_CANDIDATE_TYPE` boundary
+> above applies unchanged in every pass.
 
 > **Vocabulary note (CRC rename, 2026-10 · persisted names migrated 2026-11-20).** The Java entity
 > classes follow the CRC guide's element names — `ResponsibilityCdd` (was `ActionCdd`),

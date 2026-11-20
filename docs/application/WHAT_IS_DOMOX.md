@@ -77,7 +77,7 @@ The rules are organized into categories:
 - **Pattern:** `nsubj(verb, noun)` where noun IS a basic attribute
 - **Input:** "The **name** is stored."
 - **Dependency:** `nsubj(stored, name)`
-- **Output:** `PropertyCdd.add("name")` on the appropriate class
+- **Output:** `AttributeCdd.add("name")` on the appropriate class
 
 ### 3. Vocabulary Catalogs — Making Everything Configurable
 

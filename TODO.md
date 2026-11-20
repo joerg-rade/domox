@@ -28,7 +28,7 @@ reproducing the guide's widths).
 **Closed 2026-11-19 (second sweep)** — the three extraction-rule items, each a *rule-set* change
 verified by domain tests and recorded in `UML_GAP_FIX_PLAN.md` §13, which is the owning document:
 TODO-13 (`CandidateFactory` de-duplicates only a *pure* class match — an association is no longer
-swallowed by its source class, §13.7); TODO-12 (TDR10/TDR11 create a `PropertyCdd` only for an
+swallowed by its source class, §13.7); TODO-12 (TDR10/TDR11 create an `AttributeCdd` only for an
 attribute noun — the same scope-guard shape FIX-5 gave TDR25/TDR26, §13.6); TODO-11 (the verb→return
 type mapping — receive verb → the received class, output/notify verb → `String`, else no return type,
 §13.2). All three take effect on the next Phase-1/2 run (TODO-01); no migration is needed.
@@ -49,7 +49,7 @@ has **ten** steps.
 extraction-rule item, recorded in `UML_GAP_FIX_PLAN.md` §13.8. It was the one item explicitly
 **gated** on a review pass, so the gate was re-expressed as a measurement: the owner-correctness tally
 is computable from data the model already holds, and it came out **systematic** — of the 191
-`ActionCdd` candidates, 149 have an owner and *all 149 are owned by their object noun*, none by their
+`ResponsibilityCdd` candidates, 149 have an owner and *all 149 are owned by their object noun*, none by their
 actor (every one from `TDR3`, which fires on the object dependency). So the owner is now the sentence's
 `nsubj` actor, with the object kept only as the fallback owner when the sentence names no usable actor
 (62 operations — 19 name an unusable actor such as `System`, 43 name none) and as the receive-verb
@@ -101,6 +101,39 @@ misfiled `DependencyVocabularyPredicatesTest` (it tests a `domox.dom.nlp` class)
 package. Verified: `mvn -o -pl domox-domain test` → **1 057 tests, 0 failures**; `scripts/check.sh` →
 **10/10**.
 
+**Closed 2026-11-20 (eighth sweep)** — TODO-24 (Nexus snapshot-metadata timeout noise), the last item
+owned by `retro-boot4-upgrade-2026-10-14.md` and the last of the five candidates that retro raised. The
+noise was *not* caused by the Causeway parent, as the candidate's write-up guessed: the offending
+repositories are declared by **transitive** dependency POMs —
+`de.agilecoders.wicket:bootstrap-parent` (a parent of `wicket-bootstrap`, pulled in by
+`causeway-viewer-wicket-*`) declares `Apache Nexus snapshots`, `Sonatype OSS snapshots` and
+`repo.clojars.org`, and other parents (netty, airbase, oss-parent, guava-parent) declare
+`sonatype-nexus-snapshots` — and Maven aggregates repositories from dependency POMs into the resolution
+list. They are contacted only to probe `maven-metadata.xml` for the `org.webjars.npm:*` version ranges,
+and offline each probe times out. Re-declaring the four ids in the root pom's `<repositories>` with
+`<releases>`/`<snapshots>` disabled makes the project's declaration the dominant one, so Maven merges
+that policy over the inherited one and never contacts them. Verified by the same `-X` build before and
+after (`mvn -U -X -pl domox-webapp validate`): the metadata probe list drops from **7 repositories to
+3** (the reachable ones only) and downloads from the four repos fall from **30 to 0**, the effective
+listing now printing them as `disabled`. Nothing else changed — no artifact has ever been fetched from
+any of them (only `maven-metadata.xml` probes).
+
+**Closed 2026-11-20 (ninth sweep)** — TODO-02 (attribute-review policy), the last item owned by
+`MODEL_REVIEW_PLAN.md` §5/§12.2. It was closed by **ratifying** the table, not by running the pass — and
+the live measurement is what made that possible, because the proposal turned out not to be ratifiable as
+written: **37 of the 100** unreviewed attributes carry a name that is **itself a class** (`pet`,
+`status`, `type`), a case the table had no row for, and §4's ratified boundary ("right kind of thing,
+wrong place" → `WRONG_CANDIDATE_TYPE`) contradicted the 7 existing attribute rejects, which all used
+`DUPLICATE`. The sign-off therefore refined one rationale (an entity-named attribute is
+`WRONG_CANDIDATE_TYPE`; `DUPLICATE` is reserved for a **true mirror pair** — `X.y` *and* `y.x`), added a
+row for a **verb** in the attribute slot (`update`), and removed the policy's one self-contradiction:
+`Unknown.size`, approved on the fabricated class before FIX-6a, was re-decided to
+`REJECTED / NOT_RELEVANT` (MCP `rejectCandidate` — idempotent, so it refreshed review row `14544` rather
+than adding a second). §5 now carries the measured distribution (11 `Unknown`-owned, 47 phrase
+artifacts, 37 class-named, 5 plain value nouns) and the note that 21/37 and 16/47 respectively come from
+the lexicon-guarded TDR10/TDR11, so the hard buckets shrink on the TODO-01 re-run. §12.2 item 2 now
+reads *decided*. The pass itself (TODO-04) is unchanged and still gated on TODO-01.
+
 ---
 
 ## 1. Scales
@@ -134,12 +167,11 @@ difficulty of the change. **Contribution** is what the item unlocks once it land
 flowchart TD
     classDef gate fill:#FDEAEC,stroke:#D9536B,stroke-width:2px,color:#3D3630
     classDef pass fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
-    classDef done fill:#E9F7EC,stroke:#3FA65A,stroke-width:2px,color:#3D3630
 
     R["TODO-01 · Phase-1/2 re-run<br/>regenerates candidates"]:::gate
     P["TODO-03/04/05 · review passes<br/>classes, attributes, actions"]:::pass
     A["TODO-06 · collaborators<br/>needs both ends approved"]:::pass
-    S["TODO-07/08 · sub-domains<br/>+ re-measure the model"]:::done
+    S["TODO-07/08 · sub-domains<br/>+ re-measure the model"]:::pass
 
     R -->|"must land first"| P
     P -->|"both ends decided"| A
@@ -153,7 +185,11 @@ CI-guardrail items (TODO-19…22) landed 2026-11-20 and were never on this path 
 TODO-14 (operation-owner correctness, landed 2026-11-20): it waited on Pass 3's owner tally, which
 turned out to be derivable from the candidates themselves, so the decision was made ahead of the pass.
 TODO-09 (ontology grounding, landed 2026-11-20) never needed a pass either — it is a spot-check over the
-already-approved core set. No open item now sits off this path.
+already-approved core set. No open item now sits off this path — and the sub-domain / re-measure node is
+the path's only **terminal** one, still open (P2). It is a **no-op until Pass 1 approves classes**: the
+advisor and its queue read *approved* classes only, so `suggestSubDomains()` returns *"No unassigned
+class candidates"* while there are none (measured 2026-11-20: 971 classes, 131 approved, **0 approved
+unassigned** — the pass's own completion criterion was already met and it correctly had nothing to do).
 
 ---
 ## 3. Summary — every open item
@@ -161,22 +197,25 @@ already-approved core set. No open item now sits off this path.
 | ID | Area | Issue (one line) | Pri | Effort | Risk |
 |---|---|---|---|---|---|
 | **TODO-01** | Review pipeline | Phase-1/2 re-run on the whole corpus — the gate for every review pass | **P0** | M | **High** |
-| **TODO-02** | Review pipeline | Attribute-review policy (`MODEL_REVIEW_PLAN.md` §5) not signed off | **P1** | S | Medium |
 | **TODO-03** | Review pipeline | Pass 1 — review **769** `ClassCdd` candidates | **P1** | L | High |
-| **TODO-04** | Review pipeline | Pass 2 — review **100** `PropertyCdd` + record the vocabulary (feeds FIX-6c) | P2 | M | Medium |
-| **TODO-05** | Review pipeline | Pass 3 — review **100** `ActionCdd` + confirm the owner-correctness column | P2 | M | Medium |
-| **TODO-06** | Review pipeline | Pass 4 — review **237** `AssociationCdd` (last: needs both ends approved) | P2 | M | Medium |
+| **TODO-04** | Review pipeline | Pass 2 — review **100** `AttributeCdd` + record the vocabulary (feeds FIX-6c) | P2 | M | Medium |
+| **TODO-05** | Review pipeline | Pass 3 — review **100** `ResponsibilityCdd` + confirm the owner-correctness column | P2 | M | Medium |
+| **TODO-06** | Review pipeline | Pass 4 — review **237** `CollaboratorCdd` (last: needs both ends approved) | P2 | M | Medium |
 | **TODO-07** | Review pipeline | Sub-domain pass for the newly approved classes | P2 | S | Low |
 | **TODO-08** | Review pipeline | Re-measure the UML diagram and update the readiness review | P2 | S | Medium |
-| **TODO-24** | Build hygiene | Nexus snapshot-metadata timeout noise on every build | P3 | S | Low |
 | **TODO-25** | Capability | gist into Fuseki + MCP-exposed pattern repositories | P3 | L | Low |
 | **TODO-26** | Capability | "Suggest missing model elements" (DoMoX only reviews what exists) | P3 | XL | Low |
 | **TODO-27** | Capability | Event-detection rules (`EVENTS.md`) not implemented | P3 | L | Low |
 | **TODO-28** | Capability | The "(future)" association patterns in `association-type-categorization.md` | P3 | M | Low |
 | **TODO-29** | Capability | Generalization literature gaps + the stale "not yet implemented" Group-6 header | P3 | M | Low |
 
-**Counts.** 14 open items — 1 × P0, 2 × P1, 5 × P2, 6 × P3. (Seventeen further items — TODO-09, 10, 11,
-12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 30, 31 — were closed 2026-11-19/20; see the header.)
+**Counts.** 12 open items — 1 × P0, 1 × P1, 5 × P2, 5 × P3. (Nineteen further items — TODO-02, 09, 10,
+11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 31 — were closed 2026-11-19/20; see the header.)
+
+**Type names.** The four candidate types are named after the CRC guide's elements: `ClassCdd`,
+`AttributeCdd` (was `PropertyCdd`), `ResponsibilityCdd` (was `ActionCdd`), `CollaboratorCdd` (was
+`AssociationCdd`). The rename landed 2026-10 and the persisted names were migrated 2026-11-20
+(`SCHEMA.md` → "Persisted-name migration"); this file used the pre-rename names until then.
 
 ---
 
@@ -200,24 +239,11 @@ concrete improvement, and the condition that closes it.
 - **Done when:** multiplicity matches carry UML notation (`1`, `*`, `1..*`) and the per-type counts
   match the re-measured table.
 
-#### TODO-02 — Attribute-review policy not signed off · **P1** · S · Risk Medium
-
-- **Source:** `MODEL_REVIEW_PLAN.md` §5 and §12.2.
-- **Open:** §5 is still a *proposal* — the approve/reject table for `PropertyCdd` candidates is not
-  signed off. The measured input now exists (`UML_GAP_FIX_PLAN.md` §13.6: 42 attributes from TDR12, 26
-  from TDR10, 18 from TDR11 — the TDR10/TDR11 share shrinks on the next re-run), and the rule-side
-  question "may the possessive rules keep producing attributes for class nouns?" is **answered: no**
-  (§13.6, applied 2026-11-19; TODO-12 closed). What remains is ratifying the policy itself.
-- **Risk if skipped:** TODO-04 is executed against an unratified policy, so its decisions are not
-  reproducible; the attribute vocabulary it harvests then feeds FIX-6c on a shaky basis.
-- **Area of improvement:** ratify §5 before Pass 2 starts; record the outcome in §12.2.
-- **Done when:** §12.2 reads *decided*, and the decision records the §13.6 rule outcome as its premise.
-
 #### TODO-03 — Pass 1: review 769 `ClassCdd` candidates · **P1** · L · Risk High
 
 - **Source:** `MODEL_REVIEW_PLAN.md` §4; runbook `.clinerules/memory-bank/workflows/mcp-review-pipeline.md`.
-- **Open:** 769 of 971 classes are unreviewed. The 302 existing decisions (190 approve / 112 reject)
-  are the calibration set.
+- **Open:** 769 of 971 classes are unreviewed. The **202** existing *class* decisions (131 approve /
+  71 reject) are the calibration set — not the corpus-wide 302, which counts all four candidate types.
 - **Risk if skipped:** a class approved here decides **171** generalization edges in TODO-06; the
   sub-domain pass is empty until this lands; and rejecting a generalization because an endpoint is
   merely *unreviewed* records a wrong decision as a real one.
@@ -225,10 +251,11 @@ concrete improvement, and the condition that closes it.
   time, and verify in the database per batch — never on the driver's `ok` lines.
 - **Done when:** every `ClassCdd` has exactly one review and `§9` query 2 returns 0.
 
-#### TODO-04 — Pass 2: review 100 `PropertyCdd` + record the vocabulary · P2 · M · Risk Medium
+#### TODO-04 — Pass 2: review 100 `AttributeCdd` + record the vocabulary · P2 · M · Risk Medium
 
 - **Source:** `MODEL_REVIEW_PLAN.md` §5, §11; `UML_GAP_FIX_PLAN.md` §9 (F6b/F6c).
-- **Open:** 100 attributes unreviewed, only 2 approved today, and the pass has no policy until TODO-02.
+- **Open:** 100 attributes unreviewed; the policy is now ratified (`MODEL_REVIEW_PLAN.md` §5,
+  2026-11-20), so the pass waits only on the TODO-01 re-run.
 - **Risk if skipped:** the **real deliverable** is lost — the approved names are exactly the
   vocabulary `basic-attributes` is missing, and reject decisions tell FIX-6e whether the extraction
   is emitting associations where attributes were expected.
@@ -236,7 +263,7 @@ concrete improvement, and the condition that closes it.
   it to F6c, and the rejects to F6e.
 - **Done when:** all 100 reviewed **and** the vocabulary list is attached to `UML_GAP_FIX_PLAN.md` §9.
 
-#### TODO-05 — Pass 3: review 100 `ActionCdd` + confirm the owner-correctness column · P2 · M · Risk Medium
+#### TODO-05 — Pass 3: review 100 `ResponsibilityCdd` + confirm the owner-correctness column · P2 · M · Risk Medium
 
 - **Source:** `MODEL_REVIEW_PLAN.md` §6 and §11; `UML_GAP_FIX_PLAN.md` §8 (F3d), §13.8.
 - **Open:** 100 responsibilities unreviewed. The owner-correctness observation is **no longer a
@@ -249,7 +276,7 @@ concrete improvement, and the condition that closes it.
   class, as a second column of the pass output.
 - **Done when:** all 100 reviewed **and** the owner-correctness tally is written into §6.
 
-#### TODO-06 — Pass 4: review 237 `AssociationCdd` · P2 · M · Risk Medium
+#### TODO-06 — Pass 4: review 237 `CollaboratorCdd` · P2 · M · Risk Medium
 
 - **Source:** `MODEL_REVIEW_PLAN.md` §7.
 - **Open:** 0 of 237 reviewed; 171 are `GENERALIZATION`, 52 `SYNONYM`, 14 plain `ASSOCIATION`.
@@ -259,7 +286,7 @@ concrete improvement, and the condition that closes it.
 - **Area of improvement:** run it **after** TODO-03; approve a generalization only when both endpoints
   are approved classes and the is-a reading is true; map "one endpoint is not a class" to
   `WRONG_CANDIDATE_TYPE` (the §4 rationale convention) so counts stay comparable.
-- **Done when:** every `AssociationCdd` has one review and `§9` query 4 reports the approved subset.
+- **Done when:** every `CollaboratorCdd` has one review and `§9` query 4 reports the approved subset.
 
 #### TODO-07 — Sub-domain pass for the newly approved classes · P2 · S · Risk Low
 
@@ -303,24 +330,19 @@ See the header and `CRC_VOCABULARY_RENAME_SUMMARY.md` item 5.
 
 ### C. Build hygiene — `retro-boot4-upgrade-2026-10-14.md`
 
-The four CI-guardrail items that used to live here — TODO-19 (mermaid check not wired into CI),
-TODO-20 (no JUnit 5.x `bannedDependencies` rule), TODO-21 (`check.sh` never ran the enforcer) and
-TODO-22 (no config-property placeholder smoke test) — were **closed 2026-11-20**. Each fix and the
-negative test that proves it is recorded in the retro's *Candidates implemented* table; the one
-build-hygiene item is what remains here.
+All five items that used to live here were **closed 2026-11-20**: the four CI guardrails — TODO-19
+(mermaid check not wired into CI), TODO-20 (no JUnit 5.x `bannedDependencies` rule), TODO-21
+(`check.sh` never ran the enforcer) and TODO-22 (no config-property placeholder smoke test) — and the
+build-hygiene item TODO-24 (Nexus snapshot-metadata timeout noise). Each fix and the test that proves
+it is recorded in the retro's *Candidates implemented* table. **Nothing is open in this section.**
 
-#### TODO-24 — Nexus snapshot-metadata timeout noise · P3 · S · Risk Low
+#### TODO-24 — Nexus snapshot-metadata timeout noise · **closed 2026-11-20**
 
-- **Source:** `retro-boot4-upgrade-2026-10-14.md` candidate 5.
-- **Open:** every `mvn` invocation emits 35+ `Could not transfer metadata … apache nexus snapshots`
-  warnings for the unreachable Causeway snapshot repository.
-- **Risk if skipped:** low — it is noise, but it buries real warnings in a build log and costs a
-  reader's attention on every failure diagnosis.
-- **Area of improvement:** the repository is declared by `causeway-app-starter-parent`, so disabling
-  its snapshots means re-declaring the repository in this pom with
-  `<snapshots><enabled>false</enabled></snapshots>` (this pom already does that for its own three
-  repositories) — or accept the noise deliberately and note it.
-- **Done when:** a build no longer prints the metadata-transfer warnings.
+**Closed** — the root pom now re-declares the four unreachable snapshot repositories
+(`Apache Nexus snapshots`, `Sonatype OSS snapshots`, `sonatype-nexus-snapshots`, `repo.clojars.org`)
+with `<releases>`/`<snapshots>` disabled, so Maven never contacts them; the metadata probe list drops
+from 7 repositories to 3 and downloads from those four fall from 30 to 0. See the header and the
+retro's *Candidates implemented* table.
 
 ---
 
@@ -391,7 +413,7 @@ build-hygiene item is what remains here.
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'fontSize':'18px','primaryColor':'#FFF4E5','primaryTextColor':'#3D3630','primaryBorderColor':'#E8A33D','lineColor':'#7A6A5A','secondaryColor':'#E8F1FD','tertiaryColor':'#F0EBFB','clusterBkg':'#FBF7F1','clusterBorder':'#E0D3C0','background':'#FFFFFF'}}}%%
-%% C4 level 2 (container) — the ordering of the remaining work: a decision, the gate, then the bulk
+%% C4 level 2 (container) — the ordering of the remaining work: the gate, then the bulk
 %% passes.  Deliberately ONE column: a wide diagram is shrunk to unreadable in a narrow viewer, and
 %% every node carries an explicit classDef (an UNSTYLED box renders dark-on-dark in the IntelliJ
 %% Cline plugin, whatever the init theme says).  See docs/formatting/readability-guide.md.
@@ -400,12 +422,11 @@ flowchart TD
     classDef bulk fill:#E6F6F4,stroke:#2FA79B,stroke-width:2px,color:#3D3630
     classDef later fill:#F0EBFB,stroke:#7C5CD1,stroke-width:2px,color:#3D3630
 
-    B["decision — TODO-02<br/>attribute-review policy"]:::gate
     C["the gate — TODO-01<br/>Phase-1/2 re-run"]:::gate
     D["bulk passes — TODO-03, 04, 05, 06<br/>classes then attributes / actions / collaborators"]:::bulk
     E["then — TODO-07, 08<br/>sub-domains · re-measure"]:::bulk
-    F["backlog — TODO-18, 24-29"]:::later
+    F["backlog — TODO-25…29"]:::later
 
-    B --> C --> D --> E --> F
+    C --> D --> E --> F
 ```
 
