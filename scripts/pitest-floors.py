@@ -99,12 +99,19 @@ The report comes from the opt-in mutation profile, which is **not** part of `mvn
 
   mvn -o -pl domox-domain verify -Pmutation     # writes domox-domain/target/pit-reports/mutations.xml
 
-**Run that last.**  pitest mutates the production classes but takes the *test* classes as its input,
-so editing a test after the run leaves `mutations.xml` looking perfectly healthy while its numbers
-describe a suite that no longer exists.  The report is therefore refused when any file under
-`domox-domain/src` (or either `pom.xml`) is newer than it, and `--check` exits 3 rather than
+**The profile is the last thing you run.**  pitest mutates the production classes but takes the *test*
+classes as its input, so editing a test after the run leaves `mutations.xml` looking perfectly healthy
+while its numbers describe a suite that no longer exists.  "Last" is an interval, not a moment: treat
+`domox-domain/src` (and both `pom.xml`s) as frozen from the instant you launch the run until the floors
+report, because the run takes minutes and the natural thing to do while polling it is to tidy up a file
+— the one edit that is otherwise invisible.  The report is refused when any file there is newer than the
+run's *start* (`check-mutation.sh` stamps it — see `RUN_START_STAMP`), and `--check` exits 3 rather than
 reporting a pass.  `--allow-stale` bypasses the guard when you know better — e.g. a build cache
 restored the report with a checkout-fresh mtime.
+
+Before a run whose *point* is to close a coverage gap, save the current table first:
+`python3 scripts/pitest-floors.py --table > /tmp/before.txt`.  pitest overwrites `mutations.xml`, so
+without it the "before" numbers are gone and the improvement cannot be shown after the fact.
 
 Exit codes:
   0  every floor met, and the report is current
@@ -112,11 +119,21 @@ Exit codes:
   2  no report at the given path — or, under --detail, no class matching the selector
   3  the report is stale (only under --check; --allow-stale suppresses it)
 
-Two caveats on reading the numbers:
+Three caveats on reading the numbers:
 
+* pitest is configured for `domox-domain` alone, so a class whose only test lives in `domox-webapp` (an
+  integration test) reads `0 %` here however well tested it is.  That is this module's *normal* shape,
+  not an anomaly: ~19 % of the mutants (751 of 4037) sit in classes no domain test reaches, the `TDR*`
+  Drools rules among them.  Read the module rate against that, and check the no-coverage column for any
+  class you changed — a class at 0 % with 44 mutants is gated by no floor at all, because a floor only
+  speaks about the names it is given.
 * A mutant whose status is `NO_COVERAGE` was never executed — a test that cannot *reach* the code.
   `SURVIVED` means it ran and nothing noticed — a test that reaches it but does not assert on it.
-  Both count against the kill rate, but they point at different fixes.
+  Both count against the kill rate, but they point at different fixes.  A `NO_COVERAGE` mutant on a
+  defensive null-guard is usually a third case: the branch is *unreachable*, so the fix is to delete it
+  (or move the guard out to the boundary where the value enters), not to write a test whose only job is
+  to reach dead code.  `SubDomains.recordReason`'s guard went that way — both callers already
+  dereferenced, so no test could ever have covered it.
 * A handful of minions die with `MEMORY_ERROR` / `TIMED_OUT` on the larger classes (concentrated in
   `OrthogonalRouter`'s Hanan-grid A*); those mutants are neither killed nor survived, and they push
   the denominator up.  The floors are set with that in mind.
@@ -128,8 +145,17 @@ import xml.etree.ElementTree as ET
 
 DEFAULT_REPORT = os.path.join("domox-domain", "target", "pit-reports", "mutations.xml")
 
+# The instant the run that produced the report started, written by check-mutation.sh immediately before
+# Maven and removed once it has checked the floors.  It is what makes the staleness guard cover the run
+# *itself*: the report's own mtime is when the run ended, so a source edited while pitest was mutating
+# is older than it — and the guard passed on a report whose inputs had already changed.  A stamp left
+# behind by a killed run is older than the next report, so it can only ever make the guard report stale
+# when it might not be, never the other way round.
+RUN_START_STAMP = os.path.join("domox-domain", "target", "pit-reports", ".run-start")
+
 # Everything the mutation run consumes: the module's sources, and the poms that configure the run.  A
-# file here that is newer than the report means the report describes an older suite — see the docstring.
+# file here that is newer than the report's *reference time* means the report describes an older suite —
+# see the docstring and report_reference_time().
 SOURCE_ROOTS = (os.path.join("domox-domain", "src"), os.path.join("domox-domain", "pom.xml"), "pom.xml")
 SOURCE_SUFFIXES = (".java", ".kt")
 
@@ -350,13 +376,30 @@ def print_unfloored(classes):
     return len(missing)
 
 
-def stale_sources(report, roots, suffixes):
-    """Files newer than the report: it predates them, so its numbers describe an older test suite."""
+def report_reference_time(report):
+    """When the report's inputs were last fixed: the run's start when that is known, else its completion.
+
+    check-mutation.sh stamps the start of the run (RUN_START_STAMP).  Anything edited after that stamp is
+    not represented in the report, whether the edit landed before the report was written or after.  The
+    stamp is used only when it *predates* the report: a stamp left by an older, killed run would
+    otherwise make every later report look stale.
+    """
     report_mtime = os.path.getmtime(report)
+    try:
+        with open(RUN_START_STAMP) as fh:
+            started = float(fh.read().strip())
+    except (OSError, ValueError):
+        return report_mtime
+    return started if started < report_mtime else report_mtime
+
+
+def stale_sources(report, roots, suffixes):
+    """Files newer than the report's inputs: it predates them, so its numbers describe an older suite."""
+    reference = report_reference_time(report)
     stale = []
     for root in roots:
         if os.path.isfile(root):
-            if os.path.getmtime(root) > report_mtime:
+            if os.path.getmtime(root) > reference:
                 stale.append(root)
             continue
         for dirpath, dirnames, filenames in os.walk(root):
@@ -364,7 +407,7 @@ def stale_sources(report, roots, suffixes):
             for filename in filenames:
                 if filename.endswith(suffixes):
                     path = os.path.join(dirpath, filename)
-                    if os.path.getmtime(path) > report_mtime:
+                    if os.path.getmtime(path) > reference:
                         stale.append(path)
     return sorted(stale)
 

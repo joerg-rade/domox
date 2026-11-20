@@ -211,15 +211,23 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   and poll: `setsid bash scripts/check-mutation.sh >/tmp/mutation.log 2>&1 </dev/null &`.
   **To read** the report rather than gate on it: `python3 scripts/pitest-floors.py --table` (every
   class — killed/total/rate/no-coverage, plus the module total and the `MEMORY_ERROR`/`TIMED_OUT`
-  count) and `--detail <Class>` (each mutant no test killed, with line, method, mutator, description);
-  those two replace hand-parsing `mutations.xml`.  Exit codes: 0 ok, 1 below floor, 2 no report / no
-  such class, 3 stale.  Traps the script cannot tell you: the JUnit-5 plugin must be a *plugin*
-  dependency (or pitest runs no test at all) and the minion heap needs `-Xmx3g`; the plugin's version
-  and config live in the root pom's `<pluginManagement>`, the `mutation` profile in
-  `domox-domain/pom.xml` only declares it.  A `NO_COVERAGE` mutant means no test *reaches* the code, a
-  `SURVIVED` one means a test reaches it but asserts nothing — different fixes.  **Run the mutation
-  profile last**: pitest takes the *test* classes as input, so a later test edit leaves a
-  healthy-looking report that describes a suite which is gone.  Baseline: ~3 700 mutants, ~54 % killed,
+  count) and `--detail <Class>` (each mutant no test killed, with line, method, mutator, description —
+  `<Class>` is a name fragment, so a package selector covers the whole package at once); those two
+  replace hand-parsing `mutations.xml`.  Exit codes: 0 ok, 1 below floor, 2 no report / no such class,
+  3 stale.  Traps the script cannot tell you: the JUnit-5 plugin must be a *plugin* dependency (or
+  pitest runs no test at all) and the minion heap needs `-Xmx3g`; the plugin's version and config live in
+  the root pom's `<pluginManagement>`, the `mutation` profile in `domox-domain/pom.xml` only declares it.
+  A `NO_COVERAGE` mutant means no test *reaches* the code, a `SURVIVED` one means a test reaches it but
+  asserts nothing — different fixes, and a `NO_COVERAGE` mutant on a defensive null-guard usually marks
+  an *unreachable* branch: delete the guard rather than test it.  **The mutation profile is the last
+  thing you run**: pitest takes the *test* classes as input, so `domox-domain/src` is frozen from launch
+  until the floors report — an edit made while polling the run is the one the guard used to miss, and
+  `check-mutation.sh` now stamps the run's start so it does not.  pitest is scoped to `domox-domain`, so
+  a class whose only test is a `domox-webapp` integration test reads 0 % however well tested it is —
+  ~19 % of the mutants (751/4037) sit in classes no domain test reaches, so read the module rate against
+  that, check the no-coverage column for any class you changed, and save `--table` first when a run's
+  point is to close a gap (pitest overwrites the report, so the "before" numbers are otherwise gone).
+  Baseline: ~3 700 mutants, ~54 % killed (~73 % of the ones a test can reach),
   test strength ~79 %; the per-class floors cover the collaborators extracted across the four SRP
   waves — the UML-layout eight (`RouteScoring`, `LabelLayout`, `LabelMetrics`, `RouteGeometry`,
   `PortLayout`, `OrthogonalRouter`, `DiagramIndex`, `DiagramJsonWriter`), the diagram/vocabulary

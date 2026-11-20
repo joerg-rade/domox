@@ -13,10 +13,13 @@
 #   2. python3 scripts/pitest-floors.py --check      # fails when an extracted UML-layout collaborator
 #                                                    # has dropped below its floor
 #
-# **Run the mutation profile LAST.**  pitest mutates the production classes but takes the *test*
-# classes as its input, so editing a test afterwards leaves mutations.xml looking healthy while its
-# numbers describe a suite that no longer exists.  Step 2 refuses a report older than anything under
-# domox-domain/src (or either pom.xml) and exits 3 rather than reporting a pass; --allow-stale
+# **The mutation profile is the LAST thing you run.**  pitest mutates the production classes but takes
+# the *test* classes as its input, so editing a test afterwards leaves mutations.xml looking healthy
+# while its numbers describe a suite that no longer exists.  That is an interval, not a moment: while
+# the run is polling, domox-domain/src stays frozen.  This script stamps the run's START into
+# domox-domain/target/pit-reports/.run-start and removes it once step 2 has run, so step 2 also refuses
+# a report whose inputs changed *during* the run — an edit made while waiting for it is older than the
+# report, and used to pass as current.  Step 2 exits 3 rather than reporting a pass; --allow-stale
 # overrides that when you know better (e.g. a build cache restored the report with a checkout-fresh
 # mtime).
 #
@@ -36,7 +39,7 @@ for arg in "$@"; do
   case "$arg" in
     --no-run)      RUN=0 ;;
     --allow-stale) FLOOR_ARGS+=(--allow-stale) ;;
-    -h|--help)     sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)     sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown option: $arg (try --help)" >&2; exit 2 ;;
   esac
 done
@@ -57,13 +60,20 @@ if [ "$RUN" -eq 1 ] && [ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]; then
   set -u
 fi
 
+STAMP=domox-domain/target/pit-reports/.run-start
+
 if [ "$RUN" -eq 1 ]; then
   echo "===> 1/2  mutation profile: mvn -o -pl domox-domain verify -Pmutation   (~2 min)"
   LOG=/tmp/domox-mutation.log
+  # The staleness guard's reference time: domox-domain/src is frozen from here, so an edit made while
+  # the run is polling is caught by step 2 as well (see the header).
+  mkdir -p "$(dirname "$STAMP")"
+  date +%s > "$STAMP"
   # -Dmaven.build.cache.enabled=false: the maven-build-cache extension restores cached pitest
   # executions and would hand back a report for a suite that is no longer there — the exact
   # failure the staleness guard exists to prevent, so it must not be short-circuited here.
   if ! mvn -B -o -pl domox-domain verify -Pmutation -Dmaven.build.cache.enabled=false >"$LOG" 2>&1; then
+    rm -f "$STAMP"
     echo "    [FAIL] mutation profile failed (log: $LOG — last lines:)" >&2
     tail -20 "$LOG" | sed 's/^/    /' >&2
     exit 1
@@ -75,6 +85,9 @@ echo
 echo "===> 2/2  per-class floors: python3 scripts/pitest-floors.py --check"
 python3 scripts/pitest-floors.py --check ${FLOOR_ARGS[@]+"${FLOOR_ARGS[@]}"}
 status=$?
+# Only the run that wrote the stamp may clear it: a --no-run check keeps a stamp left by an interrupted
+# run, so it still reports stale instead of falling back to the report's own mtime.
+if [ "$RUN" -eq 1 ]; then rm -f "$STAMP"; fi
 
 echo
 case "$status" in
