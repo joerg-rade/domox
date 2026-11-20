@@ -146,6 +146,14 @@ the vocabulary the `basic-attributes` list is missing.
 owner — it feeds FIX-6c directly. Reject decisions are equally informative: they tell FIX-6e
 whether the extraction is producing associations where attributes were expected.
 
+**The extraction side now applies the same rule (2026-11-19).** The TDR10/TDR11 possessive branches
+create a `PropertyCdd` only when the possessed noun is in the `domox.nlp.basic-attributes` lexicon
+(`UML_GAP_FIX_PLAN.md` §13.6), so an entity name no longer arrives here as an attribute. The measured
+counts above (26 from TDR10, 18 from TDR11) therefore shrink on the next Phase-1/2 re-run, and the
+`WRONG_CANDIDATE_TYPE` row should become rare: a `pet`/`cart`-style name turning up as an attribute is
+now a **lexicon gap** to close in `basic-attributes` (this pass is what names the missing entry), not
+a rule defect to re-open.
+
 ---
 
 ## 6. Pass 3 — responsibilities (`ActionCdd`, 100 candidates)

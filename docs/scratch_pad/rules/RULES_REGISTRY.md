@@ -43,6 +43,22 @@ Extract domain entities (classes) and attributes (properties) from dependency pa
 
 **Blocked Verbs** (TDR3-TDR5): entered, inputted, saved, added, has
 
+**Scope guard (TDR10/TDR11) — added 2026-11.** A possessive (`nmod:poss`) or adjectival (`amod`)
+branch creates a `PropertyCdd` only when its governor `A` is an **attribute noun** (the
+`domox.nlp.basic-attributes` lexicon). This is a scope narrowing, **not** a spec change: the spec
+(`docs/application/RULES.txt` §TDR10/TDR11) still reads `nmod:poss(A,B) → Attributes.add(A)`; the
+guard only restricts which `A` counts as an attribute. Before it, `their cart` became the attribute
+`cart` of `Customer`, `their pet` the attribute `pet`, and `beloved pets` the attribute `beloved pets`
+of `Owners` (TDR11) — 26 + 18 of the PetShop model's 109 attribute candidates
+(`UML_GAP_FIX_PLAN.md` §13.6). `cart`/`pet`/`pets` name *classes*, and a reference to another class
+is an association, not an attribute (decision 3: only built-in types are attributes). The attribute
+lexicon is the one FIX-6b/6c extends from the Pass-2 review, so a missing-but-legitimate attribute is
+added there rather than by re-widening the guard. TDR11's non-attribute branch now falls through to
+`Entity.add(A)`, so a possessed class noun stays an entity — which *supersedes* the original spec's
+closing comment ("If A is possessed … `Attributes.add(B + A)` on the possessor"). The rule lines
+themselves are untouched, and `RULES.txt` is kept as the historical specification of record, exactly
+as for the TDR25/TDR26 guard above.
+
 **Attribute naming — TDR12 (compound), changed 2026-11.** The spec's `Attributes.add(B + A)` /
 `Attributes.add(A + B)` records the *whole phrase* as the attribute name, and that leaked the class
 name into it: the PetShop model held `pet size`, `pet type`, `item size`, `variant color`,

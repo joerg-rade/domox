@@ -414,8 +414,8 @@ when a rule match is present, and `source_target` when it is not.
 | # | Decision | Outcome | Implemented |
 |---|---|---|---|
 | 1 | **FIX-2 / FIX-8** — wire the cardinality fields, or delete them? | **Wire them** (option A), and delete the dead `AttributeCdd.cardinality` + `Cardinality` anyway — the UML multiplicity belongs on the association end | ✅ FIX-2 + FIX-8 |
-| 2 | **FIX-3b** — the verb→return-type mapping for `outputType` | ⚠️ **still open** — the proposed answer (`outputType` should be `ResponsibilityCdd`) is based on a misreading, corrected below | F3c only (with FIX-1) |
-| 3 | **FIX-6e** — is `Order.customer` an attribute or an association? | **An association** — only built-in types are attributes | ✅ F6c/F6d (partly — see §13.6) |
+| 2 | **FIX-3b** — the verb→return-type mapping for `outputType` | ✅ **resolved 2026-11-19** — the proposed answer (`outputType` should be `ResponsibilityCdd`) was based on a misreading, corrected below; the mapping is: a **receive verb** → the received class, an **output/notify verb** → `String`, **otherwise** no return type | ✅ `ResponsibilityCandidates#outputTypeFor` |
+| 3 | **FIX-6e** — is `Order.customer` an attribute or an association? | **An association** — only built-in types are attributes | ✅ F6c/F6d, and §13.6 now complete |
 | 4 | **FIX-7** — derive the label at export, or store it? | **Derive at export** — no schema change; revisit if the UI must edit the label | ✅ FIX-7 |
 | 5 | **Phase-1 re-run scope** | **Whole corpus**, and the 302 existing review decisions are kept (they hang off candidate rows, which a re-run updates in place rather than replaces) | ⏳ not run — see §14 |
 
@@ -436,6 +436,23 @@ What is still needed is the F3b mapping **verb → return type** (an output/noti
 receive verb → the received class, otherwise no return type), or the honest minimum of rendering no
 return type at all. The honest minimum is already in place: `void`/blank/null is omitted (F3c, landed
 with FIX-1), so operations render `browse()` rather than `browse(): void`.
+
+**Applied 2026-11-19 — the mapping is implemented** in
+`ResponsibilityCandidates#outputTypeFor(verb, owner)`, called from `create(...)` (it replaces the
+hard-coded `setOutputType("void")`):
+
+| Verb (from `domox.nlp.*` in `application.yml`) | Return type | Rationale |
+|---|---|---|
+| a **receive** verb (`receive`, `accept`, `obtain`, …) | the **received class** — the class the operation is attached to | the sentence's direct object is what the operation receives, and `CandidateFactory` makes that class the operation's owner |
+| an **output/notify** verb (`display`, `show`, `print`, …) | `String` | the operation produces something to read |
+| **any other** verb | *no return type* (`null`) | the mapping has no answer; `toPlantUmlString()` omits it |
+
+Deliberately **not** `void`: the renderer omits blank/`void` anyway, and a real `null` distinguishes
+"no answer" from "the answer is void". A receive verb on an *orphan* operation (no owner) also has no
+return type — there is no received class to name. Guarded by
+`ResponsibilityCandidatesTest#anOutputVerbReturnsString` / `#aReceiveVerbReturnsTheReceivedClass` /
+`#aReceiveVerbWithoutAnOwnerHasNoReturnType` / `#anyOtherVerbHasNoReturnType` /
+`#createSetsTheReturnTypeFromTheVerb` (the last asserts the rendered `browse(): String`).
 
 
 ### 13.6 residual — class nouns still reach the attribute list through TDR10/TDR11
@@ -460,6 +477,24 @@ guard FIX-5 applied to TDR25/TDR26 — is a **rule-set change** with its own tes
 `tdr11_placesPossessedNounPropertyOnPossessor` all assert the current behaviour). It is left as a
 separate, deliberate change rather than smuggled into this wave.
 
+**Applied 2026-11-19 — the guard is in.** The possessed noun (`A`, the `nmod:poss` governor / `amod`
+governor) must now be an **attribute noun** (`isBasicAttributeA`, i.e. the `domox.nlp.basic-attributes`
+lexicon) for the branch to create a `PropertyCdd`:
+
+| Rule | Branch | Before | After |
+|---|---|---|---|
+| `TDR10` | `isNounB` — `A` is an attribute of the possessor `B` | `the customer's cart` → attribute `cart` | only when `A` is an attribute noun: `the customer's name` → attribute `name` |
+| `TDR10` | `PRP$` — `A` is an attribute of the resolved possessor | `their pets` → attribute `pets` of `Owners` | only when `A` is an attribute noun: `their address` → attribute `address` of `Owners` |
+| `TDR11` | the possessed-noun branch | `their beloved pets` → attribute `beloved pets` of `Owners` | the branch now fires only for attribute nouns; a class noun falls through to `Entity.add(A)` (`Pets`) |
+
+This is a scope narrowing, **not** a spec change — the spec still reads `nmod:poss`/`amod` →
+`Attributes.add(…)`; only which nouns count as attributes is restricted (decision 3: *only built-in
+types are attributes*). The three tests named above were rewritten to the new contract and two guard
+tests added (`tdr10_doesNotMakeAPossessedClassNounAnAttribute`,
+`tdr11_keepsAPossessedClassNounAnEntity`). The lexicon is the one FIX-6b/6c extends from the Pass-2
+review (`MODEL_REVIEW_PLAN.md` §5), so a legitimate attribute the list is missing is added there
+rather than re-widened here.
+
 ### 13.7 new finding — an association match is swallowed by an earlier class match
 
 `CandidateFactory.createCandidatesFrom` de-duplicates by *candidate name* whenever
@@ -480,6 +515,20 @@ exactly the ones whose source class has a plain class match earlier in the same 
 one-line fix is to narrow the guard to a *pure* class match (`relatedCandidateName == null`), but it
 changes model content (16 new edges), so it is recorded here as a decision rather than applied.
 
+**Applied 2026-11-19 — the guard is narrowed.** `CandidateFactory.createCandidatesFrom` now reads
+
+```java
+if ("ClassCdd".equals(match.getCandidateType()) && match.getRelatedCandidateName() == null) {
+```
+
+so only a pure class match is de-duplicated by name; an association match is always routed to
+`createCandidateFromMatch`, which returns the association candidate (the class de-duplication inside
+it still applies through `classCandidates.findOrCreate`). Guarded by
+`CandidateFactoryTest#createCandidatesFrom_doesNotSwallowAnAssociationBehindItsSourceClass`, and
+`#createCandidatesFrom_deduplicatesClassesByName` still pins the pure-class case. Like every rule-set
+change, it takes effect on the **next Phase-1/2 run** (§14) — no migration, and the 302 existing
+review decisions hang off candidate rows that a re-run updates in place.
+
 
 ## 14. Execution status
 
@@ -488,10 +537,16 @@ changes model content (16 new edges), so it is recorded here as a decision rathe
 - [x] **Wave 3** — FIX-6 (F6a/F6c/F6d) then FIX-3 (F3a parameters + F3c return type) → domain tests
       green (F3b left open, §13.2; the TDR10/TDR11 residual, §13.6)
 - [x] **Wave 4** — FIX-7 (M) → domain tests
+- [x] **Wave 5** — the three §13 rule-set decisions: §13.2 (the verb→return-type mapping), §13.6
+      (the TDR10/TDR11 possessive scope guard) and §13.7 (association vs. class de-duplication) →
+      domain tests (`TypedDependencyRulesTest`, `CandidateFactoryTest`, `ResponsibilityCandidatesTest`)
 - [ ] Re-run Phase 1/2 on the corpus, regenerate the export, and update
       `MODEL_UML_READINESS_REVIEW.md` §2 with the new measurements — **needs the NLP service and a
       fresh model; not run here**
-- [ ] Decide §13.6 (TDR10/TDR11 possessive scope) and §13.7 (association/class de-duplication)
+- [x] Decide §13.6 (TDR10/TDR11 possessive scope) and §13.7 (association/class de-duplication) —
+      **decided and applied 2026-11-19** (§13.6: the possessed noun must be an attribute noun;
+      §13.7: only a pure class match is de-duplicated); FIX-3b's return-type mapping likewise
+      (§13.2). All three are rule-set changes, so they show up in the measurements of the item above.
 
 **Fixes that landed**
 

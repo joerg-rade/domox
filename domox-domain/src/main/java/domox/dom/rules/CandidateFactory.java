@@ -103,7 +103,12 @@ public class CandidateFactory {
             }
             // For classes (entities), only one candidate per name is created;
             // additional RuleMatches register on the existing candidate.
-            if ("ClassCdd".equals(match.getCandidateType())) {
+            // Only a *pure* class match is de-duplicated: the association rules (TDR14–TDR23) also
+            // record candidateType = "ClassCdd", with the source class in candidateName and the
+            // target in relatedCandidateName.  Without this test an association whose source class
+            // was created earlier in the same batch was swallowed here and no association was ever
+            // created — 16 of the PetShop model's 30 recorded pairs (UML_GAP_FIX_PLAN.md §13.7).
+            if ("ClassCdd".equals(match.getCandidateType()) && match.getRelatedCandidateName() == null) {
                 final Candidate existing = createdClassCandidates.get(match.getCandidateName());
                 if (existing != null) {
                     existing.addMatchingRule(match);

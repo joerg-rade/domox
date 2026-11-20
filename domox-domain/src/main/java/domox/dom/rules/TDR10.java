@@ -41,9 +41,15 @@ public class TDR10 extends TypedDependencyRule {
             if (ruleMatches != null && currentTd != null) {
                 ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
                         capitalizeFirstLetter(currentTd.getB()), null, null, result);
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
-                        currentTd.getA(), "ClassCdd",
-                        capitalizeFirstLetter(currentTd.getB()), result);
+                // Scope guard (UML_GAP_FIX_PLAN.md §13.6): only an *attribute* noun is an attribute of
+                // the possessor.  "the customer's name" → attribute name; "the customer's cart" →
+                // nothing, because "cart" names a class and a reference to another class is an
+                // association, not an attribute (the same guard FIX-5 applied to TDR25/TDR26).
+                if (isBasicAttributeA(currentTd)) {
+                    ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                            currentTd.getA(), "ClassCdd",
+                            capitalizeFirstLetter(currentTd.getB()), result);
+                }
             }
         } else if (currentTd.getDependentPos() == PartOfSpeechType.IN
                 && !isBasicAttributeB(currentTd)) {
@@ -62,20 +68,25 @@ public class TDR10 extends TypedDependencyRule {
             // Attributes.add(A) — A is possessed by the pronoun (e.g. "their pets")
             // The possessor is resolved from the nearest nsubj entity in the sentence;
             // property name is enriched with amod modifiers when present (e.g. "beloved pets").
-            String owningClass = resolvePronominalPossessor(currentTd.getSentence());
-            List<String> modifiers = modifierGlossesForGovernor(
-                    currentTd.getA(), currentTd.getSentence());
-            String propertyName = modifiers.isEmpty()
-                    ? currentTd.getA()
-                    : String.join(" ", modifiers) + " " + currentTd.getA();
+            // Scope guard as in the branch above: only an attribute noun becomes an attribute.
+            // "their pets" used to fabricate the attribute "pets" of Owners, and "their cart" the
+            // attribute "cart" — both name classes (UML_GAP_FIX_PLAN.md §13.6).
+            if (isBasicAttributeA(currentTd)) {
+                String owningClass = resolvePronominalPossessor(currentTd.getSentence());
+                List<String> modifiers = modifierGlossesForGovernor(
+                        currentTd.getA(), currentTd.getSentence());
+                String propertyName = modifiers.isEmpty()
+                        ? currentTd.getA()
+                        : String.join(" ", modifiers) + " " + currentTd.getA();
 
-            result = "Attributes.add(" + propertyName + ")";
+                result = "Attributes.add(" + propertyName + ")";
 
-            // Phase 1: persist the match — A is a property of the resolved possessor
-            if (ruleMatches != null && currentTd != null) {
-                ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
-                        propertyName, "ClassCdd",
-                        owningClass, result);
+                // Phase 1: persist the match — A is a property of the resolved possessor
+                if (ruleMatches != null && currentTd != null) {
+                    ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
+                            propertyName, "ClassCdd",
+                            owningClass, result);
+                }
             }
         }
     }

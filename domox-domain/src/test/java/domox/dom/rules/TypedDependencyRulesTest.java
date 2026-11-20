@@ -653,10 +653,44 @@ public class TypedDependencyRulesTest {
     }
 
     /**
-     * Test TDR10: possessive pronoun (PRP$) with no adjectival modifier.
+     * Test TDR10: possessive pronoun (PRP$) with no adjectival modifier, on an <em>attribute</em>
+     * noun — the branch that survives the §13.6 scope guard.
      */
     @Test
     public void tdr10_placesPropertyOnResolvedPossessor() {
+        Sentence sentence = new Sentence();
+        addToken(0, "update", PartOfSpeechType.VBP);
+        addToken(1, "owners", PartOfSpeechType.NNS);
+        addToken(2, "their", PartOfSpeechType.PRP$);
+        addToken(3, "address", PartOfSpeechType.NNS);
+        createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
+        TypedDependency td = createTypedDependency(sentence, TdType.NMOD_POSS, 3, 2);
+        tdr10.currentTd = td;
+        tdr10.previousTd = null;
+        tdr10.nextTd = null;
+        assertThat(tdr10.when()).as("TDR10 should fire for nmod:poss(address, their)").isTrue();
+        tdr10.then();
+        List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
+        RuleMatch propertyMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "PropertyCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertThat(propertyMatch).as("TDR10 should have created a PropertyCdd").isNotNull();
+        assertThat(propertyMatch.getCandidateName()).isEqualTo("address");
+        assertThat(propertyMatch.getRelatedCandidateName())
+                .as("Pronominal possessor should resolve to the nsubj entity")
+                .isEqualTo("Owners");
+    }
+
+    /**
+     * Test TDR10 scope guard (UML_GAP_FIX_PLAN.md §13.6): a possessed noun that is not an attribute
+     * noun names a class, so it must not become an attribute of the possessor.  "their pets" used to
+     * fabricate the attribute "pets" of {@code Owners}; "pets" is a class — the association rules pick
+     * it up — not a value.
+     */
+    @Test
+    public void tdr10_doesNotMakeAPossessedClassNounAnAttribute() {
         Sentence sentence = new Sentence();
         addToken(0, "train", PartOfSpeechType.VB);
         addToken(1, "owners", PartOfSpeechType.NNS);
@@ -667,42 +701,37 @@ public class TypedDependencyRulesTest {
         tdr10.currentTd = td;
         tdr10.previousTd = null;
         tdr10.nextTd = null;
-        assertThat(tdr10.when()).as("TDR10 should fire for nmod:poss(pets, their)").isTrue();
+        assertThat(tdr10.when()).as("TDR10 still fires — the guard narrows the branch, not the rule").isTrue();
         tdr10.then();
         List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
-        RuleMatch propertyMatch = matches.stream()
-                .filter(m -> m.getTypedDependency() == td
-                        && "PropertyCdd".equals(m.getCandidateType()))
-                .findFirst()
-                .orElse(null);
-        assertThat(propertyMatch).as("TDR10 should have created a AttributeCdd").isNotNull();
-        assertThat(propertyMatch.getCandidateName()).isEqualTo("pets");
-        assertThat(propertyMatch.getRelatedCandidateName())
-                .as("Pronominal possessor should resolve to the nsubj entity")
-                .isEqualTo("Owners");
+        assertThat(matches.stream()
+                .filter(m -> m.getTypedDependency() == td)
+                .filter(m -> "PropertyCdd".equals(m.getCandidateType()))
+                .toList())
+                .as("a possessed class noun must not become an attribute")
+                .isEmpty();
     }
 
     /**
-     * Test TDR10: possessive pronoun (PRP$) with an adjectival modifier on the
-     * possessed noun.  "pet owners train their beloved pets" →
-     * nmod:poss(pets, their) with amod(pets, beloved).
-     * Rule fires: enriched AttributeCdd "beloved pets" on ClassCdd "Owners".
+     * Test TDR10: possessive pronoun (PRP$) with an adjectival modifier on an <em>attribute</em> noun.
+     * "pet owners update their new address" → nmod:poss(address, their) with amod(address, new).
+     * Rule fires: enriched PropertyCdd "new address" on ClassCdd "Owners".
      */
     @Test
     public void tdr10_enrichesThePropertyName() {
         Sentence sentence = new Sentence();
-        addToken(0, "train", PartOfSpeechType.VB);
+        addToken(0, "update", PartOfSpeechType.VBP);
         addToken(1, "owners", PartOfSpeechType.NNS);
         addToken(2, "their", PartOfSpeechType.PRP$);
-        addToken(3, "beloved", PartOfSpeechType.VBG);
-        addToken(4, "pets", PartOfSpeechType.NNS);
+        addToken(3, "new", PartOfSpeechType.JJ);
+        addToken(4, "address", PartOfSpeechType.NNS);
         createTypedDependency(sentence, TdType.NSUBJ, 0, 1);
         createTypedDependency(sentence, TdType.AMOD, 4, 3);
         TypedDependency td = createTypedDependency(sentence, TdType.NMOD_POSS, 4, 2);
         tdr10.currentTd = td;
         tdr10.previousTd = null;
         tdr10.nextTd = null;
-        assertThat(tdr10.when()).as("TDR10 should fire for nmod:poss(pets, their)").isTrue();
+        assertThat(tdr10.when()).as("TDR10 should fire for nmod:poss(address, their)").isTrue();
         tdr10.then();
         List<RuleMatch> matches = tdr10.ruleMatches.findByRuleClassName("TDR10");
         RuleMatch propertyMatch = matches.stream()
@@ -710,40 +739,40 @@ public class TypedDependencyRulesTest {
                         && "PropertyCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertThat(propertyMatch).as("TDR10 should have created a AttributeCdd").isNotNull();
+        assertThat(propertyMatch).as("TDR10 should have created a PropertyCdd").isNotNull();
         assertThat(propertyMatch.getCandidateName())
                 .as("Property name should be enriched with the amod modifier")
-                .isEqualTo("beloved pets");
+                .isEqualTo("new address");
         assertThat(propertyMatch.getRelatedCandidateName()).isEqualTo("Owners");
     }
 
     /**
-     * Test TDR11: amod with VBG modifier on a possessed noun.
-     * "owners love their beloved pets" → amod(pets, beloved) where beloved=VBG,
-     * with nmod:poss(pets, their) in the same sentence.
-     * Rule fires: AttributeCdd "beloved pets" on ClassCdd "Owners" (not a standalone entity).
+     * Test TDR11: amod with a modifier on a possessed <em>attribute</em> noun.
+     * "owners update their primary address" → amod(address, primary),
+     * with nmod:poss(address, their) in the same sentence.
+     * Rule fires: PropertyCdd "primary address" on ClassCdd "Owners" (not a standalone entity).
      */
     @Test
     public void tdr11_placesPossessedNounPropertyOnPossessor() {
         Sentence sentence = new Sentence();
         addToken(0, "owners", PartOfSpeechType.NNS);
-        addToken(1, "love", PartOfSpeechType.VBP);
+        addToken(1, "update", PartOfSpeechType.VBP);
         addToken(2, "their", PartOfSpeechType.PRP$);
-        addToken(3, "beloved", PartOfSpeechType.VBG);
-        addToken(4, "pets", PartOfSpeechType.NNS);
+        addToken(3, "primary", PartOfSpeechType.JJ);
+        addToken(4, "address", PartOfSpeechType.NNS);
 
-        // nsubj(love, owners) — the entity that resolves the pronoun "their"
+        // nsubj(update, owners) — the entity that resolves the pronoun "their"
         createTypedDependency(sentence, TdType.NSUBJ, 1, 0);
-        // nmod:poss(pets, their) — possession link consumed by TDR11's then()
+        // nmod:poss(address, their) — possession link consumed by TDR11's then()
         createTypedDependency(sentence, TdType.NMOD_POSS, 4, 2);
-        // amod(pets, beloved) — governor=4 (pets), dependent=3 (beloved VBG)
+        // amod(address, primary) — governor=4 (address), dependent=3 (primary JJ)
         TypedDependency td = createTypedDependency(sentence, TdType.AMOD, 4, 3);
 
         tdr11.currentTd = td;
         tdr11.previousTd = null;
         tdr11.nextTd = null;
 
-        assertThat(tdr11.when()).as("TDR11 should fire for amod(pets, beloved) with VBG modifier").isTrue();
+        assertThat(tdr11.when()).as("TDR11 should fire for amod(address, primary)").isTrue();
         tdr11.then();
 
         List<RuleMatch> matches = tdr11.ruleMatches.findByRuleClassName("TDR11");
@@ -752,9 +781,50 @@ public class TypedDependencyRulesTest {
                         && "PropertyCdd".equals(m.getCandidateType()))
                 .findFirst()
                 .orElse(null);
-        assertThat(propertyMatch).as("TDR11 should have created a AttributeCdd for the possessed noun").isNotNull();
-        assertThat(propertyMatch.getCandidateName()).isEqualTo("beloved pets");
+        assertThat(propertyMatch).as("TDR11 should have created a PropertyCdd for the possessed noun").isNotNull();
+        assertThat(propertyMatch.getCandidateName()).isEqualTo("primary address");
         assertThat(propertyMatch.getRelatedCandidateName()).isEqualTo("Owners");
+    }
+
+    /**
+     * Test TDR11 scope guard (UML_GAP_FIX_PLAN.md §13.6): a possessed noun that is not an attribute
+     * noun names a class, so possession does not turn it into an attribute.  "their beloved pets" used
+     * to become the attribute "beloved pets" of {@code Owners}; it is the entity {@code Pets}.
+     */
+    @Test
+    public void tdr11_keepsAPossessedClassNounAnEntity() {
+        Sentence sentence = new Sentence();
+        addToken(0, "owners", PartOfSpeechType.NNS);
+        addToken(1, "love", PartOfSpeechType.VBP);
+        addToken(2, "their", PartOfSpeechType.PRP$);
+        addToken(3, "beloved", PartOfSpeechType.VBG);
+        addToken(4, "pets", PartOfSpeechType.NNS);
+
+        createTypedDependency(sentence, TdType.NSUBJ, 1, 0);
+        createTypedDependency(sentence, TdType.NMOD_POSS, 4, 2);
+        TypedDependency td = createTypedDependency(sentence, TdType.AMOD, 4, 3);
+
+        tdr11.currentTd = td;
+        tdr11.previousTd = null;
+        tdr11.nextTd = null;
+
+        assertThat(tdr11.when()).as("TDR11 still fires — the guard narrows the branch, not the rule").isTrue();
+        tdr11.then();
+
+        List<RuleMatch> matches = tdr11.ruleMatches.findByRuleClassName("TDR11");
+        assertThat(matches.stream()
+                .filter(m -> m.getTypedDependency() == td)
+                .filter(m -> "PropertyCdd".equals(m.getCandidateType()))
+                .toList())
+                .as("a possessed class noun must not become an attribute")
+                .isEmpty();
+        RuleMatch entityMatch = matches.stream()
+                .filter(m -> m.getTypedDependency() == td
+                        && "ClassCdd".equals(m.getCandidateType()))
+                .findFirst()
+                .orElse(null);
+        assertThat(entityMatch).as("the possessed class noun stays an entity").isNotNull();
+        assertThat(entityMatch.getCandidateName()).isEqualTo("Pets");
     }
 
     /**

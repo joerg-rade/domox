@@ -33,38 +33,31 @@ public class TDR11 extends TypedDependencyRule {
     public void then() {
         if (isBasicAttributeA(currentTd)) {
             // if A=Noun and B = JJ and A=basic_Attrib then Attributes.add(B + A)
+            // The attribute's owner is the possessor when the sentence possesses A ("their full
+            // name"), else the class the attribute noun names ("the full name" → on Name).
+            final String possessor = possessorClassIfPossessed(
+                    currentTd.getA(), currentTd.getSentence());
+            final String owner = possessor != null ? possessor : capitalizeFirstLetter(currentTd.getA());
             result = "Attributes.add(" + currentTd.getB() + " " + currentTd.getA() + ")";
 
             // Phase 1: persist the match — combined attribute "B A" (e.g. "full name")
             if (ruleMatches != null && currentTd != null) {
                 ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
                         currentTd.getB() + " " + currentTd.getA(), "ClassCdd",
-                        capitalizeFirstLetter(currentTd.getA()), result);
+                        owner, result);
             }
         } else {
-            // If A is possessed in the sentence (e.g. "their beloved pets"), the
-            // modifier-qualified noun is a property of the possessor rather than
-            // a standalone entity.
-            String possessor = possessorClassIfPossessed(
-                    currentTd.getA(), currentTd.getSentence());
-            if (possessor != null) {
-                result = "Attributes.add(" + currentTd.getB() + " " + currentTd.getA() + ")";
+            // else if A=Noun and B=JJ and A ≠ Basic_Attrib then Entity.add(A)
+            // Scope guard (UML_GAP_FIX_PLAN.md §13.6): a possessed *class* noun stays an entity.
+            // "their beloved pets" used to become the attribute "beloved pets" of Owners; "pets"
+            // names a class, and a reference to another class is an association, not an attribute —
+            // the same guard FIX-5 applied to TDR25/TDR26.
+            result = "Entity.add(" + currentTd.getA() + ")";
 
-                // Phase 1: persist the match — "B A" is a property of the possessor
-                if (ruleMatches != null && currentTd != null) {
-                    ruleMatches.create(currentTd, getRuleName(), "PropertyCdd",
-                            currentTd.getB() + " " + currentTd.getA(), "ClassCdd",
-                            possessor, result);
-                }
-            } else {
-                // else if A=Noun and B=JJ and A ≠ Basic_Attrib then Entity.add(A)
-                result = "Entity.add(" + currentTd.getA() + ")";
-
-                // Phase 1: persist the match — A is an entity
-                if (ruleMatches != null && currentTd != null) {
-                    ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
-                            capitalizeFirstLetter(currentTd.getA()), null, null, result);
-                }
+            // Phase 1: persist the match — A is an entity
+            if (ruleMatches != null && currentTd != null) {
+                ruleMatches.create(currentTd, getRuleName(), "ClassCdd",
+                        capitalizeFirstLetter(currentTd.getA()), null, null, result);
             }
         }
     }

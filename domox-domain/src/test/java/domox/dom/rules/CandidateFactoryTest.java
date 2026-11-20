@@ -329,6 +329,35 @@ class CandidateFactoryTest {
         assertThat(classCdd.getRuleMatches()).containsExactly(classMatch1, classMatch2);
     }
 
+    /**
+     * An association match (TDR14–TDR23) is recorded as {@code ClassCdd} with a related candidate
+     * name, so it must not be swallowed by the de-duplication of its <em>source</em> class.  Measured
+     * on the PetShop model, 16 of the 30 recorded association pairs never produced a row exactly
+     * because their source class had a plain class match earlier in the same document
+     * (UML_GAP_FIX_PLAN.md §13.7) — {@code Pet_Daycare} among them.
+     */
+    @Test
+    void createCandidatesFrom_doesNotSwallowAnAssociationBehindItsSourceClass() {
+        // given — the source class is created first, then an association from that same class
+        final RuleMatch classMatch = match("ClassCdd", "Pet", null, null);
+        final RuleMatch assocMatch = match("ClassCdd", "Pet", "ClassCdd", "Daycare");
+
+        final ClassCdd pet = new ClassCdd();
+        final ClassCdd daycare = new ClassCdd();
+        final CollaboratorCdd assoc = new CollaboratorCdd();
+        when(mockClassCandidates.findOrCreate("Pet", null)).thenReturn(pet);
+        when(mockClassCandidates.findOrCreate("Daycare", null)).thenReturn(daycare);
+        when(mockCollaboratorCandidates.findOrCreate("Pet_Daycare", pet, daycare, null)).thenReturn(assoc);
+
+        // when
+        final List<Candidate> result = classUnderTest.createCandidatesFrom(Arrays.asList(classMatch, assocMatch));
+
+        // then — the class is de-duplicated, the association is not
+        assertThat(result).containsExactly(pet, assoc);
+        assertThat(pet.getRuleMatches()).containsExactly(classMatch);
+        assertThat(assoc.getRuleMatches()).containsExactly(assocMatch);
+    }
+
     @Test
     void createCandidatesFrom_returnsEmptyListForEmptyMatches() {
         // when
