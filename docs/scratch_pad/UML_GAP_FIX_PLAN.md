@@ -457,6 +457,17 @@ return type — there is no received class to name. Guarded by
 `#aReceiveVerbWithoutAnOwnerHasNoReturnType` / `#anyOtherVerbHasNoReturnType` /
 `#createSetsTheReturnTypeFromTheVerb` (the last asserts the rendered `browse(): String`).
 
+> **Postscript, 2026-11-21 — the deliberate `null` is not storable, and storing it broke corpus loads.**
+> The third row of that table is the *common* case, and `responsibilitycdd.outputtype` is `NOT NULL`, so
+> `create` writing the mapping's `null` answer straight through failed the insert on the first plain-verb
+> operation (`groom`, `UC01`) — and with it the whole analysis phase, rolled back:
+> `null value in column "outputtype" ... violates not-null constraint`.  The mapping still answers
+> `null` (that distinction is the point of this section); `ResponsibilityCdd.setOutputType` now
+> normalises it to the stored `void`, which the renderer treats identically, so the UML output above is
+> unchanged.  Guarded by `ResponsibilityCddTest#storesVoidWhenThereIsNoReturnType` and
+> `ResponsibilityCandidatesTest#createStoresAStorableReturnTypeForAPlainVerb`; see
+> `.clinerules/memory-bank/technical/SCHEMA.md` §"A `NOT NULL` string column needs a sentinel".
+
 
 ### 13.6 residual — class nouns still reach the attribute list through TDR10/TDR11
 

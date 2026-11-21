@@ -91,6 +91,43 @@ it costs nothing over a short column and a longer value is TOASTed transparently
 normalised by `RationaleText` (blank → `NULL`, over-long → truncated), which is why the column can
 stay a plain nullable `VARCHAR`.
 
+## A `NOT NULL` string column needs a sentinel — normalise it in the entity's setter
+
+Several candidate columns are `NOT NULL` but are fed by a domain answer that may legitimately be
+"nothing": `responsibilitycdd.outputtype` (no return type), `collaboratorcdd.sourcecardinality` /
+`targetcardinality` (no multiplicity stated — stored as `""`, see `CandidateFactory.applyMultiplicities`),
+`attributecdd.type` and `responsibilityparameter.type`.  **That "nothing" must become a sentinel before
+it reaches the DB, and the entity's setter is the only place that can guarantee it for every writer.**
+
+Verified 2026-11-21 — `responsibilitycdd.outputtype` aborted the whole analysis phase of a corpus load:
+
+```text
+ERROR: null value in column "outputtype" of relation "responsibilitycdd" violates not-null constraint
+Detail: Failing row contains (15524, groom, ResponsibilityCdd, 1, null, 1, 15523, 15320, null).
+```
+
+`ResponsibilityCandidates.outputTypeFor` answers the common case — the verb is neither a receive verb
+nor an output verb — with a deliberate `null` ("the mapping had no answer"), and `create` wrote that
+straight through.  So the *first* plain-verb operation (`groom`, in `UC01`) failed its insert, and with
+it the entire load: the `DataIntegrityViolationException` rolls the fixture back, leaving the corpus
+with **no** candidates at all — which reads as "the corpus load is broken", not as "one column is
+nullable-wrong".  The fix lives in the entity: `ResponsibilityCdd.setOutputType` maps `null`/blank →
+`void`, the value every historical row already holds and one `toPlantUmlString()` treats exactly like
+`null`, so the rendered UML is unchanged.  Normalising in the setter rather than at the call site is
+what also covers the constructor and a hand-built detached instance.
+
+Three consequences worth remembering:
+
+- **A "no answer" return value is not automatically storable.**  A method may deliberately return
+  `null` to mean "the mapping had no answer" and still be persisted by a caller that does not know the
+  column is `NOT NULL`.
+- **A `null`-tolerant renderer hides the bug.**  `toPlantUmlString()` omits `null`, blank *and* `void`
+  identically, so the UML output cannot reveal which of the three is in the row — the storage invariant
+  has to be asserted directly (`ResponsibilityCddTest.storesVoidWhenThereIsNoReturnType` reads the
+  write-only field reflectively, because the entity deliberately has no `getOutputType()`).
+- **`create-tables` will not save you.**  Nothing in the schema changed for this fix, which is why it
+  is a code fix and not a migration: `outputtype` was already `NOT NULL`, and the writer was wrong.
+
 ## Schema-drift guardrail
 
 Run after any entity change that adds/removes columns, before trusting the app:

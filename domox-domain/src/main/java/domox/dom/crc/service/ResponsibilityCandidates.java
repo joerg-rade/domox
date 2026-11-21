@@ -122,6 +122,11 @@ public class ResponsibilityCandidates {
      * </ul>
      * Deliberately no {@code void}: the renderer omits blank/{@code void} anyway, and a real
      * {@code null} says "the mapping had no answer" rather than "the mapping answered void".
+     * <p>
+     * The {@code null} is this method's answer only — it is not what gets stored.
+     * {@link ResponsibilityCdd#setOutputType(String)} normalises it to {@code void}, because the
+     * {@code outputtype} column is {@code NOT NULL} and a raw {@code null} there aborted the whole
+     * analysis phase of a corpus load.
      *
      * @param verb          the operation name, as the rule recorded it (the catalogues are lower-case,
      *                      and TDR32/TDR33 capitalise the name, so the lookup lower-cases it)

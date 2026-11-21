@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -142,6 +143,40 @@ class ResponsibilityCandidatesTest {
         // when / then
         assertThat(classUnderTest.outputTypeFor("process", new ClassCdd())).isNull();
         assertThat(classUnderTest.outputTypeFor(null, new ClassCdd())).isNull();
+    }
+
+    /**
+     * The regression that aborted a corpus load: {@link #anyOtherVerbHasNoReturnType()} is the
+     * common case, and the {@code outputtype} column is {@code NOT NULL}, so {@code create} must not
+     * store the mapping's {@code null} answer — doing so failed the <em>whole</em> analysis phase with
+     * {@code null value in column "outputtype" of relation "responsibilitycdd" violates not-null
+     * constraint} at the first plain-verb operation ({@code groom}).
+     */
+    @Test
+    void createStoresAStorableReturnTypeForAPlainVerb() {
+        // given — "groom" is neither a receive verb nor an output verb
+        when(nlpProperties.getReceiveVerbs()).thenReturn(List.of("receive"));
+        when(nlpProperties.getSystemOutputVerbs()).thenReturn(List.of("show"));
+        when(factoryService.detachedEntity(ResponsibilityCdd.class))
+                .thenAnswer(invocation -> new ResponsibilityCdd());
+
+        // when
+        final ResponsibilityCdd groom = classUnderTest.create("groom", null, null);
+
+        // then — nothing null reaches the NOT NULL column, and the rendering is unchanged
+        assertThat(storedOutputType(groom)).isNotBlank();
+        assertThat(groom.toPlantUmlString()).isEqualTo("groom()");
+    }
+
+    /** Reads the write-only {@code outputType} field — there is no {@code getOutputType()}. */
+    private static String storedOutputType(final ResponsibilityCdd operation) {
+        try {
+            final Field field = ResponsibilityCdd.class.getDeclaredField("outputType");
+            field.setAccessible(true);
+            return (String) field.get(operation);
+        } catch (final ReflectiveOperationException e) {
+            throw new IllegalStateException("cannot read outputType", e);
+        }
     }
 
     /** The mapping reaches the operation `create` builds, and thus the PlantUML rendering. */

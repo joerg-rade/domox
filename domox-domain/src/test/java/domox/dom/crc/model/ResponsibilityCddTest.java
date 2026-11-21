@@ -2,6 +2,7 @@ package domox.dom.crc.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,5 +105,58 @@ class ResponsibilityCddTest {
         browse.inputTypeList = null;
 
         assertThat(browse.toPlantUmlString()).isEqualTo("browse()");
+    }
+
+    // ============ the stored return type is never null (the column is NOT NULL) ============
+
+    /**
+     * Reads the write-only {@link ResponsibilityCdd#outputType} field. There is deliberately no
+     * {@code getOutputType()} — the UML rendering is the field's public contract — so the storage
+     * invariant pinned below can only be read reflectively.
+     */
+    private static String storedOutputType(final ResponsibilityCdd operation) {
+        try {
+            final Field field = ResponsibilityCdd.class.getDeclaredField("outputType");
+            field.setAccessible(true);
+            return (String) field.get(operation);
+        } catch (final ReflectiveOperationException e) {
+            throw new IllegalStateException("cannot read outputType", e);
+        }
+    }
+
+    /**
+     * The regression that aborted a corpus load: the {@code outputtype} column is {@code NOT NULL},
+     * while the analysis path answers "no return type" with a {@code null} for every verb that is
+     * neither a receive verb nor an output verb — most of them. Storing that answer straight through
+     * failed the <em>whole</em> analysis phase with
+     * {@code null value in column "outputtype" of relation "responsibilitycdd" violates not-null
+     * constraint} (the first operation it hit was {@code groom}). So every write path — the
+     * constructor and the setter — must leave the field at the stored {@code void} literal.
+     */
+    @Test
+    void storesVoidWhenThereIsNoReturnType() {
+        assertThat(storedOutputType(new ResponsibilityCdd("groom", new ArrayList<>(), null)))
+                .isEqualTo("void");
+        assertThat(storedOutputType(new ResponsibilityCdd("groom", new ArrayList<>(), "")))
+                .isEqualTo("void");
+        assertThat(storedOutputType(new ResponsibilityCdd("groom", new ArrayList<>(), "   ")))
+                .isEqualTo("void");
+
+        // the other write path — a detached instance built by hand, then set
+        final ResponsibilityCdd handBuilt = new ResponsibilityCdd();
+        handBuilt.setOutputType(null);
+        assertThat(storedOutputType(handBuilt)).isEqualTo("void");
+    }
+
+    /** A real return type is stored verbatim, and an explicit {@code void} is left as it is. */
+    @Test
+    void keepsARealReturnType() {
+        final ResponsibilityCdd receive = new ResponsibilityCdd("receive", new ArrayList<>(), "Payment");
+        assertThat(storedOutputType(receive)).isEqualTo("Payment");
+        assertThat(receive.toPlantUmlString()).isEqualTo("receive(): Payment");
+
+        final ResponsibilityCdd explicitVoid = new ResponsibilityCdd();
+        explicitVoid.setOutputType("void");
+        assertThat(storedOutputType(explicitVoid)).isEqualTo("void");
     }
 }

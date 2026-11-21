@@ -9,7 +9,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import org.apache.causeway.applib.annotation.Bounding;
 import org.apache.causeway.applib.annotation.Collection;
@@ -35,6 +34,13 @@ public class ResponsibilityCdd
         implements Comparable<ResponsibilityCdd> {
 
     /**
+     * The stored value of {@link #outputType} for an operation that has no return type — the UML way
+     * of writing "returns nothing", and the value the column has held since the first analysis run.
+     * See {@link #setOutputType(String)} for why the "no answer" case is stored rather than left null.
+     */
+    private static final String NO_RETURN_TYPE = "void";
+
+    /**
      * @param name          the operation name
      * @param inputTypeList the operation's parameters; a {@code null} list is normalised to an empty
      *                      one, and the list is <em>copied</em>, because the caller may pass an
@@ -45,7 +51,7 @@ public class ResponsibilityCdd
     public ResponsibilityCdd(String name, List<ResponsibilityParameter> inputTypeList, String outputType) {
         this.setCandidateName(name);
         this.inputTypeList = inputTypeList != null ? new ArrayList<>(inputTypeList) : new ArrayList<>();
-        this.outputType = outputType;
+        setOutputType(outputType);
     }
 
     @Property
@@ -70,8 +76,33 @@ public class ResponsibilityCdd
 
     @Property
     @Column(nullable = false)
-    @Setter
     private String outputType;
+
+    /**
+     * Sets the operation's UML return type, normalising "no return type" to the stored
+     * {@link #NO_RETURN_TYPE} literal.
+     *
+     * <p><b>Why the normalisation lives here.</b> The column is {@code NOT NULL}, while
+     * {@code ResponsibilityCandidates#outputTypeFor} answers the third of its three cases — the
+     * verb is neither a receive verb nor an output verb, which is most verbs — with a deliberate
+     * {@code null} ("the mapping had no answer", see that method's note). Writing that answer
+     * straight through failed the <em>whole</em> analysis phase of a corpus load at the first
+     * operation with a plain verb ({@code groom}):
+     * {@code null value in column "outputtype" of relation "responsibilitycdd" violates not-null
+     * constraint}. Normalising in the setter — rather than at each call site — is what makes the
+     * invariant hold for every writer, including the
+     * {@link #ResponsibilityCdd(String, List, String)} constructor and a detached instance built by
+     * hand.</p>
+     *
+     * <p><b>Why {@code void} is the right stored value.</b> It is what the column already holds for
+     * every row ever written, and it is indistinguishable from {@code null} and blank to
+     * {@link #toPlantUmlString()}, so the rendered UML is unchanged; storing it keeps one
+     * representation in the table instead of a mix of {@code void} and {@code null} for the same
+     * fact.</p>
+     */
+    public void setOutputType(final String outputType) {
+        this.outputType = (outputType == null || outputType.isBlank()) ? NO_RETURN_TYPE : outputType;
+    }
 
     @Override
     public int compareTo(@NotNull ResponsibilityCdd o) {
@@ -100,7 +131,7 @@ public class ResponsibilityCdd
             }
         }
         s.append(')');
-        if (outputType != null && !outputType.isBlank() && !"void".equals(outputType)) {
+        if (outputType != null && !outputType.isBlank() && !NO_RETURN_TYPE.equals(outputType)) {
             s.append(": ").append(outputType);
         }
         return s.toString();
