@@ -107,10 +107,26 @@ public class CollaboratorCdd
         return Long.compare(this.getId(), o.getId());
     }
 
+    /**
+     * This association as one PlantUML relation line — {@code Address == Recipient: Address_Recipient}.
+     *
+     * <p><b>The spaces around the arrow are load-bearing, not cosmetic.</b>  PlantUML reads a letter
+     * {@code d}/{@code l}/{@code r}/{@code u}/{@code x} placed immediately after a <em>headless</em>
+     * arrow as a <em>direction</em> specifier ({@code A ==r B}), so an arrow butted against the
+     * target's name costs that name its first character and PlantUML invents a second class from the
+     * remainder: {@code Address==Recipient} rendered a phantom class {@code ecipient} and aimed the
+     * {@code Address_Recipient} association at it, so the rendered diagram disagreed with the D3 view
+     * about which classes the model has.  {@link AssociationType#SYNONYM} is the only headless symbol
+     * in this enum — the arrows that carry a head ({@code ->}, {@code --|>}) were never affected —
+     * but every symbol is padded, because the hazard belongs to PlantUML's grammar rather than to one
+     * arrow.  Verified against Kroki for all seven symbols × all ten letters, with and without
+     * multiplicities.</p>
+     */
     public String toPlantUmlString() {
         final AssociationType effectiveType = type != null ? type : AssociationType.ASSOCIATION;
-        final String arrow = effectiveType.symbol;
-        final String relation = quote(sourceCardinality) + arrow + quote(targetCardinality);
+        final String relation = paddedQuote(sourceCardinality)
+                + effectiveType.symbol
+                + paddedQuote(targetCardinality);
         return source.getCandidateName() + relation + target.getCandidateName() + ": " + label();
     }
 
@@ -150,5 +166,15 @@ public class CollaboratorCdd
     private String quote(String s) {
         if (s.isBlank()) return s;
         return "\"" + s + "\"";
+    }
+
+    /**
+     * The multiplicity as PlantUML writes it — quoted, and padded on <em>both</em> sides so the arrow
+     * can never touch an identifier (see {@link #toPlantUmlString()}); a single space when the model
+     * states no multiplicity, so the relation reads {@code A == B} rather than {@code A  ==  B}.
+     */
+    private String paddedQuote(String cardinality) {
+        if (cardinality.isBlank()) return " ";
+        return " " + quote(cardinality) + " ";
     }
 }

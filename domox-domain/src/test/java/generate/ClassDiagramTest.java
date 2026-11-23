@@ -1,6 +1,7 @@
 package generate;
 
 import domox.dom.crc.model.AttributeCdd;
+import domox.dom.crc.model.AssociationType;
 import domox.dom.crc.model.Candidate;
 import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.CollaboratorCdd;
@@ -104,7 +105,7 @@ class ClassDiagramTest {
         final String plantUml = classUnderTest.build(model);
 
         // then
-        assertThat(plantUml).contains("Store->Customer: has");
+        assertThat(plantUml).contains("Store -> Customer: has");
         assertThat(plantUml).doesNotContain("Rejected");
     }
 
@@ -140,7 +141,37 @@ class ClassDiagramTest {
         final String plantUml = classUnderTest.build(model);
 
         // then
-        assertThat(plantUml).contains("class \"Till\"").contains("Store->Till: uses");
+        assertThat(plantUml).contains("class \"Till\"").contains("Store -> Till: uses");
+    }
+
+    /**
+     * The export never butts an arrow against a class name — PlantUML would read the name's first
+     * letter as a direction specifier and draw a phantom class instead.
+     *
+     * <p>This is the defect the two diagram tabs disagreed about: {@code Address==Recipient} lost the
+     * {@code R} to PlantUML's <em>right</em> direction and rendered {@code ecipient} — a class the D3
+     * view does not have, with the association aimed at it.  {@link CollaboratorCdd#toPlantUmlString()}
+     * pads the arrow for all seven symbols (its own unit test covers that); this one pins the text the
+     * whole diagram is assembled from, which is what PlantUML is handed.</p>
+     */
+    @Test
+    void build_neverButtsAnArrowAgainstAClassName() {
+        // given — a headless SYNONYM aimed at a name that begins with PlantUML's "right" letter
+        final ClassCdd address = withApprovedResponsibility("Address");
+        final ClassCdd recipient = withApprovedResponsibility("Recipient");
+        final DomainModel model = new DomainModel();
+        final CollaboratorCdd synonym = approved(collaboration(model, "sameAs", address, recipient));
+        synonym.setType(AssociationType.SYNONYM);
+        model.classList.add(approved(address));
+        model.classList.add(approved(recipient));
+
+        // when
+        final String plantUml = classUnderTest.build(model);
+
+        // then — both classes are drawn, and the arrow stands alone between two spaces
+        assertThat(plantUml).contains("class \"Address\"").contains("class \"Recipient\"");
+        assertThat(plantUml).contains("Address == Recipient: sameAs");
+        assertThat(plantUml).doesNotContain("==Recipient");
     }
 
     // --- one diagram per sub-domain -------------------------------------------
@@ -194,7 +225,7 @@ class ClassDiagramTest {
         final String plantUml = classUnderTest.buildForSubDomain(model, "Inventory");
 
         // then — the inside edge is drawn; the crossing one belongs to the overview
-        assertThat(plantUml).contains("Store->Till: has");
+        assertThat(plantUml).contains("Store -> Till: has");
         assertThat(plantUml).doesNotContain("Customer").doesNotContain("serves");
     }
 

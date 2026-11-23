@@ -94,7 +94,7 @@ class DomainModelsTest {
         assertThat(plantUml).as("@startuml tag missing").startsWith("@startuml");
         assertThat(plantUml).as("@enduml tag missing").endsWith("@enduml");
         assertThat(plantUml).contains("class \"Alice");
-        assertThat(plantUml).as("the approved cardinality is quoted on the edge").contains("Alice->\"2\"Bob");
+        assertThat(plantUml).as("the approved cardinality is quoted on the edge").contains("Alice -> \"2\" Bob");
         // ... and the diagram itself is the RENDERED one, not the source text
         assertThat(result.getDiagram()).isNotNull();
         assertThat(result.getDiagram().mimeType().toString()).contains("application/pdf");

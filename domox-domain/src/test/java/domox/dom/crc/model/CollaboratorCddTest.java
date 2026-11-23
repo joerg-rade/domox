@@ -24,6 +24,9 @@ class CollaboratorCddTest {
         EXPECTED_ARROWS.put(AssociationType.AGGREGATION, "*->");
         EXPECTED_ARROWS.put(AssociationType.COMPOSITION, "+->");
         EXPECTED_ARROWS.put(AssociationType.IMPLEMENTATION, "..|>");
+        // Semantic equivalence.  Headless, and therefore the one symbol PlantUML can mis-read — see
+        // `padsTheArrowSoAPlantUmlDirectionLetterCannotSwallowTheTargetsFirstCharacter`.
+        EXPECTED_ARROWS.put(AssociationType.SYNONYM, "==");
     }
 
     private CollaboratorCdd associationWith(AssociationType type) {
@@ -42,8 +45,18 @@ class CollaboratorCddTest {
         return association;
     }
 
+    /** An association between the two named classes, labelled with its own candidate name. */
+    private CollaboratorCdd association(String sourceName, String targetName, AssociationType type) {
+        final ClassCdd source = new ClassCdd(sourceName, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        final ClassCdd target = new ClassCdd(targetName, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        final CollaboratorCdd association =
+                new CollaboratorCdd(sourceName + "_" + targetName, source, target);
+        association.setType(type);
+        return association;
+    }
+
     @ParameterizedTest
-    @EnumSource(value = AssociationType.class, mode = EnumSource.Mode.EXCLUDE, names = "SYNONYM")
+    @EnumSource(AssociationType.class)
     void mapsAssociationTypeToPlantUmlArrow(final AssociationType type) {
         // given — the arrow the type is expected to render
         final String expectedArrow = EXPECTED_ARROWS.get(type);
@@ -98,5 +111,52 @@ class CollaboratorCddTest {
 
         assertThat(association.label()).isEqualTo("pays");
         assertThat(association.toPlantUmlString()).endsWith(": pays");
+    }
+
+    /**
+     * The arrow is padded, so PlantUML cannot read the target's first letter as a direction.
+     *
+     * <p>This is the defect that made the PlantUML-rendered diagram disagree with the D3 view about
+     * the model's classes: PlantUML reads {@code d}/{@code l}/{@code r}/{@code u}/{@code x} after a
+     * <em>headless</em> arrow as a direction specifier, so the unpadded
+     * {@code Address==Recipient} lost the {@code R} and rendered a phantom class {@code ecipient} —
+     * a class the D3 view does not have, with the association aimed at it.</p>
+     */
+    @Test
+    void padsTheArrowSoAPlantUmlDirectionLetterCannotSwallowTheTargetsFirstCharacter() {
+        // given — the model's real case: a SYNONYM whose target begins with PlantUML's "right" letter
+        final CollaboratorCdd synonym = association("Address", "Recipient", AssociationType.SYNONYM);
+
+        // when / then
+        assertThat(synonym.toPlantUmlString()).isEqualTo("Address == Recipient: Address_Recipient");
+    }
+
+    /** Every symbol is padded, because the hazard belongs to PlantUML's grammar rather than to one arrow. */
+    @ParameterizedTest
+    @EnumSource(AssociationType.class)
+    void neverButtsAnArrowAgainstTheTargetsName(final AssociationType type) {
+        for (final String initial : new String[]{"d", "l", "r", "u", "x", "D", "L", "R", "U", "X"}) {
+            // given
+            final CollaboratorCdd association = association("Address", initial + "ecipient", type);
+
+            // when
+            final String rendered = association.toPlantUmlString();
+
+            // then — the arrow stands alone between two spaces, and the name survives whole
+            assertThat(rendered).as(type + " must render a padded arrow").contains(" " + type.symbol + " ");
+            assertThat(rendered).as("the target's first letter must not touch the arrow")
+                    .contains(type.symbol + " " + initial);
+        }
+    }
+
+    /** The multiplicities are padded too, so a quoted one cannot butt against the arrow either. */
+    @Test
+    void padsTheMultiplicitiesAroundTheArrow() {
+        // given
+        final CollaboratorCdd association = association("Customer", "Care", AssociationType.ASSOCIATION);
+        association.setSourceCardinality("6");
+
+        // when / then — `Customer"6"->Care` unpadded; the same relation PlantUML is expected to read
+        assertThat(association.toPlantUmlString()).isEqualTo("Customer \"6\" -> Care: Customer_Care");
     }
 }

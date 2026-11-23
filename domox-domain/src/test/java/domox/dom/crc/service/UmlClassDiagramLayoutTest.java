@@ -80,7 +80,7 @@ class UmlClassDiagramLayoutTest {
     void thePageIsAHeaderRowAndOneContentRow() {
         // then — two rows: the object title/actions, then everything else
         assertThat(grid.getRows()).as("header row + content row").hasSize(2);
-        assertThat(colsOf(grid.getRows().get(0)))
+        assertThat(colsOf(grid.getRows().getFirst()))
                 .as("the header column spans the page and absorbs the unreferenced members")
                 .singleElement()
                 .satisfies(header -> {
@@ -122,7 +122,7 @@ class UmlClassDiagramLayoutTest {
         // of that column is the only thing that makes a diagram panel readable
         assertThat(tabGroup().getTabs()).allSatisfy(tab -> {
             assertThat(tab.getRows()).as("%s: one row", tab.getName()).hasSize(1);
-            assertThat(colsOf(tab.getRows().get(0)))
+            assertThat(colsOf(tab.getRows().getFirst()))
                     .as("%s: one span-12 column", tab.getName())
                     .singleElement()
                     .satisfies(col -> {
@@ -167,13 +167,13 @@ class UmlClassDiagramLayoutTest {
     }
 
     private static BSTabGroup tabGroup() {
-        return colsOf(grid.getRows().get(1)).get(0).getTabGroups().get(0);
+        return colsOf(grid.getRows().get(1)).getFirst().getTabGroups().getFirst();
     }
 
     /** The single fieldSet each tab wraps, in tab order. */
     private static List<FieldSet> fieldSets() {
         return tabGroup().getTabs().stream()
-                .map(tab -> colsOf(tab.getRows().get(0)).get(0).getFieldSets().get(0))
+                .map(tab -> colsOf(tab.getRows().getFirst()).getFirst().getFieldSets().get(0))
                 .toList();
     }
 
