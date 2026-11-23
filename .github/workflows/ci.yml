@@ -102,6 +102,13 @@ jobs:
       - name: Ontology render check (headless browser)
         run: bash scripts/verify-ontology-render.sh
 
+      # Asserts the ACTION-RESULT half of the same export: a multi-line String result (the PlantUML
+      # the diagram actions return) is shown through the COMPACT label fragment, where the browser
+      # default `white-space: normal` collapses every newline — the diagram was verified correct on
+      # the wire and still displayed as ONE line.  Skips itself (exit 0) without a browser.
+      - name: Multi-line action result render check (headless browser)
+        run: bash scripts/verify-standalone-value-render.sh
+
   integration-test:
     runs-on: ubuntu-latest
     needs: test

@@ -171,3 +171,37 @@ td[class*="ContextSentence"] mark {
     border-radius: .15em;
 }
 
+/* ---------------------------------------------------------------------------
+   Multi-line text results — the PlantUML exports of the diagram actions.
+
+   An action that returns a plain String (generateUmlDiagram, generateSubDomainUmlDiagram, ...)
+   has its result rendered by the viewer's StandaloneValuePanel
+   (ValuePage.html -> div.card-body -> UiComponentType.VALUE -> StandaloneValuePanel.html ->
+   div.standaloneValuePanel), which builds the value through the ORDINARY
+   ATTRIBUTE_NAME_AND_VALUE pipeline (UiAttributeWkt.pseudo).  Two consequences matter:
+
+   1. The pseudo value's rendering hint is STANDALONE_PROPERTY_COLUMN, and
+      RenderingHint.isInTable() reports that as *in-table* — so AttributePanel takes the COMPACT
+      render scenario and createComponentForOutput() emits the plain label fragment
+      (<span class="fragment-compact-label">), NOT the <textarea> that
+      AttributePanelWithInlinePrompt uses when it is not compact.
+   2. isUsingTextarea() short-circuits on isCompact(), so @MultiLine / MultiLineFacet (or a
+      MULTILINE format modifier) CANNOT produce a textarea for such a result — and the facet would
+      have to be registered on String's ObjectSpecification globally, changing every String in the
+      app.  Hence this CSS rule rather than an annotation.
+
+   The newlines DO reach the DOM: the viewer only HTML-escapes the text
+   (Wkt.labelWithDynamicEscaping -> setEscapeModelStrings(true)), and escaping leaves "\n" alone.
+   What collapses them is the browser default `white-space: normal` on that label span — which is
+   exactly why the whole diagram used to render as one long line.
+
+   pre-wrap keeps the line breaks AND the significant leading indentation of source-like text such
+   as PlantUML, while still wrapping lines that are too wide for the page (unlike `pre`, which
+   would give the page a horizontal scrollbar).  Scoped to .standaloneValuePanel, the wrapper
+   StandaloneValuePanel.html emits, so the IDENTICAL fragment class inside list/table cells and
+   every other label in the app are left alone.
+   --------------------------------------------------------------------------- */
+.standaloneValuePanel .fragment-compact-label {
+    white-space: pre-wrap;
+}
+

@@ -3,7 +3,7 @@
 # DoMoX fast-check bundle (local guardrail).
 #
 # Usage:
-#   bash scripts/check.sh            # schema drift + layout XML + script syntax + dep alignment + mermaid styling + enforcer rules + unit tests + UI/UML/ontology render + webjar + metamodel guardrail
+#   bash scripts/check.sh            # schema drift + layout XML + script syntax + dep alignment + mermaid styling + enforcer rules + unit tests + UI/UML/ontology/standalone-value render + webjar + metamodel guardrail
 #   bash scripts/check.sh --quick    # the five instant, Maven-free steps: schema drift + layout XML + script syntax + dep alignment + mermaid styling
 #
 # This mirrors what CI runs (.github/workflows/ci.yml) but exploits the local dev DB where the
@@ -218,6 +218,21 @@ if ONTOUT=$(bash scripts/verify-ontology-render.sh 2>&1); then
 else
   printf '%s\n' "$ONTOUT" | sed 's/^/    /'
   bad "ontology render check failed"
+fi
+
+# A multi-line String ACTION RESULT (the PlantUML exports) is shown through the COMPACT label
+# fragment, where the browser's default `white-space: normal` collapses every newline — the diagram
+# was verified correct on the wire and still displayed as one line.  Asserts the rendered line boxes.
+if SVOUT=$(bash scripts/verify-standalone-value-render.sh 2>&1); then
+  printf '%s\n' "$SVOUT" | sed 's/^/    /'
+  if printf '%s' "$SVOUT" | grep -q 'SKIP:'; then
+    skip "not runnable here (node/chromium missing — see above)"
+  else
+    ok "multi-line action results keep their line breaks"
+  fi
+else
+  printf '%s\n' "$SVOUT" | sed 's/^/    /'
+  bad "standalone value render check failed"
 fi
 
 # --- 9. Webjar resource check (dev-instance guardrail) ---------------------------------
