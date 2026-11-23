@@ -150,7 +150,7 @@ public class UmlLayoutDiagrams {
         nodeIds.sort(Comparator.comparing(index::elementName).thenComparing(id -> id));
 
         return DiagramJsonWriter.write(index.displayNameOf(diagram), bounds, nodeIds, boxes,
-                index::elementName, links);
+                index::elementName, links, false, null);
     }
 
     // -- helpers ---------------------------------------------------------------

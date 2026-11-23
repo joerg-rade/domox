@@ -1,5 +1,6 @@
 package domox.dom.rdf;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -9,9 +10,10 @@ import domox.dom.rdf.geometry.Bounds;
 import domox.dom.rdf.geometry.Pt;
 
 /**
- * <b>Serialises a reconstructed UML diagram to the D3 payload</b> the client draws statically.
+ * <b>Serialises a UML diagram to the D3 payload</b> the client draws.
  *
- * <p>The payload carries its own geometry, so the client needs no layout engine:</p>
+ * <p>Two shapes, one client.  The <b>static</b> flavour carries the geometry the client needs and no
+ * layout engine (see {@link UmlLayoutDiagrams}):</p>
  * <pre>
  *   { "layout":"uml", "title":"…", "canvas":{"width":…,"height":…},
  *     "nodes":[{"id","name","kind","x","y","w","h"}],
@@ -19,11 +21,21 @@ import domox.dom.rdf.geometry.Pt;
  *     "legend":[{"color","label","description"}] }
  * </pre>
  *
+ * <p>The <b>force</b> flavour ({@code "force":true}) carries a <em>seed</em> rectangle per box and no
+ * routes, and the client runs a {@code d3-force} simulation over it:</p>
+ * <pre>
+ *   { "layout":"uml", "force":true, "title":"…", "canvas":{"width":…,"height":…},
+ *     "nodes":[{"id","name","kind","x","y","w","h","attributes":[…],"methods":[…],
+ *               "archetype","color"}],
+ *     "links":[{"source","target","kind","label","arrow"}],
+ *     "legend":[{"kind","color","label","description"}] }
+ * </pre>
+ *
  * <p>The export's coordinates are absolute within a much larger sheet, so every coordinate is translated
  * to start at {@link #PADDING} and the canvas is the drawing's bounding box plus that margin.</p>
  *
- * <p>Extracted from {@code UmlLayoutDiagrams}; it is handed the boxes, the routed links and the bounds
- * that class computed, and does nothing but turn them into JSON.</p>
+ * <p>Extracted from {@code UmlLayoutDiagrams}; it is handed the boxes, the links and the bounds that
+ * class computed, and does nothing but turn them into JSON.</p>
  */
 final class DiagramJsonWriter {
 
@@ -37,25 +49,45 @@ final class DiagramJsonWriter {
     }
 
     /**
+     * What the force flavour draws inside a box, beyond its name: its members, and the archetype that
+     * colours it.
+     *
+     * <p>Empty on the static flavour, which draws none of it — the reconstruction is a picture of where
+     * the model's author put things, not of what the classes contain.</p>
+     */
+    record NodeDetail(List<String> attributes, List<String> methods, String archetype, String color) {
+
+        /** A box with no members and no archetype. */
+        static final NodeDetail NONE = new NodeDetail(List.of(), List.of(), null, null);
+    }
+
+    /**
      * Renders the diagram — its canvas, its nodes, its links and the legend — as one JSON object.
      *
-     * @param title   the diagram's display name, drawn as the title
-     * @param bounds  the drawing's bounding box, before the margin is added
-     * @param nodeIds the boxes to draw, in the order they are emitted
-     * @param boxes   the box rectangles, keyed by view id
-     * @param nameOf  the class name a view draws, for the node label
-     * @param links   the connectors, already routed and clipped
+     * @param title    the diagram's display name, drawn as the title
+     * @param bounds   the drawing's bounding box, before the margin is added
+     * @param nodeIds  the boxes to draw, in the order they are emitted
+     * @param boxes    the box rectangles, keyed by view id
+     * @param nameOf   the class name a view draws, for the node label
+     * @param links    the connectors, already routed and clipped on the static flavour
+     * @param force    {@code true} for the force flavour: members and archetype per node, no link points
+     * @param detailOf the members and archetype of each box, read only when {@code force} is set; may be
+     *                 {@code null} otherwise
      */
     static String write(final String title, final Bounds bounds, final List<String> nodeIds,
                         final Map<String, Box> boxes, final Function<String, String> nameOf,
-                        final List<Link> links) {
+                        final List<Link> links, final boolean force,
+                        final Function<String, NodeDetail> detailOf) {
         final double dx = PADDING - bounds.minX();
         final double dy = PADDING - bounds.minY();
 
         final StringBuilder json = new StringBuilder(1024);
         json.append('{')
-                .append("\"layout\":\"uml\",")
-                .append("\"title\":\"").append(escape(title)).append("\",")
+                .append("\"layout\":\"uml\",");
+        if (force) {
+            json.append("\"force\":true,");
+        }
+        json.append("\"title\":\"").append(escape(title)).append("\",")
                 .append("\"canvas\":{\"width\":").append(num(bounds.width() + 2 * PADDING))
                 .append(",\"height\":").append(num(bounds.height() + 2 * PADDING)).append("},");
 
@@ -73,8 +105,11 @@ final class DiagramJsonWriter {
                     .append(",\"x\":").append(num(box.x() + dx))
                     .append(",\"y\":").append(num(box.y() + dy))
                     .append(",\"w\":").append(num(box.w()))
-                    .append(",\"h\":").append(num(box.h()))
-                    .append('}');
+                    .append(",\"h\":").append(num(box.h()));
+            if (force) {
+                appendDetail(json, detailOf == null ? NodeDetail.NONE : detailOf.apply(id));
+            }
+            json.append('}');
         }
         json.append("],");
 
@@ -89,17 +124,20 @@ final class DiagramJsonWriter {
                     .append(",\"target\":\"").append(escape(link.target())).append('"')
                     .append(",\"kind\":\"").append(link.kind()).append('"')
                     .append(",\"label\":\"").append(escape(link.label())).append('"')
-                    .append(",\"arrow\":").append(link.arrow())
-                    .append(",\"points\":[");
-            boolean firstPoint = true;
-            for (final Pt point : link.points()) {
-                if (!firstPoint) {
-                    json.append(',');
+                    .append(",\"arrow\":").append(link.arrow());
+            if (!force) {
+                json.append(",\"points\":[");
+                boolean firstPoint = true;
+                for (final Pt point : link.points()) {
+                    if (!firstPoint) {
+                        json.append(',');
+                    }
+                    firstPoint = false;
+                    json.append('[').append(num(point.x() + dx)).append(',').append(num(point.y() + dy)).append(']');
                 }
-                firstPoint = false;
-                json.append('[').append(num(point.x() + dx)).append(',').append(num(point.y() + dy)).append(']');
+                json.append(']');
             }
-            json.append("]}");
+            json.append('}');
         }
         json.append("],");
 
@@ -112,11 +150,66 @@ final class DiagramJsonWriter {
                 .append("{\"kind\":\"association\",\"color\":\"#7f8c8d\",\"label\":\"Association\",")
                 .append("\"description\":\"a plain line between two classes\"},")
                 .append("{\"kind\":\"generalization\",\"color\":\"#e67e22\",\"label\":\"Generalization\",")
-                .append("\"description\":\"the arrow points at the super-class (is-a)\"}")
-                .append(']');
+                .append("\"description\":\"the arrow points at the super-class (is-a)\"}");
+        if (force) {
+            appendArchetypeLegend(json, nodeIds, detailOf);
+        }
+        json.append(']');
 
         json.append('}');
         return json.toString();
+    }
+
+    /** One node's member compartments and archetype, appended inside its JSON object. */
+    private static void appendDetail(final StringBuilder json, final NodeDetail detail) {
+        json.append(",\"attributes\":");
+        appendStrings(json, detail.attributes());
+        json.append(",\"methods\":");
+        appendStrings(json, detail.methods());
+        if (detail.archetype() != null) {
+            json.append(",\"archetype\":\"").append(escape(detail.archetype())).append('"');
+        }
+        if (detail.color() != null) {
+            json.append(",\"color\":\"").append(escape(detail.color())).append('"');
+        }
+    }
+
+    /** A JSON array of strings; {@code null} reads as empty, so the writer never emits a bare {@code null}. */
+    private static void appendStrings(final StringBuilder json, final List<String> values) {
+        json.append('[');
+        boolean first = true;
+        for (final String value : values == null ? List.<String>of() : values) {
+            if (!first) {
+                json.append(',');
+            }
+            first = false;
+            json.append('"').append(escape(value)).append('"');
+        }
+        json.append(']');
+    }
+
+    /**
+     * Appends one legend row per archetype the diagram actually draws, in first-appearance order — so the
+     * legend can neither name an archetype no box uses nor omit one that is on screen, and its swatch
+     * colour is the fill the boxes carry.
+     */
+    private static void appendArchetypeLegend(final StringBuilder json, final List<String> nodeIds,
+                                              final Function<String, NodeDetail> detailOf) {
+        if (detailOf == null) {
+            return;
+        }
+        final Map<String, String> colors = new LinkedHashMap<>();
+        for (final String id : nodeIds) {
+            final NodeDetail detail = detailOf.apply(id);
+            if (detail != null && detail.archetype() != null && detail.color() != null) {
+                colors.putIfAbsent(detail.archetype(), detail.color());
+            }
+        }
+        for (final Map.Entry<String, String> entry : colors.entrySet()) {
+            json.append(",{\"kind\":\"archetype\",\"color\":\"").append(escape(entry.getValue()))
+                    .append("\",\"label\":\"").append(escape(entry.getKey()))
+                    .append("\",\"description\":\"a Coad/Lefebvre archetype, which colours the box\"}");
+        }
     }
 
     /** Integral values print without a {@code .0} — the JSON is read by humans as well as by D3. */

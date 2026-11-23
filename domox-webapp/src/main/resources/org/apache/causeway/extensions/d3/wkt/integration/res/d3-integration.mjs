@@ -38,6 +38,18 @@
     /** Longest label line before a node name is wrapped (see {@link wrapLabel}). */
     var LABEL_MAX_CHARS = 40;
 
+    /** The UML name compartment's height — the server sizes a box's members against the same figure. */
+    var UML_NAME_H = 20;
+
+    /** Between a compartment's separator and its first member line, and before each later compartment. */
+    var UML_MEMBER_PAD = 8;
+
+    /** One member line, at the font size the members are drawn in. */
+    var UML_MEMBER_LINE_H = 12;
+
+    /** The font size of the member lines. */
+    var UML_MEMBER_FONT = 9;
+
     /**
      * Draws a UML class diagram from the geometry the model itself stores.
      *
@@ -61,15 +73,7 @@
             .attr('preserveAspectRatio', 'xMidYMid meet');
 
         // One arrowhead marker, reused by every generalization.
-        svg.append('defs').append('marker')
-            .attr('id', 'uml-generalization-arrow')
-            .attr('viewBox', '0 0 10 10')
-            .attr('refX', 10).attr('refY', 5)
-            .attr('markerWidth', 9).attr('markerHeight', 9)
-            .attr('orient', 'auto-start-reverse')
-            .append('path')
-            .attr('d', 'M 0 0 L 10 5 L 0 10 z')
-            .attr('fill', '#e67e22');
+        appendUmlArrowMarker(svg);
 
         var layer = svg.append('g').attr('class', 'uml-layer');
 
@@ -161,6 +165,400 @@
     }
 
     /**
+     * Draws an **assembled** class diagram — a payload carrying `"force":true` — as a force-simulated,
+     * draggable graph.
+     *
+     * Where {@link renderStaticUml} redraws a picture the model's author already laid out, this payload
+     * (produced by `UmlDiagramLayout`) has no geometry beyond a *seed* rectangle per box and no routes at
+     * all.  The boxes are therefore placed by a `d3-force` simulation the reader can drag, and a connector
+     * is a straight centre-to-centre line clipped to the two box edges: a routed path would be stale the
+     * moment the first tick ran, which is why the orthogonal router is not used on this path.
+     *
+     * Each box carries three compartments — name, attributes, methods — and is filled with its
+     * Coad/Lefebvre archetype's colour; the archetypes actually drawn are listed in the legend.  The server
+     * sizes each box with these same figures ({@link UML_NAME_H} etc.), so a compartment is never clipped —
+     * `scripts/verify-uml-render.sh` is what keeps the two in step.
+     *
+     * The simulation is run to completion **before** anything is drawn, so the first paint is the settled
+     * picture rather than a jump: the seed is deterministic and so are the forces, which is also what lets
+     * the render test assert on positions.  The timer is started by the first drag, not before.
+     */
+    function renderForceUml(svg, containerEl, data, config) {
+        var canvas = data.canvas || {};
+        var cw = canvas.width || 1200;
+        var ch = canvas.height || 800;
+        var available = containerEl.clientWidth || cw;
+        svg.attr('width', '100%')
+            .attr('height', Math.max(320, Math.round(available * ch / cw)))
+            .attr('viewBox', '0 0 ' + cw + ' ' + ch)
+            .attr('preserveAspectRatio', 'xMidYMid meet');
+
+        var layer = svg.append('g').attr('class', 'uml-layer');
+        appendUmlArrowMarker(svg);
+
+        // ---- the boxes, seeded at the rectangle the server chose -----------------
+        var nodes = (data.nodes || []).map(function (n) {
+            var w = n.w || 180;
+            var h = n.h || UML_NAME_H;
+            return {
+                id: n.id,
+                name: n.name || n.id,
+                attributes: n.attributes || [],
+                methods: n.methods || [],
+                color: n.color || '#eaf3fb',
+                w: w,
+                h: h,
+                // The simulation works in box *centres*, the payload states the top-left corner.
+                x: n.x + w / 2,
+                y: n.y + h / 2,
+                seedX: n.x + w / 2,
+                seedY: n.y + h / 2
+            };
+        });
+
+        if (nodes.length === 0) {
+            svg.append('text').attr('class', 'uml-empty')
+                .attr('x', 12).attr('y', 24).attr('font-size', 12).attr('fill', '#555')
+                .text('No classes in this diagram');
+            svg.attr('data-uml-settled', 'true');
+            return;
+        }
+
+        var byId = {};
+        nodes.forEach(function (n) { byId[n.id] = n; });
+
+        var links = [];
+        (data.links || []).forEach(function (l) {
+            var source = byId[l.source];
+            var target = byId[l.target];
+            if (!source || !target) return;         // an edge to a box this diagram does not draw
+            links.push({
+                source: source,
+                target: target,
+                kind: l.kind || 'association',
+                label: l.label || '',
+                // A generalization's arrow belongs on the super-class, which the payload states as the
+                // *source*; the line is therefore drawn target -> source so the marker lands there.
+                // Every other connector is direction-free and is drawn source -> target.
+                reversed: l.kind === 'generalization',
+                arrow: l.kind === 'generalization' && l.arrow !== false
+            });
+        });
+
+        // ---- settle the layout before the first paint ----------------------------
+        var simulation = d3.forceSimulation(nodes)
+            .force('link', d3.forceLink(links).id(function (d) { return d.id; })
+                .distance(260).strength(0.15))
+            .force('charge', d3.forceManyBody().strength(-60).distanceMax(500))
+            .force('collide', forceRectCollide(18))
+            // The seed is an anchor, not a suggestion: without these the sub-domain bands the server's
+            // grid created dissolve and a whole-model diagram becomes one cloud.
+            .force('x', d3.forceX(function (d) { return d.seedX; }).strength(0.06))
+            .force('y', d3.forceY(function (d) { return d.seedY; }).strength(0.06))
+            .stop();
+        var ticks = nodes.length > 400 ? 180 : 300;
+        for (var i = 0; i < ticks; i++) {
+            simulation.tick();
+        }
+        containerEl._d3Simulation = simulation;
+
+        // ---- the connectors ------------------------------------------------------
+        var linkSel = layer.selectAll('line.uml-link')
+            .data(links)
+            .enter().append('line')
+            .attr('class', function (d) { return 'uml-link uml-link-' + d.kind; })
+            .attr('stroke', function (d) { return d.kind === 'generalization' ? '#e67e22' : '#7f8c8d'; })
+            .attr('stroke-width', 1.5)
+            .attr('marker-end', function (d) { return d.arrow ? 'url(#uml-generalization-arrow)' : null; });
+
+        var labelSel = layer.selectAll('text.uml-link-label')
+            .data(links.filter(function (d) { return d.label; }))
+            .enter().append('text')
+            .attr('class', 'uml-link-label')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 9).attr('fill', '#555')
+            // A white halo painted behind the glyphs: a label on a straight centre-to-centre line very
+            // often has another line under it, and without the halo it is unreadable where it happens.
+            .attr('stroke', '#ffffff').attr('stroke-width', 3)
+            .attr('stroke-linejoin', 'round').attr('paint-order', 'stroke')
+            .text(function (d) { return d.label; });
+
+        // ---- the class boxes, one <g> each so it can be dragged whole ------------
+        var box = layer.selectAll('g.uml-class')
+            .data(nodes, function (d) { return d.id; })
+            .enter().append('g')
+            .attr('class', 'uml-class');
+
+        box.append('rect')
+            .attr('class', 'uml-box')
+            .attr('x', function (d) { return -d.w / 2; })
+            .attr('y', function (d) { return -d.h / 2; })
+            .attr('width', function (d) { return d.w; })
+            .attr('height', function (d) { return d.h; })
+            .attr('rx', 3)
+            .attr('fill', function (d) { return d.color; })
+            .attr('stroke', '#3498db').attr('stroke-width', 1.5);
+
+        appendUmlCompartments(box);
+
+        // ---- position everything, then wire up dragging and zoom -----------------
+        function ticked() {
+            linkSel.each(function (link) {
+                var ends = umlLinkEnds(link);
+                d3.select(this)
+                    .attr('x1', ends.from.x).attr('y1', ends.from.y)
+                    .attr('x2', ends.to.x).attr('y2', ends.to.y);
+            });
+            labelSel.each(function (link) {
+                var ends = umlLinkEnds(link);
+                d3.select(this)
+                    .attr('x', (ends.from.x + ends.to.x) / 2)
+                    .attr('y', (ends.from.y + ends.to.y) / 2 - 4);
+            });
+            box.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+        }
+        // The simulation was ticked to completion *before* anything was drawn, so it needs no tick
+        // listener until a drag restarts it — and then it needs one, or the box under the pointer would
+        // stay where the seed put it while the simulation moved everything else around it.
+        simulation.on('tick', ticked);
+        ticked();
+
+        // ---- drag a box: the layout is a suggestion, the reader's arrangement is not ---
+        if (config.enableDragging !== false) {
+            box.call(d3.drag()
+                .on('start', function (event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                })
+                .on('drag', function (event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                })
+                .on('end', function (event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    // The box stays where it was dropped — `fx` is deliberately not cleared.  The point of
+                    // dragging a class diagram is to tidy it, and a box that sprang back to where the seed
+                    // put it would make that impossible.
+                }));
+        }
+
+        // ---- the legend, pinned to the top-left corner ---- (it now lists the archetypes too)
+        appendUmlLegend(svg, data, cw, available);
+
+        if (config.enableZoom !== false) {
+            svg.call(d3.zoom().scaleExtent([0.2, 8]).on('zoom', function (event) {
+                layer.attr('transform', event.transform);
+            }));
+        }
+        svg.attr('data-uml-settled', 'true');
+    }
+
+    /**
+     * One arrowhead marker, reused by every generalization of both UML paths.
+     *
+     * `orient="auto-start-reverse"` means the same marker serves a line drawn in either direction, which
+     * the force path relies on: it draws a generalization from the sub-class to the super-class so the
+     * arrow lands on the super-class, while the static path draws each route as the export stored it.
+     */
+    function appendUmlArrowMarker(svg) {
+        svg.append('defs').append('marker')
+            .attr('id', 'uml-generalization-arrow')
+            .attr('viewBox', '0 0 10 10')
+            .attr('refX', 10).attr('refY', 5)
+            .attr('markerWidth', 9).attr('markerHeight', 9)
+            .attr('orient', 'auto-start-reverse')
+            .append('path')
+            .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+            .attr('fill', '#e67e22');
+    }
+
+    /**
+     * Draws the three compartments of every class box: the name, then the attributes, then the methods.
+     *
+     * The box `<g>` is already positioned at the box's **centre**, so every y here is relative to that
+     * centre and the rectangle's own top edge is `-h/2`.  A compartment with nothing in it is not drawn at
+     * all — that is how a UML box says "no members" — and the separator above it is omitted with it.
+     *
+     * The figures are the server's: `UmlDiagramLayout` sized each box as
+     * `max(BOX_H, UML_NAME_H + attributes + methods)`, so a box that carries members is exactly tall
+     * enough for them.  A line that is still too wide for its box is **shrunk**, never clipped and never
+     * allowed to cross into the neighbouring box.
+     */
+    function appendUmlCompartments(box) {
+        box.each(function (d) {
+            var g = d3.select(this);
+            var attributeH = umlCompartmentHeight(d.attributes);
+            var methodH = umlCompartmentHeight(d.methods);
+
+            shrinkToFit(g.append('text').attr('class', 'uml-name')
+                .attr('text-anchor', 'middle').attr('x', 0).attr('y', -d.h / 2 + 14)
+                .attr('font-size', 12).attr('font-weight', 'bold').attr('fill', '#1b3b57')
+                .text(d.name), d.w - 10, 12);
+
+            // The name compartment's separator is always drawn: every box has a name.
+            var nameBottom = -d.h / 2 + UML_NAME_H;
+            separator(g, d, nameBottom);
+            if (attributeH && methodH) {
+                separator(g, d, nameBottom + attributeH);
+            }
+
+            umlMemberLines(d, d.attributes, 0)
+                .concat(umlMemberLines(d, d.methods, attributeH))
+                .forEach(function (row) {
+                    shrinkToFit(g.append('text').attr('class', 'uml-member')
+                        .attr('x', -d.w / 2 + 6).attr('y', row.y)
+                        .attr('font-size', UML_MEMBER_FONT).attr('fill', '#33475b')
+                        .text(row.text), d.w - 12, UML_MEMBER_FONT);
+                });
+        });
+    }
+
+    /** One compartment separator, spanning the box at `y` (relative to the box's centre). */
+    function separator(g, d, y) {
+        g.append('line').attr('class', 'uml-separator')
+            .attr('x1', -d.w / 2).attr('x2', d.w / 2)
+            .attr('y1', y).attr('y2', y)
+            .attr('stroke', '#3498db').attr('stroke-width', 1);
+    }
+
+    /** A member compartment's height, or zero when it holds nothing. */
+    function umlCompartmentHeight(lines) {
+        return lines && lines.length ? UML_MEMBER_PAD + lines.length * UML_MEMBER_LINE_H : 0;
+    }
+
+    /**
+     * The member lines of one compartment as `{text, y}` rows, `y` relative to the box's centre and
+     * `before` the height of the compartments above it.  The 9 is the baseline within a 12-unit row: the
+     * ascender sits at 2 and the descender at 11, so no glyph reaches the separator.
+     */
+    function umlMemberLines(d, lines, before) {
+        var top = -d.h / 2 + UML_NAME_H + before + UML_MEMBER_PAD;
+        return (lines || []).map(function (text, i) {
+            return { text: text, y: top + i * UML_MEMBER_LINE_H + 9 };
+        });
+    }
+
+    /**
+     * Shrinks a text label until it fits the width it is given, so a long class or member name stays
+     * inside its box rather than crossing into the neighbouring one.  Measured, not estimated — character
+     * widths vary a lot — and it only ever shrinks: the box was already widened to fit its class name on
+     * the server, and the class-diagram PDF keeps one font size for the same reason.
+     */
+    function shrinkToFit(selection, available, maxFont) {
+        selection.each(function () {
+            var needed = this.getComputedTextLength();
+            if (needed > available && needed > 0) {
+                d3.select(this).attr('font-size', Math.max(6, maxFont * available / needed));
+            }
+        });
+    }
+
+    /** The two ends of a connector, as the points where its straight line leaves each box. */
+    function umlLinkEnds(link) {
+        var a = link.reversed ? link.target : link.source;
+        var b = link.reversed ? link.source : link.target;
+        return { from: umlEdgePoint(a, b), to: umlEdgePoint(b, a) };
+    }
+
+    /**
+     * Where the line from `node`'s centre towards `towards`'s centre crosses `node`'s rectangle.
+     *
+     * Both axis scales are computed and the smaller one wins, which is what makes the point land on an
+     * edge rather than on a corner; an axis the line does not move along contributes infinity so it can
+     * never win.  This is the whole of the force path's routing — an orthogonal route would have to be
+     * re-computed on every tick, and would then be a different route every tick.
+     */
+    function umlEdgePoint(node, towards) {
+        var dx = towards.x - node.x;
+        var dy = towards.y - node.y;
+        if (dx === 0 && dy === 0) return { x: node.x, y: node.y };
+        var scale = Math.min(
+            Math.abs(dx) < 1e-9 ? Infinity : (node.w / 2) / Math.abs(dx),
+            Math.abs(dy) < 1e-9 ? Infinity : (node.h / 2) / Math.abs(dy));
+        return { x: node.x + dx * scale, y: node.y + dy * scale };
+    }
+
+    /**
+     * A rectangular collision force — `d3.forceCollide` treats a node as a **circle**, and these are boxes.
+     *
+     * A circle large enough to clear a 180x40 class box on every side has a radius of ~92, so two boxes
+     * beside each other would be pushed 184 units apart to gain the 18 of clearance the layout wants.  This
+     * resolves the overlap on the axis of least penetration instead: boxes side by side slide apart
+     * sideways, boxes stacked slide apart vertically, which is the arrangement the server's seed grid
+     * already has, so the force tidies the picture rather than rearranging it.
+     *
+     * Pairs are found through a uniform grid, not all `n²` of them: the assembled whole-model diagram is
+     * ~970 boxes, and half a million pairs per tick for a few hundred ticks is not a picture anyone waits
+     * for.  The cell is the largest box dimension, so only the eight neighbouring cells can hold a box that
+     * overlaps.
+     */
+    function forceRectCollide(gap) {
+        var nodes = [];
+        var cell = 1;
+
+        function collide(alpha) {
+            var buckets = {};
+            var i;
+            var j;
+            for (i = 0; i < nodes.length; i++) {
+                var n = nodes[i];
+                var key = Math.floor(n.x / cell) + ',' + Math.floor(n.y / cell);
+                (buckets[key] || (buckets[key] = [])).push(n);
+            }
+            for (i = 0; i < nodes.length; i++) {
+                var a = nodes[i];
+                var cx = Math.floor(a.x / cell);
+                var cy = Math.floor(a.y / cell);
+                for (var ox = -1; ox <= 1; ox++) {
+                    for (var oy = -1; oy <= 1; oy++) {
+                        var bucket = buckets[(cx + ox) + ',' + (cy + oy)];
+                        if (!bucket) continue;
+                        for (j = 0; j < bucket.length; j++) {
+                            // Each pair is reached twice, once from each side, so each visit moves it by
+                            // half the overlap — the two together are exactly the separation needed.
+                            separate(a, bucket[j], alpha);
+                        }
+                    }
+                }
+            }
+        }
+
+        function separate(a, b, alpha) {
+            if (a === b) return;
+            var dx = b.x - a.x;
+            var dy = b.y - a.y;
+            var overlapX = (a.w + b.w) / 2 + gap - Math.abs(dx);
+            if (overlapX <= 0) return;
+            var overlapY = (a.h + b.h) / 2 + gap - Math.abs(dy);
+            if (overlapY <= 0) return;
+            if (overlapX < overlapY) {
+                var sx = (dx < 0 ? -1 : 1) * overlapX / 2 * alpha;
+                if (a.fx == null) a.x -= sx;
+                if (b.fx == null) b.x += sx;
+            } else {
+                var sy = (dy < 0 ? -1 : 1) * overlapY / 2 * alpha;
+                if (a.fy == null) a.y -= sy;
+                if (b.fy == null) b.y += sy;
+            }
+        }
+
+        collide.initialize = function (n) {
+            nodes = n;
+            cell = 1;
+            for (var i = 0; i < nodes.length; i++) {
+                cell = Math.max(cell, nodes[i].w || 0, nodes[i].h || 0);
+            }
+        };
+        collide.gap = function (value) {
+            if (!arguments.length) return gap;
+            gap = value;
+            return collide;
+        };
+        return collide;
+    }
+
+    /**
      * Where to hang a connector's label: the middle of its **longest straight run**, nudged clear of the
      * line.
      *
@@ -212,9 +610,14 @@
         var linkKinds = {};
         (data.links || []).forEach(function (l) { linkKinds[l.kind] = true; });
 
-        // Only explain what the drawing actually contains.
+        // Only explain what the drawing actually contains: a link kind no connector uses, or an archetype
+        // no box is painted in, gets no row.
+        var archetypes = {};
+        (data.nodes || []).forEach(function (n) { archetypes[n.color] = true; });
         var entries = (data.legend || []).filter(function (item) {
-            return item.kind === 'node' ? (data.nodes || []).length > 0 : linkKinds[item.kind];
+            if (item.kind === 'node') return (data.nodes || []).length > 0;
+            if (item.kind === 'archetype') return !!archetypes[item.color];
+            return linkKinds[item.kind];
         });
         if (entries.length === 0) return;
 
@@ -249,6 +652,15 @@
                     .attr('rx', 2 * k)
                     .attr('fill', '#eaf3fb')
                     .attr('stroke', item.color).attr('stroke-width', 1.5);
+            } else if (item.kind === 'archetype') {
+                // A filled swatch in the archetype's own colour — which is exactly what a box is filled
+                // with, so the legend can be matched to the picture at a glance.
+                swatch.append('rect')
+                    .attr('y', -7 * k)
+                    .attr('width', sample).attr('height', 14 * k)
+                    .attr('rx', 2 * k)
+                    .attr('fill', item.color)
+                    .attr('stroke', '#3498db').attr('stroke-width', 1.5);
             } else {
                 // A plain line for an association; the same line capped by an arrow for a
                 // generalization.  The arrow is an explicit triangle so it scales with the legend —
@@ -354,10 +766,15 @@
                 return;
             }
 
-            // A "uml" payload carries its own geometry (the model's stored layout), so it is drawn
-            // statically — no force simulation, and no re-layout.
+            // A "uml" payload is one of two things, and the flag says which: `force:true` is the assembled
+            // model's diagram, whose boxes the reader places (a seed grid plus a force simulation), while
+            // anything else is the OntoUML export's own stored layout, redrawn as it was drawn.
             if (data && data.layout === 'uml') {
-                renderStaticUml(svg, containerEl, data, config);
+                if (data.force) {
+                    renderForceUml(svg, containerEl, data, config);
+                } else {
+                    renderStaticUml(svg, containerEl, data, config);
+                }
                 return;
             }
 

@@ -175,6 +175,12 @@ FLOORS = {
     "DiagramIndex": 75,       # 83 %
     "DiagramJsonWriter": 80,  # 88 %
 
+    # --- the force flavour of the same diagram: it seeds each box and lets the client's simulation move
+    #     them, so its geometry is only ever the *starting* picture — which is exactly why the seed grid,
+    #     the compartment sizing and the legend need pinning by a test rather than by the render guardrails.
+    #     UmlDiagramLayoutTest scores 100 %. ---
+    "UmlDiagramLayout": 90,   # 100 %  (49 mutants)
+
     # --- the diagram collaborators shared by CandidateD3Graph / CandidateVegaGraph /
     #     DomainModelDiagramsD3, and the per-vocabulary collaborators carved out of
     #     TypedDependencyPredicates ---

@@ -158,6 +158,24 @@ public class ClassCdd
     // region > review-aware model content
 
     /**
+     * The approved attributes as the UML export renders them — {@code name: type}, one line per
+     * attribute — so a diagram that shows the members cannot drift from the PlantUML/PDF rendering.
+     *
+     * <p>This is what the D3 class diagram draws in a box's attribute compartment: the same
+     * {@link AttributeCdd#toPlantUmlString()} the PDF uses, read from the same approved subset.</p>
+     */
+    @Programmatic
+    public List<String> approvedAttributeLines() {
+        return approvedAttributes().stream().map(AttributeCdd::toPlantUmlString).toList();
+    }
+
+    /** The approved responsibilities as the export renders them — {@code name(params): ret}; see {@link #approvedAttributeLines()}. */
+    @Programmatic
+    public List<String> approvedResponsibilityLines() {
+        return approvedResponsibilities().stream().map(ResponsibilityCdd::toPlantUmlString).toList();
+    }
+
+    /**
      * The attributes of this class that were <b>approved</b> during review — the ones the UML
      * export is allowed to emit.
      *

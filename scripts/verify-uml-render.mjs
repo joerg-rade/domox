@@ -83,6 +83,69 @@ const MEASURE = `(() => {
 const out = await send('Runtime.evaluate', { expression: MEASURE, returnByValue: true });
 const m = JSON.parse(out.result.value);
 
+// ---- measurement: the force branch ------------------------------------------
+
+const MEASURE_FORCE = `(() => {
+  const svg = document.querySelector('#d3CanvasForce svg');
+  if (!svg) return JSON.stringify({ error: 'the force renderer produced no svg' });
+  const layer = svg.querySelector('g.uml-layer');
+  if (!layer) return JSON.stringify({ error: 'the force renderer produced no uml-layer' });
+  const boxes = Array.from(layer.querySelectorAll('g.uml-class'));
+  const world = g => {
+    const t = /translate\\(([-\\d.]+),([-\\d.]+)\\)/.exec(g.getAttribute('transform') || '');
+    const r = g.querySelector('rect.uml-box');
+    const w = parseFloat(r.getAttribute('width')), h = parseFloat(r.getAttribute('height'));
+    return { cx: parseFloat(t[1]), cy: parseFloat(t[2]), w: w, h: h };
+  };
+  // How far the deepest pair of boxes still overlaps after the simulation settled.  A rectangular
+  // collision force is what keeps this at zero; a circular one would leave the corners interpenetrating.
+  let worst = 0;
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      const a = world(boxes[i]), b = world(boxes[j]);
+      const ox = (a.w + b.w) / 2 - Math.abs(b.cx - a.cx);
+      const oy = (a.h + b.h) / 2 - Math.abs(b.cy - a.cy);
+      if (ox > 0 && oy > 0) worst = Math.max(worst, Math.min(ox, oy));
+    }
+  }
+  const texts = [];
+  boxes.forEach(g => {
+    const r = g.querySelector('rect.uml-box');
+    const box = parseFloat(r.getAttribute('width'));
+    g.querySelectorAll('text').forEach(t => texts.push({
+      name: t.textContent, box: box,
+      text: t.getComputedTextLength(),
+      font: parseFloat(getComputedStyle(t).fontSize)
+    }));
+  });
+  const lines = Array.from(layer.querySelectorAll('line.uml-link'));
+  const legend = svg.querySelector('g.uml-legend');
+  const rel = Array.from(layer.querySelectorAll('text.uml-link-label'))
+      .find(t => t.textContent === 'rel');
+  return JSON.stringify({
+    settled: svg.getAttribute('data-uml-settled'),
+    viewBox: svg.getAttribute('viewBox'),
+    boxes: boxes.length,
+    boxNames: boxes.map(g => { const t = g.querySelector('text.uml-name'); return t ? t.textContent : null; }),
+    fills: boxes.map(g => g.querySelector('rect.uml-box').getAttribute('fill')),
+    connectors: lines.length,
+    routedPaths: layer.querySelectorAll('path').length,
+    arrowed: lines.filter(l => l.getAttribute('marker-end')).length,
+    strokes: lines.map(l => l.getAttribute('stroke')),
+    memberLines: Array.from(layer.querySelectorAll('text.uml-member')).map(t => t.textContent),
+    separators: layer.querySelectorAll('line.uml-separator').length,
+    texts: texts,
+    worstOverlap: worst,
+    linkLabel: rel ? { x: parseFloat(rel.getAttribute('x')), y: parseFloat(rel.getAttribute('y')),
+                       stroke: rel.getAttribute('stroke'), paintOrder: rel.getAttribute('paint-order') } : null,
+    legend: !!legend,
+    legendRows: legend ? legend.querySelectorAll('text').length : 0
+  });
+})()`;
+
+const outForce = await send('Runtime.evaluate', { expression: MEASURE_FORCE, returnByValue: true });
+const f = JSON.parse(outForce.result.value);
+
 // ---- assertions -------------------------------------------------------------
 
 const failures = [];
@@ -130,9 +193,62 @@ check('the connector label carries a white halo, so a line behind it cannot hide
 check('the legend is drawn', m.legend);
 check('the legend explains all three kinds', m.legendRows === 3, String(m.legendRows));
 
+// ---- assertions: the force branch -------------------------------------------
+
+if (f.error) {
+    console.error(`UML RENDER CHECK FAILED (force branch): ${f.error}`);
+    process.exit(1);
+}
+
+check('the force renderer settles before it paints (data-uml-settled)',
+    f.settled === 'true', String(f.settled));
+check('the force SVG uses the payload canvas as its viewBox', f.viewBox === '0 0 600 400', f.viewBox);
+check('one box per node', f.boxes === 3, String(f.boxes));
+check('the boxes carry their names',
+    JSON.stringify(f.boxNames) === JSON.stringify(['Alpha', 'Beta', 'ServiceProviderOnNegotiation']),
+    JSON.stringify(f.boxNames));
+check('one connector per link', f.connectors === 2, String(f.connectors));
+check('no connector is a routed path — a route would be stale after the first tick',
+    f.routedPaths === 0, String(f.routedPaths));
+check('only the generalization draws an arrowhead', f.arrowed === 1, String(f.arrowed));
+check('the arrow is orange and the association grey',
+    f.strokes.includes('#e67e22') && f.strokes.includes('#7f8c8d'), JSON.stringify(f.strokes));
+
+check('the attribute compartment is drawn',
+    f.memberLines.includes('id: Long') && f.memberLines.includes('name: String'),
+    JSON.stringify(f.memberLines));
+check('the method compartment is drawn', f.memberLines.includes('approve()'), JSON.stringify(f.memberLines));
+check('every box draws the separator under its name',
+    f.separators >= f.boxes, String(f.separators));
+check('a box with both compartments draws a second separator',
+    f.separators === 4, String(f.separators));
+check('the archetype colours its box', f.fills.includes('#ffe0b2'), JSON.stringify(f.fills));
+check('a box with no archetype keeps the default fill', f.fills.includes('#eaf3fb'), JSON.stringify(f.fills));
+
+const forceOverflowing = f.texts.filter(t => t.text > t.box + 1);
+check('every name and member line fits inside its box (the long ones are shrunk to fit)',
+    forceOverflowing.length === 0,
+    forceOverflowing.map(t => `${t.name}: ${Math.round(t.text)} > ${t.box}`).join('; '));
+
+const forceTooSmall = f.texts.filter(t => t.font < 8);
+check('a shrunk label stays readable (font >= 8px)', forceTooSmall.length === 0,
+    forceTooSmall.map(t => `${t.name}: ${t.font.toFixed(1)}px`).join('; '));
+
+check('the rectangular collision force leaves no two boxes overlapping',
+    f.worstOverlap <= 0.5, `worst overlap ${f.worstOverlap.toFixed(1)} units`);
+
+check('the connector label is drawn on the settled route', !!f.linkLabel);
+check('the connector label carries a white halo, so a line behind it cannot hide the text',
+    !!f.linkLabel && f.linkLabel.stroke === '#ffffff' && f.linkLabel.paintOrder === 'stroke',
+    f.linkLabel ? `stroke=${f.linkLabel.stroke} paint-order=${f.linkLabel.paintOrder}` : 'no label');
+
+check('the legend is drawn', f.legend);
+check('the legend explains the archetype as well as the node and both link kinds',
+    f.legendRows === 4, String(f.legendRows));
+
 if (failures.length) {
     console.error(`\nUML RENDER CHECK FAILED (${failures.length}): ${failures.join('; ')}`);
     process.exit(1);
 }
-console.log('OK: the static UML renderer draws boxes, arrows and the legend.');
+console.log('OK: both UML renderers draw boxes, connectors, arrows and the legend.');
 process.exit(0);

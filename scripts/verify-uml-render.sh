@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 #
-# Headless-render guardrail for the STATIC UML diagram payload — the `"layout":"uml"` branch of
-# `d3-integration.mjs`.
+# Headless-render guardrail for the two UML branches of `d3-integration.mjs`: the STATIC one (the
+# OntoUML export's stored geometry, `"layout":"uml"`) and the FORCE one (`"layout":"uml","force":true`,
+# the assembled model's seed grid plus a `d3-force` simulation, which the reader can drag).
 #
 # Why: `UmlLayoutIntegrityTest` asserts the *geometry* over the real model, but nothing checked that
-# the CLIENT actually draws what the payload says.  A regression in the static renderer — a lost arrow
-# marker, a missing legend, the wrong viewBox — would pass every other check in the repo.
+# the CLIENT actually draws what the payload says.  A regression in either renderer — a lost arrow
+# marker, a missing legend, the wrong viewBox, a compartment the server sized for but the client does
+# not draw, a collision force that leaves the boxes on top of one another — would pass every other
+# check in the repo.
 #
 # Usage: bash scripts/verify-uml-render.sh
 #
@@ -52,6 +55,7 @@ cat > "$DIR/fixture.html" <<'HTML'
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>uml static render</title></head>
 <body>
 <div id="d3CanvasFixture" style="width:900px;height:600px"></div>
+<div id="d3CanvasForce" style="width:900px;height:600px"></div>
 <script>var jQuery = {};</script>
 <script src="d3.min.js"></script>
 <script src="d3-integration.mjs"></script>
@@ -81,6 +85,33 @@ var PAYLOAD = {
   ]
 };
 WicketStuff.D3.init({ canvasId: 'd3CanvasFixture', graphData: JSON.stringify(PAYLOAD), enableZoom: true });
+
+// A payload shaped exactly as UmlDiagramLayout emits it: `force:true`, a *seed* rectangle per box (no
+// routes at all), members and an archetype on the boxes, and the legend's archetype row.  Box `c` is the
+// overflow case again — a long member line in a box the server did not widen for it.
+var FORCE_PAYLOAD = {
+  "layout": "uml", "force": true, "title": "Fixture", "canvas": {"width": 600, "height": 400},
+  "nodes": [
+    {"id": "a", "name": "Alpha", "kind": "Class", "x": 40, "y": 40, "w": 160, "h": 60,
+     "attributes": ["id: Long", "name: String"], "methods": []},
+    {"id": "b", "name": "Beta", "kind": "Class", "x": 40, "y": 260, "w": 160, "h": 60,
+     "attributes": [], "methods": ["approve()"]},
+    {"id": "c", "name": "ServiceProviderOnNegotiation", "kind": "Class", "x": 300, "y": 40, "w": 159, "h": 70,
+     "attributes": ["ServiceProviderNegotiationStrategy: String"], "methods": ["findAll(): List"],
+     "archetype": "Party", "color": "#ffe0b2"}
+  ],
+  "links": [
+    {"source": "a", "target": "b", "kind": "generalization", "label": "", "arrow": true},
+    {"source": "c", "target": "a", "kind": "association", "label": "rel"}
+  ],
+  "legend": [
+    {"kind": "node", "color": "#3498DB", "label": "Class", "description": "a class box"},
+    {"kind": "association", "color": "#7f8c8d", "label": "Association", "description": "a plain line"},
+    {"kind": "generalization", "color": "#e67e22", "label": "Generalization", "description": "an arrow"},
+    {"kind": "archetype", "color": "#ffe0b2", "label": "Party", "description": "a Coad/Lefebvre archetype"}
+  ]
+};
+WicketStuff.D3.init({ canvasId: 'd3CanvasForce', graphData: JSON.stringify(FORCE_PAYLOAD), enableZoom: true });
 </script>
 </body></html>
 HTML

@@ -242,7 +242,20 @@ class ClassDiagram {
         included
             .filter { !it.candidateName.isNullOrEmpty() }
             .sortedWith(compareBy({ nameOf(it) }, { it.candidateName }))
-            .map { UmlDiagramLayout.Node(it.candidateName, it.candidateName, nameOf(it)) }
+            .map {
+                UmlDiagramLayout.Node(
+                    it.candidateName,
+                    it.candidateName,
+                    nameOf(it),
+                    // The compartments and the archetype are what the D3 picture draws and the PDF always
+                    // did; the lines are the export's own rendering, so the two cannot disagree about
+                    // what a class contains.
+                    it.approvedAttributeLines(),
+                    it.approvedResponsibilityLines(),
+                    it.classType.label,
+                    it.classType.cssColor,
+                )
+            }
 
     /**
      * The connectors of a class diagram: the model's material collaborations whose two ends are both
