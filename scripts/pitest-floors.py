@@ -263,6 +263,13 @@ FLOORS = {
     # freshly built, still-empty `ArrayList` differs only in mutability, and no assertion on the
     # returned *value* can see it.
     "SubDomains": 95,                       # 98 %   (42 mutants, 1 of them equivalent)
+
+    # --- the review-aware-export wave: the one predicate behind "what is in the assembled model?".
+    #     Both the export (generate.ClassDiagram) and the empty-class sweep read it, so its two
+    #     answers must stay complements — a floor is what keeps a later refactor from quietly
+    #     diverging them.  95 rather than 97 because the count moves with every branch added to the
+    #     predicate, and the point of the floor is the invariant, not the last two mutants. ---
+    "ModelContent": 95,                     # 97 %   (29 mutants)
 }
 
 # Classes that deliberately carry NO floor, so the unfloored-class warning below does not nag about

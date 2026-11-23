@@ -20,8 +20,10 @@ Argument values are sent as strings, which is wrong for a parameter whose type i
 object: prefix it with `@` and it is sent as an object reference (`{"href": …}`) instead —
   scripts/ro.py invoke domox.Reviews findByCandidate candidate=@/restful/objects/domox.ClassCdd/6640
 (`@` + the `self:` URL an earlier `invoke` printed works too).  The reference still has to
-resolve: this app's RO viewer exposes services and view models, not entities, so use the id the
-action declares, or the `self:` link of a view model an `invoke` returned.
+resolve: an **entity href is fine as a parameter** — the server looks the oid up itself — but a
+**`GET` on an entity is not exposed** by this app's RO viewer (`GET /restful/objects/domox.ClassCdd/6640`
+→ **404** `Could not determine adapter for bookmark: 'domox.ClassCdd:6640'`).  So use an entity href
+when an action *declares* an entity parameter, and the `self:` link of a service/view model otherwise.
 
 `--out FILE` writes the result to FILE and prints its size, instead of dumping it — the way to
 look at a big diagram payload without pasting it into the transcript.

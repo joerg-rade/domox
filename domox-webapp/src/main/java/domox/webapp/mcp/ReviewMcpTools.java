@@ -11,6 +11,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import domox.dom.crc.model.Candidate;
+import domox.dom.crc.service.DomainModels;
 import domox.dom.crc.service.Reviews;
 import domox.dom.crc.model.ReviewRationale;
 
@@ -41,11 +42,13 @@ import domox.dom.crc.model.ReviewRationale;
 public class ReviewMcpTools {
 
     private final Reviews reviews;
+    private final DomainModels domainModels;
     private final TransactionTemplate transactionTemplate;
 
     @Inject
-    public ReviewMcpTools(Reviews reviews, PlatformTransactionManager transactionManager) {
+    public ReviewMcpTools(Reviews reviews, DomainModels domainModels, PlatformTransactionManager transactionManager) {
         this.reviews = reviews;
+        this.domainModels = domainModels;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
@@ -95,6 +98,23 @@ public class ReviewMcpTools {
             final ReviewRationale parsed = parseRationale(rationale);
             return ReviewResult.rejected(reviews.rejectAsAgent(candidate, parsed, required), candidate, parsed);
         });
+    }
+
+    @McpTool(
+            name = "rejectEmptyClasses",
+            description = """
+                    Reject every APPROVED class candidate that carries no approved content: no approved
+                    attribute, no approved responsibility and no approved relation. Such a class is left
+                    out of every diagram, so leaving it approved would make the review disagree with the
+                    model it produced. A reason is REQUIRED and is recorded on every candidate rejected.
+                    The rationale is fixed at INSUFFICIENT_INFORMATION (the concept may be real — the
+                    extraction produced nothing to model it with), never NOT_RELEVANT. Safe to call
+                    repeatedly (idempotent).""")
+    public EmptyClassPruningResult rejectEmptyClasses(
+            @McpToolParam(description = "Required. Why the sweep is being run (e.g. 'no empty boxes in the assembled model: the export omits an approved class with no approved members'). Recorded on every candidate rejected.") String reason) {
+        final String required = McpReason.require(reason);
+        return transactionTemplate.execute(status ->
+                EmptyClassPruningResult.of(domainModels.rejectEmptyClassesInAllModels(required)));
     }
 
     private Candidate requireCandidate(long candidateId) {

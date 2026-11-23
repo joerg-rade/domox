@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import domox.webapp.integtests.ApplicationIntegTestAbstract;
+import domox.webapp.mcp.EmptyClassPruningResult;
 import domox.webapp.mcp.NextCandidateResult;
 import domox.webapp.mcp.ReviewMcpTools;
 
@@ -44,7 +45,8 @@ class ReviewMcpToolsIntegTest extends ApplicationIntegTestAbstract {
 
         // then
         assertThat(toolNames)
-                .containsExactly("approveCandidate", "nextCandidateForReview", "rejectCandidate");
+                .containsExactly("approveCandidate", "nextCandidateForReview", "rejectCandidate",
+                        "rejectEmptyClasses");
     }
 
     @Test
@@ -89,6 +91,27 @@ class ReviewMcpToolsIntegTest extends ApplicationIntegTestAbstract {
         assertThatThrownBy(() -> reviewMcpTools.approveCandidate(1L, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("A reason is required");
+    }
+
+    // --- the "no empty boxes" sweep ---
+
+    @Test
+    void rejectEmptyClasses_withoutAReason_isRefused() {
+        // when / then — the sweep is a write, so it needs a reason like every other write
+        assertThatThrownBy(() -> reviewMcpTools.rejectEmptyClasses("  "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("A reason is required");
+    }
+
+    @Test
+    void rejectEmptyClasses_withEmptyDatabase_rejectsNothing() {
+        // when — idempotent by construction: with no approved class there is nothing to reject
+        final var result = reviewMcpTools.rejectEmptyClasses("no empty boxes in the assembled model");
+
+        // then
+        assertThat(result.rejectedCount()).isZero();
+        assertThat(result.candidateIds()).isEmpty();
+        assertThat(result.message()).isEqualTo(EmptyClassPruningResult.NOTHING_TO_REJECT_MESSAGE);
     }
 
     }

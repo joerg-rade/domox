@@ -18,6 +18,14 @@ PlantUML export** produced by the running instance
 > remaining gaps — attribute vocabulary, review coverage, multiplicities on new edges — need the
 > Phase-1/2 re-run and the review passes, not more code.
 
+> **Status 2026-11-21 — the review pipeline has run** (`REVIEW_PLAYBOOK.md` §4–§6). All **1 504**
+> candidates of all four types are reviewed (610 approved); approved classes **131 → 425**; edges with
+> both ends approved **23 → 91**; the approved subset is **coherent** (no approved attribute, operation
+> or edge with an unapproved owner/endpoint). The §1 verdicts below stand unchanged, and the one that
+> matters most is now *sharper*, not better: **9 approved attributes**, with **89 %** of approved classes
+> still empty-bodied. Re-measure and delta: **§2.1**. The vocabulary the pass learned is recorded in
+> `UML_GAP_FIX_PLAN.md` §9 (F6b/F6c).
+
 
 ---
 
@@ -41,6 +49,14 @@ operations and associations with multiplicities".
 
 `domox.DomainModels#generateUmlDiagram` → `generate.ClassDiagram` (Kotlin) →
 `ClassCdd/AttributeCdd/ResponsibilityCdd/CollaboratorCdd.toPlantUmlString()` → `PumlCode`.
+
+> **⚠ Superseded 2026-11-23 — the exporter is now review-aware.**  The pipeline line above is still
+> right, but the *filter* it applies is not: `generate.ClassDiagram` now renders only **approved**
+> candidates, and only classes that carry approved content or take part in a material relation
+> (`domox.dom.crc.model.ModelContent`); a class with neither is left out *and* rejected
+> (`REVIEW_PLAYBOOK.md` §4.6).  The same run also produces **one diagram per sub-domain** and a
+> **sub-domain overview**.  The tables below are kept as the **pre-review baseline** they were measured
+> against — read them as history, not as current behaviour.
 
 Real output for model 653:
 
@@ -73,6 +89,71 @@ Item==Medication: Item_Medication
 
 Note the edge label is `source_target`, **not** the verb — `CollaboratorCdd` has no label field;
 the verb lives only in the evidence (`rulematch.description` = `relationship.add(inventory (has) product)`).
+
+### 2.1 Post-review re-measure — 2026-11-21 (model 16177)
+
+Re-measured after the review pipeline ran (`REVIEW_PLAYBOOK.md` §4–§6: the four review passes, the
+sub-domain pass, and the orphan-responsibility re-reject), against the **live database** and a fresh
+export (`/tmp/domain-model-16177.puml`). Model `653` no longer exists — the Pet-Shop run is now
+`domox.DomainModel/16177`. Every candidate of every type now carries exactly one `review` row
+(**1 504** reviews, 610 approved, all `username='agent'`):
+
+| type | reviewed / total | approved |
+|---|---|---|
+| `ClassCdd` | 970 / 970 | 425 |
+| `AttributeCdd` | 88 / 88 | 9 |
+| `ResponsibilityCdd` | 193 / 193 | 85 |
+| `CollaboratorCdd` | 253 / 253 | 91 |
+
+| Measure | §2 baseline (653) | now (16177) | Δ | §2's approved column ¹ | now, same semantics ¹ | coherent subset ² |
+|---|---|---|---|---|---|---|
+| classes | 971 | 970 | −1 | 131 | **425** | 425 |
+| classes with an **empty** body | 842 (87 %) | 861 (89 %) | +19 | 70 (53 %) | 380 (89 %) | 380 |
+| attribute lines | 109 | 88 | −21 | 54 | 26 | **9** |
+| operation lines | 149 | 168 | +19 | 95 | 141 | **85** |
+| edges | 237 | 253 | +16 | 23 | 91 | 91 |
+| — `\|>-` / `==` / `->` | 171 / 52 / 14 | 171 / 52 / **30** | `->` +16 | — | — | — |
+| edges carrying a cardinality | 0 | **8** | +8 | 0 | 3 | 3 |
+
+¹ *"the member sits on an approved class"* — the semantics of the §2 column, kept so the delta is
+like-for-like.
+² *"the member's own review is `APPROVED` **and** its owner / both endpoints are approved classes"* —
+the coherent subset the pipeline guarantees. Verified **0 / 0 / 0**: no approved attribute, operation or
+edge has an unapproved owner/endpoint.
+
+**Reconciliation of the operation count (193 → 168).** The exporter emits *every* attribute and
+responsibility of every class, unfiltered — `ClassCdd.toPlantUmlString` never consults a review. So
+`operation lines` = rows whose `classcdd_id` is non-null: **193 − 25 orphan (null owner) = 168**, and
+`attribute lines` = **88 rows, 0 orphan**. The 25 orphan operations are dropped silently; the export
+gives no signal that they exist. This is why "operation lines" cannot be read as "approved operations".
+
+**Superseded 2026-11-23 — the exporter is now review-aware.**  The reconciliation above describes the
+*pre-change* exporter: it emitted every attribute and responsibility of every class, review or no
+review.  `generate.ClassDiagram` now draws only approved candidates, and only classes that carry
+approved content or take part in a material relation.  One predicate —
+`domox.dom.crc.model.ModelContent` — backs both the export and the **empty-class sweep**
+(`DomainModels#rejectEmptyClasses`) that rejects a contentless approved class with
+`INSUFFICIENT_INFORMATION`, so the review and the model cannot disagree
+(`REVIEW_PLAYBOOK.md` §4.6).  The same run also produces **one diagram per sub-domain**
+(`DomainModels#generateSubDomainUmlDiagram`) and a **sub-domain overview**
+(`DomainModels#generateSubDomainOverviewDiagram`).  A re-measure under the new exporter is therefore a
+*different* measurement from the one tabulated above: every count there is the pre-change baseline.
+In particular, the 89 % empty-bodied figure is now partly **acted on** rather than merely reported —
+an approved class with no approved content and no material relation is no longer in the model at all.
+
+**Code-driven vs data-driven.** Only one row of the delta is a code change: FIX-1's closed parenthesis
+(**149/149** malformed `name(: void` → 0). The cardinality quoting and the `label()` lookup were
+**already present at the baseline commit** (`3322188` — `CollaboratorCdd.quote()` and `label()`), so
+`0 → 8` cardinalities and `Customer_Item → has` are **data** changes: the corpus re-run populated
+`sourcecardinality`/`targetcardinality` and the rule matches the label derives from. The `->` count rose
+with the same re-run (+16 ASSOCIATION-typed edges). Also data: the `Unknown` class is gone (FIX-6a) and
+attributes fell 109 → 88 with it.
+
+**What the review actually changed.** Approved classes **131 → 425**, edges between approved classes
+**23 → 91**, and the approved subset is coherent (0/0/0). What it did **not** change is the shape of the
+problem: **89 % of approved classes still have an empty body** (baseline 87 %), and there are **9
+approved attributes in total**. That is a **corpus/extraction** limit (`UML_GAP_FIX_PLAN.md` §9,
+FIX-6), not a review limit — the passes reached every candidate, so more review work will not move it.
 
 ---
 

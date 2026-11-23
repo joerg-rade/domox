@@ -202,8 +202,6 @@ public class DomainModelDiagramsD3 {
     }
 
     private static boolean isApproved(final Candidate candidate) {
-        return candidate.getReviews() != null
-                && candidate.getReviews().stream()
-                        .anyMatch(review -> review != null && review.getStatus() == ReviewStatus.APPROVED);
+        return candidate.isApproved();
     }
 }

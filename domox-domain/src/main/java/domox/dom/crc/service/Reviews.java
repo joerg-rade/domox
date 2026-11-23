@@ -187,10 +187,9 @@ public class Reviews {
                 .toList();
     }
 
-    /** Whether any of the candidate's reviews approved it. */
+    /** Whether any of the candidate's reviews approved it — one definition, on {@link Candidate}. */
     private static boolean hasApproval(final Candidate candidate) {
-        return candidate.getReviews().stream()
-                .anyMatch(review -> review.getStatus() == ReviewStatus.APPROVED);
+        return candidate.isApproved();
     }
 
     private List<Candidate> findAll() {

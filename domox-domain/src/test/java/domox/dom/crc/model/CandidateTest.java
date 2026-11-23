@@ -2,6 +2,8 @@ package domox.dom.crc.model;
 import domox.dom.rules.RuleMatch;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -235,6 +237,60 @@ class CandidateTest {
 
         // then — clamped rather than rejected
         assertThat(candidate.getRationale()).hasSize(RationaleText.MAX_LENGTH);
+    }
+
+    // --- isApproved: the one definition of "approved" ---
+
+    @Test
+    void isApproved_isFalseForACandidateWithNoReviews() {
+        assertThat(new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>()).isApproved())
+                .isFalse();
+    }
+
+    @Test
+    void isApproved_isFalseForAPendingReview() {
+        // given — a review that has been created but not decided
+        final ClassCdd candidate = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        candidate.getReviews().add(review(candidate, null));
+
+        // when / then
+        assertThat(candidate.isApproved()).isFalse();
+    }
+
+    @Test
+    void isApproved_isFalseForARejectedReview() {
+        final ClassCdd candidate = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        candidate.getReviews().add(review(candidate, ReviewStatus.REJECTED));
+
+        assertThat(candidate.isApproved()).isFalse();
+    }
+
+    @Test
+    void isApproved_isTrueWhenAnyOfItsReviewsApprovedIt() {
+        // given — a rejected review and an approved one
+        final ClassCdd candidate = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        candidate.getReviews().add(review(candidate, ReviewStatus.REJECTED));
+        candidate.getReviews().add(review(candidate, ReviewStatus.APPROVED));
+
+        assertThat(candidate.isApproved()).isTrue();
+    }
+
+    @Test
+    void isApproved_ignoresANullReviewInTheList() {
+        // given — a half-built list, which a detached instance can carry
+        final ClassCdd candidate = new ClassCdd("Customer", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        candidate.getReviews().add(null);
+
+        assertThat(candidate.isApproved()).isFalse();
+    }
+
+    private static Review review(final Candidate candidate, final ReviewStatus status) {
+        final Review review = new Review();
+        review.setCandidate(candidate);
+        review.setStatus(status);
+        review.setUser("agent");
+        review.setCreatedAt(Timestamp.from(Instant.now()));
+        return review;
     }
 
     // -- helper

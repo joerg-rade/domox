@@ -122,21 +122,91 @@ public class ClassCdd
         association.setClassCdd(this);
     }
 
+    /**
+     * Renders this class as a PlantUML {@code class} block — <b>review-aware</b>: only the members
+     * that are part of the assembled model appear.
+     *
+     * <p><b>Why the filter lives here.</b>  The export used to render every member of every class
+     * regardless of its review, so the diagram claimed 168 operation lines while only 85 were
+     * approved, and 88 attribute lines while only 9 were approved
+     * ({@code MODEL_UML_READINESS_REVIEW.md} §2.1).  "What is part of the model?" now has exactly one
+     * answer — {@link #approvedAttributes()}/{@link #approvedResponsibilities()} — and the entity's
+     * own rendering, the assembler ({@code generate.ClassDiagram}) and the empty-class sweep
+     * ({@code DomainModels#rejectEmptyClasses}) all read that same answer.</p>
+     *
+     * <p>The body may legitimately be <em>empty</em>: a class whose only model content is a
+     * collaboration is still a class of the model ({@link ModelContent#includedClasses(DomainModel)}),
+     * and it is drawn as a box joined to its collaborator.  Whether such a class is emitted at all is
+     * the assembler's decision, not this method's.</p>
+     */
     @Programmatic
     public String toPlantUmlString() {
         PumlCode code = new PumlCode();
         code.addClass(getCandidateName());
         code.add(" #" + classType.colorCode);
         code.addBegin();
-        for (AttributeCdd p : attributeList) {
-            String s = p.toPlantUmlString();
-            code.addProperty(s);
+        for (AttributeCdd p : approvedAttributes()) {
+            code.addProperty(p.toPlantUmlString());
         }
-        for (ResponsibilityCdd a : responsibilityList) {
-            String s = a.toPlantUmlString();
-            code.addResponsibility(s);
+        for (ResponsibilityCdd a : approvedResponsibilities()) {
+            code.addResponsibility(a.toPlantUmlString());
         }
         code.addEnd();
         return code.getCode();
     }
+
+    // region > review-aware model content
+
+    /**
+     * The attributes of this class that were <b>approved</b> during review — the ones the UML
+     * export is allowed to emit.
+     *
+     * <p>The export used to render every member of every class regardless of its review, which is
+     * how the assembled model came to claim 168 operation lines when only 85 were approved
+     * ({@code MODEL_UML_READINESS_REVIEW.md} §2.1).  Reading the approved subset here — rather than
+     * filtering in the exporter — keeps the question "what is part of the model?" answerable in one
+     * place, and lets the same answer drive both the diagram and the empty-class sweep.</p>
+     *
+     * <p>A {@code null} list (a hand-built or detached instance) counts as none.</p>
+     */
+    @Programmatic
+    public List<AttributeCdd> approvedAttributes() {
+        if (attributeList == null) {
+            return List.of();
+        }
+        return attributeList.stream().filter(Candidate::isApproved).toList();
+    }
+
+    /** The <b>approved</b> responsibilities (operations) of this class — see {@link #approvedAttributes()}. */
+    @Programmatic
+    public List<ResponsibilityCdd> approvedResponsibilities() {
+        if (responsibilityList == null) {
+            return List.of();
+        }
+        return responsibilityList.stream().filter(Candidate::isApproved).toList();
+    }
+
+    /**
+     * Whether this class carries approved content <b>of its own</b>: at least one approved attribute
+     * or one approved responsibility.
+     *
+     * <p><b>Collaborations are deliberately not counted here.</b>  A class's own
+     * {@link #collaboratorList} holds only the collaborations it <em>owns</em> — ingestion attaches
+     * each one to its source alone ({@code CollaboratorCandidates}) — so a class that is merely the
+     * <em>target</em> of a relation would look empty.  Whether a class is part of the assembled model
+     * is therefore decided on the model, not on the class:
+     * {@link ModelContent#includedClasses(DomainModel)} adds every class that participates in a
+     * material collaboration, on either end.</p>
+     *
+     * <p>What this method <em>does</em> pin down is the asymmetry that makes an empty box detectable:
+     * a class can be approved while every one of its members was rejected, and then it carries no
+     * content of its own — which, together with no relation, is what
+     * {@link ModelContent#emptyClasses(DomainModel)} rejects.</p>
+     */
+    @Programmatic
+    public boolean hasOwnModelledContent() {
+        return !approvedAttributes().isEmpty() || !approvedResponsibilities().isEmpty();
+    }
+
+    // endregion
 }

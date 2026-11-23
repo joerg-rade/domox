@@ -333,8 +333,9 @@ land on a class literally named `Unknown`; names are often entities or noise (`p
 - [ ] **F6a.** Fix the fabricated owner first (small, unambiguous): return `null` (skip the
   candidate) when `relatedCandidateName == null`, mirroring the blocked-noun guard two lines above.
   Add a `CandidateFactoryTest` case (that class is floored at **95 %**).
-- [ ] **F6b.** Learn the real attribute vocabulary from the 100 pending candidates — read the
+- [x] **F6b.** Learn the real attribute vocabulary from the 100 pending candidates — read the
   evidence TSV produced by the review plan (`MODEL_REVIEW_PLAN.md` §4) **before** writing code.
+  ✅ **done 2026-11-21** — the vocabulary, per owner, is recorded in §9.1 below.
 - [ ] **F6c.** Extend `basic-attributes` with the vocabulary the corpus actually uses.
 - [ ] **F6d.** Prefer the **compound head** (`pet breed` → `breed`, `size color` → `color`) rather
   than the whole phrase; the phrase form is what produces `description description`.
@@ -342,6 +343,52 @@ land on a class literally named `Unknown`; names are often entities or noise (`p
   this ("class candidates … are to be set here as well", `AttributeCdd.java:53-56`) and nothing
   uses it. Decide whether `Order.customer` is an attribute or an association before extending the
   lexicon — otherwise the lexicon grows to swallow associations.
+
+### 9.1 The attribute vocabulary the corpus actually uses (F6b — recorded 2026-11-21)
+
+All **88** attribute candidates are now reviewed: **9 approved / 79 rejected** (`review`, `agent`).
+This is the running approved-attribute list F6b asks for, by owner.
+
+| Owner | Attribute | Inferred type |
+|---|---|---|
+| `Boarding` | **duration** | `String` |
+| `Health` | **note** | `String` |
+| `Partner` | **description** | `String` |
+| `Pet` | **size** | `String` |
+| `Pet` | **time** | `LocalDateTime` |
+| `Product` | **category** | `String` |
+| `Record` | **note** | `String` |
+| `Variant` | **size** | `String` |
+| `Variant` | **color** | `String` |
+
+**F6c — the lexicon delta is one word.** Checked name-by-name against `basic-attributes`
+(`application.yml:276-280`): `note`, `description`, `size`, `time`, `category`, `color` are **already
+in** the lexicon. **`duration` is the only approved name that is missing.** Adding it is the whole
+concrete change F6c implies from the approved evidence — the wider list in the symptom
+(`breed`, `colour`, `weight`, `vaccination status`, `price`, `fee`, `cost`) never produced an
+*approved* candidate, so adding it now would be guessing rather than learning; it belongs with the
+F6d/owner work instead.
+
+**F6e — the rejects, and what they say.** The 79 rejects are not noise; they split into three kinds,
+and the split answers F6e's question:
+
+1. **The owner *is* the attribute's concept** (`Fee.daily fee`, `Cost.total cost`, `Time.opening`,
+   `Size.online size`, `Level.high level`, `Quantity.available quantity`, `Update.update time`,
+   `Disclose.disclose fee`, `Meet.meet time`) — a verb or gerund became a class, then took a
+   same-named attribute. ~20 rows. Nothing to learn for the lexicon: these classes should not exist.
+2. **A class-typed member, i.e. an association** (`Type.pet`, `Range.product`, `Size.species`,
+   `Status.photo`, `Owner.event`, `Sign.illness`, `Product.type`, `Pet.type`, `Quantity.inventory`) —
+   exactly F6e's case. Only built-in types are attributes, so these are **associations**; extending the
+   lexicon to admit them would "swallow associations", the outcome F6e warns against.
+3. **A real attribute on the wrong owner** (`Date.size`, `Date.color`, `Stock.size`, `Species.size`,
+   `Item.size`, `Pet.status`, `Order.status`, `Customer.address`, `Pet.type`) — the same
+   `relatedCandidateName`-is-the-sentence-object defect §3.3 records for operations. This is the
+   largest group, and it is an **owner-resolution** bug, not a vocabulary one.
+
+So the ordering F6a → F6c → F6d → F6e the plan already implies is confirmed by the data: with the
+owners fixed (F6a, done — `Unknown` no longer exists) and the compound head preferred (F6d), group 3
+becomes real attributes and group 2 becomes associations, and only then is it worth revisiting the
+lexicon.
 
 ---
 

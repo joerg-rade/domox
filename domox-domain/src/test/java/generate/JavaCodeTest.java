@@ -4,6 +4,7 @@ import domox.dom.crc.model.ResponsibilityCdd;
 import domox.dom.crc.model.CollaboratorCdd;
 import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.service.DomainModels;
+import domox.dom.crc.service.Reviews;
 import domox.dom.crc.model.ResponsibilityParameter;
 import domox.dom.crc.model.AttributeCdd;
 import domox.dom.crc.model.SubDomain;
@@ -27,10 +28,13 @@ public class JavaCodeTest {
     @Mock
     RepositoryService mockRepositoryService;
 
+    @Mock
+    Reviews mockReviews;
+
     @BeforeEach
     public void setUp() {
         classUnderTest = new DomainModels(
-                mockRepositoryService);
+                mockRepositoryService, mockReviews);
     }
 
     @Test

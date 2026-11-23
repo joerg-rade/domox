@@ -7,6 +7,16 @@ class PumlCode() : BaseCode() {
         return this
     }
 
+    /**
+     * Appends {@code s} as a complete line — the trailing newline [add] deliberately leaves to its
+     * caller (the class body is assembled from [add]/[addBegin]/[addEnd], so only the callers that
+     * emit a standalone line need this).
+     */
+    fun addLine(s: String): PumlCode {
+        code += s + NL
+        return this
+    }
+
     fun addBegin(): PumlCode {
         code += " {" + NL
         return this
@@ -35,8 +45,7 @@ class PumlCode() : BaseCode() {
     }
 
     fun addCollaborator(s: String): PumlCode {
-        code += s + NL
-        return this
+        return addLine(s)
     }
 
     fun asUml(): PumlCode {

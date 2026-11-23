@@ -42,7 +42,10 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   `.clinerules/memory-bank/workflows/mcp-review-pipeline.md` (pass 1 — session driver, decisions
   pre-flight, the `/mcp` 404 fix, per-pass verification SQL) and
   `.clinerules/memory-bank/workflows/mcp-subdomain-pass.md` (pass 2 — the evidence chain, the eight
-  `SubDomainMcpTools`; generic method → the `identify-subdomains` skill)
+  `SubDomainMcpTools`; generic method → the `identify-subdomains` skill). The **open Review-pipeline
+  TODOs (TODO-01, 03–08) joined to the full per-pass method, policies, driver, SQL and source map** →
+  `docs/scratch_pad/REVIEW_PLAYBOOK.md` — the consolidated one-file entry point; it is *derived*, so its
+  §8 source map names what owns each fact.
 - **Domain-modeling (CRC) extraction rules** → `.clinerules/crc_domain_modeling_guide.md` (full guide: `docs/domain-modeling/crc-guide.md`)
 - **Run the app & confirm boot** → use `bash scripts/run-app.sh [--spring.args…]`. It does the three
   things that are easy to get wrong, in order: (1) `install`s `domox-domain`/`domox-adapter` into
@@ -169,10 +172,17 @@ edits: the file under `memory-bank/workflows/`, and one line here.
     `ro.py invoke domox.Reviews findByCandidate candidate=@/restful/objects/domox.ClassCdd/6640`,
     or `@` + the `self:` URL an earlier `invoke` printed. Without the `@` the value goes as a plain
     string and RO rejects it: `Expected a link (because this object's type is not a value) but found
-    no 'href'`. ⚠️ `@` only *builds* the reference — it still has to resolve: this app's RO viewer
-    exposes **services and view models, not entities**, so `…/objects/domox.ClassCdd/6640` comes back
-    `No 'value' key` (the resolved representation is an error). Use the id the action declares, or
-    the `self:` link of a view model an `invoke` returned.
+    no 'href'`. ⚠️ `@` only *builds* the reference. Two different things then happen, and only the first
+    is a failure: an **entity href is valid as an action parameter** — the server resolves the oid
+    itself — but a **`GET` on an entity is not exposed** by this app's RO viewer:
+    `GET /restful/objects/domox.ClassCdd/6640` → **404**
+    `{"message":"Could not determine adapter for bookmark: 'domox.ClassCdd:6640'"}`. So do not try to
+    *read* an entity over RO; do pass an entity href when an action declares an entity parameter.
+    Verified 2026-11-21 with the UML export:
+    `POST /restful/services/domox.DomainModels/actions/generateUmlDiagram/invoke` with
+    `{"domainModel":{"value":{"href":"…/objects/domox.DomainModel/16177"}}}` → **200** + PlantUML. The
+    body shape is the thing to remember: a nested `{"<param>":{"value":{"href":H}}}`, not a bare string
+    and not a bare `{"href":H}`.
   - `--out FILE` writes the result to a file and prints its size instead of dumping it; a scalar
     result prints as `result: …`. Use one of them before pasting a diagram payload into a transcript.
   For rendered HTML/CSS questions, prefer `scripts/verify-ui-render.sh` over reasoning about CSS.

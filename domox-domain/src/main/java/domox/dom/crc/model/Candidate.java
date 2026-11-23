@@ -303,6 +303,28 @@ public abstract class Candidate extends AbstractEntity {
     }
 
     /**
+     * Whether any of this candidate's reviews approved it — the <b>single definition of
+     * "approved"</b> in the application.
+     *
+     * <p>It is programmatic rather than a metamodel property: the review list and its count are
+     * already exposed, so an extra boolean on every candidate page would be noise.  The review
+     * service ({@code Reviews#hasApproval}), the D3 diagram
+     * ({@code DomainModelDiagramsD3#isApproved}) and the UML export
+     * ({@code generate.ClassDiagram}) all delegate here, so a candidate can never be "approved" for
+     * one of them and not for another.</p>
+     *
+     * <p>A candidate with no reviews at all — or with only pending ones (status {@code null}) — is
+     * <em>not</em> approved.  The null-guard is deliberate: a detached instance built by hand (a
+     * unit test, a JAXB round-trip) may have no review list, and the answer for it is the same as
+     * for an empty one.</p>
+     */
+    @Programmatic
+    public boolean isApproved() {
+        return reviews != null
+                && reviews.stream().anyMatch(r -> r != null && r.getStatus() == ReviewStatus.APPROVED);
+    }
+
+    /**
      * Adds a matching rule to this candidate.
      * <p>
      * The {@code ruleMatches} list is de-duplicated by the same candidate + rule

@@ -51,11 +51,19 @@ public class CollaboratorCdd
     @ManyToOne
     private DomainModel domainModel;
 
+    /**
+     * The association's source end.  A <em>private</em> field, so a Lombok getter is safe here —
+     * unlike the public-field members in {@link ClassCdd}/{@link DomainModel}, where a field and a
+     * getter of the same name would be two JAXB properties (see {@link #sourceCardinality}).
+     */
+    @Getter
     @Setter
     @Property
     @OneToOne
     private ClassCdd source;
 
+    /** The association's target end — see {@link #source}. */
+    @Getter
     @Setter
     @Property
     @OneToOne
@@ -109,6 +117,26 @@ public class CollaboratorCdd
     @Programmatic
     public String label() {
         return AssociationLabel.of(getRuleMatches(), getCandidateName());
+    }
+
+    /**
+     * Whether this association is <b>material</b> — approved itself <em>and</em> drawn between two
+     * approved classes.
+     *
+     * <p>An association with one unapproved end states nothing about the model: a generalization
+     * from an approved class to a name the reviewer threw away is not a generalization of the model.
+     * The review policy already requires both ends to be approved before an association is approved
+     * ({@code REVIEW_PLAYBOOK.md} §4.4), so this predicate is the invariant the export relies on
+     * rather than a second, weaker rule — it is what keeps the exporter correct for a hand-edited
+     * or half-reviewed database.</p>
+     *
+     * <p>A {@code null} end (possible for a hand-built or detached instance) is not material.</p>
+     */
+    @Programmatic
+    public boolean connectsApprovedClasses() {
+        return isApproved()
+                && source != null && source.isApproved()
+                && target != null && target.isApproved();
     }
 
     private String quote(String s) {
