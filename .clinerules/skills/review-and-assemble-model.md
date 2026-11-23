@@ -109,8 +109,10 @@ Decides *what the model now says*. Assembly is a **re-measurement, not a creatio
 candidates are real and which area each belongs to. Read the assembled model back:
 
 - `DomainModels#listAll()` finds the model; `DomainModels#generateUmlDiagram(domainModel)` renders
-  it. The D3 model diagram seeds from the **approved** candidates only, so a model with zero
-  approvals diagrams as empty and says so in the log instead of failing.
+  it and returns a `UmlClassDiagram` view model — the rendered PDF on its `diagram` property, the
+  PlantUML source on its `plantUml` property. The D3 model diagram seeds from the **approved**
+  candidates only, so a model with zero approvals diagrams as empty and says so in the log instead of
+  failing.
 - Record the numbers (classes, attribute lines, operation lines, edges, cardinalities) against the
   readiness review's table, so the next pass measures a **delta** and not a fresh opinion.
 

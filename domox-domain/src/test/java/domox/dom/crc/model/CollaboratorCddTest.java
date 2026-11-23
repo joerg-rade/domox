@@ -17,7 +17,9 @@ class CollaboratorCddTest {
 
     static {
         EXPECTED_ARROWS.put(AssociationType.ASSOCIATION, "->");
-        EXPECTED_ARROWS.put(AssociationType.GENERALIZATION, "|>-");
+        // PlantUML's generalization arrow — `|>-` is NOT parseable by PlantUML and made every
+        // diagram that contains an inheritance fail to render (see AssociationType's javadoc).
+        EXPECTED_ARROWS.put(AssociationType.GENERALIZATION, "--|>");
         EXPECTED_ARROWS.put(AssociationType.DEPENDENCY, ".>");
         EXPECTED_ARROWS.put(AssociationType.AGGREGATION, "*->");
         EXPECTED_ARROWS.put(AssociationType.COMPOSITION, "+->");

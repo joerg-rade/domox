@@ -3,10 +3,12 @@
 # UI render guardrail: a multi-line String ACTION RESULT keeps its line breaks.
 #
 # Why this exists:
-#   The PlantUML exports (generateUmlDiagram / generateSubDomainUmlDiagram) were verified correct
-#   SERVER-side — the action really returns 53 lines separated by "\n" — while the page showed the
-#   whole diagram as ONE long line.  No server-side check can see that: the newlines reach the DOM
-#   intact and are collapsed by the browser.  This script asserts the rendered line boxes instead.
+#   An action that returns a plain String (generateJavaCode — the Java source of a class candidate)
+#   renders as ONE long line on the page while the String really holds many lines separated by "\n".
+#   No server-side check can see that: the newlines reach the DOM intact and are collapsed by the
+#   browser.  This script asserts the rendered line boxes instead.  (The UML diagram actions used to
+#   be the example here — they now return a rendered UmlClassDiagram view model, see
+#   .clinerules/d3-diagram.md; the guardrail is about the String case, which remains.)
 #
 #   The cause (traced through the viewer sources) is that an action result is shown by
 #   StandaloneValuePanel, which builds the value through the ordinary ATTRIBUTE_NAME_AND_VALUE

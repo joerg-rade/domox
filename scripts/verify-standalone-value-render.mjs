@@ -2,9 +2,9 @@
  * Headless-Chromium measurement client for scripts/verify-standalone-value-render.sh
  *
  * Asserts the USER-VISIBLE property that a multi-line String action result keeps its line breaks,
- * which is the class of bug no server-side check can see: the PlantUML export was verified correct
- * on the wire (53 lines, real "\n") while the page showed it as ONE long line, because the viewer
- * renders such a result through the COMPACT label fragment
+ * which is the class of bug no server-side check can see: such a result was verified correct on the
+ * wire (many lines, real "\n") while the page showed it as ONE long line, because the viewer renders
+ * it through the COMPACT label fragment
  * (<span class="fragment-compact-label">) and the browser default `white-space: normal` collapsed
  * every newline.  The fixture therefore carries the REAL markup shape, taken from the viewer's own
  * templates (div.standaloneValuePanel > span.standaloneValue > div.scalarNameAndValueComponentType >

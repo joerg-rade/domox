@@ -172,10 +172,10 @@ td[class*="ContextSentence"] mark {
 }
 
 /* ---------------------------------------------------------------------------
-   Multi-line text results — the PlantUML exports of the diagram actions.
+   Multi-line text results — the Java source of a class candidate.
 
-   An action that returns a plain String (generateUmlDiagram, generateSubDomainUmlDiagram, ...)
-   has its result rendered by the viewer's StandaloneValuePanel
+   An action that returns a plain String (generateJavaCode, ...) has its result
+   rendered by the viewer's StandaloneValuePanel
    (ValuePage.html -> div.card-body -> UiComponentType.VALUE -> StandaloneValuePanel.html ->
    div.standaloneValuePanel), which builds the value through the ORDINARY
    ATTRIBUTE_NAME_AND_VALUE pipeline (UiAttributeWkt.pseudo).  Two consequences matter:
@@ -193,10 +193,10 @@ td[class*="ContextSentence"] mark {
    The newlines DO reach the DOM: the viewer only HTML-escapes the text
    (Wkt.labelWithDynamicEscaping -> setEscapeModelStrings(true)), and escaping leaves "\n" alone.
    What collapses them is the browser default `white-space: normal` on that label span — which is
-   exactly why the whole diagram used to render as one long line.
+   exactly why a multi-line result used to render as one long line.
 
-   pre-wrap keeps the line breaks AND the significant leading indentation of source-like text such
-   as PlantUML, while still wrapping lines that are too wide for the page (unlike `pre`, which
+   pre-wrap keeps the line breaks AND the significant leading indentation of source-like text
+   (PlantUML, Java), while still wrapping lines that are too wide for the page (unlike `pre`, which
    would give the page a horizontal scrollbar).  Scoped to .standaloneValuePanel, the wrapper
    StandaloneValuePanel.html emits, so the IDENTICAL fragment class inside list/table cells and
    every other label in the app are left alone.

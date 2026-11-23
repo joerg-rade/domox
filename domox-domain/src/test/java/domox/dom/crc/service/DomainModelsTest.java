@@ -12,6 +12,7 @@ import domox.dom.crc.model.ReviewRationale;
 import domox.dom.crc.model.ReviewStatus;
 import domox.dom.crc.model.SubDomain;
 import domox.dom.crc.model.SubDomainClassification;
+import domox.port.DiagramPort;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,11 +26,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DomainModelsTest {
+
+    /** Stands in for a rendered PDF — the port's bytes are not what these tests assert. */
+    private static final byte[] PDF_BYTES = {'%', 'P', 'D', 'F'};
+
     private DomainModels classUnderTest;
 
     @Mock
@@ -38,10 +44,18 @@ class DomainModelsTest {
     @Mock
     Reviews mockReviews;
 
+    @Mock
+    DiagramPort mockDiagramPort;
+
     @BeforeEach
     public void setUp() {
         classUnderTest = new DomainModels(
-                mockRepositoryService, mockReviews);
+                mockRepositoryService, mockReviews, mockDiagramPort);
+    }
+
+    /** The port is only the renderer; the diagram tests assert the view model around it. */
+    private void stubDiagramRendering() {
+        when(mockDiagramPort.buildPlantUmlDiagram(anyString())).thenReturn(PDF_BYTES);
     }
 
     @Test
@@ -69,16 +83,23 @@ class DomainModelsTest {
         association.setTargetCardinality("2");
         domainModel.classList.add(clazz1);
         domainModel.classList.add(clazz2);
+        stubDiagramRendering();
 
         // when
-        final String plantUml = classUnderTest.generateUmlDiagram(domainModel);
+        final UmlClassDiagram result = classUnderTest.generateUmlDiagram(domainModel);
 
-        // then
+        // then — the assembled PlantUML is still delivered ...
+        final String plantUml = result.getPlantUml();
         assertThat(domainModel.classList).hasSize(2);
         assertThat(plantUml).as("@startuml tag missing").startsWith("@startuml");
         assertThat(plantUml).as("@enduml tag missing").endsWith("@enduml");
         assertThat(plantUml).contains("class \"Alice");
         assertThat(plantUml).as("the approved cardinality is quoted on the edge").contains("Alice->\"2\"Bob");
+        // ... and the diagram itself is the RENDERED one, not the source text
+        assertThat(result.getDiagram()).isNotNull();
+        assertThat(result.getDiagram().mimeType().toString()).contains("application/pdf");
+        assertThat(result.getMessage()).as("nothing to report on a successful render").isNull();
+        assertThat(result.hideMessage()).isTrue();
     }
 
     // --- one diagram per sub-domain, and the overview -------------------------
@@ -91,12 +112,14 @@ class DomainModelsTest {
                 subDomain("Inventory", SubDomainClassification.CORE))));
         model.classList.add(approved(withResponsibility("Till",
                 subDomain("Checkout", SubDomainClassification.SUPPORTING))));
+        stubDiagramRendering();
 
         // when
-        final String plantUml = classUnderTest.generateSubDomainUmlDiagram(model, "Inventory");
+        final UmlClassDiagram result = classUnderTest.generateSubDomainUmlDiagram(model, "Inventory");
 
         // then
-        assertThat(plantUml).contains("class \"Store\"").doesNotContain("Till");
+        assertThat(result.getPlantUml()).contains("class \"Store\"").doesNotContain("Till");
+        assertThat(result.getDiagram()).as("rendered, not the source").isNotNull();
     }
 
     @Test
@@ -124,13 +147,35 @@ class DomainModelsTest {
         approved(collaboration(model, "has", store, till));
         model.classList.add(store);
         model.classList.add(till);
+        stubDiagramRendering();
 
         // when
-        final String plantUml = classUnderTest.generateSubDomainOverviewDiagram(model);
+        final UmlClassDiagram result = classUnderTest.generateSubDomainOverviewDiagram(model);
 
         // then
-        assertThat(plantUml).contains("class \"Inventory (CORE)\" as SD0");
-        assertThat(plantUml).contains("SD0 --> SD1 : 1");
+        assertThat(result.getPlantUml()).contains("class \"Inventory (CORE)\" as SD0");
+        assertThat(result.getPlantUml()).contains("SD0 --> SD1 : 1");
+        assertThat(result.getDiagram()).as("rendered, not the source").isNotNull();
+    }
+
+    // --- rendering failures are reported, not thrown --------------------------
+
+    @Test
+    void generateUmlDiagramReportsARenderingFailureAndStillDeliversTheSource() {
+        // given — an approved class to draw, and a Kroki that is down
+        final DomainModel model = new DomainModel();
+        model.classList.add(approved(withResponsibility("Store", null)));
+        when(mockDiagramPort.buildPlantUmlDiagram(anyString()))
+                .thenThrow(new IllegalStateException("connection refused"));
+
+        // when
+        final UmlClassDiagram result = classUnderTest.generateUmlDiagram(model);
+
+        // then — no picture, but the source and the reason are both on the view model
+        assertThat(result.getDiagram()).isNull();
+        assertThat(result.getPlantUml()).as("the source survives a failed render").contains("class \"Store\"");
+        assertThat(result.getMessage()).contains("connection refused");
+        assertThat(result.hideMessage()).as("the message is shown when there is one").isFalse();
     }
 
     // --- the "no empty boxes" sweep ------------------------------------------

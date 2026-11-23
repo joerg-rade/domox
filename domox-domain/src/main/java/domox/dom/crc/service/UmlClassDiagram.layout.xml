@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bs:grid
+        xmlns:bs="https://causeway.apache.org/applib/layout/grid/bootstrap3"
+        xmlns:cpt="https://causeway.apache.org/applib/layout/component">
+
+    <!-- Top Header & Unassigned Actions.
+         Causeway requires a column (or tabGroup) carrying unreferencedCollections="true"
+         in EVERY layout XML, even when the type has no collections — without it the
+         whole grid is rejected with a metadataError and silently replaced by the default. -->
+    <bs:row>
+        <bs:col span="12" unreferencedActions="true" unreferencedCollections="true">
+            <cpt:domainObject/>
+        </bs:col>
+    </bs:row>
+
+    <!-- The rendered diagram spans ALL 12 columns.
+
+         WHY THIS FILE EXISTS: without a layout XML Causeway falls back to its bundled
+         GridFallbackLayout.xml, which puts every property in a span-4 column (inside an
+         "Identity"/"Other" tab) — so the pdf.js panel got ~1/3 of the page and the diagram was
+         unreadable.  Nothing else can widen it: the viewer sizes itself from its CONTAINER
+         (pdfjs-integration-v4x5x.mjs does `canvas.width = container.width()` and derives the
+         auto-scale from `$(canvasDiv).width()`, capped at MAX_AUTO_SCALE = 1.25), and the
+         extension's own PdfJsViewerPanel.css already sets `.pdfPanel { width: 100% }`.  The
+         enclosing grid column is therefore the ONLY width driver — same reason, same shape as
+         UmlDiagram.layout.xml and OntologyDiagram.layout.xml.
+
+         The memento properties (domainModel, kind, subDomainName) are hidden (Where.EVERYWHERE)
+         and already shown in the object title; unreferencedProperties must still be set
+         somewhere, or the whole grid is rejected. -->
+    <bs:row>
+        <bs:col span="12">
+            <cpt:fieldSet name="Diagram" id="content" unreferencedProperties="true">
+                <cpt:property id="diagram"/>
+                <!-- shown only when the render failed (hideMessage() hides it otherwise) -->
+                <cpt:property id="message"/>
+            </cpt:fieldSet>
+        </bs:col>
+    </bs:row>
+
+    <!-- The PlantUML source, also full width: it is a 20-line textarea holding a whole model's
+         source (472 lines for the 970-class model), which is unreadable in a narrow column. -->
+    <bs:row>
+        <bs:col span="12">
+            <cpt:fieldSet name="PlantUML Source" id="source">
+                <cpt:property id="plantUml"/>
+            </cpt:fieldSet>
+        </bs:col>
+    </bs:row>
+</bs:grid>

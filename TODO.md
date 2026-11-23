@@ -320,7 +320,9 @@ concrete improvement, and the condition that closes it.
 - **Risk if skipped:** the next session measures a fresh opinion instead of a delta, and closed gaps
   are re-litigated.
 - **Area of improvement:** `python3 scripts/ro.py invoke domox.DomainModels generateUmlDiagram
-  domainModel=DomainModel:653`, compare against the §2 table, and write the delta back.
+  domainModel=DomainModel:653`, read the returned `UmlClassDiagram` view model's **`plantUml`**
+  property (the diagram actions render the picture; the source travels as a property), compare
+  against the §2 table, and write the delta back.
 - **Done when:** the readiness review carries the post-pass table and the answered gaps are closed.
 
 ---

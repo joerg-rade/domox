@@ -259,6 +259,19 @@ class DiagramBuilder @JvmOverloads constructor(
         return convertSvgToPdf(svgDiagram)
     }
 
+    /**
+     * Renders PlantUML source (already assembled by the caller) as a PDF.
+     *
+     * The class-diagram export's counterpart of [buildTypedDependencyDiagram], except that the
+     * PlantUML comes from the domain (`generate.ClassDiagram`) rather than being generated here from
+     * a dependency list: Kroki renders it to SVG via `/plantuml/svg`, which is then transcoded to
+     * PDF, so the viewer can show it through its pdf.js panel instead of as one long line of text.
+     */
+    fun buildPlantUmlDiagram(pumlCode: String): ByteArray {
+        val svgDiagram = httpRequest.invokePlantUML(pumlCode)
+        return convertSvgToPdf(svgDiagram)
+    }
+
     private fun convertSvgToPdf(svgContent: String): ByteArray {
         try {
             val input = TranscoderInput(StringReader(svgContent))

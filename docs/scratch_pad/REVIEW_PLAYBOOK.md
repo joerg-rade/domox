@@ -445,7 +445,9 @@ count only classes the model actually contains.
 
 **Step 2 — render the diagrams.**  `DomainModels#listAll()` finds the model, then:
 
-- `generateUmlDiagram(domainModel)` — the whole model;
+- `generateUmlDiagram(domainModel)` — the whole model. Each of the three returns a
+  **`UmlClassDiagram` view model**: the PlantUML source is its `plantUml` property (that is what the
+  re-measure below counts) and the diagram itself is its `diagram` property, rendered by Kroki;
 - `generateSubDomainUmlDiagram(domainModel, subDomainName)` — **one diagram per sub-domain** (the
   choices come from the action);
 - `generateSubDomainOverviewDiagram(domainModel)` — **how the sub-domains relate** to each other.

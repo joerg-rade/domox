@@ -23,4 +23,8 @@ class KrokiDiagramAdapter(
     override fun buildLexicalGraphDiagram(dotCode: String): ByteArray {
         return diagramBuilder.buildLexicalGraphDiagram(dotCode)
     }
+
+    override fun buildPlantUmlDiagram(plantUml: String): ByteArray {
+        return diagramBuilder.buildPlantUmlDiagram(plantUml)
+    }
 }

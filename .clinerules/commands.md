@@ -180,7 +180,10 @@ edits: the file under `memory-bank/workflows/`, and one line here.
     *read* an entity over RO; do pass an entity href when an action declares an entity parameter.
     Verified 2026-11-21 with the UML export:
     `POST /restful/services/domox.DomainModels/actions/generateUmlDiagram/invoke` with
-    `{"domainModel":{"value":{"href":"…/objects/domox.DomainModel/16177"}}}` → **200** + PlantUML. The
+    `{"domainModel":{"value":{"href":"…/objects/domox.DomainModel/16177"}}}` → **200** + a
+    `domox.UmlClassDiagram` view model whose `plantUml` member is the source and whose `diagram`
+    member is the Kroki-rendered PDF (the actions render the diagram; the source is a property, see
+    `.clinerules/d3-diagram.md`). The
     body shape is the thing to remember: a nested `{"<param>":{"value":{"href":H}}}`, not a bare string
     and not a bare `{"href":H}`.
   - `--out FILE` writes the result to a file and prints its size instead of dumping it; a scalar

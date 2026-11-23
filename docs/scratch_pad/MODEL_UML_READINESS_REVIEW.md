@@ -69,6 +69,11 @@ Real output for model 653:
 | edges | 237 (`|>-` 171, `==` 52, `->` 14) | 23 with **both** ends approved |
 | edges carrying a cardinality | **0** | **0** |
 
+> The arrows are quoted as the export printed them at the time. `|>-` was the `GENERALIZATION`
+> spelling until 2026-11-23, when the diagram actions started *rendering* through Kroki: PlantUML
+> rejects `|>-` (`Error 400: Syntax Error?`) and the whole diagram failed to render, so the arrow is
+> now `--|>` (`AssociationType`). The **counts** above are unaffected — only the spelling changed.
+
 Stereotype colour comes from `ClassType` (Coad archetype, computed at ingestion by
 `ClassArchetypeClassifier`): 680 PARTY_PLACE_THING, 127 DESCRIPTION, 100 MOMENT_INTERVAL, 64 ROLE.
 

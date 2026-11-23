@@ -8,6 +8,7 @@ import domox.dom.crc.service.Reviews;
 import domox.dom.crc.model.ResponsibilityParameter;
 import domox.dom.crc.model.AttributeCdd;
 import domox.dom.crc.model.SubDomain;
+import domox.port.DiagramPort;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,10 +32,13 @@ public class JavaCodeTest {
     @Mock
     Reviews mockReviews;
 
+    @Mock
+    DiagramPort mockDiagramPort;
+
     @BeforeEach
     public void setUp() {
         classUnderTest = new DomainModels(
-                mockRepositoryService, mockReviews);
+                mockRepositoryService, mockReviews, mockDiagramPort);
     }
 
     @Test

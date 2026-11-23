@@ -315,7 +315,7 @@ The following predicates were added to `TypedDependencyPredicates`:
 
 #### Phase 2 Integration
 - `RuleMatches.createCandidateFromMatch()` handles `"SynonymCdd"` candidateType by creating both `ClassCdd` entities (head and partner) and an `CollaboratorCdd` with `AssociationType.SYNONYM`.
-- `AssociationType.SYNONYM("==")` was added to represent semantic equivalence (distinct from `GENERALIZATION "|>-"`).
+- `AssociationType.SYNONYM("==")` was added to represent semantic equivalence (distinct from `GENERALIZATION`, whose PlantUML arrow is `--|>` since 2026-11-23 — it used to be `|>-`, which PlantUML rejects).
 - Blocked use-case nouns are filtered for synonym participants, matching the generalization guard.
 
 ### Next Steps
