@@ -176,8 +176,13 @@ public class UmlLayoutDiagrams {
      * path was unusable has no such hint, and the router picks the cheapest edge pair itself.  When the
      * search finds nothing — a box it cannot get around within its region — the plain edge-pair route is
      * the safety net.
+     * <p>
+     * Package-private rather than private: it is the one routing entry point both the reconstruction
+     * ({@link #renderLayout}) and the assembled-model layout ({@link UmlDiagramLayout#render}) use, so a
+     * diagram built from CRC candidates is routed by exactly the code the guardrails already assert over
+     * the export.
      */
-    private static void routeAll(final List<Link> links, final Map<String, Box> boxes) {
+    static void routeAll(final List<Link> links, final Map<String, Box> boxes) {
         final List<Box> all = new ArrayList<>(boxes.values());
         final List<Segment> placed = new ArrayList<>();
 

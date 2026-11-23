@@ -135,7 +135,9 @@ public class DomainModels {
             final String kind,
             final String subDomainName) {
         final String plantUml = plantUmlOf(domainModel, kind, subDomainName);
-        final UmlClassDiagram diagram = UmlClassDiagram.of(domainModel, kind, subDomainName).withSource(plantUml);
+        final UmlClassDiagram diagram = UmlClassDiagram.of(domainModel, kind, subDomainName)
+                .withSource(plantUml)
+                .withGraph(graphOf(domainModel, kind, subDomainName));
         try {
             final byte[] pdf = diagramPort.buildPlantUmlDiagram(plantUml);
             return diagram.rendered(new Blob(fileNameOf(kind, subDomainName), DomainConstants.PDF_MIME_TYPE, pdf));
@@ -157,6 +159,27 @@ public class DomainModels {
             case UmlClassDiagram.KIND_SUB_DOMAIN -> classDiagram.buildForSubDomain(domainModel, subDomainName);
             case UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW -> classDiagram.buildSubDomainOverview(domainModel);
             default -> classDiagram.build(domainModel);
+        };
+    }
+
+    /**
+     * Assembles the <em>same</em> diagram as a {@link ClassDiagram.Graph}, for the D3 renderer.
+     *
+     * <p>Both renderers read the same class list and the same collaboration list — {@link ClassDiagram}
+     * is the single place the review-aware "what is in the model" rules live — so the D3 picture and the
+     * PlantUML picture cannot disagree about <em>what</em> the model contains.  They differ only in how
+     * it is drawn: the PDF is laid out by PlantUML/Kroki, the D3 payload by
+     * {@code UmlDiagramLayout#render}.  Nothing here needs Kroki, so the D3 picture survives an
+     * unreachable renderer.</p>
+     */
+    private ClassDiagram.Graph graphOf(
+            final DomainModel domainModel, final String kind, final String subDomainName) {
+        final ClassDiagram classDiagram = new ClassDiagram();
+        final String which = kind == null ? UmlClassDiagram.KIND_MODEL : kind;
+        return switch (which) {
+            case UmlClassDiagram.KIND_SUB_DOMAIN -> classDiagram.graphForSubDomain(domainModel, subDomainName);
+            case UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW -> classDiagram.graphOverview(domainModel);
+            default -> classDiagram.graph(domainModel);
         };
     }
 

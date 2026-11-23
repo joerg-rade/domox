@@ -69,6 +69,14 @@ public class CollaboratorCdd
     @OneToOne
     private ClassCdd target;
 
+    /**
+     * The association's UML kind.  A <em>private</em> field, so it carries a Lombok getter like its
+     * {@link #source}/{@link #target} neighbours do — a <em>public</em> field plus a getter of the same
+     * name would be two JAXB properties (see {@link #source}), and every renderer has to be able to
+     * <em>read</em> the kind to draw an inheritance as an inheritance rather than as a plain
+     * association.
+     */
+    @Getter
     @Setter
     @Property
     @Column(nullable = false)

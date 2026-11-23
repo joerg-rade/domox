@@ -18,10 +18,13 @@
  */
 package generate
 
+import domox.dom.crc.model.AssociationType
 import domox.dom.crc.model.ClassCdd
+import domox.dom.crc.model.CollaboratorCdd
 import domox.dom.crc.model.DomainModel
 import domox.dom.crc.model.ModelContent
 import domox.dom.crc.model.SubDomainClassification
+import domox.dom.rdf.UmlDiagramLayout
 
 /**
  * Assembles the model's PlantUML class diagrams from the **reviewed** candidates.
@@ -70,10 +73,8 @@ class ClassDiagram {
      * @param subDomainName the sub-domain's name, matched case-insensitively; blank selects nothing
      *                      (rather than everything, which a blank parameter would otherwise mean)
      */
-    fun buildForSubDomain(dm: DomainModel, subDomainName: String?): String {
-        val wanted = subDomainName?.trim() ?: ""
-        return render(dm, ModelContent.includedClasses(dm).filter { nameOf(it).equals(wanted, ignoreCase = true) })
-    }
+    fun buildForSubDomain(dm: DomainModel, subDomainName: String?): String =
+        render(dm, subDomainClasses(dm, subDomainName))
 
     /**
      * The names of the sub-domains that would produce a non-empty diagram — the choices for the
@@ -88,6 +89,63 @@ class ClassDiagram {
             .filter { it.isNotEmpty() }
             .distinct()
             .sorted()
+
+    // -- the same three diagrams, as a graph the D3 panel draws ------------------
+
+    /**
+     * One diagram as a graph — its boxes and the connectors between them — <em>before</em> either
+     * renderer draws it.
+     *
+     * <p>{@link #build} and its siblings turn this into PlantUML (Kroki → SVG → PDF → the pdf.js
+     * panel); {@code UmlDiagramLayout#render} turns it into the {@code {"layout":"uml",…}} payload the
+     * D3 panel draws statically.  Both read the <em>same</em> class list and the same collaboration
+     * list, so the two pictures of one diagram cannot disagree about what the model contains — which is
+     * the whole point of assembling the content here rather than in either renderer.</p>
+     */
+    data class Graph(
+        val title: String,
+        val nodes: List<UmlDiagramLayout.Node>,
+        val edges: List<UmlDiagramLayout.Edge>,
+    )
+
+    /** The whole model as a graph — what {@link #build} renders, which has no stored geometry of its own. */
+    fun graph(dm: DomainModel): Graph {
+        val included = ModelContent.includedClasses(dm)
+        return Graph(titleOf(dm, "whole model"), nodesOf(included), edgesOf(dm, included.toSet()))
+    }
+
+    /** One sub-domain as a graph — what {@link #buildForSubDomain} renders. */
+    fun graphForSubDomain(dm: DomainModel, subDomainName: String?): Graph {
+        val included = subDomainClasses(dm, subDomainName)
+        val wanted = subDomainName?.trim() ?: ""
+        return Graph(
+            titleOf(dm, if (wanted.isEmpty()) "sub-domain (unnamed)" else "sub-domain $wanted"),
+            nodesOf(included),
+            edgesOf(dm, included.toSet()),
+        )
+    }
+
+    /**
+     * The sub-domain overview as a graph — what {@link #buildSubDomainOverview} renders: one node per
+     * sub-domain, and one edge per distinct cross-sub-domain relation, labelled with the number of
+     * collaborations it aggregates.
+     *
+     * <p>Every node is in one band: an overview node <em>is</em> a sub-domain, so grouping the nodes
+     * would turn the diagram's own content into whitespace.</p>
+     */
+    fun graphOverview(dm: DomainModel): Graph {
+        val overview = overviewOf(dm)
+        val nodes = overview.nodeIndex.keys.map { UmlDiagramLayout.Node(it, it, null) }
+        val edges = overview.edges.entries.map { entry ->
+            UmlDiagramLayout.Edge(
+                entry.key.first,
+                entry.key.second,
+                UmlDiagramLayout.ASSOCIATION,
+                entry.value.toString(),
+            )
+        }
+        return Graph(titleOf(dm, "sub-domain overview"), nodes, edges)
+    }
 
     /**
      * The sub-domain overview: one node per sub-domain, one edge per distinct cross-sub-domain
@@ -104,6 +162,34 @@ class ClassDiagram {
      * partition is incomplete.</p>
      */
     fun buildSubDomainOverview(dm: DomainModel): String {
+        val overview = overviewOf(dm)
+
+        val code = PumlCode()
+        for ((label, index) in overview.nodeIndex) {
+            code.addLine("class \"$label\" as SD$index")
+        }
+        for ((pair, count) in overview.edges) {
+            val from = overview.nodeIndex.getValue(pair.first)
+            val to = overview.nodeIndex.getValue(pair.second)
+            code.addLine("SD$from --> SD$to : $count")
+        }
+        code.asUml()
+        return code.code
+    }
+
+    /**
+     * The overview's content, before either renderer draws it: node label → position, and undirected
+     * edge → the number of collaborations it stands for.
+     *
+     * <p>Shared by {@link #buildSubDomainOverview} (PlantUML) and {@link #graphOverview} (D3), so the
+     * overview cannot aggregate its edges one way on paper and another on screen.</p>
+     */
+    private class Overview(
+        val nodeIndex: LinkedHashMap<String, Int>,
+        val edges: LinkedHashMap<Pair<String, String>, Int>,
+    )
+
+    private fun overviewOf(dm: DomainModel): Overview {
         val included = ModelContent.includedClasses(dm)
         val inModel = included.toSet()
 
@@ -130,18 +216,64 @@ class ClassDiagram {
             edges.merge(key, 1) { a, b -> a + b }
         }
 
-        val code = PumlCode()
-        for ((label, index) in nodeIndex) {
-            code.addLine("class \"$label\" as SD$index")
-        }
-        for ((pair, count) in edges) {
-            val from = nodeIndex.getValue(pair.first)
-            val to = nodeIndex.getValue(pair.second)
-            code.addLine("SD$from --> SD$to : $count")
-        }
-        code.asUml()
-        return code.code
+        return Overview(nodeIndex, edges)
     }
+
+    // -- assembling a class diagram's graph --------------------------------------
+
+    /** One sub-domain's included classes, matched case-insensitively on the sub-domain's name. */
+    private fun subDomainClasses(dm: DomainModel, subDomainName: String?): List<ClassCdd> {
+        val wanted = subDomainName?.trim() ?: ""
+        return ModelContent.includedClasses(dm).filter { nameOf(it).equals(wanted, ignoreCase = true) }
+    }
+
+    /**
+     * The boxes of a class diagram.
+     *
+     * <p>Ordered by sub-domain and then by name: the layout engine starts a new band whenever a node's
+     * group changes (see {@code UmlDiagramLayout#place}), so this ordering is what turns a model's
+     * sub-domains into visible blocks — and, being a total order on the model alone, it is also what
+     * makes the picture reproducible.</p>
+     *
+     * <p>A class with no name is dropped rather than drawn as an unnamed box: {@link #render} skips it
+     * for the same reason, and an edge could not be attached to it anyway.</p>
+     */
+    private fun nodesOf(included: List<ClassCdd>): List<UmlDiagramLayout.Node> =
+        included
+            .filter { !it.candidateName.isNullOrEmpty() }
+            .sortedWith(compareBy({ nameOf(it) }, { it.candidateName }))
+            .map { UmlDiagramLayout.Node(it.candidateName, it.candidateName, nameOf(it)) }
+
+    /**
+     * The connectors of a class diagram: the model's material collaborations whose two ends are both
+     * drawn here.
+     *
+     * <p>An edge to a class outside the diagram — a sub-domain boundary, or a class the review did not
+     * include — is dropped rather than drawn into empty space, exactly as {@link #render} drops it.</p>
+     */
+    private fun edgesOf(dm: DomainModel, inModel: Set<ClassCdd>): List<UmlDiagramLayout.Edge> =
+        ModelContent.materialCollaborations(dm).mapNotNull { edgeOf(it, inModel) }
+
+    /** One material collaboration as an edge, or {@code null} when it is not wholly inside the diagram. */
+    private fun edgeOf(asc: CollaboratorCdd, inModel: Set<ClassCdd>): UmlDiagramLayout.Edge? {
+        val source = asc.source ?: return null
+        val target = asc.target ?: return null
+        if (!inModel.contains(source) || !inModel.contains(target)) return null
+        val from = source.candidateName ?: return null
+        val to = target.candidateName ?: return null
+        if (from.isEmpty() || to.isEmpty()) return null
+        // The model states a generalization from the sub-class to the super-class, while
+        // UmlDiagramLayout reads an edge the way its arrow reads: from the super-class.  The swap is
+        // what lets PortLayout merge the group into one trunk on the super-class's own edge.
+        return if (asc.type == AssociationType.GENERALIZATION) {
+            UmlDiagramLayout.Edge(to, from, UmlDiagramLayout.GENERALIZATION, asc.label())
+        } else {
+            UmlDiagramLayout.Edge(from, to, UmlDiagramLayout.ASSOCIATION, asc.label())
+        }
+    }
+
+    /** The title of a diagram: the model it was drawn from, and which view of it this is. */
+    private fun titleOf(dm: DomainModel, view: String): String = "${dm.title()} — $view"
 
     /**
      * Renders one diagram: the given classes, then the model's material edges between two of them.

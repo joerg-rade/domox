@@ -192,6 +192,10 @@ edits: the file under `memory-bank/workflows/`, and one line here.
 - **Causeway layouts / view models / `@D3Graph`** → `.clinerules/memory-bank/technical/CAUSEWAY-LAYOUT.md`
   (verified facts: layout-XML resolution and the silent fallback grid, the `unreferenced*` markers,
   `@D3Graph` being property-only, view-model mementos and `hideXxx()`, plus the jar-inspection recipes).
+  **Composing** a page — the shape rules (nothing important below the horizon; several independent
+  panels go in a `bs:tabGroup`, not stacked rows; a diagram panel needs `span="12"`; a panel inside a
+  tab is built while its tab is hidden) → `docs/causeway/causeway-ui-layout-guidelines.md`, and the
+  condensed form in that reference's §8.
 - **Overriding a config value for a verification boot** → a **non-empty** `--key=value` works; an
   **empty** one does NOT (`--domox.rdf.endpoint-url=` leaves the `application.yml` value in place —
   verified for CLI args; a `@SpringBootTest(properties = "…=")` inlined empty value DOES override, which is how the webapp integration tests pin local mode). Set blank values in the YAML.

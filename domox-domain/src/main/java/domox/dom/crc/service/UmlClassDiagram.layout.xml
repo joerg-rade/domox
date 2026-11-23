@@ -13,38 +13,72 @@
         </bs:col>
     </bs:row>
 
-    <!-- The rendered diagram spans ALL 12 columns.
+    <!-- THE THREE VIEWS OF THE SAME DIAGRAM ARE TABS, NOT A STACK.
 
          WHY THIS FILE EXISTS: without a layout XML Causeway falls back to its bundled
          GridFallbackLayout.xml, which puts every property in a span-4 column (inside an
          "Identity"/"Other" tab) — so the pdf.js panel got ~1/3 of the page and the diagram was
-         unreadable.  Nothing else can widen it: the viewer sizes itself from its CONTAINER
-         (pdfjs-integration-v4x5x.mjs does `canvas.width = container.width()` and derives the
-         auto-scale from `$(canvasDiv).width()`, capped at MAX_AUTO_SCALE = 1.25), and the
-         extension's own PdfJsViewerPanel.css already sets `.pdfPanel { width: 100% }`.  The
-         enclosing grid column is therefore the ONLY width driver — same reason, same shape as
-         UmlDiagram.layout.xml and OntologyDiagram.layout.xml.
+         unreadable.  Nothing else can widen it: the extension's own PdfJsViewerPanel.css already
+         sets `.pdfPanel { width: 100% }`, so the enclosing grid column is the ONLY width driver —
+         same reason, same shape as UmlDiagram.layout.xml and OntologyDiagram.layout.xml.
+
+         WHY TABS: stacked, the page was ~three screens tall and the reader had to scroll to find
+         out that a second and third rendering even existed — content "below the horizon" is
+         content a reader does not know is there.  Each panel is an alternative view of one
+         artifact, which is exactly what a tab group is for (the shape Candidate.layout.xml uses).
+         See docs/causeway/causeway-ui-layout-guidelines.md.
+
+         Each tab's column still spans ALL 12 columns, because width is what makes each panel
+         readable.  A tab panel is built when its tab is shown (AjaxBootstrapTabbedPanel puts only
+         the selected tab's panel in the DOM — verified live), so neither panel ever measures a
+         hidden container; both would survive it anyway:
+           - the PDF renders at a FIXED scale 1.00 (PdfJsConfig.initialScale defaults to Scale._1_00,
+             so pdfjs' container-width auto-scale branch is never taken), and
+           - the D3 picture takes its viewBox from the payload's own canvas, not from the container.
 
          The memento properties (domainModel, kind, subDomainName) are hidden (Where.EVERYWHERE)
          and already shown in the object title; unreferencedProperties must still be set
          somewhere, or the whole grid is rejected. -->
     <bs:row>
         <bs:col span="12">
-            <cpt:fieldSet name="Diagram" id="content" unreferencedProperties="true">
-                <cpt:property id="diagram"/>
-                <!-- shown only when the render failed (hideMessage() hides it otherwise) -->
-                <cpt:property id="message"/>
-            </cpt:fieldSet>
-        </bs:col>
-    </bs:row>
+            <bs:tabGroup>
+                <bs:tab name="Diagram">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet name="Diagram" id="content" unreferencedProperties="true">
+                                <cpt:property id="diagram"/>
+                                <!-- shown only when the render failed (hideMessage() hides it otherwise) -->
+                                <cpt:property id="message"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
 
-    <!-- The PlantUML source, also full width: it is a 20-line textarea holding a whole model's
-         source (472 lines for the 970-class model), which is unreadable in a narrow column. -->
-    <bs:row>
-        <bs:col span="12">
-            <cpt:fieldSet name="PlantUML Source" id="source">
-                <cpt:property id="plantUml"/>
-            </cpt:fieldSet>
+                <!-- The same diagram drawn by the browser (D3) — what a reader uses when Kroki is
+                     down, or when they want to zoom.  Its own tab so a reader scanning the page can
+                     see that the second rendering exists at all. -->
+                <bs:tab name="Diagram (D3)">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet name="Diagram (D3)" id="d3">
+                                <cpt:property id="d3Graph"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+
+                <!-- The PlantUML source: a 20-line textarea holding a whole model's source
+                     (472 lines for the 970-class model), which is unreadable in a narrow column. -->
+                <bs:tab name="PlantUML Source">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet name="PlantUML Source" id="source">
+                                <cpt:property id="plantUml"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+            </bs:tabGroup>
         </bs:col>
     </bs:row>
 </bs:grid>

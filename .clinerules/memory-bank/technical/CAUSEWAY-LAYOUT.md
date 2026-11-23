@@ -119,3 +119,28 @@ Worth re-reading before a layout change: `LayoutResourceLookup` (resource-name c
 - `ArchitectureTests` (`domox-webapp`) — `@D3Graph` placement, entity/DomainObject conventions.
   Requires **`archunit-junit5-engine`**: with only `archunit-junit5-api` on the classpath surefire
   reports `Tests run: 0` and every rule is silently inert.
+
+## 8. Composition guideline — keep content above the horizon
+
+**Full guideline: `docs/causeway/causeway-ui-layout-guidelines.md`.** The rules that decide the
+*shape* of a page, as opposed to the mechanics above:
+
+- **Nothing important below the horizon.** A panel the reader must scroll to discover is a panel
+  they do not know exists. The UML class-diagram page stacked PDF + D3 + PlantUML source as three
+  full-width rows and the reader reported the page as having one diagram.
+- **Several independent panels → `bs:tabGroup`, one `bs:tab` each** — not stacked `bs:col` rows.
+  A plain stack stays correct only while the whole page fits on one screen. The shape to copy is in
+  `Candidate.layout.xml` (and now `UmlClassDiagram.layout.xml`): `bs:col` → `bs:tabGroup` →
+  `bs:tab name="…"` → `bs:row` → `bs:col` → member (`bs:tab` **requires** a `bs:row`, and `bs:row`
+  requires a `bs:col`).
+- **Tab order is reading order**; the first tab is the default, so the primary artifact goes first.
+- **A diagram panel needs the full width** (`span="12"`): the panel fills its container, and the
+  container is the only width driver.
+- **Tab panels load on demand.** `AjaxBootstrapTabbedPanel` puts **only the selected tab's panel in
+  the DOM**; the others are Ajax links (verified live 2026-11: never two panels at once). So a panel
+  that measures its container at init never sees a hidden one — but check what it does with a
+  zero-width container anyway, since another container can produce one. The D3 `"layout":"uml"`
+  payload and the pdf.js viewer both ignore it (payload-driven `viewBox`; `initialScale` defaults to
+  the *fixed* `Scale._1_00`, so the container-width auto-scale branch is never taken). A
+  **force-layout** D3 panel does not: it lays out in `initialWidth || 800`.
+

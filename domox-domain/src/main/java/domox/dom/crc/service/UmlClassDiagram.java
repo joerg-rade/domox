@@ -1,6 +1,8 @@
 package domox.dom.crc.service;
 import domox.DomainModule;
 import domox.dom.crc.model.DomainModel;
+import domox.dom.rdf.UmlDiagramLayout;
+import generate.ClassDiagram;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import lombok.AccessLevel;
@@ -19,6 +21,7 @@ import org.apache.causeway.applib.annotation.PropertyLayout;
 import org.apache.causeway.applib.annotation.Title;
 import org.apache.causeway.applib.annotation.Where;
 import org.apache.causeway.applib.value.Blob;
+import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
 
 /**
@@ -36,6 +39,12 @@ import org.apache.causeway.extensions.pdfjs.applib.annotations.PdfJsViewer;
  * <p><b>The source is kept.</b>  {@link #getPlantUml()} still carries the PlantUML, because it is the
  * artifact the assembly pass measures (class/attribute/operation/edge counts) and the one a reviewer
  * may want to paste into PlantUML tooling.  Rendering it and hiding it would throw that away.</p>
+ *
+ * <p><b>Two renderers, one content.</b>  {@link #getD3Graph()} draws the <em>same</em> diagram with the
+ * D3 panel: {@link DomainModels} assembles the boxes and connectors once (as a
+ * {@link ClassDiagram.Graph}) and hands them to both, so the PDF and the D3 picture cannot disagree
+ * about what the model contains.  The D3 path needs no Kroki, which is why the diagram stays visible
+ * when the renderer is down.</p>
  *
  * <p><b>Lives next to {@link DomainModels}</b> (rather than in {@code domox.dom.crc.diagram}) for the
  * same reason {@code UmlDiagram} lives next to {@code OntologyDiagrams}: the factory and the
@@ -56,6 +65,13 @@ public class UmlClassDiagram {
 
     /** The sub-domains as nodes — {@link DomainModels#generateSubDomainOverviewDiagram(DomainModel)}. */
     public static final String KIND_SUB_DOMAIN_OVERVIEW = "sub-domain-overview";
+
+    /**
+     * Drawn when there is no graph to lay out (a detached instance, or a model with no included class):
+     * a well-formed but empty payload, so the panel renders an empty canvas rather than failing on a
+     * {@code null}.
+     */
+    private static final String EMPTY_GRAPH = "{\"layout\":\"uml\",\"nodes\":[],\"links\":[],\"legend\":[]}";
 
     /**
      * The model this diagram was drawn from.
@@ -109,6 +125,16 @@ public class UmlClassDiagram {
     /** The PlantUML source the diagram was rendered from — kept even when rendering failed. */
     private String plantUml;
 
+    /**
+     * The diagram as a {@link ClassDiagram.Graph} — the same boxes and connectors, assembled once by
+     * {@link DomainModels} and handed to whichever renderer draws them.
+     *
+     * <p>Not a metamodel member (no accessor): it is the <em>input</em> to {@link #getD3Graph()}, which
+     * lays it out and serialises it.  Kept rather than recomputed because the D3 payload is then
+     * derived from the same snapshot the PDF was, so the two pictures of one page cannot disagree.</p>
+     */
+    private ClassDiagram.Graph graph;
+
     /** Why there is no diagram, when it could not be rendered; hidden otherwise. */
     private String error;
 
@@ -148,6 +174,30 @@ public class UmlClassDiagram {
         return plantUml;
     }
 
+    /**
+     * The same diagram as a D3 graph — the boxes and connectors the PDF shows, laid out offline and
+     * serialised as the {@code {"layout":"uml",…}} payload the D3 panel draws statically.
+     *
+     * <p><b>Why a second renderer.</b>  The PDF path needs Kroki; this one does not, so the diagram is
+     * still visible when the renderer is down, and it is drawn at a size the browser decides rather than
+     * at the fixed page size a PDF has.  {@code @D3Graph} is a <em>property</em> facet, so the graph has
+     * to be exposed as a property here rather than returned by an action.</p>
+     *
+     * <p>The layout is {@link UmlDiagramLayout}'s job, not this view model's: it assigns the bands, sizes
+     * and widens the boxes, routes every connector orthogonally and emits the JSON.  It is a pure
+     * function of the graph, so the same graph always produces the same picture.</p>
+     */
+    @D3Graph
+    @Property(optionality = Optionality.OPTIONAL)
+    @PropertyLayout(
+            named = "UML Class Diagram / D3",
+            describedAs = "The same class diagram, laid out offline and drawn by the browser",
+            sequence = "3")
+    public String getD3Graph() {
+        ensureDerived();
+        return graph == null ? EMPTY_GRAPH : UmlDiagramLayout.render(graph.getTitle(), graph.getNodes(), graph.getEdges());
+    }
+
     /** Why the picture is missing, when it could not be rendered; hidden otherwise. */
     @Property(optionality = Optionality.OPTIONAL)
     @PropertyLayout(
@@ -172,6 +222,7 @@ public class UmlClassDiagram {
         this.kind = kind;
         this.diagram = null;
         this.plantUml = null;
+        this.graph = null;
         this.error = null;
     }
 
@@ -182,12 +233,17 @@ public class UmlClassDiagram {
      * page — has only the memento's properties ({@link #domainModel}, {@link #kind},
      * {@link #subDomainName}); the rendered bytes are not part of a memento.  Without this the page
      * would show an empty diagram and no reason.</p>
+     *
+     * <p>{@link #plantUml} is part of the "already derived" test as well as {@link #diagram}, because the
+     * two renderers are asked for independently: a page whose PDF failed still draws the D3 picture, and
+     * the first of the two properties to be read must do the work for both.</p>
      */
     private void ensureDerived() {
-        if (diagram == null && error == null && domainModels != null && domainModel != null) {
+        if (diagram == null && plantUml == null && domainModels != null && domainModel != null) {
             final UmlClassDiagram rederived = domainModels.umlClassDiagram(domainModel, kind, subDomainName);
             this.diagram = rederived.diagram;
             this.plantUml = rederived.plantUml;
+            this.graph = rederived.graph;
             this.error = rederived.error;
         }
     }
@@ -220,6 +276,17 @@ public class UmlClassDiagram {
     /** Records the PlantUML source, whether or not it can be rendered. */
     UmlClassDiagram withSource(final String plantUml) {
         this.plantUml = plantUml;
+        return this;
+    }
+
+    /**
+     * Records the diagram's content as a graph, for the D3 renderer.
+     *
+     * <p>Applied <em>before</em> {@link #rendered}/{@link #failed}, so the D3 picture is available even
+     * when the PDF render failed — it needs no Kroki.</p>
+     */
+    UmlClassDiagram withGraph(final ClassDiagram.Graph graph) {
+        this.graph = graph;
         return this;
     }
 
