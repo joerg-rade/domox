@@ -23,8 +23,12 @@ final class LabelMetrics {
     /** The font size the client draws a member line at ({@code UML_MEMBER_FONT} in d3-integration.mjs). */
     static final double MEMBER_FONT = 9;
 
-    /** Padding the client keeps inside a box around a member line: six units either side of it. */
-    static final int MEMBER_PADDING = 12;
+    /**
+     * Padding the client keeps inside a box <b>around a member line</b> — six units either side of it — and
+     * therefore part of the width that line needs.  Not to be confused with the <em>vertical</em> padding a
+     * member compartment keeps, which is {@code UmlDiagramLayout}'s {@code COMPARTMENT_PAD}.
+     */
+    static final int MEMBER_WIDTH_PADDING = 12;
 
     /**
      * Safety factor on the estimated label width — the domain cannot measure the real font, so it errs

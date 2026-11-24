@@ -1,6 +1,7 @@
 package domox.dom.requirements;
 
 import domox.DomainModule;
+import domox.dom.rdf.UmlDiagramLayout;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import lombok.AccessLevel;
@@ -38,9 +39,6 @@ import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 @DomainObjectLayout(cssClassFa = "project-diagram")
 @NoArgsConstructor
 public class UmlDiagram {
-
-    /** Rendered when the collaborating service has not been injected (e.g. a detached instance). */
-    private static final String EMPTY_GRAPH = "{\"layout\":\"uml\",\"nodes\":[],\"links\":[],\"legend\":[]}";
 
     /**
      * Injected {@link OntologyDiagrams} service that reads the export.
@@ -129,7 +127,7 @@ public class UmlDiagram {
             sequence = "2")
     public String getDiagram() {
         ensureDerived();
-        return diagramJson != null ? diagramJson : EMPTY_GRAPH;
+        return diagramJson != null ? diagramJson : UmlDiagramLayout.EMPTY_GRAPH;
     }
 
     /**

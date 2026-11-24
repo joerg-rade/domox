@@ -122,7 +122,7 @@ public class DomainModels {
     /** The sub-domains that have a diagram to draw — the choices for the action above. */
     @MemberSupport
     public List<String> choices1GenerateSubDomainUmlDiagram(DomainModel domainModel) {
-        return new ClassDiagram().subDomainNames(domainModel);
+        return DiagramKind.subDomainNames(domainModel);
     }
 
     /**
@@ -172,17 +172,16 @@ public class DomainModels {
                     named = "Sub-Domain",
                     describedAs = "The sub-domain, for the sub-domain diagram only; leave blank otherwise")
             final String subDomainName) {
-        final String which = kind == null || kind.isBlank() ? UmlClassDiagram.KIND_MODEL : kind;
-        final String source = plantUmlOf(domainModel, which, subDomainName);
-        return new Blob(plantUmlFileNameOf(which, subDomainName), DomainConstants.PLANT_UML_MIME_TYPE,
+        final DiagramKind which = DiagramKind.of(kind);
+        final String source = which.plantUml(domainModel, subDomainName);
+        return new Blob(which.fileName(subDomainName), DomainConstants.PLANT_UML_MIME_TYPE,
                 source.getBytes(StandardCharsets.UTF_8));
     }
 
     /** The diagram kinds {@link #downloadPlantUml} can export — the choices for its {@code kind} parameter. */
     @MemberSupport
     public List<String> choices1DownloadPlantUml(final DomainModel domainModel) {
-        return List.of(UmlClassDiagram.KIND_MODEL, UmlClassDiagram.KIND_SUB_DOMAIN,
-                UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW);
+        return DiagramKind.keys();
     }
 
     /**
@@ -200,47 +199,7 @@ public class DomainModels {
             final String kind,
             final String subDomainName) {
         return UmlClassDiagram.of(domainModel, kind, subDomainName)
-                .withGraph(graphOf(domainModel, kind, subDomainName));
-    }
-
-    /** Assembles the PlantUML for one kind of diagram — the text {@link #downloadPlantUml} serves. */
-    private String plantUmlOf(final DomainModel domainModel, final String kind, final String subDomainName) {
-        final ClassDiagram classDiagram = new ClassDiagram();
-        final String which = kind == null ? UmlClassDiagram.KIND_MODEL : kind;
-        return switch (which) {
-            case UmlClassDiagram.KIND_SUB_DOMAIN -> classDiagram.buildForSubDomain(domainModel, subDomainName);
-            case UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW -> classDiagram.buildSubDomainOverview(domainModel);
-            default -> classDiagram.build(domainModel);
-        };
-    }
-
-    /**
-     * Assembles one diagram as a {@link ClassDiagram.Graph} — what the D3 panel draws.
-     *
-     * <p>It reads the same class list and the same collaboration list as the PlantUML text, so the
-     * picture and the download cannot disagree about <em>what</em> the model contains; they differ only
-     * in how it is drawn, {@code UmlDiagramLayout#render} laying the picture out.</p>
-     */
-    private ClassDiagram.Graph graphOf(
-            final DomainModel domainModel, final String kind, final String subDomainName) {
-        final ClassDiagram classDiagram = new ClassDiagram();
-        final String which = kind == null ? UmlClassDiagram.KIND_MODEL : kind;
-        return switch (which) {
-            case UmlClassDiagram.KIND_SUB_DOMAIN -> classDiagram.graphForSubDomain(domainModel, subDomainName);
-            case UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW -> classDiagram.graphOverview(domainModel);
-            default -> classDiagram.graph(domainModel);
-        };
-    }
-
-    /** The download name of one diagram's PlantUML — the kind and the sub-domain, so two exports differ. */
-    private String plantUmlFileNameOf(final String kind, final String subDomainName) {
-        final String which = kind == null ? UmlClassDiagram.KIND_MODEL : kind;
-        return switch (which) {
-            case UmlClassDiagram.KIND_SUB_DOMAIN ->
-                    "domain-model-" + (subDomainName == null ? "sub-domain" : subDomainName) + ".puml";
-            case UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW -> "domain-model-sub-domains.puml";
-            default -> "domain-model.puml";
-        };
+                .withGraph(DiagramKind.of(kind).graph(domainModel, subDomainName));
     }
 
     /**

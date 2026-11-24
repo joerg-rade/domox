@@ -66,6 +66,16 @@ import java.util.function.Function;
  */
 public final class UmlDiagramLayout {
 
+    /**
+     * Drawn when there is no graph to lay out (a detached view model, or a model with no included class): a
+     * well-formed but empty payload, so the panel renders an empty canvas rather than failing on a
+     * {@code null}.
+     *
+     * <p>Flavour-neutral on purpose — it carries neither {@code force} nor a canvas — so every view model
+     * that falls back to it shares the one literal rather than repeating it.</p>
+     */
+    public static final String EMPTY_GRAPH = "{\"layout\":\"uml\",\"nodes\":[],\"links\":[],\"legend\":[]}";
+
     /** The link kinds the client picks its stroke colour and arrowhead from (see {@link Link}). */
     public static final String ASSOCIATION = Link.ASSOCIATION;
 
@@ -89,7 +99,7 @@ public final class UmlDiagramLayout {
     private static final double NAME_H = 20;
 
     /** Between a compartment's separator and its first member line, and before each later compartment. */
-    private static final double MEMBER_PAD = 8;
+    private static final double COMPARTMENT_PAD = 8;
 
     /** One member line, at the member font size the client draws. */
     private static final double MEMBER_LINE_H = 12;
@@ -149,28 +159,7 @@ public final class UmlDiagramLayout {
         // after it was placed would overhang its neighbours, and the client's collision force sizes itself
         // from the rectangle it is handed.
         final Map<String, Box> boxes = place(nodes, edges, nameOf);
-
-        final List<Link> links = new ArrayList<>();
-        for (final Edge edge : edges) {
-            // An endpoint the diagram does not draw would leave the connector a line into empty space.
-            if (edge == null || !boxes.containsKey(edge.source()) || !boxes.containsKey(edge.target())) {
-                continue;
-            }
-            final String kind = edge.kind() == null ? ASSOCIATION : edge.kind();
-            // Straight centre-to-centre connectors, so no points at all: the client's simulation moves the
-            // boxes, and a route drawn here would be stale the moment the first tick ran.  Every
-            // generalization carries its own arrowhead — with no trunk for them to merge into there is
-            // nothing to share one between, so `arrow` is simply "is this an is-a edge".
-            links.add(new Link(edge.source(), edge.target(), kind,
-                    edge.label() == null ? "" : edge.label(), List.of(), GENERALIZATION.equals(kind)));
-        }
-
-        final Bounds bounds = Bounds.of(boxes.values());
-
-        // The client draws the boxes in this order, so sorting by label makes a box's z-order — and the
-        // order a reader scans them in — independent of the order the model happened to list its classes.
-        final List<String> nodeIds = new ArrayList<>(boxes.keySet());
-        nodeIds.sort(Comparator.comparing(nameOf).thenComparing(id -> id));
+        final List<Link> links = linksOf(edges, boxes.keySet());
 
         // A box the is-a arrows point at draws its name in italics, so the client has to be told which ones
         // they are.  The picture decides it, not the model: a class nothing inherits from is not a
@@ -178,8 +167,47 @@ public final class UmlDiagramLayout {
         final Set<String> superclasses = superclassesOf(links);
         final Function<String, DiagramJsonWriter.NodeDetail> details = detailOf(nodes);
 
-        return DiagramJsonWriter.write(title == null ? "" : title, bounds, nodeIds, boxes, nameOf, links,
-                true, id -> superclasses.contains(id) ? details.apply(id).asSuperclass() : details.apply(id));
+        return DiagramJsonWriter.write(title == null ? "" : title, Bounds.of(boxes.values()),
+                nodeIdsOf(boxes, nameOf), boxes, nameOf, links, true,
+                id -> markIfSuperclass(details.apply(id), superclasses.contains(id)));
+    }
+
+    /**
+     * The connectors to draw: one per edge whose <em>two ends are both drawn here</em>, in the order given.
+     *
+     * <p>Straight centre-to-centre connectors, so no points at all: the client's simulation moves the boxes,
+     * and a route drawn here would be stale the moment the first tick ran.  Every generalization carries its
+     * own arrowhead — with no trunk for them to merge into there is nothing to share one between, so
+     * {@code arrow} is simply "is this an is-a edge".</p>
+     */
+    private static List<Link> linksOf(final List<Edge> edges, final Set<String> drawnIds) {
+        final List<Link> links = new ArrayList<>();
+        for (final Edge edge : edges) {
+            // An endpoint the diagram does not draw would leave the connector a line into empty space.
+            if (edge == null || !drawnIds.contains(edge.source()) || !drawnIds.contains(edge.target())) {
+                continue;
+            }
+            final String kind = edge.kind() == null ? ASSOCIATION : edge.kind();
+            links.add(new Link(edge.source(), edge.target(), kind,
+                    edge.label() == null ? "" : edge.label(), List.of(), GENERALIZATION.equals(kind)));
+        }
+        return links;
+    }
+
+    /**
+     * The boxes in the order the client draws them — by label, so a box's z-order, and the order a reader
+     * scans them in, are independent of the order the model happened to list its classes.
+     */
+    private static List<String> nodeIdsOf(final Map<String, Box> boxes, final Function<String, String> nameOf) {
+        final List<String> nodeIds = new ArrayList<>(boxes.keySet());
+        nodeIds.sort(Comparator.comparing(nameOf).thenComparing(id -> id));
+        return nodeIds;
+    }
+
+    /** A box's members and archetype, marked as a super-class when the is-a arrows point at it. */
+    private static DiagramJsonWriter.NodeDetail markIfSuperclass(
+            final DiagramJsonWriter.NodeDetail detail, final boolean superclass) {
+        return superclass ? detail.asSuperclass() : detail;
     }
 
     /**
@@ -464,7 +492,7 @@ public final class UmlDiagramLayout {
      * How tall a box must be to hold its three compartments: the name, the attributes and the methods.
      *
      * <p>The name compartment is a fixed {@link #NAME_H}, because that is where the client draws its first
-     * separator.  A member compartment costs {@link #MEMBER_PAD} plus {@link #MEMBER_LINE_H} per line
+     * separator.  A member compartment costs {@link #COMPARTMENT_PAD} plus {@link #MEMBER_LINE_H} per line
      * <b>whether or not it holds anything</b>: the client draws all three compartments and both separators
      * on every box — the classic UML class box, and what the PDF draws — so an empty compartment still
      * takes its padding.  A class with no members at all keeps the plain {@link #BOX_H} the picture has
@@ -477,7 +505,7 @@ public final class UmlDiagramLayout {
 
     /** A member compartment's height — its padding plus one line per member — see {@link #heightOf}. */
     private static double compartmentHeight(final List<String> lines) {
-        return MEMBER_PAD + (lines == null ? 0 : lines.size() * MEMBER_LINE_H);
+        return COMPARTMENT_PAD + (lines == null ? 0 : lines.size() * MEMBER_LINE_H);
     }
 
     /**
@@ -516,7 +544,7 @@ public final class UmlDiagramLayout {
         }
         double widest = 0;
         for (final String line : lines) {
-            widest = Math.max(widest, LabelMetrics.estimatedMemberWidth(line) + LabelMetrics.MEMBER_PADDING);
+            widest = Math.max(widest, LabelMetrics.estimatedMemberWidth(line) + LabelMetrics.MEMBER_WIDTH_PADDING);
         }
         return widest;
     }

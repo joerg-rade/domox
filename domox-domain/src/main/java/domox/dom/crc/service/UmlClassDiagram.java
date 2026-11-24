@@ -53,21 +53,26 @@ import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 @NoArgsConstructor
 public class UmlClassDiagram {
 
-    /** The whole model, flat — {@link DomainModels#generateUmlDiagram(DomainModel)}. */
-    public static final String KIND_MODEL = "model";
-
-    /** One sub-domain — {@link DomainModels#generateSubDomainUmlDiagram(DomainModel, String)}. */
-    public static final String KIND_SUB_DOMAIN = "sub-domain";
-
-    /** The sub-domains as nodes — {@link DomainModels#generateSubDomainOverviewDiagram(DomainModel)}. */
-    public static final String KIND_SUB_DOMAIN_OVERVIEW = "sub-domain-overview";
+    /**
+     * The whole model, flat — {@link DomainModels#generateUmlDiagram(DomainModel)}.
+     *
+     * <p>This is the <em>memento value</em> only.  What the kind does — which assembler call builds it, what
+     * its label says and what its download is called — is {@link DiagramKind#MODEL}'s, so a fourth kind is
+     * one constant there rather than five switches here and in two other classes.</p>
+     */
+    public static final String KIND_MODEL = DiagramKind.MODEL.key();
 
     /**
-     * Drawn when there is no graph to lay out (a detached instance, or a model with no included class):
-     * a well-formed but empty payload, so the panel renders an empty canvas rather than failing on a
-     * {@code null}.
+     * One sub-domain — {@link DomainModels#generateSubDomainUmlDiagram(DomainModel, String)}; see
+     * {@link DiagramKind#SUB_DOMAIN}.
      */
-    private static final String EMPTY_GRAPH = "{\"layout\":\"uml\",\"nodes\":[],\"links\":[],\"legend\":[]}";
+    public static final String KIND_SUB_DOMAIN = DiagramKind.SUB_DOMAIN.key();
+
+    /**
+     * The sub-domains as nodes — {@link DomainModels#generateSubDomainOverviewDiagram(DomainModel)}; see
+     * {@link DiagramKind#SUB_DOMAIN_OVERVIEW}.
+     */
+    public static final String KIND_SUB_DOMAIN_OVERVIEW = DiagramKind.SUB_DOMAIN_OVERVIEW.key();
 
     /**
      * The model this diagram was drawn from.
@@ -147,7 +152,9 @@ public class UmlClassDiagram {
             sequence = "1")
     public String getD3Graph() {
         ensureDerived();
-        return graph == null ? EMPTY_GRAPH : UmlDiagramLayout.render(graph.getTitle(), graph.getNodes(), graph.getEdges());
+        return graph == null
+                ? UmlDiagramLayout.EMPTY_GRAPH
+                : UmlDiagramLayout.render(graph.getTitle(), graph.getNodes(), graph.getEdges());
     }
 
     /**
@@ -162,12 +169,7 @@ public class UmlClassDiagram {
      */
     @MemberSupport
     public String namedD3Graph() {
-        final String which = kind == null ? KIND_MODEL : kind;
-        return switch (which) {
-            case KIND_SUB_DOMAIN -> "Sub-domain: " + (subDomainName == null ? "(unnamed)" : subDomainName);
-            case KIND_SUB_DOMAIN_OVERVIEW -> "Sub-domain overview";
-            default -> "Whole model";
-        };
+        return DiagramKind.of(kind).label(subDomainName);
     }
 
     /** Changing the memento key invalidates the cached diagram, so it is re-derived on the next render. */
@@ -192,12 +194,7 @@ public class UmlClassDiagram {
 
     /** What this diagram shows, in words — the second half of {@link #title()}. */
     private String describeKind() {
-        final String which = kind == null ? KIND_MODEL : kind;
-        return switch (which) {
-            case KIND_SUB_DOMAIN -> "sub-domain " + (subDomainName == null ? "(unnamed)" : subDomainName);
-            case KIND_SUB_DOMAIN_OVERVIEW -> "sub-domain overview";
-            default -> "whole model";
-        };
+        return DiagramKind.of(kind).describe(subDomainName);
     }
 
     /** Factory used by {@link DomainModels}; the caller then supplies the content via {@link #withGraph}. */

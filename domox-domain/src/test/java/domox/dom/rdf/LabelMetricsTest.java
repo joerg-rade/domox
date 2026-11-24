@@ -32,8 +32,8 @@ class LabelMetricsTest {
     /** The font size a class name is drawn at — the size the advance table is measured at. */
     private static final double NAME_FONT = 12;
 
-    /** The padding a member line keeps inside its box. */
-    private static final int MEMBER_PADDING = 12;
+    /** The padding a member line keeps inside its box — its <em>width</em> padding, not the vertical one. */
+    private static final int MEMBER_WIDTH_PADDING = 12;
 
     @Test
     @DisplayName("a null label has no width")
@@ -124,6 +124,6 @@ class LabelMetricsTest {
     void fontSizesAndMemberPaddingAreTheDocumentedSizes() {
         assertThat(LabelMetrics.MEMBER_FONT).isEqualTo(MEMBER_FONT);
         assertThat(LabelMetrics.NAME_FONT).isEqualTo(NAME_FONT);
-        assertThat(LabelMetrics.MEMBER_PADDING).isEqualTo(MEMBER_PADDING);
+        assertThat(LabelMetrics.MEMBER_WIDTH_PADDING).isEqualTo(MEMBER_WIDTH_PADDING);
     }
 }

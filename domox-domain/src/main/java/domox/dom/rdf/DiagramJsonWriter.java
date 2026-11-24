@@ -1,8 +1,10 @@
 package domox.dom.rdf;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import domox.dom.rdf.geometry.Box;
@@ -72,6 +74,45 @@ final class DiagramJsonWriter {
     }
 
     /**
+     * The translation every coordinate takes: the drawing's own origin moved to {@link #PADDING}, so the
+     * picture starts at the margin rather than wherever the model's author left it.
+     */
+    private record Origin(double dx, double dy) {
+
+        /** The translation that puts {@code bounds}' top-left corner at {@link #PADDING}. */
+        static Origin of(final Bounds bounds) {
+            return new Origin(PADDING - bounds.minX(), PADDING - bounds.minY());
+        }
+
+        /** A model x, translated. */
+        double x(final double value) {
+            return value + dx;
+        }
+
+        /** A model y, translated. */
+        double y(final double value) {
+            return value + dy;
+        }
+    }
+
+    /**
+     * One legend row: the swatch the client draws it from ({@code kind} and {@code color}) and the words
+     * beside it.
+     *
+     * <p>{@code kind} is what the client branches on — a box, a line, an arrow — so a row cannot describe
+     * something the drawing does not look like.  Holding the four parts of a row together is what keeps the
+     * legend's colours and wording out of the JSON-building code below.</p>
+     */
+    private record LegendEntry(String kind, String color, String label, String description) {
+
+        /** This row as one JSON object, in the order the client reads it. */
+        String toJson() {
+            return "{\"kind\":\"" + escape(kind) + "\",\"color\":\"" + escape(color) + "\",\"label\":\""
+                    + escape(label) + "\",\"description\":\"" + escape(description) + "\"}";
+        }
+    }
+
+    /**
      * Renders the diagram — its canvas, its nodes, its links and the legend — as one JSON object.
      *
      * @param title    the diagram's display name, drawn as the title
@@ -88,86 +129,103 @@ final class DiagramJsonWriter {
                         final Map<String, Box> boxes, final Function<String, String> nameOf,
                         final List<Link> links, final boolean force,
                         final Function<String, NodeDetail> detailOf) {
-        final double dx = PADDING - bounds.minX();
-        final double dy = PADDING - bounds.minY();
-
+        final Origin origin = Origin.of(bounds);
         final StringBuilder json = new StringBuilder(1024);
-        json.append('{')
-                .append("\"layout\":\"uml\",");
+        appendHeader(json, title, bounds, force);
+        appendNodes(json, nodeIds, boxes, nameOf, force, detailOf, origin);
+        appendLinks(json, links, force, origin);
+        appendLegend(json, nodeIds, detailOf, force);
+        json.append('}');
+        return json.toString();
+    }
+
+    /** The opening of the payload: the flavour, the title, and the canvas the drawing is padded into. */
+    private static void appendHeader(final StringBuilder json, final String title, final Bounds bounds,
+                                     final boolean force) {
+        json.append("{\"layout\":\"uml\",");
         if (force) {
             json.append("\"force\":true,");
         }
         json.append("\"title\":\"").append(escape(title)).append("\",")
                 .append("\"canvas\":{\"width\":").append(num(bounds.width() + 2 * PADDING))
                 .append(",\"height\":").append(num(bounds.height() + 2 * PADDING)).append("},");
+    }
 
+    /** Every box, in the order given. */
+    private static void appendNodes(final StringBuilder json, final List<String> nodeIds,
+                                    final Map<String, Box> boxes, final Function<String, String> nameOf,
+                                    final boolean force, final Function<String, NodeDetail> detailOf,
+                                    final Origin origin) {
         json.append("\"nodes\":[");
-        boolean first = true;
-        for (final String id : nodeIds) {
-            final Box box = boxes.get(id);
-            if (!first) {
+        for (int i = 0; i < nodeIds.size(); i++) {
+            if (i > 0) {
                 json.append(',');
             }
-            first = false;
-            json.append("{\"id\":\"").append(escape(id)).append('"')
-                    .append(",\"name\":\"").append(escape(nameOf.apply(id))).append('"')
-                    .append(",\"kind\":\"").append(NODE_KIND).append('"')
-                    .append(",\"x\":").append(num(box.x() + dx))
-                    .append(",\"y\":").append(num(box.y() + dy))
-                    .append(",\"w\":").append(num(box.w()))
-                    .append(",\"h\":").append(num(box.h()));
-            if (force) {
-                appendDetail(json, detailOf == null ? NodeDetail.NONE : detailOf.apply(id));
-            }
-            json.append('}');
+            appendNode(json, nodeIds.get(i), boxes.get(nodeIds.get(i)), nameOf, force, detailOf, origin);
         }
         json.append("],");
+    }
 
-        json.append("\"links\":[");
-        first = true;
-        for (final Link link : links) {
-            if (!first) {
-                json.append(',');
-            }
-            first = false;
-            json.append("{\"source\":\"").append(escape(link.source())).append('"')
-                    .append(",\"target\":\"").append(escape(link.target())).append('"')
-                    .append(",\"kind\":\"").append(link.kind()).append('"')
-                    .append(",\"label\":\"").append(escape(link.label())).append('"')
-                    .append(",\"arrow\":").append(link.arrow());
-            if (!force) {
-                json.append(",\"points\":[");
-                boolean firstPoint = true;
-                for (final Pt point : link.points()) {
-                    if (!firstPoint) {
-                        json.append(',');
-                    }
-                    firstPoint = false;
-                    json.append('[').append(num(point.x() + dx)).append(',').append(num(point.y() + dy)).append(']');
-                }
-                json.append(']');
-            }
-            json.append('}');
-        }
-        json.append("],");
-
-        // The legend explains the two line kinds (and the box).  Each entry carries the `kind` the
-        // client uses to draw the matching swatch — a line, an arrow, or a box — so the legend can
-        // never drift from what the drawing actually looks like.
-        json.append("\"legend\":[")
-                .append("{\"kind\":\"node\",\"color\":\"#3498DB\",\"label\":\"Class\",")
-                .append("\"description\":\"a class box, where the model puts it\"},")
-                .append("{\"kind\":\"association\",\"color\":\"#7f8c8d\",\"label\":\"Association\",")
-                .append("\"description\":\"a plain line between two classes\"},")
-                .append("{\"kind\":\"generalization\",\"color\":\"#000000\",\"label\":\"Generalization\",")
-                .append("\"description\":\"the arrow points at the super-class (is-a)\"}");
+    /** One box: where it is, what it is called, and what the force flavour draws inside it. */
+    private static void appendNode(final StringBuilder json, final String id, final Box box,
+                                   final Function<String, String> nameOf, final boolean force,
+                                   final Function<String, NodeDetail> detailOf, final Origin origin) {
+        json.append("{\"id\":\"").append(escape(id)).append('"')
+                .append(",\"name\":\"").append(escape(nameOf.apply(id))).append('"')
+                .append(",\"kind\":\"").append(NODE_KIND).append('"')
+                .append(",\"x\":").append(num(origin.x(box.x())))
+                .append(",\"y\":").append(num(origin.y(box.y())))
+                .append(",\"w\":").append(num(box.w()))
+                .append(",\"h\":").append(num(box.h()));
         if (force) {
-            appendArchetypeLegend(json, nodeIds, detailOf);
+            appendDetail(json, detailOf == null ? NodeDetail.NONE : detailOf.apply(id));
+        }
+        json.append('}');
+    }
+
+    /** Every connector, in the order given. */
+    private static void appendLinks(final StringBuilder json, final List<Link> links, final boolean force,
+                                    final Origin origin) {
+        json.append("\"links\":[");
+        for (int i = 0; i < links.size(); i++) {
+            if (i > 0) {
+                json.append(',');
+            }
+            appendLink(json, links.get(i), force, origin);
+        }
+        json.append("],");
+    }
+
+    /**
+     * One connector: its two ends, its kind, its label and its arrowhead — plus, on the static flavour, the
+     * route it was drawn along.
+     */
+    private static void appendLink(final StringBuilder json, final Link link, final boolean force,
+                                   final Origin origin) {
+        json.append("{\"source\":\"").append(escape(link.source())).append('"')
+                .append(",\"target\":\"").append(escape(link.target())).append('"')
+                .append(",\"kind\":\"").append(link.kind()).append('"')
+                .append(",\"label\":\"").append(escape(link.label())).append('"')
+                .append(",\"arrow\":").append(link.arrow());
+        if (!force) {
+            json.append(",\"points\":");
+            appendPoints(json, link.points(), origin);
+        }
+        json.append('}');
+    }
+
+    /** A connector's route, as a JSON array of {@code [x,y]} pairs — the static flavour's own geometry. */
+    private static void appendPoints(final StringBuilder json, final List<Pt> points, final Origin origin) {
+        json.append('[');
+        for (int i = 0; i < points.size(); i++) {
+            if (i > 0) {
+                json.append(',');
+            }
+            final Pt point = points.get(i);
+            json.append('[').append(num(origin.x(point.x()))).append(',').append(num(origin.y(point.y())))
+                    .append(']');
         }
         json.append(']');
-
-        json.append('}');
-        return json.toString();
     }
 
     /** One node's member compartments and archetype, appended inside its JSON object. */
@@ -202,27 +260,62 @@ final class DiagramJsonWriter {
     }
 
     /**
-     * Appends one legend row per archetype the diagram actually draws, in first-appearance order — so the
-     * legend can neither name an archetype no box uses nor omit one that is on screen, and its swatch
-     * colour is the fill the boxes carry.
+     * The legend: the box and the two line kinds, then — on the force flavour — one row per archetype the
+     * diagram actually draws.
      */
-    private static void appendArchetypeLegend(final StringBuilder json, final List<String> nodeIds,
-                                              final Function<String, NodeDetail> detailOf) {
-        if (detailOf == null) {
-            return;
+    private static void appendLegend(final StringBuilder json, final List<String> nodeIds,
+                                     final Function<String, NodeDetail> detailOf, final boolean force) {
+        final List<LegendEntry> entries = new ArrayList<>(BASE_LEGEND);
+        if (force) {
+            entries.addAll(archetypesDrawn(nodeIds, detailOf));
         }
-        final Map<String, String> colors = new LinkedHashMap<>();
+        json.append("\"legend\":[");
+        for (int i = 0; i < entries.size(); i++) {
+            if (i > 0) {
+                json.append(',');
+            }
+            json.append(entries.get(i).toJson());
+        }
+        json.append(']');
+    }
+
+    /**
+     * The entries every diagram's legend opens with — the box and the two line kinds.
+     *
+     * <p>Each carries the {@code kind} the client draws its swatch from, so the legend cannot drift from
+     * what the drawing actually looks like; keeping the colours and the wording here, rather than in the
+     * JSON-building code, is what makes that checkable at a glance.</p>
+     */
+    private static final List<LegendEntry> BASE_LEGEND = List.of(
+            new LegendEntry("node", "#3498DB", "Class", "a class box, where the model puts it"),
+            new LegendEntry("association", "#7f8c8d", "Association", "a plain line between two classes"),
+            new LegendEntry("generalization", "#000000", "Generalization",
+                    "the arrow points at the super-class (is-a)"));
+
+    /** The description every archetype row carries — the archetypes themselves are the model's own. */
+    private static final String ARCHETYPE_DESCRIPTION = "a Coad/Lefebvre archetype, which colours the box";
+
+    /**
+     * One legend row per archetype the diagram actually draws, in first-appearance order — so the legend
+     * can neither name an archetype no box uses nor omit one that is on screen, and its swatch colour is
+     * the fill the boxes carry.
+     */
+    private static List<LegendEntry> archetypesDrawn(final List<String> nodeIds,
+                                                     final Function<String, NodeDetail> detailOf) {
+        final List<LegendEntry> entries = new ArrayList<>();
+        if (detailOf == null) {
+            return entries;
+        }
+        final Set<String> drawn = new LinkedHashSet<>();
         for (final String id : nodeIds) {
             final NodeDetail detail = detailOf.apply(id);
-            if (detail != null && detail.archetype() != null && detail.color() != null) {
-                colors.putIfAbsent(detail.archetype(), detail.color());
+            if (detail != null && detail.archetype() != null && detail.color() != null
+                    && drawn.add(detail.archetype())) {
+                entries.add(new LegendEntry("archetype", detail.color(), detail.archetype(),
+                        ARCHETYPE_DESCRIPTION));
             }
         }
-        for (final Map.Entry<String, String> entry : colors.entrySet()) {
-            json.append(",{\"kind\":\"archetype\",\"color\":\"").append(escape(entry.getValue()))
-                    .append("\",\"label\":\"").append(escape(entry.getKey()))
-                    .append("\",\"description\":\"a Coad/Lefebvre archetype, which colours the box\"}");
-        }
+        return entries;
     }
 
     /** Integral values print without a {@code .0} — the JSON is read by humans as well as by D3. */

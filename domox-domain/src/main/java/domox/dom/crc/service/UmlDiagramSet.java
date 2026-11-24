@@ -1,7 +1,7 @@
 package domox.dom.crc.service;
 import domox.DomainModule;
 import domox.dom.crc.model.DomainModel;
-import generate.ClassDiagram;
+import domox.dom.rdf.UmlDiagramLayout;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import lombok.AccessLevel;
@@ -66,13 +66,6 @@ public class UmlDiagramSet {
     public static final String TAB_WHOLE_MODEL = "Whole model";
 
     /**
-     * Drawn when there is no model to draw (a detached instance): a well-formed but empty payload, so the
-     * panel renders an empty canvas rather than failing on a {@code null}.  Same payload
-     * {@link UmlClassDiagram} falls back to.
-     */
-    private static final String EMPTY_GRAPH = "{\"layout\":\"uml\",\"nodes\":[],\"links\":[],\"legend\":[]}";
-
-    /**
      * The model every tab is drawn from.
      *
      * <p>Kept as a metamodel property (rather than a plain field) so the view-model memento round-trips
@@ -128,7 +121,7 @@ public class UmlDiagramSet {
      * whole model.
      *
      * <p>The sub-domains are the ones that would produce a non-empty diagram
-     * ({@link ClassDiagram#subDomainNames(DomainModel)}), so no tab is empty; classes with no sub-domain
+     * ({@link DiagramKind#subDomainNames(DomainModel)}), so no tab is empty; classes with no sub-domain
      * appear as the {@code Unassigned} node of the overview instead.  A detached instance (no model) has
      * no sub-domain to name, so it offers the two labels it can always draw.</p>
      */
@@ -138,7 +131,7 @@ public class UmlDiagramSet {
             final List<String> names = new ArrayList<>();
             names.add(TAB_SUB_DOMAIN_OVERVIEW);
             if (domainModel != null) {
-                names.addAll(new ClassDiagram().subDomainNames(domainModel));
+                names.addAll(DiagramKind.subDomainNames(domainModel));
             }
             names.add(TAB_WHOLE_MODEL);
             this.tabNames = names;
@@ -181,23 +174,23 @@ public class UmlDiagramSet {
     /** The diagram one tab stands for — which kind of diagram, and of which sub-domain. */
     private String assemble(final String tabName) {
         if (domainModel == null) {
-            return EMPTY_GRAPH;
+            return UmlDiagramLayout.EMPTY_GRAPH;
         }
         if (TAB_SUB_DOMAIN_OVERVIEW.equals(tabName)) {
-            return payloadOfKind(UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW, null);
+            return payloadOfKind(DiagramKind.SUB_DOMAIN_OVERVIEW, null);
         }
         if (TAB_WHOLE_MODEL.equals(tabName)) {
-            return payloadOfKind(UmlClassDiagram.KIND_MODEL, null);
+            return payloadOfKind(DiagramKind.MODEL, null);
         }
-        return payloadOfKind(UmlClassDiagram.KIND_SUB_DOMAIN, tabName);
+        return payloadOfKind(DiagramKind.SUB_DOMAIN, tabName);
     }
 
     /**
      * One diagram's payload, through the same {@link UmlClassDiagram} view model the single-diagram actions
      * return — so the picture on a tab and the picture on that action's own page are the same picture.
      */
-    private String payloadOfKind(final String kind, final String subDomainName) {
-        return domainModels.umlClassDiagram(domainModel, kind, subDomainName).getD3Graph();
+    private String payloadOfKind(final DiagramKind kind, final String subDomainName) {
+        return domainModels.umlClassDiagram(domainModel, kind.key(), subDomainName).getD3Graph();
     }
 
     /** Factory used by {@link DomainModels}; the assembler is handed over rather than only injected. */

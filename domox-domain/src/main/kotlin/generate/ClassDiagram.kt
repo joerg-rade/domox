@@ -214,9 +214,7 @@ class ClassDiagram {
         // The pair is ordered by node position, so an edge is always drawn from the earlier node.
         val edges = LinkedHashMap<Pair<String, String>, Int>()
         for (asc in ModelContent.materialCollaborations(dm)) {
-            val source = asc.source ?: continue
-            val target = asc.target ?: continue
-            if (!inModel.contains(source) || !inModel.contains(target)) continue
+            val (source, target) = endsWithin(asc, inModel) ?: continue
             val from = labelOf(source)
             val to = labelOf(target)
             if (from == to) continue
@@ -266,20 +264,30 @@ class ClassDiagram {
             }
 
     /**
-     * The connectors of a class diagram: the model's material collaborations whose two ends are both
-     * drawn here.
+     * The two ends of a collaboration that is drawn in a diagram, or {@code null} when it is not drawn
+     * there: <b>both</b> of its ends must be classes the diagram contains.
      *
-     * <p>An edge to a class outside the diagram — a sub-domain boundary, or a class the review did not
-     * include — is dropped rather than drawn into empty space, exactly as {@link #render} drops it.</p>
+     * <p>An edge to a class outside it — a sub-domain boundary, or a class the review did not include — is
+     * dropped rather than drawn into empty space, and a collaboration with no stated end is not drawn at
+     * all.  One rule for all three diagrams: "wholly inside" is the same question in the picture
+     * ([edgesOf]), in the text ([render]) and in the overview ([overviewOf]).</p>
+     */
+    private fun endsWithin(asc: CollaboratorCdd, inModel: Set<ClassCdd>): Pair<ClassCdd, ClassCdd>? {
+        val source = asc.source ?: return null
+        val target = asc.target ?: return null
+        return if (inModel.contains(source) && inModel.contains(target)) source to target else null
+    }
+
+    /**
+     * The connectors of a class diagram: the model's material collaborations wholly inside it, in the order
+     * the model lists them.
      */
     private fun edgesOf(dm: DomainModel, inModel: Set<ClassCdd>): List<UmlDiagramLayout.Edge> =
         ModelContent.materialCollaborations(dm).mapNotNull { edgeOf(it, inModel) }
 
     /** One material collaboration as an edge, or {@code null} when it is not wholly inside the diagram. */
     private fun edgeOf(asc: CollaboratorCdd, inModel: Set<ClassCdd>): UmlDiagramLayout.Edge? {
-        val source = asc.source ?: return null
-        val target = asc.target ?: return null
-        if (!inModel.contains(source) || !inModel.contains(target)) return null
+        val (source, target) = endsWithin(asc, inModel) ?: return null
         val from = source.candidateName ?: return null
         val to = target.candidateName ?: return null
         if (from.isEmpty() || to.isEmpty()) return null
@@ -306,7 +314,7 @@ class ClassDiagram {
      *
      * <p>Edges are read from the model's collaboration list rather than from the classes, so an
      * association is drawn exactly once whichever end owns it — and an edge to a class that is not in
-     * this diagram (a sub-domain boundary, or a class the review did not include) is dropped.</p>
+     * this diagram is dropped ([endsWithin]), the same rule the picture applies.</p>
      */
     private fun render(dm: DomainModel, included: List<ClassCdd>): String {
         val code = PumlCode()
@@ -318,10 +326,7 @@ class ClassDiagram {
             }
         }
         for (asc in ModelContent.materialCollaborations(dm)) {
-            val source = asc.source
-            val target = asc.target
-            if (source == null || target == null) continue
-            if (!inModel.contains(source) || !inModel.contains(target)) continue
+            if (endsWithin(asc, inModel) == null) continue
             val rendered: String = asc.toPlantUmlString() ?: ""
             if (rendered.isNotEmpty()) {
                 code.addCollaborator(rendered)
