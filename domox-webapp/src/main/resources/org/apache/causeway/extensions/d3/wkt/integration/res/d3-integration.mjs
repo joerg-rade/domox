@@ -377,31 +377,31 @@
      * Draws the three compartments of every class box: the name, then the attributes, then the methods.
      *
      * The box `<g>` is already positioned at the box's **centre**, so every y here is relative to that
-     * centre and the rectangle's own top edge is `-h/2`.  A compartment with nothing in it is not drawn at
-     * all — that is how a UML box says "no members" — and the separator above it is omitted with it.
+     * centre and the rectangle's own top edge is `-h/2`.  All three compartments are drawn on every box,
+     * with a separator under the name and one between the two member compartments, **whether or not a
+     * compartment holds anything**: an empty compartment is a compartment, not a missing line, and this is
+     * what the PDF (PlantUML) draws.  The server sizes each box the same way, counting an empty
+     * compartment's padding.
      *
      * The figures are the server's: `UmlDiagramLayout` sized each box as
-     * `max(BOX_H, UML_NAME_H + attributes + methods)`, so a box that carries members is exactly tall
-     * enough for them.  A line that is still too wide for its box is **shrunk**, never clipped and never
-     * allowed to cross into the neighbouring box.
+     * `max(BOX_H, UML_NAME_H + attributes + methods)`, so a compartment is never clipped.  A line that is
+     * still too wide for its box is **shrunk**, never clipped and never allowed to cross into the
+     * neighbouring box.
      */
     function appendUmlCompartments(box) {
         box.each(function (d) {
             var g = d3.select(this);
             var attributeH = umlCompartmentHeight(d.attributes);
-            var methodH = umlCompartmentHeight(d.methods);
 
             shrinkToFit(g.append('text').attr('class', 'uml-name')
                 .attr('text-anchor', 'middle').attr('x', 0).attr('y', -d.h / 2 + 14)
                 .attr('font-size', 12).attr('font-weight', 'bold').attr('fill', '#1b3b57')
                 .text(d.name), d.w - 10, 12);
 
-            // The name compartment's separator is always drawn: every box has a name.
+            // Both separators are always drawn: the name / attributes / methods structure *is* the box.
             var nameBottom = -d.h / 2 + UML_NAME_H;
             separator(g, d, nameBottom);
-            if (attributeH && methodH) {
-                separator(g, d, nameBottom + attributeH);
-            }
+            separator(g, d, nameBottom + attributeH);
 
             umlMemberLines(d, d.attributes, 0)
                 .concat(umlMemberLines(d, d.methods, attributeH))
@@ -422,9 +422,9 @@
             .attr('stroke', '#3498db').attr('stroke-width', 1);
     }
 
-    /** A member compartment's height, or zero when it holds nothing. */
+    /** A member compartment's height: its padding plus one line per member, empty or not. */
     function umlCompartmentHeight(lines) {
-        return lines && lines.length ? UML_MEMBER_PAD + lines.length * UML_MEMBER_LINE_H : 0;
+        return UML_MEMBER_PAD + (lines ? lines.length : 0) * UML_MEMBER_LINE_H;
     }
 
     /**

@@ -177,9 +177,11 @@ FLOORS = {
 
     # --- the force flavour of the same diagram: it seeds each box and lets the client's simulation move
     #     them, so its geometry is only ever the *starting* picture — which is exactly why the seed grid,
-    #     the compartment sizing and the legend need pinning by a test rather than by the render guardrails.
-    #     UmlDiagramLayoutTest scores 100 %. ---
-    "UmlDiagramLayout": 90,   # 100 %  (49 mutants)
+    #     the box sizing, the inheritance layering and the legend need pinning by a test rather than by
+    #     the render guardrails.  UmlDiagramLayoutTest scores 99 %: the one survivor is an *equivalent*
+    #     mutant (the relaxation loop's `round < size` bound, where one extra round settles to exactly
+    #     the same depths) — see `--detail UmlDiagramLayout`. ---
+    "UmlDiagramLayout": 90,   # 99 %  (83 mutants; the 1 survivor is equivalent)
 
     # --- the diagram collaborators shared by CandidateD3Graph / CandidateVegaGraph /
     #     DomainModelDiagramsD3, and the per-vocabulary collaborators carved out of

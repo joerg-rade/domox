@@ -26,6 +26,15 @@ class LabelMetricsTest {
     /** The safety factor {@link LabelMetrics} applies to a whole label; stated here as data. */
     private static final double SAFETY = 1.10;
 
+    /** The font size a member line is drawn at; stated here as data. */
+    private static final double MEMBER_FONT = 9;
+
+    /** The font size a class name is drawn at — the size the advance table is measured at. */
+    private static final double NAME_FONT = 12;
+
+    /** The padding a member line keeps inside its box. */
+    private static final int MEMBER_PADDING = 12;
+
     @Test
     @DisplayName("a null label has no width")
     void nullLabelIsZeroWidth() {
@@ -88,5 +97,33 @@ class LabelMetricsTest {
     void paddingAndGapAreTheDocumentedSizes() {
         assertThat(LabelMetrics.LABEL_PADDING).isEqualTo(14);
         assertThat(LabelMetrics.LABEL_GAP).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("a member line is estimated at the member font, by scaling the label estimate")
+    void memberWidthScalesTheLabelEstimateByTheFontSizeRatio() {
+        assertThat(LabelMetrics.estimatedMemberWidth("ab"))
+                .isCloseTo((6.7 + 7.3) * SAFETY * MEMBER_FONT / NAME_FONT, within(1e-6));
+    }
+
+    @Test
+    @DisplayName("a null member line has no width")
+    void nullMemberLineIsZeroWidth() {
+        assertThat(LabelMetrics.estimatedMemberWidth(null)).isZero();
+    }
+
+    @Test
+    @DisplayName("the same text is narrower as a member line than as a class name")
+    void memberWidthIsNarrowerThanTheSameLabel() {
+        assertThat(LabelMetrics.estimatedMemberWidth("Item"))
+                .isLessThan(LabelMetrics.estimatedLabelWidth("Item"));
+    }
+
+    @Test
+    @DisplayName("the two font sizes and the member padding are the documented sizes")
+    void fontSizesAndMemberPaddingAreTheDocumentedSizes() {
+        assertThat(LabelMetrics.MEMBER_FONT).isEqualTo(MEMBER_FONT);
+        assertThat(LabelMetrics.NAME_FONT).isEqualTo(NAME_FONT);
+        assertThat(LabelMetrics.MEMBER_PADDING).isEqualTo(MEMBER_PADDING);
     }
 }

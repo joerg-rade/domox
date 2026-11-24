@@ -218,10 +218,8 @@ check('the attribute compartment is drawn',
     f.memberLines.includes('id: Long') && f.memberLines.includes('name: String'),
     JSON.stringify(f.memberLines));
 check('the method compartment is drawn', f.memberLines.includes('approve()'), JSON.stringify(f.memberLines));
-check('every box draws the separator under its name',
-    f.separators >= f.boxes, String(f.separators));
-check('a box with both compartments draws a second separator',
-    f.separators === 4, String(f.separators));
+check('every box draws both compartment separators — an empty compartment still has one',
+    f.separators === f.boxes * 2, String(f.separators));
 check('the archetype colours its box', f.fills.includes('#ffe0b2'), JSON.stringify(f.fills));
 check('a box with no archetype keeps the default fill', f.fills.includes('#eaf3fb'), JSON.stringify(f.fills));
 

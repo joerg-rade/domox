@@ -11,6 +11,7 @@ import domox.dom.crc.model.Review;
 import domox.dom.crc.model.ReviewStatus;
 import domox.dom.crc.model.SubDomain;
 import domox.dom.crc.model.SubDomainClassification;
+import domox.dom.rdf.UmlDiagramLayout;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
@@ -323,6 +324,33 @@ class ClassDiagramTest {
         // then — the gap is visible rather than silent
         assertThat(plantUml).contains("class \"Unassigned\" as SD1");
         assertThat(plantUml).contains("SD0 --> SD1 : 1");
+    }
+
+    // --- the D3 graph ---------------------------------------------------------
+
+    /**
+     * The D3 picture reads an {@code implements} the way it reads an {@code extends}: both are is-a edges,
+     * so the implementing class is seeded <em>below</em> the interface it implements and carries the
+     * arrowhead.  The PDF keeps PlantUML's dashed realization — it renders from {@code toPlantUmlString()},
+     * not from this mapping.
+     */
+    @Test
+    void graph_readsAnImplementationAsAnIsAEdge() {
+        // given — an interface, and a class that implements it
+        final ClassCdd identifiable = withApprovedResponsibility("Identifiable");
+        final ClassCdd store = withApprovedResponsibility("Store");
+        final DomainModel model = new DomainModel();
+        final CollaboratorCdd implementsIt = approved(collaboration(model, "implements", store, identifiable));
+        implementsIt.setType(AssociationType.IMPLEMENTATION);
+        model.classList.add(approved(store));
+        model.classList.add(approved(identifiable));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graph(model);
+
+        // then — the edge reads from the interface, as a generalization
+        assertThat(graph.getEdges()).containsExactly(
+                new UmlDiagramLayout.Edge("Identifiable", "Store", UmlDiagramLayout.GENERALIZATION, "implements"));
     }
 
     // --- helpers --------------------------------------------------------------

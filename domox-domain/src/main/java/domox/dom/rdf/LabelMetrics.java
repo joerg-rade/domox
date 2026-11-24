@@ -17,6 +17,15 @@ final class LabelMetrics {
     /** Kept clear between two neighbouring boxes so a widened one does not touch the next. */
     static final int LABEL_GAP = 8;
 
+    /** The font size the client draws a class name at — the size the advance table below is measured at. */
+    static final double NAME_FONT = 12;
+
+    /** The font size the client draws a member line at ({@code UML_MEMBER_FONT} in d3-integration.mjs). */
+    static final double MEMBER_FONT = 9;
+
+    /** Padding the client keeps inside a box around a member line: six units either side of it. */
+    static final int MEMBER_PADDING = 12;
+
     /**
      * Safety factor on the estimated label width — the domain cannot measure the real font, so it errs
      * wide.  A narrower font than the one measured just leaves a slightly roomier box.
@@ -49,6 +58,21 @@ final class LabelMetrics {
             width += advance(label.charAt(i));
         }
         return width * LABEL_SAFETY;
+    }
+
+    /**
+     * Estimated width of a <b>member line</b> — an attribute ({@code name: type}) or a method
+     * ({@code name(params): ret}) — in model units, at the member font size.
+     *
+     * <p>The advance table above is measured at the label font, in a <b>bold</b> face; a member line is
+     * drawn smaller and in a regular one.  Rather than keep a second table for a font the domain cannot
+     * measure, the label estimate is scaled by the ratio of the two font sizes — and that errs wide twice
+     * over, because the table is a bold face and {@link #LABEL_SAFETY} is already in the estimate.  Erring
+     * wide is what this class is for: a box a little too roomy is invisible, a member line the client has
+     * to shrink is not.</p>
+     */
+    static double estimatedMemberWidth(final String line) {
+        return estimatedLabelWidth(line) * MEMBER_FONT / NAME_FONT;
     }
 
     /** Advance width of one character, in model units at the label font size. */

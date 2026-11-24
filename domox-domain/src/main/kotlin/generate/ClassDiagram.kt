@@ -278,7 +278,12 @@ class ClassDiagram {
         // The model states a generalization from the sub-class to the super-class, while
         // UmlDiagramLayout reads an edge the way its arrow reads: from the super-class.  The swap is
         // what lets PortLayout merge the group into one trunk on the super-class's own edge.
-        return if (asc.type == AssociationType.GENERALIZATION) {
+        //
+        // An implementation — `implements`, PlantUML's dashed realization — is an is-a edge too and is read
+        // the same way, so the D3 picture seeds the implementing class below the interface and draws the
+        // arrowhead, where a plain association drew a grey line that said nothing about hierarchy.  The PDF
+        // keeps the dashed distinction: it renders from `asc.toPlantUmlString()`, not from this mapping.
+        return if (asc.type == AssociationType.GENERALIZATION || asc.type == AssociationType.IMPLEMENTATION) {
             UmlDiagramLayout.Edge(to, from, UmlDiagramLayout.GENERALIZATION, asc.label())
         } else {
             UmlDiagramLayout.Edge(from, to, UmlDiagramLayout.ASSOCIATION, asc.label())

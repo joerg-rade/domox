@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 /**
  * Unit-level guardrail for {@link UmlDiagramLayout} — the <b>force-simulated</b> D3 payload an
@@ -77,6 +78,11 @@ class UmlDiagramLayoutTest {
         return seen;
     }
 
+    /** The {@code key} value of a node as a number — a box is not always a whole number of units wide. */
+    private static double number(final String json, final String id, final String key) {
+        return Double.parseDouble(nodeValue(json, id, key));
+    }
+
     /**
      * The payload is the force flavour, and it carries a <em>seed</em>: a rectangle per box and
      * <b>no route</b>.  A route computed here would be stale the moment the client's first tick ran.
@@ -120,9 +126,14 @@ class UmlDiagramLayoutTest {
         assertThat(json).contains("\"canvas\":{\"width\":480,\"height\":328}");
     }
 
-    /** A box is made tall enough for its compartments — and <b>no taller</b> when it holds nothing. */
+    /**
+     * A box is made tall enough for its <b>three compartments</b> — the name, the attributes and the
+     * methods — and every compartment is counted, <b>empty or not</b>, because the client draws a separator
+     * between the two member compartments on every box.  A class with no members at all still gets the
+     * plain 40-unit box: three empty compartments need less than the minimum.
+     */
     @Test
-    void growsABoxToHoldItsMemberCompartments() {
+    void growsABoxToHoldItsThreeCompartments() {
         final String json = UmlDiagramLayout.render("Demo",
                 List.of(node("a", "Alpha", "g"),
                         node("b", "Beta", "g", List.of("id: Long", "name: String"), List.of()),
@@ -130,10 +141,12 @@ class UmlDiagramLayoutTest {
                         node("d", "Delta", "g", List.of("id: Long"), List.of("approve()"))),
                 List.of());
 
-        assertThat(nodeValue(json, "a", "h")).as("no members: the plain 40-unit box").isEqualTo("40");
-        assertThat(nodeValue(json, "b", "h")).as("8 + 2x12 of attributes below a 20-unit name").isEqualTo("52");
-        assertThat(nodeValue(json, "c", "h")).as("one method: 20 + 8 + 12, still under the 40-unit minimum")
+        assertThat(nodeValue(json, "a", "h")).as("no members: the 40-unit minimum still applies")
                 .isEqualTo("40");
+        assertThat(nodeValue(json, "b", "h")).as("20 + (8 + 2x12) + the empty methods compartment's 8")
+                .isEqualTo("60");
+        assertThat(nodeValue(json, "c", "h")).as("20 + the empty attributes compartment's 8 + (8 + 12)")
+                .isEqualTo("48");
         assertThat(nodeValue(json, "d", "h")).as("both compartments: 20 + 20 + 20").isEqualTo("60");
         assertThat(nodeValue(json, "b", "attributes")).isEqualTo("[\"id: Long\",\"name: String\"]");
         assertThat(nodeValue(json, "b", "methods")).isEqualTo("[]");
@@ -160,6 +173,61 @@ class UmlDiagramLayoutTest {
 
         assertThat(nodeValue(json, "a", "w")).isEqualTo(String.valueOf(BOX_W));
         assertThat(nodeValue(json, "a", "h")).isEqualTo(String.valueOf(BOX_H));
+    }
+
+    /**
+     * A box is as wide as <b>the widest line it draws</b> — and a method's parameter list is usually the
+     * longest thing in a class box, so the class name is only one of the lines the box has to fit.
+     */
+    @Test
+    void widensABoxToFitItsWidestMethodLine() {
+        final String line = "offer(service: Service, resource: Resource, provider: ServiceProvider)";
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("a", "Groomer", "g", List.of(), List.of(line))), List.of());
+
+        assertThat(number(json, "a", "w")).as("the box fits the method line, not only the class name")
+                .isCloseTo(LabelMetrics.estimatedMemberWidth(line) + 12, within(1e-6));
+        assertThat(number(json, "a", "w")).isGreaterThan(BOX_W);
+    }
+
+    /** An attribute can be the widest line just as a method can. */
+    @Test
+    void widensABoxToFitItsWidestAttributeLine() {
+        final String line = "serviceProviderNegotiationStrategy: ServiceProviderNegotiationStrategy";
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("a", "Party", "g", List.of(line), List.of())), List.of());
+
+        assertThat(number(json, "a", "w"))
+                .isCloseTo(LabelMetrics.estimatedMemberWidth(line) + 12, within(1e-6));
+    }
+
+    /** The class name still counts: a long name in a box with short members is what sets the width. */
+    @Test
+    void keepsTheBoxAsWideAsItsClassWhenTheMembersAreNarrower() {
+        final String name = "ServiceProviderNegotiationStrategy";
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("a", name, "g", List.of("id: Long"), List.of())), List.of());
+
+        assertThat(number(json, "a", "w")).as("the name is the wider line, so the box fits the name")
+                .isCloseTo(LabelMetrics.estimatedLabelWidth(name) + LabelMetrics.LABEL_PADDING, within(1e-6));
+    }
+
+    /**
+     * A column is as wide as the widest box in it — a box built to fit a long member line would otherwise
+     * reach into the column beside it, which is what the fixed grid step used to prevent.
+     */
+    @Test
+    void sizesAColumnToTheWidestBoxInIt() {
+        final String line = "offer(service: Service, resource: Resource, provider: ServiceProvider)";
+        final double wide = LabelMetrics.estimatedMemberWidth(line) + 12;
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("a", "Groomer", "g", List.of(), List.of(line)), node("b", "Beta", "g")),
+                List.of());
+
+        assertThat(nodeValue(json, "a", "x")).isEqualTo("24");
+        assertThat(number(json, "b", "x")).as("the next column starts past the widest box, +72 clear")
+                .isCloseTo(24 + wide + 72, within(1e-6));
+        assertThat(nodeValue(json, "b", "w")).as("a narrow box keeps the base width").isEqualTo("180");
     }
 
     /**
@@ -223,6 +291,95 @@ class UmlDiagramLayoutTest {
         assertThat(nodeValue(json, "b", "x")).as("a new band restarts at the first column").isEqualTo("24");
         assertThat(nodeValue(json, "b", "y")).as("the half-filled row (40+80), then a whole one (40+80)")
                 .isEqualTo("264");
+    }
+
+    /**
+     * A super-class is seeded <b>above</b> the class that inherits from it — the order the model lists them
+     * in has nothing to do with it, which is why the sub-class is given first here.
+     */
+    @Test
+    void seedsASuperClassAboveItsSubClass() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("sub", "GroomAppointment", "g"), node("super", "Appointment", "g")),
+                List.of(new UmlDiagramLayout.Edge("super", "sub", UmlDiagramLayout.GENERALIZATION, "is a")));
+
+        assertThat(nodeValue(json, "super", "y")).as("the super-class takes the first row").isEqualTo("24");
+        assertThat(nodeValue(json, "sub", "y")).as("its sub-class one row below it, +80 clear")
+                .isEqualTo("144");
+        assertThat(nodeValue(json, "sub", "x")).as("and back at the first column").isEqualTo("24");
+    }
+
+    /** Two sub-classes of one super-class share the row below it. */
+    @Test
+    void putsTwoSubClassesOnOneRowBelowTheirSuperClass() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("sub1", "GroomAppointment", "g"), node("sub2", "VetAppointment", "g"),
+                        node("super", "Appointment", "g")),
+                List.of(new UmlDiagramLayout.Edge("super", "sub1", UmlDiagramLayout.GENERALIZATION, null),
+                        new UmlDiagramLayout.Edge("super", "sub2", UmlDiagramLayout.GENERALIZATION, null)));
+
+        assertThat(nodeValue(json, "super", "y")).isEqualTo("24");
+        assertThat(nodeValue(json, "sub1", "y")).isEqualTo("144");
+        assertThat(nodeValue(json, "sub1", "x")).isEqualTo("24");
+        assertThat(nodeValue(json, "sub2", "y")).isEqualTo("144");
+        assertThat(nodeValue(json, "sub2", "x")).as("the second column of the same row").isEqualTo("276");
+    }
+
+    /** A chain of three is three rows, each one below the one before it. */
+    @Test
+    void putsAChainOfInheritanceOnConsecutiveRows() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("c", "GroomAppointment", "g"), node("b", "Appointment", "g"),
+                        node("a", "Event", "g")),
+                List.of(new UmlDiagramLayout.Edge("a", "b", UmlDiagramLayout.GENERALIZATION, null),
+                        new UmlDiagramLayout.Edge("b", "c", UmlDiagramLayout.GENERALIZATION, null)));
+
+        assertThat(nodeValue(json, "a", "y")).isEqualTo("24");
+        assertThat(nodeValue(json, "b", "y")).isEqualTo("144");
+        assertThat(nodeValue(json, "c", "y")).isEqualTo("264");
+    }
+
+    /**
+     * Inheritance that runs in a circle has no "above" to draw, so the band falls back to one row — the
+     * plain grid.  This is the "if possible" of the layering.
+     */
+    @Test
+    void fallsBackToOneRowWhenTheInheritanceRunsInACircle() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("a", "Alpha", "g"), node("b", "Beta", "g")),
+                List.of(new UmlDiagramLayout.Edge("a", "b", UmlDiagramLayout.GENERALIZATION, null),
+                        new UmlDiagramLayout.Edge("b", "a", UmlDiagramLayout.GENERALIZATION, null)));
+
+        assertThat(nodeValue(json, "a", "y")).as("both on the first row").isEqualTo("24");
+        assertThat(nodeValue(json, "b", "y")).isEqualTo("24");
+        assertThat(nodeValue(json, "b", "x")).as("side by side, as the plain grid would have them")
+                .isEqualTo("276");
+    }
+
+    /**
+     * An is-a edge that leaves the band cannot say what is above what inside it: a band is a sub-domain and
+     * is laid out on its own, so a neighbour's classes do not push its own down.
+     */
+    @Test
+    void ignoresAnIsAEdgeThatLeavesTheBand() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("super", "Appointment", "one"), node("sub", "GroomAppointment", "two")),
+                List.of(new UmlDiagramLayout.Edge("super", "sub", UmlDiagramLayout.GENERALIZATION, null)));
+
+        assertThat(nodeValue(json, "super", "y")).isEqualTo("24");
+        assertThat(nodeValue(json, "sub", "y")).as("the second band, one empty row below the first")
+                .isEqualTo("264");
+    }
+
+    /** Only an is-a edge layers: an association says nothing about hierarchy, so the grid is unchanged. */
+    @Test
+    void doesNotLayerOnAnAssociation() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("a", "Alpha", "g"), node("b", "Beta", "g")),
+                List.of(new UmlDiagramLayout.Edge("a", "b", UmlDiagramLayout.ASSOCIATION, "owns")));
+
+        assertThat(nodeValue(json, "a", "y")).isEqualTo("24");
+        assertThat(nodeValue(json, "b", "y")).as("the same row").isEqualTo("24");
     }
 
     /**
@@ -330,5 +487,20 @@ class UmlDiagramLayoutTest {
         assertThat(json).contains("\"title\":\"\"");
         assertThat(count(json, "\"id\":\"")).isEqualTo(1);
         assertThat(nodeValue(json, "a", "name")).isEqualTo("\"Alpha\"");
+    }
+
+    /**
+     * A node whose member lists are {@code null} — a hand-built one — draws the plain box with two empty
+     * compartments rather than failing: the layout is total, like everything else here.
+     */
+    @Test
+    void toleratesANodeWithNoMemberLists() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(new UmlDiagramLayout.Node("a", "Alpha", "g", null, null, null, null)), List.of());
+
+        assertThat(nodeValue(json, "a", "w")).isEqualTo("180");
+        assertThat(nodeValue(json, "a", "h")).isEqualTo("40");
+        assertThat(nodeValue(json, "a", "attributes")).isEqualTo("[]");
+        assertThat(nodeValue(json, "a", "methods")).isEqualTo("[]");
     }
 }

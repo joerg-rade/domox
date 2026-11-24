@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -36,11 +37,15 @@ import java.util.function.Function;
  * <p><b>What it does.</b>  A deterministic seed grid: the nodes are placed in a
  * {@code ceil(sqrt(n))}-column grid in the order given, and <em>a change of {@link Node#group()}
  * starts a new band</em> — one empty row apart — so a model's sub-domains read as separate blocks
- * rather than as one interleaved soup.  Boxes are then widened to fit their labels ({@link LabelLayout},
- * the same pass the reconstruction uses, which keeps one font size across the diagram), and a box is
- * made tall enough for its member compartments — the class's approved attributes and responsibilities,
- * which the PDF has always drawn and the D3 picture used to omit.  Each node also carries its
- * Coad/Lefebvre archetype ({@code ClassType}), which colours the box.</p>
+ * rather than as one interleaved soup.  Inside a band a class is seeded <em>above</em> the classes that
+ * inherit from it, in rows of inheritance depth, so a hierarchy reads top-down the way the PDF's own
+ * layout draws it.  Each box is <b>as wide as the widest line it draws</b> — its class name, or an
+ * attribute or a method with its parameters — and each column is as wide as the widest box in it, so
+ * nothing has to be shrunk and no box reaches into the column beside it.  A box also draws the three
+ * compartments the PDF has always drawn and the D3 picture used to omit — the name, the class's approved
+ * attributes and its responsibilities — with a separator under the name and one between the two member
+ * compartments, whether or not a compartment holds anything.  Each node also carries its Coad/Lefebvre
+ * archetype ({@code ClassType}), which colours the box.</p>
  *
  * <p><b>Determinism is the caller's job, and that is deliberate.</b>  This class does not sort: the
  * order of {@code nodes} is the reading order of the grid.  The caller therefore sorts, and the
@@ -67,13 +72,16 @@ public final class UmlDiagramLayout {
     /** @see #ASSOCIATION */
     public static final String GENERALIZATION = Link.GENERALIZATION;
 
-    /** A box's width, in model units — wide enough for a ~22-character class name before widening. */
+    /**
+     * A box's <b>minimum</b> width, in model units — wide enough for a ~22-character class name.  A box is
+     * built wider than this when one of its lines needs the room: see {@link #widths}.
+     */
     private static final double BOX_W = 180;
 
     /**
-     * A box's height when it carries <b>no members</b>, in model units: the client draws a name
-     * compartment separator 20 units down and the label above it, and an empty compartment is how a UML
-     * class box says "no members".  A box with members is taller — see {@link #heightOf}.
+     * A box's minimum height, in model units: the client draws the label and the two compartment separators
+     * inside it, and a box with members is taller — see {@link #heightOf}.  It is also what a class with no
+     * members at all gets, because three empty compartments need less room than this.
      */
     private static final double BOX_H = 40;
 
@@ -86,13 +94,11 @@ public final class UmlDiagramLayout {
     /** One member line, at the member font size the client draws. */
     private static final double MEMBER_LINE_H = 12;
 
-    /** Kept clear between two columns: room for a label widened leftwards, plus a visible channel. */
+    /** Kept clear between two columns: a visible channel, so two boxes never read as one. */
     private static final double COLUMN_GAP = 72;
 
     /** Kept clear between two rows, so the seed leaves the client's simulation room to breathe. */
     private static final double ROW_GAP = 80;
-
-    private static final double COLUMN_STEP = BOX_W + COLUMN_GAP;
 
     private UmlDiagramLayout() {
     }
@@ -138,12 +144,11 @@ public final class UmlDiagramLayout {
      * @return the {@code {"layout":"uml","force":true,…}} JSON the client simulates
      */
     public static String render(final String title, final List<Node> nodes, final List<Edge> edges) {
-        final Map<String, Box> boxes = place(nodes);
         final Function<String, String> nameOf = nameOf(nodes);
-
-        // Widen before anything is drawn: a box widened afterwards would overhang its neighbours, and the
-        // client's collision force sizes itself from the rectangle it is handed.
-        LabelLayout.widenToFitLabels(boxes, nameOf);
+        // Each box is built to fit its content, so nothing has to be widened afterwards — a box widened
+        // after it was placed would overhang its neighbours, and the client's collision force sizes itself
+        // from the rectangle it is handed.
+        final Map<String, Box> boxes = place(nodes, edges, nameOf);
 
         final List<Link> links = new ArrayList<>();
         for (final Edge edge : edges) {
@@ -174,8 +179,20 @@ public final class UmlDiagramLayout {
     // -- the grid --------------------------------------------------------------
 
     /**
-     * Places the boxes in a {@code ceil(sqrt(n))}-column grid, in the order given, starting a new band —
-     * one empty row below the previous one — whenever the group changes.
+     * Places the boxes on a {@code ceil(sqrt(n))}-column grid, in the order given, sizing each column to
+     * the widest box that lands in it and <b>starting a new band — one empty row below the previous one —
+     * whenever the group changes</b>.
+     *
+     * <p><b>A column is as wide as the widest box in it</b>, because a box is built to fit its widest line
+     * (see {@link #widths}): a responsibility can carry six parameters, so one box may be several times the
+     * base width, and a fixed step would either overlap the column beside it or leave every other column
+     * mostly empty.</p>
+     *
+     * <p><b>Inside a band, a class sits above the classes that inherit from it</b> when it can: the band is
+     * filled in rows of inheritance depth (see {@link #depthsOf}), so a super-class and its sub-classes read
+     * top-down the way the PDF's own layout draws them.  A band with no is-a edge in it — and one whose
+     * is-a edges run in a circle, where there is no "above" to draw — is a single row, which is the plain
+     * grid this has always been.</p>
      *
      * <p>A square-ish grid is what keeps a large model's picture usable: 970 classes come out 32 columns
      * by 31 rows rather than one 4000-unit-wide strip, so the canvas the client fits into the cell keeps
@@ -188,58 +205,235 @@ public final class UmlDiagramLayout {
      * rather than a constant: a box with members is several times the height of one without, and a fixed
      * step would seed them overlapping.</p>
      */
-    private static Map<String, Box> place(final List<Node> nodes) {
-        final Map<String, Box> boxes = new LinkedHashMap<>();
+    private static Map<String, Box> place(final List<Node> nodes, final List<Edge> edges,
+                                          final Function<String, String> nameOf) {
         final int columns = columnsFor(distinctIds(nodes).size());
-
-        double y = 0;
-        int column = 0;
-        double rowHeight = 0;
-        String band = null;
-        for (final Node node : nodes) {
-            if (node == null || node.id() == null || boxes.containsKey(node.id())) {
-                continue;                       // the same id twice is one box, as PlantUML draws it
-            }
-            final String group = node.group() == null ? "" : node.group();
-            if (!group.equals(band)) {
-                if (band != null) {
-                    if (column != 0) {
-                        y += rowHeight + ROW_GAP;   // close the half-filled row the previous band ends in
-                    }
-                    y += BOX_H + ROW_GAP;           // and leave one empty row, so the bands read apart
-                    column = 0;
-                    rowHeight = 0;
-                }
-                band = group;
-            }
-            final double h = heightOf(node);
-            boxes.put(node.id(), new Box(column * COLUMN_STEP, y, BOX_W, h));
-            rowHeight = Math.max(rowHeight, h);
-            if (++column == columns) {
-                column = 0;
-                y += rowHeight + ROW_GAP;
-                rowHeight = 0;
-            }
+        final Map<String, Slot> slots = slots(nodes, edges, widths(nodes, nameOf), columns);
+        final double[] offsets = columnOffsets(slots, columns);
+        final Map<String, Box> boxes = new LinkedHashMap<>();
+        for (final Map.Entry<String, Slot> entry : slots.entrySet()) {
+            final Slot slot = entry.getValue();
+            boxes.put(entry.getKey(), new Box(offsets[slot.column()], slot.y(), slot.width(), slot.height()));
         }
         return boxes;
     }
 
     /**
+     * One box's place on the grid, before the columns are given their widths: the column it landed in, its
+     * top edge, and the size {@link #widths} and {@link #heightOf} gave it.
+     */
+    private record Slot(int column, double y, double width, double height) {
+    }
+
+    /**
+     * The left edge of every column: as wide as the widest box that lands in it, plus {@link #COLUMN_GAP},
+     * so a box built to fit its content never reaches into the column beside it.
+     */
+    private static double[] columnOffsets(final Map<String, Slot> slots, final int columns) {
+        final double[] width = new double[columns];
+        for (final Slot slot : slots.values()) {
+            width[slot.column()] = Math.max(width[slot.column()], slot.width());
+        }
+        final double[] offsets = new double[columns];
+        for (int column = 1; column < columns; column++) {
+            offsets[column] = offsets[column - 1] + width[column - 1] + COLUMN_GAP;
+        }
+        return offsets;
+    }
+
+    /** Fills every band in turn, one empty row apart, and returns each box's slot in the order placed. */
+    private static Map<String, Slot> slots(final List<Node> nodes, final List<Edge> edges,
+                                           final Map<String, Double> widths, final int columns) {
+        final Map<String, Slot> slots = new LinkedHashMap<>();
+        double y = 0;
+        boolean first = true;
+        for (final List<Node> band : bands(nodes)) {
+            if (!first) {
+                y += BOX_H + ROW_GAP;           // one empty row, so the bands read apart
+            }
+            first = false;
+            y = placeBand(band, edges, widths, columns, y, slots);
+        }
+        return slots;
+    }
+
+    /**
+     * The bands, in the order given: a maximal run of one group is a band, and an id that has already been
+     * seen is dropped — the same id twice is <em>one</em> box, as PlantUML draws two classes of the same
+     * name.
+     */
+    private static List<List<Node>> bands(final List<Node> nodes) {
+        final List<List<Node>> bands = new ArrayList<>();
+        final Set<String> seen = new LinkedHashSet<>();
+        String group = null;
+        for (final Node node : nodes) {
+            if (node == null || node.id() == null || !seen.add(node.id())) {
+                continue;
+            }
+            final String actual = node.group() == null ? "" : node.group();
+            if (bands.isEmpty() || !actual.equals(group)) {
+                bands.add(new ArrayList<>());
+                group = actual;
+            }
+            bands.getLast().add(node);
+        }
+        return bands;
+    }
+
+    /**
+     * Fills one band in rows of inheritance depth and returns the top edge below it.
+     *
+     * <p>Depth 0 is the band's first row — the classes that nothing else in the band is a sub-class of —
+     * then the classes one below those, and so on, so a super-class is seeded <em>above</em> the classes
+     * that inherit from it.  A row holds {@code columns} boxes and then wraps, and it is closed when the
+     * depth's boxes run out, however much the wrap left it half-filled.</p>
+     */
+    private static double placeBand(final List<Node> band, final List<Edge> edges,
+                                    final Map<String, Double> widths, final int columns,
+                                    double y, final Map<String, Slot> slots) {
+        final Map<String, Integer> depth = depthsOf(band, edges);
+        final int deepest = depth.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        for (int at = 0; at <= deepest; at++) {
+            int column = 0;
+            double rowHeight = 0;
+            for (final Node node : band) {
+                if (depth.get(node.id()) != at) {
+                    continue;                   // it belongs to another row
+                }
+                final double height = heightOf(node);
+                slots.put(node.id(), new Slot(column, y, widths.get(node.id()), height));
+                rowHeight = Math.max(rowHeight, height);
+                if (++column == columns) {
+                    column = 0;
+                    y += rowHeight + ROW_GAP;
+                    rowHeight = 0;
+                }
+            }
+            if (column != 0) {
+                y += rowHeight + ROW_GAP;       // close the row this depth ends in
+            }
+        }
+        return y;
+    }
+
+    /**
+     * Each box's <b>inheritance depth</b> in its band: {@code 0} for a class that no other class in the band
+     * inherits from, and one more than its deepest super-class otherwise.
+     *
+     * <p>Only the is-a edges with <em>both</em> ends drawn in this band count.  A band is a sub-domain and
+     * is laid out on its own, so an edge that leaves it cannot say what is above what — and a sub-domain
+     * diagram drops those edges anyway.</p>
+     *
+     * <p>The depth is the longest path from a root, found by relaxation: a round pushes every sub-class at
+     * least one below each of its super-classes, and the round that moves nothing has the answer.  If a
+     * round is <em>still</em> moving after one round per class, the is-a relation runs in a circle — a class
+     * that is, transitively, its own super-class — and there is no "above" to draw, so every box in the band
+     * goes back onto one row: the plain grid.  That is the "if possible" of the layering, and it is the only
+     * thing a circle can sensibly produce.</p>
+     */
+    private static Map<String, Integer> depthsOf(final List<Node> band, final List<Edge> edges) {
+        final Set<String> ids = new LinkedHashSet<>();
+        for (final Node node : band) {
+            ids.add(node.id());
+        }
+        final List<Edge> isA = new ArrayList<>();
+        for (final Edge edge : edges) {
+            if (edge != null && GENERALIZATION.equals(edge.kind())
+                    && ids.contains(edge.source()) && ids.contains(edge.target())) {
+                isA.add(edge);
+            }
+        }
+        final Map<String, Integer> depth = new LinkedHashMap<>();
+        for (final String id : ids) {
+            depth.put(id, 0);
+        }
+        for (int round = 0; round < ids.size(); round++) {
+            if (!relax(isA, depth)) {
+                return depth;                   // settled: the longest path from a root
+            }
+        }
+        for (final String id : ids) {
+            depth.put(id, 0);                   // a circle: there is no above, so there is one row
+        }
+        return depth;
+    }
+
+    /**
+     * One relaxation round: every sub-class at least one below each of its super-classes.
+     *
+     * @return whether any depth moved, so the caller can tell "settled" from "still going round in circles"
+     */
+    private static boolean relax(final List<Edge> isA, final Map<String, Integer> depth) {
+        boolean moved = false;
+        for (final Edge edge : isA) {
+            final int below = depth.get(edge.source()) + 1;
+            if (depth.get(edge.target()) < below) {
+                depth.put(edge.target(), below);
+                moved = true;
+            }
+        }
+        return moved;
+    }
+
+    /**
      * How tall a box must be to hold its three compartments: the name, the attributes and the methods.
      *
-     * <p>The name compartment is a fixed {@link #NAME_H}, because that is where the client draws its
-     * separator.  A member compartment costs {@link #MEMBER_PAD} plus {@link #MEMBER_LINE_H} per line —
-     * and <b>nothing at all when it is empty</b>, so a class with no members gets the plain 40-unit box
-     * the picture has always drawn rather than an empty slot.  Both figures are the client's, and
-     * {@code scripts/verify-uml-render.sh} is what keeps them honest.</p>
+     * <p>The name compartment is a fixed {@link #NAME_H}, because that is where the client draws its first
+     * separator.  A member compartment costs {@link #MEMBER_PAD} plus {@link #MEMBER_LINE_H} per line
+     * <b>whether or not it holds anything</b>: the client draws all three compartments and both separators
+     * on every box — the classic UML class box, and what the PDF draws — so an empty compartment still
+     * takes its padding.  A class with no members at all keeps the plain {@link #BOX_H} the picture has
+     * always drawn, because the minimum is more than three empty compartments need.  Both figures are the
+     * client's, and {@code scripts/verify-uml-render.sh} is what keeps them honest.</p>
      */
     private static double heightOf(final Node node) {
         return Math.max(BOX_H, NAME_H + compartmentHeight(node.attributes()) + compartmentHeight(node.methods()));
     }
 
-    /** A member compartment's height, or zero when it holds nothing — see {@link #heightOf}. */
+    /** A member compartment's height — its padding plus one line per member — see {@link #heightOf}. */
     private static double compartmentHeight(final List<String> lines) {
-        return lines == null || lines.isEmpty() ? 0 : MEMBER_PAD + lines.size() * MEMBER_LINE_H;
+        return MEMBER_PAD + (lines == null ? 0 : lines.size() * MEMBER_LINE_H);
+    }
+
+    /**
+     * The width each box must offer: <b>the widest line it draws</b> — its class name at the label font, or
+     * an attribute or a method with its parameters at the member font.
+     *
+     * <p>This is what the reconstruction does with its widening pass ({@link LabelLayout}) and this path does
+     * not need: there a box's width comes from the model and is grown until the name fits, because the
+     * picture has to stay where the model's author put it; here the boxes are the layout's own, so they are
+     * simply <em>built</em> to fit and nothing has to be shrunk.  A line can still overrun its box — the
+     * estimate is a table, not a measurement — and the client shrinks that one line, exactly as it does on
+     * the reconstruction.</p>
+     */
+    private static Map<String, Double> widths(final List<Node> nodes, final Function<String, String> nameOf) {
+        final Map<String, Double> widths = new LinkedHashMap<>();
+        for (final Node node : nodes) {
+            if (node != null && node.id() != null) {
+                widths.putIfAbsent(node.id(), widestLineOf(node, nameOf.apply(node.id())));
+            }
+        }
+        return widths;
+    }
+
+    /** The width one box needs for its class name and its members, whichever is the wider. */
+    private static double widestLineOf(final Node node, final String name) {
+        double widest = Math.max(BOX_W,
+                LabelMetrics.estimatedLabelWidth(name) + LabelMetrics.LABEL_PADDING);
+        widest = Math.max(widest, widestMemberLine(node.attributes()));
+        return Math.max(widest, widestMemberLine(node.methods()));
+    }
+
+    /** The widest line of one compartment, with the padding the client keeps inside a box around a line. */
+    private static double widestMemberLine(final List<String> lines) {
+        if (lines == null) {
+            return 0;
+        }
+        double widest = 0;
+        for (final String line : lines) {
+            widest = Math.max(widest, LabelMetrics.estimatedMemberWidth(line) + LabelMetrics.MEMBER_PADDING);
+        }
+        return widest;
     }
 
     /**
