@@ -16,4 +16,7 @@ public final class DomainConstants {
     public static final String PDF_MIME_TYPE = "application/pdf";
     public static final String SVG_MIME_TYPE = "image/svg+xml";
     public static final String JSON_MIME_TYPE = "application/json";
+
+    /** The CRC class diagrams' text export — {@code DomainModels#downloadPlantUml}. */
+    public static final String PLANT_UML_MIME_TYPE = "text/plain";
 }

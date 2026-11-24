@@ -4,41 +4,45 @@ import domox.dom.crc.model.ClassCdd;
 import domox.dom.crc.model.DomainModel;
 import domox.dom.crc.model.ModelContent;
 import domox.dom.crc.model.ReviewRationale;
-import domox.port.DiagramPort;
 import domox.port.DomainConstants;
 import generate.ClassDiagram;
 import generate.JavaCode;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.causeway.applib.annotation.ActionLayout;
 import org.apache.causeway.applib.annotation.DomainService;
 import org.apache.causeway.applib.annotation.MemberSupport;
+import org.apache.causeway.applib.annotation.Optionality;
+import org.apache.causeway.applib.annotation.Parameter;
+import org.apache.causeway.applib.annotation.ParameterLayout;
 import org.apache.causeway.applib.annotation.PriorityPrecedence;
 import org.apache.causeway.applib.annotation.Programmatic;
 import org.apache.causeway.applib.services.repository.RepositoryService;
 import org.apache.causeway.applib.value.Blob;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The assembled domain model: listing/creating a {@link DomainModel} and rendering it as a class
- * diagram.
+ * The assembled domain model: listing/creating a {@link DomainModel}, rendering it as a class
+ * diagram, and exporting that diagram's PlantUML source.
  *
  * <p><b>Every diagram is review-aware.</b>  The export renders only candidates the review approved,
  * and only classes that carry approved content — see {@link ClassDiagram} and
  * {@link #rejectEmptyClasses(DomainModel, String)}.</p>
  *
- * <p><b>The diagrams are rendered, not returned as source.</b>  Each action returns a
- * {@link UmlClassDiagram} view model: the PlantUML the {@link ClassDiagram} assembles, rendered by
- * Kroki (SVG) and transcoded to PDF, which the viewer shows through its pdf.js panel.  A plain
- * {@code String} result would be displayed as text — as one long line — because an action result is
- * rendered through the viewer's COMPACT label fragment.  The PlantUML itself is still carried by the
- * view model ({@link UmlClassDiagram#getPlantUml()}), because the assembly pass measures it.</p>
+ * <p><b>A diagram is a picture, and the picture is the browser's.</b>  Each diagram action returns a
+ * {@link UmlClassDiagram} view model whose diagram is the D3 panel's — the boxes and connectors the
+ * domain assembles, laid out by {@code UmlDiagramLayout}.  Nothing is sent to an external renderer, so
+ * the page has no third-party dependency and no failure mode that replaces the diagram with a message.</p>
+ *
+ * <p><b>The PlantUML is a download.</b>  {@link #downloadPlantUml(DomainModel, String, String)} serves the
+ * same three diagrams as text: it is the artifact the assembly pass measures (class/attribute/operation/edge
+ * counts) and what a reviewer pastes into PlantUML tooling, and a file is the right shape for it — a page
+ * is for the picture.</p>
  */
-@Slf4j
 @DomainService
 @Named(DomainModule.NAMESPACE + ".DomainModels")
 @Priority(PriorityPrecedence.EARLY)
@@ -46,13 +50,11 @@ public class DomainModels {
 
     private final RepositoryService repositoryService;
     private final Reviews reviews;
-    private final DiagramPort diagramPort;
 
     @Inject
-    public DomainModels(RepositoryService repositoryService, Reviews reviews, DiagramPort diagramPort) {
+    public DomainModels(RepositoryService repositoryService, Reviews reviews) {
         this.repositoryService = repositoryService;
         this.reviews = reviews;
-        this.diagramPort = diagramPort;
     }
 
     @ActionLayout(sequence = "1")
@@ -68,17 +70,17 @@ public class DomainModels {
     }
 
     /**
-     * The assembled model's class diagram — the whole-model diagram, rendered.
+     * The assembled model's class diagram — the whole-model diagram.
      *
      * <p>Review-aware: only approved classes that carry approved content are drawn, and only the
-     * approved members and material edges between them appear.  See {@link ClassDiagram#build}.</p>
+     * approved members and material edges between them appear.  See {@link ClassDiagram#graph}.</p>
      */
     public UmlClassDiagram generateUmlDiagram(DomainModel domainModel) {
         return umlClassDiagram(domainModel, UmlClassDiagram.KIND_MODEL, null);
     }
 
     /**
-     * One sub-domain's diagram — the "one diagram per sub-domain" of the assembly pass, rendered.
+     * One sub-domain's diagram — the "one diagram per sub-domain" of the assembly pass.
      *
      * <p>Draws the approved classes assigned to {@code subDomainName} and the material edges wholly
      * inside that sub-domain; relations that leave it are shown by
@@ -101,12 +103,11 @@ public class DomainModels {
     }
 
     /**
-     * The overview diagram, rendered: the sub-domains as nodes, their cross-sub-domain relations as
-     * edges.
+     * The overview diagram: the sub-domains as nodes, their cross-sub-domain relations as edges.
      *
      * <p>Each edge is labelled with the number of collaborations it aggregates.  A class with no
      * sub-domain is drawn as one {@code Unassigned} node rather than dropped, so an incomplete
-     * partition is visible rather than silent.  See {@link ClassDiagram#buildSubDomainOverview}.</p>
+     * partition is visible rather than silent.  See {@link ClassDiagram#graphOverview}.</p>
      */
     @ActionLayout(
             sequence = "4",
@@ -116,14 +117,55 @@ public class DomainModels {
     }
 
     /**
-     * Builds one class diagram and renders it, wrapped in the {@link UmlClassDiagram} view model the
-     * three actions return.
+     * The PlantUML source of one of the three diagrams, as a file — the text export.
      *
-     * <p>The PlantUML is assembled here — review-aware, by {@link ClassDiagram} — and handed to the
-     * {@link DiagramPort}, which owns only the rendering (Kroki → SVG → PDF).  A rendering failure
-     * (Kroki down, PlantUML rejected) is recorded <em>on the view model</em> rather than thrown: the
-     * PlantUML is still delivered, and the page says why the picture is missing.  This is also the
-     * re-derivation entry point for a view model rebuilt from its memento (see
+     * <p><b>Why a download rather than a page member.</b>  The diagram page used to carry this text on a
+     * tab of its own (a 20-line textarea holding a whole model's source — 472 lines for the 970-class
+     * model — which is why it was a tab and not a row).  The page now shows the picture only: a page is
+     * for the picture, and a file is the right shape for a source.  The artifact itself still matters —
+     * it is what the assembly pass measures (class/attribute/operation/edge counts) and what a reviewer
+     * pastes into PlantUML tooling — so it is served rather than dropped.</p>
+     *
+     * <p>Review-aware like the pictures: {@link ClassDiagram} assembles it from the same class list and
+     * the same collaboration list, so the text and the diagram cannot disagree about what the model
+     * contains.</p>
+     *
+     * @param kind          one of the {@code UmlClassDiagram.KIND_*} constants; blank reads as the whole
+     *                      model, so the common case needs no parameter
+     * @param subDomainName the sub-domain, for {@code KIND_SUB_DOMAIN} only; ignored otherwise
+     */
+    @ActionLayout(
+            sequence = "5",
+            describedAs = "Download the PlantUML source of one of the diagrams (the whole model by default)")
+    public Blob downloadPlantUml(
+            final DomainModel domainModel,
+            @Parameter(optionality = Optionality.OPTIONAL)
+            @ParameterLayout(
+                    named = "Diagram",
+                    describedAs = "Which diagram: model (the default), sub-domain, or sub-domain-overview")
+            final String kind,
+            @Parameter(optionality = Optionality.OPTIONAL)
+            @ParameterLayout(
+                    named = "Sub-Domain",
+                    describedAs = "The sub-domain, for the sub-domain diagram only; leave blank otherwise")
+            final String subDomainName) {
+        final String which = kind == null || kind.isBlank() ? UmlClassDiagram.KIND_MODEL : kind;
+        final String source = plantUmlOf(domainModel, which, subDomainName);
+        return new Blob(plantUmlFileNameOf(which, subDomainName), DomainConstants.PLANT_UML_MIME_TYPE,
+                source.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** The diagram kinds {@link #downloadPlantUml} can export — the choices for its {@code kind} parameter. */
+    @MemberSupport
+    public List<String> choices1DownloadPlantUml(final DomainModel domainModel) {
+        return List.of(UmlClassDiagram.KIND_MODEL, UmlClassDiagram.KIND_SUB_DOMAIN,
+                UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW);
+    }
+
+    /**
+     * Builds one class diagram's view model — the three diagram actions' entry point.
+     *
+     * <p>This is also the re-derivation entry point for a view model rebuilt from its memento (see
      * {@link UmlClassDiagram}), so the diagram survives a page reload.</p>
      *
      * @param kind          one of the {@code UmlClassDiagram.KIND_*} constants
@@ -134,24 +176,11 @@ public class DomainModels {
             final DomainModel domainModel,
             final String kind,
             final String subDomainName) {
-        final String plantUml = plantUmlOf(domainModel, kind, subDomainName);
-        final UmlClassDiagram diagram = UmlClassDiagram.of(domainModel, kind, subDomainName)
-                .withSource(plantUml)
+        return UmlClassDiagram.of(domainModel, kind, subDomainName)
                 .withGraph(graphOf(domainModel, kind, subDomainName));
-        try {
-            final byte[] pdf = diagramPort.buildPlantUmlDiagram(plantUml);
-            return diagram.rendered(new Blob(fileNameOf(kind, subDomainName), DomainConstants.PDF_MIME_TYPE, pdf));
-        } catch (Exception e) {
-            // Catch Exception (not just RuntimeException): the adapter's HTTP client throws checked
-            // errors (Fuel's FuelError), so an unreachable Kroki must not fail the action.
-            log.warn("Failed to render the {} class diagram: {}", kind, e.getMessage());
-            log.debug("Failure rendering the {} class diagram", kind, e);
-            return diagram.failed("The diagram could not be rendered (" + e.getMessage()
-                    + ") — is Kroki running? The PlantUML source is below.");
-        }
     }
 
-    /** Assembles the PlantUML for one kind of diagram. */
+    /** Assembles the PlantUML for one kind of diagram — the text {@link #downloadPlantUml} serves. */
     private String plantUmlOf(final DomainModel domainModel, final String kind, final String subDomainName) {
         final ClassDiagram classDiagram = new ClassDiagram();
         final String which = kind == null ? UmlClassDiagram.KIND_MODEL : kind;
@@ -163,14 +192,11 @@ public class DomainModels {
     }
 
     /**
-     * Assembles the <em>same</em> diagram as a {@link ClassDiagram.Graph}, for the D3 renderer.
+     * Assembles one diagram as a {@link ClassDiagram.Graph} — what the D3 panel draws.
      *
-     * <p>Both renderers read the same class list and the same collaboration list — {@link ClassDiagram}
-     * is the single place the review-aware "what is in the model" rules live — so the D3 picture and the
-     * PlantUML picture cannot disagree about <em>what</em> the model contains.  They differ only in how
-     * it is drawn: the PDF is laid out by PlantUML/Kroki, the D3 payload by
-     * {@code UmlDiagramLayout#render}.  Nothing here needs Kroki, so the D3 picture survives an
-     * unreachable renderer.</p>
+     * <p>It reads the same class list and the same collaboration list as the PlantUML text, so the
+     * picture and the download cannot disagree about <em>what</em> the model contains; they differ only
+     * in how it is drawn, {@code UmlDiagramLayout#render} laying the picture out.</p>
      */
     private ClassDiagram.Graph graphOf(
             final DomainModel domainModel, final String kind, final String subDomainName) {
@@ -183,14 +209,14 @@ public class DomainModels {
         };
     }
 
-    /** The download name of a rendered diagram — the kind and the sub-domain, so two PDFs differ. */
-    private String fileNameOf(final String kind, final String subDomainName) {
+    /** The download name of one diagram's PlantUML — the kind and the sub-domain, so two exports differ. */
+    private String plantUmlFileNameOf(final String kind, final String subDomainName) {
         final String which = kind == null ? UmlClassDiagram.KIND_MODEL : kind;
         return switch (which) {
             case UmlClassDiagram.KIND_SUB_DOMAIN ->
-                    "domain-model-" + (subDomainName == null ? "sub-domain" : subDomainName) + ".pdf";
-            case UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW -> "domain-model-sub-domains.pdf";
-            default -> "domain-model.pdf";
+                    "domain-model-" + (subDomainName == null ? "sub-domain" : subDomainName) + ".puml";
+            case UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW -> "domain-model-sub-domains.puml";
+            default -> "domain-model.puml";
         };
     }
 

@@ -91,7 +91,7 @@
             var path = layer.append('path')
                 .attr('d', d)
                 .attr('fill', 'none')
-                .attr('stroke', link.kind === 'generalization' ? '#e67e22' : '#7f8c8d')
+                .attr('stroke', link.kind === 'generalization' ? '#000000' : '#7f8c8d')
                 .attr('stroke-width', 1.5);
             if (link.kind === 'generalization' && link.arrow !== false) {
                 path.attr('marker-end', 'url(#uml-generalization-arrow)');
@@ -188,8 +188,14 @@
         var cw = canvas.width || 1200;
         var ch = canvas.height || 800;
         var available = containerEl.clientWidth || cw;
+        // The diagram fills the tab, not a strip of it: the SVG's box is the container's width and at
+        // least three quarters of the window's height, so a wide drawing is centred in a panel that uses
+        // the height it has instead of leaving the rest of the tab empty.  A list cell is unaffected —
+        // its stylesheet pins the SVG's own width and height with `!important` (static/css/domox.css
+        // rules 3 and 5), so the taller box is clipped to the teaser/popup exactly as before.
+        var tallEnough = Math.round((window.innerHeight || 0) * 0.75);
         svg.attr('width', '100%')
-            .attr('height', Math.max(320, Math.round(available * ch / cw)))
+            .attr('height', Math.max(320, Math.round(available * ch / cw), tallEnough))
             .attr('viewBox', '0 0 ' + cw + ' ' + ch)
             .attr('preserveAspectRatio', 'xMidYMid meet');
 
@@ -206,6 +212,10 @@
                 attributes: n.attributes || [],
                 methods: n.methods || [],
                 color: n.color || '#eaf3fb',
+                // A box the is-a arrows point at: the server marks it, and its name is drawn in italics
+                // (the UML convention for an abstract class) so a reader can see which boxes a
+                // generalization below belongs to.
+                superclass: n.superclass === true,
                 w: w,
                 h: h,
                 // The simulation works in box *centres*, the payload states the top-left corner.
@@ -246,15 +256,19 @@
         });
 
         // ---- settle the layout before the first paint ----------------------------
+        // The seed is a *layout*, not a suggestion: the server already put every box where it belongs —
+        // a hierarchy stacked top-down in one column, sub-domains in bands — so the anchors are strong
+        // and the links are weak, and the simulation only relaxes the seed instead of dissolving it.
+        // (With weak anchors a whole-model diagram collapses into one cloud, which is how the boxes of a
+        // super-class and its sub-classes ended up far apart with the connector crossing the boxes
+        // between them.)
         var simulation = d3.forceSimulation(nodes)
             .force('link', d3.forceLink(links).id(function (d) { return d.id; })
-                .distance(260).strength(0.15))
-            .force('charge', d3.forceManyBody().strength(-60).distanceMax(500))
+                .distance(200).strength(0.08))
+            .force('charge', d3.forceManyBody().strength(-40).distanceMax(500))
             .force('collide', forceRectCollide(18))
-            // The seed is an anchor, not a suggestion: without these the sub-domain bands the server's
-            // grid created dissolve and a whole-model diagram becomes one cloud.
-            .force('x', d3.forceX(function (d) { return d.seedX; }).strength(0.06))
-            .force('y', d3.forceY(function (d) { return d.seedY; }).strength(0.06))
+            .force('x', d3.forceX(function (d) { return d.seedX; }).strength(0.3))
+            .force('y', d3.forceY(function (d) { return d.seedY; }).strength(0.3))
             .stop();
         var ticks = nodes.length > 400 ? 180 : 300;
         for (var i = 0; i < ticks; i++) {
@@ -267,7 +281,7 @@
             .data(links)
             .enter().append('line')
             .attr('class', function (d) { return 'uml-link uml-link-' + d.kind; })
-            .attr('stroke', function (d) { return d.kind === 'generalization' ? '#e67e22' : '#7f8c8d'; })
+            .attr('stroke', function (d) { return d.kind === 'generalization' ? '#000000' : '#7f8c8d'; })
             .attr('stroke-width', 1.5)
             .attr('marker-end', function (d) { return d.arrow ? 'url(#uml-generalization-arrow)' : null; });
 
@@ -370,7 +384,7 @@
             .attr('orient', 'auto-start-reverse')
             .append('path')
             .attr('d', 'M 0 0 L 10 5 L 0 10 z')
-            .attr('fill', '#e67e22');
+            .attr('fill', '#000000');
     }
 
     /**
@@ -396,6 +410,7 @@
             shrinkToFit(g.append('text').attr('class', 'uml-name')
                 .attr('text-anchor', 'middle').attr('x', 0).attr('y', -d.h / 2 + 14)
                 .attr('font-size', 12).attr('font-weight', 'bold').attr('fill', '#1b3b57')
+                .attr('font-style', d.superclass ? 'italic' : null)
                 .text(d.name), d.w - 10, 12);
 
             // Both separators are always drawn: the name / attributes / methods structure *is* the box.

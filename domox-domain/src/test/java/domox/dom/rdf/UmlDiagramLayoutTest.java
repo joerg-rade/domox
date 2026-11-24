@@ -325,6 +325,45 @@ class UmlDiagramLayoutTest {
         assertThat(nodeValue(json, "sub2", "x")).as("the second column of the same row").isEqualTo("276");
     }
 
+    /**
+     * A sub-class is seeded <b>in its super-class's column</b>, even when the band's own order would put it
+     * elsewhere — which is what keeps the two boxes close and makes the is-a connector a short vertical line
+     * inside one column instead of a diagonal across the boxes between them.
+     */
+    @Test
+    void seedsASubClassInItsSuperClassColumn() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("alpha", "Alpha", "g"), node("beta", "Beta", "g"),
+                        node("sub", "BetaSpecial", "g")),
+                List.of(new UmlDiagramLayout.Edge("beta", "sub", UmlDiagramLayout.GENERALIZATION, null)));
+
+        assertThat(nodeValue(json, "beta", "x")).as("the second column of the first row").isEqualTo("276");
+        assertThat(nodeValue(json, "sub", "x")).as("the sub-class takes its super-class's column")
+                .isEqualTo("276");
+        assertThat(nodeValue(json, "sub", "y")).as("and the row below it").isEqualTo("144");
+    }
+
+    /**
+     * The box an is-a arrow points at is marked, so the client can draw its name in italics — the UML
+     * convention for an abstract class, and the one thing that tells a reader which boxes the generalizations
+     * below belong to.  Only the <em>source</em> of a generalization is marked: an association says nothing
+     * about hierarchy, so neither of its ends is.
+     */
+    @Test
+    void marksASuperClassSoItsNameIsDrawnInItalics() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("super", "Appointment", "g"), node("sub", "GroomAppointment", "g"),
+                        node("other", "Invoice", "g")),
+                List.of(new UmlDiagramLayout.Edge("super", "sub", UmlDiagramLayout.GENERALIZATION, "is a"),
+                        new UmlDiagramLayout.Edge("super", "other", UmlDiagramLayout.ASSOCIATION, "owns")));
+
+        assertThat(nodeValue(json, "super", "superclass")).isEqualTo("true");
+        assertThat(nodeBody(json, "sub")).as("the sub-class is not a super-class")
+                .doesNotContain("\"superclass\"");
+        assertThat(nodeBody(json, "other")).as("an association marks neither end")
+                .doesNotContain("\"superclass\"");
+    }
+
     /** A chain of three is three rows, each one below the one before it. */
     @Test
     void putsAChainOfInheritanceOnConsecutiveRows() {

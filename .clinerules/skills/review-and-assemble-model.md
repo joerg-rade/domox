@@ -108,11 +108,12 @@ Decides *what the model now says*. Assembly is a **re-measurement, not a creatio
 `DomainModel` already exists (the analysis made it), and passes 1–2 have decided which of its
 candidates are real and which area each belongs to. Read the assembled model back:
 
-- `DomainModels#listAll()` finds the model; `DomainModels#generateUmlDiagram(domainModel)` renders
-  it and returns a `UmlClassDiagram` view model — the rendered PDF on its `diagram` property, the
-  PlantUML source on its `plantUml` property. The D3 model diagram seeds from the **approved**
-  candidates only, so a model with zero approvals diagrams as empty and says so in the log instead of
-  failing.
+- `DomainModels#listAll()` finds the model; `DomainModels#generateUmlDiagram(domainModel)` returns a
+  `UmlClassDiagram` view model whose `d3Graph` property is the diagram — the payload the D3 panel
+  draws in the browser. The text form is `DomainModels#downloadPlantUml(domainModel, kind,
+  subDomainName)`, a `.puml` download, and that is what the re-measure counts. The D3 model diagram
+  seeds from the **approved** candidates only, so a model with zero approvals diagrams as empty and
+  says so in the log instead of failing.
 - Record the numbers (classes, attribute lines, operation lines, edges, cardinalities) against the
   readiness review's table, so the next pass measures a **delta** and not a fresh opinion.
 

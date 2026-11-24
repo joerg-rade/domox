@@ -26,7 +26,9 @@ resolve: an **entity href is fine as a parameter** — the server looks the oid 
 when an action *declares* an entity parameter, and the `self:` link of a service/view model otherwise.
 
 `--out FILE` writes the result to FILE and prints its size, instead of dumping it — the way to
-look at a big diagram payload without pasting it into the transcript.
+look at a big diagram payload without pasting it into the transcript.  An action that returns a Blob
+(a download, e.g. `DomainModels downloadPlantUml`) is decoded and printed as its text (or written to
+FILE), so an export's source is readable here rather than a wall of base64.
 
 Env: DOMOX_URL (default http://localhost:8080), DOMOX_USER / DOMOX_PASS (default sven / pass).
 """
@@ -70,7 +72,7 @@ def show(rep, limit=70):
         value = m.get("value") if isinstance(m, dict) else None
         if isinstance(value, str) and len(value) > limit:
             value = value[:limit] + "..."
-        if value is not None or name in ("message", "diagram"):
+        if value is not None or name == "message":
             print(f"  {name:<20} {value!r}")
 
 
@@ -107,6 +109,14 @@ def cmd_invoke(args):
         # is rejected with `No 'value' key`.  Anything else is sent as a plain string value.
         body[k] = {"value": {"href": to_path(v[1:])}} if v.startswith("@") else {"value": v}
     rep = call(f"/restful/services/{service}/actions/{action}/invoke", "POST", body)
+
+    # A download — an action returning a Blob — arrives as a scalar whose value is a JSON object with
+    # base64 `bytes`.  Decode it: what the caller wants to read is the export's *text*, not base64.
+    blob = decode_blob(rep)
+    if blob is not None:
+        write_text(blob, out)
+        return
+
     print("invoke:", rep.get("title"))
     self_url = link(rep, "self")
     if not self_url:
@@ -119,6 +129,32 @@ def cmd_invoke(args):
         show(obj)
     else:
         emit(obj, out)
+
+
+def decode_blob(rep):
+    """The decoded text of a Blob action result, or None when the result is not one."""
+    if rep.get("resulttype") != "scalarvalue":
+        return None
+    result = rep.get("result")
+    if not isinstance(result, dict) or not isinstance(result.get("value"), str):
+        return None
+    try:
+        blob = json.loads(result["value"])
+    except ValueError:
+        return None
+    if not isinstance(blob, dict) or "bytes" not in blob:
+        return None
+    return base64.b64decode(blob["bytes"]).decode("utf-8", "replace")
+
+
+def write_text(text, out):
+    """Print a decoded export, or write it to `out` (then print only its size)."""
+    if out is None:
+        print(text, end="" if text.endswith("\n") else "\n")
+        return
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(f"wrote {out} ({len(text)} bytes)")
 
 
 def cmd_property(args):

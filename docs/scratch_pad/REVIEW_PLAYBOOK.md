@@ -445,12 +445,25 @@ count only classes the model actually contains.
 
 **Step 2 — render the diagrams.**  `DomainModels#listAll()` finds the model, then:
 
-- `generateUmlDiagram(domainModel)` — the whole model. Each of the three returns a
-  **`UmlClassDiagram` view model**: the PlantUML source is its `plantUml` property (that is what the
-  re-measure below counts) and the diagram itself is its `diagram` property, rendered by Kroki;
+- `generateUmlDiagram(domainModel)` — the whole model;
 - `generateSubDomainUmlDiagram(domainModel, subDomainName)` — **one diagram per sub-domain** (the
   choices come from the action);
 - `generateSubDomainOverviewDiagram(domainModel)` — **how the sub-domains relate** to each other.
+
+Each returns a **`UmlClassDiagram` view model** whose `d3Graph` property is the diagram: the payload the
+D3 panel draws in the browser, so nothing has to be rendered by a service and there is no failure mode
+that replaces the picture with an error message.  The **text** form of the same diagram is
+`DomainModels#downloadPlantUml(domainModel, kind, subDomainName)` — a `.puml` download, and **that is what
+the re-measure below counts**.  Over RO:
+
+```shell
+python3 scripts/ro.py invoke domox.DomainModels downloadPlantUml \
+    domainModel=@/restful/objects/domox.DomainModel/16177 kind=model
+```
+
+The PlantUML is no longer a `plantUml` property on the page (a hidden member is unreachable over RO, so a
+download is the shape that keeps it available), and the Kroki/PDF rendering is gone: the page shows one
+picture, and the source is a file.
 
 All three are **review-aware**: only approved candidates are drawn, and only classes that carry approved
 content or take part in a material relation.  The D3 model diagram seeds from the **approved** candidates

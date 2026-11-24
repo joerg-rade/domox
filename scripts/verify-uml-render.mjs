@@ -125,8 +125,12 @@ const MEASURE_FORCE = `(() => {
   return JSON.stringify({
     settled: svg.getAttribute('data-uml-settled'),
     viewBox: svg.getAttribute('viewBox'),
+    svgHeight: parseFloat(svg.getAttribute('height')),
+    containerWidth: document.querySelector('#d3CanvasForce').clientWidth,
+    expectedTall: Math.round((window.innerHeight || 0) * 0.75),
     boxes: boxes.length,
     boxNames: boxes.map(g => { const t = g.querySelector('text.uml-name'); return t ? t.textContent : null; }),
+    nameStyles: boxes.map(g => { const t = g.querySelector('text.uml-name'); return t ? getComputedStyle(t).fontStyle : null; }),
     fills: boxes.map(g => g.querySelector('rect.uml-box').getAttribute('fill')),
     connectors: lines.length,
     routedPaths: layer.querySelectorAll('path').length,
@@ -166,8 +170,8 @@ check('the boxes carry their names',
     JSON.stringify(m.boxNames));
 check('one path per connector', m.paths === 3, String(m.paths));
 check('only the connector that carries the arrow draws one', m.arrowed === 1, String(m.arrowed));
-check('the arrow is orange and the association grey',
-    m.strokes.includes('#e67e22') && m.strokes.includes('#7f8c8d'), JSON.stringify(m.strokes));
+check('the arrow is black and the association grey',
+    m.strokes.includes('#000000') && m.strokes.includes('#7f8c8d'), JSON.stringify(m.strokes));
 
 const overflowing = m.labels.filter(l => l.text > l.box + 0.5);
 check('every label fits inside its box (the long one is shrunk to fit)',
@@ -203,16 +207,26 @@ if (f.error) {
 check('the force renderer settles before it paints (data-uml-settled)',
     f.settled === 'true', String(f.settled));
 check('the force SVG uses the payload canvas as its viewBox', f.viewBox === '0 0 600 400', f.viewBox);
+// The panel must use the height it has: the SVG's box is the taller of the canvas' own aspect height and
+// three quarters of the window, so a wide drawing is centred in a panel that fills the tab rather than
+// letterboxed into a strip.  (A list cell is unaffected — its stylesheet pins the SVG's box with
+// `!important` — which is why this is asserted here and not in verify-ui-render.sh.)
+const expectedSvgHeight = Math.max(320, Math.round((f.containerWidth || 600) * 400 / 600), f.expectedTall);
+check('the force SVG fills the tab — its box is the taller of the canvas aspect and three quarters of the window',
+    f.svgHeight === expectedSvgHeight, `${f.svgHeight} vs ${expectedSvgHeight}`);
 check('one box per node', f.boxes === 3, String(f.boxes));
 check('the boxes carry their names',
     JSON.stringify(f.boxNames) === JSON.stringify(['Alpha', 'Beta', 'ServiceProviderOnNegotiation']),
     JSON.stringify(f.boxNames));
+check('a super-class name is drawn in italics and a plain class name is not',
+    JSON.stringify(f.nameStyles) === JSON.stringify(['italic', 'normal', 'normal']),
+    JSON.stringify(f.nameStyles));
 check('one connector per link', f.connectors === 2, String(f.connectors));
 check('no connector is a routed path — a route would be stale after the first tick',
     f.routedPaths === 0, String(f.routedPaths));
 check('only the generalization draws an arrowhead', f.arrowed === 1, String(f.arrowed));
-check('the arrow is orange and the association grey',
-    f.strokes.includes('#e67e22') && f.strokes.includes('#7f8c8d'), JSON.stringify(f.strokes));
+check('the arrow is black and the association grey',
+    f.strokes.includes('#000000') && f.strokes.includes('#7f8c8d'), JSON.stringify(f.strokes));
 
 check('the attribute compartment is drawn',
     f.memberLines.includes('id: Long') && f.memberLines.includes('name: String'),

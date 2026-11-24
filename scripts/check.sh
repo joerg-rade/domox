@@ -220,9 +220,10 @@ else
   bad "ontology render check failed"
 fi
 
-# A multi-line String ACTION RESULT (the PlantUML exports) is shown through the COMPACT label
-# fragment, where the browser's default `white-space: normal` collapses every newline — the diagram
-# was verified correct on the wire and still displayed as one line.  Asserts the rendered line boxes.
+# A multi-line String ACTION RESULT (the Java source `generateJavaCode` returns) is shown through the
+# COMPACT label fragment, where the browser's default `white-space: normal` collapses every newline —
+# the value was verified correct on the wire and still displayed as one line.  Asserts the rendered
+# line boxes.
 if SVOUT=$(bash scripts/verify-standalone-value-render.sh 2>&1); then
   printf '%s\n' "$SVOUT" | sed 's/^/    /'
   if printf '%s' "$SVOUT" | grep -q 'SKIP:'; then

@@ -27,16 +27,23 @@ import domox.dom.crc.model.SubDomainClassification
 import domox.dom.rdf.UmlDiagramLayout
 
 /**
- * Assembles the model's PlantUML class diagrams from the **reviewed** candidates.
+ * Assembles the model's class diagrams — as PlantUML text and as the graph the D3 panel draws — from the
+ * **reviewed** candidates.
  *
  * <p><b>Review-aware, not a dump.</b>  The export used to render every class and every member the
  * analysis produced, whatever the review said — which is why the assembled model claimed 168
  * operation lines when only 85 were approved, and 88 attribute lines when only 9 were
- * ({@code MODEL_UML_READINESS_REVIEW.md} §2.1).  Every diagram built here contains only what the
+ * ({@code MODEL_UML_READINESS_REVIEW.md} §2.1).  Every diagram assembled here contains only what the
  * review approved, and only classes that have something to say (see
  * {@link ModelContent#includedClasses(DomainModel)}).</p>
  *
- * <p><b>Three views.</b></p>
+ * <p><b>Three views, two forms.</b>  Each of the three views below exists as PlantUML text
+ * ([build], [buildForSubDomain], [buildSubDomainOverview] — served as a download by
+ * {@code DomainModels#downloadPlantUml}) and as a [Graph] ([graph], [graphForSubDomain],
+ * [graphOverview] — laid out by {@code UmlDiagramLayout#render} and drawn by the browser).  Both forms
+ * read the same class list and the same collaboration list, so they cannot disagree about what the model
+ * contains.</p>
+ *
  * <ul>
  *   <li>[build] — the whole model, flat: every included class and every material edge between two of
  *       them.</li>
@@ -96,11 +103,12 @@ class ClassDiagram {
      * One diagram as a graph — its boxes and the connectors between them — <em>before</em> either
      * renderer draws it.
      *
-     * <p>{@link #build} and its siblings turn this into PlantUML (Kroki → SVG → PDF → the pdf.js
-     * panel); {@code UmlDiagramLayout#render} turns it into the {@code {"layout":"uml",…}} payload the
-     * D3 panel draws statically.  Both read the <em>same</em> class list and the same collaboration
-     * list, so the two pictures of one diagram cannot disagree about what the model contains — which is
-     * the whole point of assembling the content here rather than in either renderer.</p>
+     * <p>{@link #build} and its siblings turn the same content into PlantUML text (served as a
+     * download); {@code UmlDiagramLayout#render} turns this graph into the
+     * {@code {"layout":"uml","force":true,…}} payload the D3 panel draws and the reader can drag.  Both
+     * read the <em>same</em> class list and the same collaboration list, so the picture and the text
+     * cannot disagree about what the model contains — which is the whole point of assembling the content
+     * here rather than in either renderer.</p>
      */
     data class Graph(
         val title: String,

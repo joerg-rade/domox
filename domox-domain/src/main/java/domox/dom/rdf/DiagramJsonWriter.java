@@ -54,11 +54,21 @@ final class DiagramJsonWriter {
      *
      * <p>Empty on the static flavour, which draws none of it — the reconstruction is a picture of where
      * the model's author put things, not of what the classes contain.</p>
+     *
+     * <p>{@code superclass} is set on a box the is-a arrows point at, so the client can draw its name in
+     * italics — the UML convention for an abstract class, and the one thing that tells a reader which
+     * boxes the generalizations below belong to.</p>
      */
-    record NodeDetail(List<String> attributes, List<String> methods, String archetype, String color) {
+    record NodeDetail(List<String> attributes, List<String> methods, String archetype, String color,
+                      boolean superclass) {
 
-        /** A box with no members and no archetype. */
-        static final NodeDetail NONE = new NodeDetail(List.of(), List.of(), null, null);
+        /** A box with no members, no archetype, and nothing inheriting from it. */
+        static final NodeDetail NONE = new NodeDetail(List.of(), List.of(), null, null, false);
+
+        /** The same detail, marked as a box the is-a arrows point at. */
+        NodeDetail asSuperclass() {
+            return new NodeDetail(attributes, methods, archetype, color, true);
+        }
     }
 
     /**
@@ -149,7 +159,7 @@ final class DiagramJsonWriter {
                 .append("\"description\":\"a class box, where the model puts it\"},")
                 .append("{\"kind\":\"association\",\"color\":\"#7f8c8d\",\"label\":\"Association\",")
                 .append("\"description\":\"a plain line between two classes\"},")
-                .append("{\"kind\":\"generalization\",\"color\":\"#e67e22\",\"label\":\"Generalization\",")
+                .append("{\"kind\":\"generalization\",\"color\":\"#000000\",\"label\":\"Generalization\",")
                 .append("\"description\":\"the arrow points at the super-class (is-a)\"}");
         if (force) {
             appendArchetypeLegend(json, nodeIds, detailOf);
@@ -171,6 +181,9 @@ final class DiagramJsonWriter {
         }
         if (detail.color() != null) {
             json.append(",\"color\":\"").append(escape(detail.color())).append('"');
+        }
+        if (detail.superclass()) {
+            json.append(",\"superclass\":true");
         }
     }
 

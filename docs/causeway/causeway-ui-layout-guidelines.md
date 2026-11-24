@@ -63,20 +63,20 @@ a single fieldset:
 <bs:row>
     <bs:col span="12">
         <bs:tabGroup>
-            <bs:tab name="Diagram">
+            <bs:tab name="First panel">
                 <bs:row>
                     <bs:col span="12">
-                        <cpt:fieldSet name="Diagram" id="content" unreferencedProperties="true">
-                            <cpt:property id="diagram"/>
+                        <cpt:fieldSet id="first" unreferencedProperties="true">
+                            <cpt:property id="firstProperty"/>
                         </cpt:fieldSet>
                     </bs:col>
                 </bs:row>
             </bs:tab>
-            <bs:tab name="Diagram (D3)">
+            <bs:tab name="Second panel">
                 <bs:row>
                     <bs:col span="12">
-                        <cpt:fieldSet name="Diagram (D3)" id="d3">
-                            <cpt:property id="d3Graph"/>
+                        <cpt:fieldSet id="second">
+                            <cpt:property id="secondProperty"/>
                         </cpt:fieldSet>
                     </bs:col>
                 </bs:row>
@@ -86,9 +86,16 @@ a single fieldset:
 </bs:row>
 ```
 
-Working examples in this repo: `UmlClassDiagram.layout.xml` (3 view tabs of one artifact),
-`Candidate.layout.xml` (5 tabs, the last four fed by `unreferencedCollections`),
-`DomainModel.layout.xml` (4 collection tabs).
+Working examples in this repo: `Candidate.layout.xml` (5 tabs, the last four fed by
+`unreferencedCollections`), `DomainModel.layout.xml` (4 collection tabs). `UmlClassDiagram.layout.xml`
+is the one-panel case — it keeps a tab group of one so a reader still meets a panel, but a page with a
+single member does not *need* tabs (see §1).
+
+**One panel per tab, and a tab label cannot be dynamic.** A tab name comes from the XML and one layout
+serves every instance of the type, so a tab cannot be named after the object it shows — the sub-domain a
+UML class diagram belongs to is carried by the property's own label instead
+(`UmlClassDiagram#namedD3Graph()`, a `namedXxx()` member-support method, which *is* re-read per
+instance).
 
 **Tab order is reading order, and the first tab is what the reader gets by default.** Put the
 primary artifact first and the alternatives after it; do not reorder so that a cheap-to-render panel
@@ -109,11 +116,13 @@ Nothing else can widen it after the fact: `PdfJsViewerPanel.css` already sets `.
 
 ## 4. Tab panels are loaded on demand — a panel never measures a hidden container
 
-Verified live (2026-11, headless Chromium over CDP, on the UML class-diagram page): the tab group
-(`AjaxBootstrapTabbedPanel`) puts **only the selected tab's panel in the DOM**
-(`div.tab-content > div.tabPanel`); every other tab is an Ajax link that builds its panel when it is
-clicked. Measured: exactly one `.pdfPanel` while the first tab was active, exactly one `.d3GraphPanel`
-after clicking the second, exactly one `textarea` after the third — never two at once.
+Verified live (2026-11, headless Chromium over CDP, on the UML class-diagram page **while it still had
+three tabs**): the tab group (`AjaxBootstrapTabbedPanel`) puts **only the selected tab's panel in the
+DOM** (`div.tab-content > div.tabPanel`); every other tab is an Ajax link that builds its panel when it
+is clicked. Measured: exactly one `.pdfPanel` while the first tab was active, exactly one `.d3GraphPanel`
+after clicking the second, exactly one `textarea` after the third — never two at once. That page now has
+a single tab (the D3 picture), but the *rule* is Causeway's, not that page's, so it holds for any tab
+group here.
 
 So the "`clientWidth === 0`, because the pane is `display:none`" hazard **does not arise** here: a
 panel's init script runs once its tab is visible. It is still worth knowing what each panel does with

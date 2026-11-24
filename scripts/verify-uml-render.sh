@@ -81,7 +81,7 @@ var PAYLOAD = {
   "legend": [
     {"kind": "node", "color": "#3498DB", "label": "Class", "description": "a class box"},
     {"kind": "association", "color": "#7f8c8d", "label": "Association", "description": "a plain line"},
-    {"kind": "generalization", "color": "#e67e22", "label": "Generalization", "description": "an arrow"}
+    {"kind": "generalization", "color": "#000000", "label": "Generalization", "description": "an arrow"}
   ]
 };
 WicketStuff.D3.init({ canvasId: 'd3CanvasFixture', graphData: JSON.stringify(PAYLOAD), enableZoom: true });
@@ -95,7 +95,7 @@ var FORCE_PAYLOAD = {
   "layout": "uml", "force": true, "title": "Fixture", "canvas": {"width": 600, "height": 400},
   "nodes": [
     {"id": "a", "name": "Alpha", "kind": "Class", "x": 40, "y": 40, "w": 160, "h": 60,
-     "attributes": ["id: Long", "name: String"], "methods": []},
+     "attributes": ["id: Long", "name: String"], "methods": [], "superclass": true},
     {"id": "b", "name": "Beta", "kind": "Class", "x": 40, "y": 260, "w": 160, "h": 48,
      "attributes": [], "methods": ["approve()"]},
     {"id": "c", "name": "ServiceProviderOnNegotiation", "kind": "Class", "x": 300, "y": 40, "w": 159, "h": 60,
@@ -109,7 +109,7 @@ var FORCE_PAYLOAD = {
   "legend": [
     {"kind": "node", "color": "#3498DB", "label": "Class", "description": "a class box"},
     {"kind": "association", "color": "#7f8c8d", "label": "Association", "description": "a plain line"},
-    {"kind": "generalization", "color": "#e67e22", "label": "Generalization", "description": "an arrow"},
+    {"kind": "generalization", "color": "#000000", "label": "Generalization", "description": "an arrow"},
     {"kind": "archetype", "color": "#ffe0b2", "label": "Party", "description": "a Coad/Lefebvre archetype"}
   ]
 };

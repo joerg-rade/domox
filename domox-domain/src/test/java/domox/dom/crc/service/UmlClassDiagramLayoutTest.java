@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The page composition declared by {@code UmlClassDiagram.layout.xml}: three <em>tabs</em> of one
- * artifact, not three stacked rows.
+ * The page composition declared by {@code UmlClassDiagram.layout.xml}: <b>one</b> tab, holding the one
+ * diagram the page shows.
  *
  * <p><b>Why a test and not a screenshot.</b>  Causeway <em>silently discards</em> a layout XML that
  * breaks its structural rules and renders the bundled span-4 fallback grid instead — the build stays
@@ -38,21 +38,22 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Causeway's own validator insists on; this test checks the <em>shape</em> those markers are embedded
  * in.  Both are needed — the script cannot tell a tab group from a stack.</p>
  *
- * <p><b>The regression this pins.</b>  The page used to be three full-width rows — the PDF, then the
- * D3 picture, then the PlantUML source — so it was roughly three screens tall and a reader who does
- * not scroll reported the page as having a single diagram.  Content below the horizon is content a
- * reader does not know exists; see {@code docs/causeway/causeway-ui-layout-guidelines.md}.</p>
+ * <p><b>The regression this pins.</b>  The page used to offer three views of one artifact — the Kroki/PDF
+ * rendering, the D3 picture and the PlantUML source — and stacked they were three screens tall, so a
+ * reader who did not scroll reported the page as having a single diagram.  Content below the horizon is
+ * content a reader does not know exists (see
+ * {@code docs/causeway/causeway-ui-layout-guidelines.md}).  The PDF and the source are now gone from the
+ * page entirely — the picture is the diagram, and the PlantUML is a download — so this test is what stops
+ * either of them, or any second panel, from quietly growing back.</p>
  */
 class UmlClassDiagramLayoutTest {
 
-    /** The three views, in the order the page offers them.  The first is the default tab. */
-    private static final List<String> TAB_NAMES = List.of("Diagram", "Diagram (D3)", "PlantUML Source");
+    /** The views the page offers: one, and it is the default tab. */
+    private static final List<String> TAB_NAMES = List.of("Diagram");
 
     /** fieldSet id → the property ids it holds, per tab. */
     private static final Map<String, List<String>> PROPERTIES_BY_FIELDSET = Map.of(
-            "content", List.of("diagram", "message"),
-            "d3", List.of("d3Graph"),
-            "source", List.of("plantUml"));
+            "content", List.of("d3Graph"));
 
     private static BSGrid grid;
 
@@ -92,11 +93,13 @@ class UmlClassDiagramLayoutTest {
     }
 
     @Test
-    void theThreeViewsAreTabsInReadingOrder() {
+    void theDiagramIsTheOnlyPanelOnThePage() {
         // when
         final BSTabGroup tabs = tabGroup();
 
-        // then — one tab per view, in the order a reader meets them
+        // then — one tab, and a second panel is what this page deliberately no longer has: the Kroki
+        // rendering and the PlantUML source are gone (the source is a download on DomainModels)
+        assertThat(TAB_NAMES).as("one view").hasSize(1);
         assertThat(tabs.getTabs()).extracting(BSTab::getName).containsExactlyElementsOf(TAB_NAMES);
     }
 

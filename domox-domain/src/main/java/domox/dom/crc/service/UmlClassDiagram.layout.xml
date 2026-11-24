@@ -13,32 +13,39 @@
         </bs:col>
     </bs:row>
 
-    <!-- THE THREE VIEWS OF THE SAME DIAGRAM ARE TABS, NOT A STACK.
+    <!-- ONE VIEW, ONE PANEL — AND WHY IT IS STILL A TAB.
 
          WHY THIS FILE EXISTS: without a layout XML Causeway falls back to its bundled
-         GridFallbackLayout.xml, which puts every property in a span-4 column (inside an
-         "Identity"/"Other" tab) — so the pdf.js panel got ~1/3 of the page and the diagram was
-         unreadable.  Nothing else can widen it: the extension's own PdfJsViewerPanel.css already
-         sets `.pdfPanel { width: 100% }`, so the enclosing grid column is the ONLY width driver —
-         same reason, same shape as UmlDiagram.layout.xml and OntologyDiagram.layout.xml.
+         GridFallbackLayout.xml, which puts every property in a span-4 column — so the diagram got
+         ~1/3 of the page and was unreadable.  Nothing else can widen it: the extension's own
+         D3Panel.css already sets `width: 100%`, so the enclosing grid column is the ONLY width
+         driver — same reason, same shape as UmlDiagram.layout.xml and OntologyDiagram.layout.xml.
 
-         WHY TABS: stacked, the page was ~three screens tall and the reader had to scroll to find
-         out that a second and third rendering even existed — content "below the horizon" is
-         content a reader does not know is there.  Each panel is an alternative view of one
-         artifact, which is exactly what a tab group is for (the shape Candidate.layout.xml uses).
-         See docs/causeway/causeway-ui-layout-guidelines.md.
+         WHY ONE TAB AND NOT A STACK: the page used to offer three views of one artifact — the
+         Kroki/PDF rendering, the D3 picture, and the PlantUML source — and stacked they were three
+         screens tall, so a reader who did not scroll reported the page as having one diagram
+         (content below the horizon is content a reader does not know exists).  The PDF view and the
+         source view are gone: the D3 picture *is* the diagram, and the PlantUML text is a download
+         on DomainModels — a page is for the picture, a file is for the source.  The tab group is
+         kept rather than collapsed to a plain fieldSet, because the panel is still one artifact of
+         several possible ones and the tab is what the browser remembers.
 
-         Each tab's column still spans ALL 12 columns, because width is what makes each panel
-         readable.  A tab panel is built when its tab is shown (AjaxBootstrapTabbedPanel puts only
-         the selected tab's panel in the DOM — verified live), so neither panel ever measures a
-         hidden container; both would survive it anyway:
-           - the PDF renders at a FIXED scale 1.00 (PdfJsConfig.initialScale defaults to Scale._1_00,
-             so pdfjs' container-width auto-scale branch is never taken), and
-           - the D3 picture takes its viewBox from the payload's own canvas, not from the container.
+         THE SUB-DOMAIN IS NOT IN THE TAB LABEL, and cannot be: a Causeway tab name comes from this
+         file, one layout serves every instance of the view model, and `BSTab` carries nothing but a
+         name — so the label cannot vary per diagram (verified against causeway-applib: `BSTab`
+         exposes `getName`/`setName` only, and `TabGroupPanel.tabsFor` labels each tab from it).
+         It is carried by the property's own label instead — `UmlClassDiagram#namedD3Graph()`, a
+         member-support method, which is re-read per instance and reads "Sub-domain: Inventory" /
+         "Whole model" / "Sub-domain overview".
 
-         The memento properties (domainModel, kind, subDomainName) are hidden (Where.EVERYWHERE)
-         and already shown in the object title; unreferencedProperties must still be set
-         somewhere, or the whole grid is rejected. -->
+         The column spans ALL 12 columns, because width is what makes the panel readable.  A tab
+         panel is built when its tab is shown (AjaxBootstrapTabbedPanel puts only the selected tab's
+         panel in the DOM — verified live), so the panel never measures a hidden container; the D3
+         picture takes its viewBox from the payload's own canvas, not from the container.
+
+         The memento properties (domainModel, kind, subDomainName) are hidden (Where.EVERYWHERE) and
+         already shown in the object title; unreferencedProperties must still be set somewhere, or
+         the whole grid is rejected. -->
     <bs:row>
         <bs:col span="12">
             <bs:tabGroup>
@@ -46,34 +53,7 @@
                     <bs:row>
                         <bs:col span="12">
                             <cpt:fieldSet name="Diagram" id="content" unreferencedProperties="true">
-                                <cpt:property id="diagram"/>
-                                <!-- shown only when the render failed (hideMessage() hides it otherwise) -->
-                                <cpt:property id="message"/>
-                            </cpt:fieldSet>
-                        </bs:col>
-                    </bs:row>
-                </bs:tab>
-
-                <!-- The same diagram drawn by the browser (D3) — what a reader uses when Kroki is
-                     down, or when they want to zoom.  Its own tab so a reader scanning the page can
-                     see that the second rendering exists at all. -->
-                <bs:tab name="Diagram (D3)">
-                    <bs:row>
-                        <bs:col span="12">
-                            <cpt:fieldSet name="Diagram (D3)" id="d3">
                                 <cpt:property id="d3Graph"/>
-                            </cpt:fieldSet>
-                        </bs:col>
-                    </bs:row>
-                </bs:tab>
-
-                <!-- The PlantUML source: a 20-line textarea holding a whole model's source
-                     (472 lines for the 970-class model), which is unreadable in a narrow column. -->
-                <bs:tab name="PlantUML Source">
-                    <bs:row>
-                        <bs:col span="12">
-                            <cpt:fieldSet name="PlantUML Source" id="source">
-                                <cpt:property id="plantUml"/>
                             </cpt:fieldSet>
                         </bs:col>
                     </bs:row>

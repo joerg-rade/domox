@@ -172,8 +172,31 @@ public final class UmlDiagramLayout {
         final List<String> nodeIds = new ArrayList<>(boxes.keySet());
         nodeIds.sort(Comparator.comparing(nameOf).thenComparing(id -> id));
 
+        // A box the is-a arrows point at draws its name in italics, so the client has to be told which ones
+        // they are.  The picture decides it, not the model: a class nothing inherits from is not a
+        // super-class in *this* diagram, however it may be used elsewhere.
+        final Set<String> superclasses = superclassesOf(links);
+        final Function<String, DiagramJsonWriter.NodeDetail> details = detailOf(nodes);
+
         return DiagramJsonWriter.write(title == null ? "" : title, bounds, nodeIds, boxes, nameOf, links,
-                true, detailOf(nodes));
+                true, id -> superclasses.contains(id) ? details.apply(id).asSuperclass() : details.apply(id));
+    }
+
+    /**
+     * The ids the is-a arrows point at — the boxes whose names are drawn in italics.
+     *
+     * <p>A {@link Link} states a generalization the way its arrow reads: its {@code source} is the
+     * super-class, which is also the end the arrowhead is drawn on (see {@link Edge}).  So the set is read
+     * off the links, and a diagram with no inheritance in it has an empty one.</p>
+     */
+    private static Set<String> superclassesOf(final List<Link> links) {
+        final Set<String> superclasses = new LinkedHashSet<>();
+        for (final Link link : links) {
+            if (GENERALIZATION.equals(link.kind())) {
+                superclasses.add(link.source());
+            }
+        }
+        return superclasses;
     }
 
     // -- the grid --------------------------------------------------------------
@@ -287,33 +310,104 @@ public final class UmlDiagramLayout {
      * then the classes one below those, and so on, so a super-class is seeded <em>above</em> the classes
      * that inherit from it.  A row holds {@code columns} boxes and then wraps, and it is closed when the
      * depth's boxes run out, however much the wrap left it half-filled.</p>
+     *
+     * <p><b>A sub-class takes its super-class's column</b> (see {@link #columnFor}), so a hierarchy reads
+     * top-down <em>in one column</em>: the is-a connector between the two boxes is then a short vertical line
+     * inside that column, crossing nothing — where filling the row in the band's own order put the sub-class
+     * wherever its index happened to fall, often several columns away, and the connector ran diagonally
+     * across the boxes between them.</p>
      */
     private static double placeBand(final List<Node> band, final List<Edge> edges,
                                     final Map<String, Double> widths, final int columns,
                                     double y, final Map<String, Slot> slots) {
         final Map<String, Integer> depth = depthsOf(band, edges);
+        final Map<String, List<String>> supers = supersInBand(band, edges);
+        final Map<String, Integer> columnOf = new LinkedHashMap<>();
         final int deepest = depth.values().stream().mapToInt(Integer::intValue).max().orElse(0);
         for (int at = 0; at <= deepest; at++) {
-            int column = 0;
+            final Set<Integer> used = new LinkedHashSet<>();    // the columns taken in the row being filled
             double rowHeight = 0;
             for (final Node node : band) {
                 if (depth.get(node.id()) != at) {
                     continue;                   // it belongs to another row
                 }
-                final double height = heightOf(node);
-                slots.put(node.id(), new Slot(column, y, widths.get(node.id()), height));
-                rowHeight = Math.max(rowHeight, height);
-                if (++column == columns) {
-                    column = 0;
+                int column = columnFor(node, depth, supers, columnOf, used, at, columns);
+                if (column < 0) {               // this row is full: wrap and start a fresh one
                     y += rowHeight + ROW_GAP;
                     rowHeight = 0;
+                    used.clear();
+                    column = columnFor(node, depth, supers, columnOf, used, at, columns);
                 }
+                final double height = heightOf(node);
+                slots.put(node.id(), new Slot(column, y, widths.get(node.id()), height));
+                columnOf.put(node.id(), column);
+                used.add(column);
+                rowHeight = Math.max(rowHeight, height);
             }
-            if (column != 0) {
-                y += rowHeight + ROW_GAP;       // close the row this depth ends in
-            }
+            y += rowHeight + ROW_GAP;           // close the row this depth ends in
         }
         return y;
+    }
+
+    /**
+     * The column a box goes in: the column of a super-class that is <em>already placed in this band</em> and
+     * whose column is still free in this row — which is what puts a sub-class directly under its super-class
+     * — else the first free column, so the grid stays compact.
+     *
+     * <p>A super-class is always in a row above (the depth is the longest path from a root), so it is placed
+     * before its sub-classes are, and a cycle — where there is no row above — has already been flattened to
+     * one row by {@link #depthsOf}, leaving every box with no placed super-class.  The choice is a pure
+     * function of the band and the columns taken so far, so the seed stays reproducible.</p>
+     *
+     * @return the column, or {@code -1} when the row has no free one left, so the caller can wrap
+     */
+    private static int columnFor(final Node node, final Map<String, Integer> depth,
+                                 final Map<String, List<String>> supers,
+                                 final Map<String, Integer> columnOf, final Set<Integer> used,
+                                 final int at, final int columns) {
+        for (final String parent : supers.getOrDefault(node.id(), List.of())) {
+            final Integer column = columnOf.get(parent);
+            if (column != null && depth.getOrDefault(parent, at) < at && !used.contains(column)) {
+                return column;
+            }
+        }
+        for (int column = 0; column < columns; column++) {
+            if (!used.contains(column)) {
+                return column;
+            }
+        }
+        return -1;
+    }
+
+    /** Each box's super-classes <em>within its band</em>, keyed by the sub-class — see {@link #depthsOf}. */
+    private static Map<String, List<String>> supersInBand(final List<Node> band, final List<Edge> edges) {
+        final Set<String> ids = idsOf(band);
+        final Map<String, List<String>> supers = new LinkedHashMap<>();
+        for (final Edge edge : isAEdgesIn(ids, edges)) {
+            supers.computeIfAbsent(edge.target(), key -> new ArrayList<>()).add(edge.source());
+        }
+        return supers;
+    }
+
+    /** The ids of the boxes in one band, in the order given — a duplicate id is one box. */
+    private static Set<String> idsOf(final List<Node> band) {
+        final Set<String> ids = new LinkedHashSet<>();
+        for (final Node node : band) {
+            ids.add(node.id());
+        }
+        return ids;
+    }
+
+    /** The is-a edges with <em>both</em> ends in this band — the only ones that can order its rows. */
+    private static List<Edge> isAEdgesIn(final Set<String> ids, final List<Edge> edges) {
+        final List<Edge> isA = new ArrayList<>();
+        for (final Edge edge : edges) {
+            if (edge != null && GENERALIZATION.equals(edge.kind())
+                    && ids.contains(edge.source()) && ids.contains(edge.target())) {
+                isA.add(edge);
+            }
+        }
+        return isA;
     }
 
     /**
@@ -332,17 +426,8 @@ public final class UmlDiagramLayout {
      * thing a circle can sensibly produce.</p>
      */
     private static Map<String, Integer> depthsOf(final List<Node> band, final List<Edge> edges) {
-        final Set<String> ids = new LinkedHashSet<>();
-        for (final Node node : band) {
-            ids.add(node.id());
-        }
-        final List<Edge> isA = new ArrayList<>();
-        for (final Edge edge : edges) {
-            if (edge != null && GENERALIZATION.equals(edge.kind())
-                    && ids.contains(edge.source()) && ids.contains(edge.target())) {
-                isA.add(edge);
-            }
-        }
+        final Set<String> ids = idsOf(band);
+        final List<Edge> isA = isAEdgesIn(ids, edges);
         final Map<String, Integer> depth = new LinkedHashMap<>();
         for (final String id : ids) {
             depth.put(id, 0);
@@ -478,7 +563,7 @@ public final class UmlDiagramLayout {
                 details.putIfAbsent(node.id(), new DiagramJsonWriter.NodeDetail(
                         node.attributes() == null ? List.of() : node.attributes(),
                         node.methods() == null ? List.of() : node.methods(),
-                        node.archetype(), node.color()));
+                        node.archetype(), node.color(), false));
             }
         }
         return id -> details.getOrDefault(id, DiagramJsonWriter.NodeDetail.NONE);

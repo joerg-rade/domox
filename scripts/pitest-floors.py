@@ -278,6 +278,13 @@ FLOORS = {
     #     diverging them.  95 rather than 97 because the count moves with every branch added to the
     #     predicate, and the point of the floor is the invariant, not the last two mutants. ---
     "ModelContent": 95,                     # 97 %   (29 mutants)
+
+    # --- the PlantUML download: the class-diagram export's *text* half.  `downloadPlantUml` is where
+    #     the diagram kind is read (a blank kind is the whole model), the file is named for the diagram
+    #     and the review-aware source is assembled — three behaviours DomainModelsTest pins directly.
+    #     90 rather than 95 because the rest of the class is orchestrator glue (listAll, create, the
+    #     empty-class sweep) whose mutants move with the delegating calls, not with this action. ---
+    "DomainModels": 90,                     # 95 %   (21 mutants)
 }
 
 # Classes that deliberately carry NO floor, so the unfloored-class warning below does not nag about

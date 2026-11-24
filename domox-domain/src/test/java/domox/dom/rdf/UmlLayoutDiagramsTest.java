@@ -134,7 +134,7 @@ class UmlLayoutDiagramsTest {
 
         assertThat(json).contains("{\"kind\":\"node\",\"color\":\"#3498DB\"");
         assertThat(json).contains("{\"kind\":\"association\",\"color\":\"#7f8c8d\"");
-        assertThat(json).contains("{\"kind\":\"generalization\",\"color\":\"#e67e22\"");
+        assertThat(json).contains("{\"kind\":\"generalization\",\"color\":\"#000000\"");
         assertThat(json).as("the generalization is explained, not just named").contains("super-class");
     }
 
