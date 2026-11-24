@@ -285,6 +285,12 @@ FLOORS = {
     #     90 rather than 95 because the rest of the class is orchestrator glue (listAll, create, the
     #     empty-class sweep) whose mutants move with the delegating calls, not with this action. ---
     "DomainModels": 90,                     # 95 %   (21 mutants)
+
+    # --- the one-page view: the tab names (order, the reserved labels, the detached case), the
+    #     per-tab dispatch and the payload cache.  Every branch is asserted directly by
+    #     DomainModelsTest's four `showUmlDiagrams*` tests, so it scores 100 %; the floor is here
+    #     because it is a view model with logic of its own, not an entity. ---
+    "UmlDiagramSet": 90,                    # 100 %  (16 mutants)
 }
 
 # Classes that deliberately carry NO floor, so the unfloored-class warning below does not nag about

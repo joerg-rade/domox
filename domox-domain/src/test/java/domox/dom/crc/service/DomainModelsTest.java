@@ -145,6 +145,75 @@ class DomainModelsTest {
         assertThat(result.namedD3Graph()).isEqualTo("Sub-domain overview");
     }
 
+    // --- every diagram at once, one tab per sub-domain -------------------------
+
+    @Test
+    void showUmlDiagrams_offersTheOverviewOneTabPerSubDomainAndTheWholeModel() {
+        // given — one class in each of two sub-domains, named out of order
+        final DomainModel model = new DomainModel();
+        model.classList.add(approved(withResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE))));
+        model.classList.add(approved(withResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING))));
+
+        // when
+        final UmlDiagramSet result = classUnderTest.showUmlDiagrams(model);
+
+        // then — the reader's order: the map first, then the sub-domains in name order, the whole model last
+        assertThat(result.tabNames()).containsExactly(
+                UmlDiagramSet.TAB_SUB_DOMAIN_OVERVIEW, "Checkout", "Inventory", UmlDiagramSet.TAB_WHOLE_MODEL);
+        assertThat(result.title()).contains("UML class diagrams");
+    }
+
+    @Test
+    void showUmlDiagrams_givesEachTabItsOwnDiagram() {
+        // given — one class in each of two sub-domains
+        final DomainModel model = new DomainModel();
+        model.classList.add(approved(withResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE))));
+        model.classList.add(approved(withResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING))));
+        final UmlDiagramSet result = classUnderTest.showUmlDiagrams(model);
+
+        // when / then — a sub-domain tab draws only its own class, and the overview draws the sub-domains
+        assertThat(result.payloadOf("Inventory")).contains("\"id\":\"Store\"").doesNotContain("\"id\":\"Till\"");
+        assertThat(result.payloadOf(UmlDiagramSet.TAB_SUB_DOMAIN_OVERVIEW))
+                .contains("\"id\":\"Inventory (CORE)\"");
+
+        // the whole model is drawn on its own tab AND on the property that is the fallback for the page
+        final String wholeModel = result.payloadOf(UmlDiagramSet.TAB_WHOLE_MODEL);
+        assertThat(wholeModel).contains("\"id\":\"Store\"").contains("\"id\":\"Till\"");
+        assertThat(result.getWholeModelGraph()).as("the fallback property is the same payload as the last tab")
+                .isEqualTo(wholeModel);
+    }
+
+    @Test
+    void showUmlDiagrams_assemblesEachDiagramOnce() {
+        // given — the page asks for a tab's payload from inside the tab, and a tab can be re-rendered
+        final DomainModel model = new DomainModel();
+        model.classList.add(approved(withResponsibility("Store", null)));
+        final UmlDiagramSet result = classUnderTest.showUmlDiagrams(model);
+
+        // when / then — the second request is the cached payload, not a second assembly
+        assertThat(result.payloadOf(UmlDiagramSet.TAB_WHOLE_MODEL))
+                .isSameAs(result.payloadOf(UmlDiagramSet.TAB_WHOLE_MODEL));
+    }
+
+    @Test
+    void aDetachedSet_offersTheTwoTabsItCanDraw() {
+        // given — a view model rebuilt from a memento that carries no model
+        final UmlDiagramSet result = UmlDiagramSet.of(null, classUnderTest);
+
+        // when / then — no sub-domain to name, and an empty but well-formed payload rather than a failure
+        assertThat(result.tabNames())
+                .containsExactly(UmlDiagramSet.TAB_SUB_DOMAIN_OVERVIEW, UmlDiagramSet.TAB_WHOLE_MODEL);
+        assertThat(result.payloadOf("Inventory")).isEqualTo(EMPTY_GRAPH_PAYLOAD);
+        assertThat(result.title()).contains("Domain model");
+    }
+
+    /** The empty payload both view models fall back to — well formed, so the D3 panel renders an empty canvas. */
+    private static final String EMPTY_GRAPH_PAYLOAD = "{\"layout\":\"uml\",\"nodes\":[],\"links\":[],\"legend\":[]}";
+
     // --- the PlantUML export is a download, not a page member ------------------
 
     @Test

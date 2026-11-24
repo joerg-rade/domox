@@ -323,6 +323,11 @@ claim the concept is irrelevant — a different, stronger judgement.
   an edge per **cross-sub-domain** relation labelled with the number of collaborations it aggregates,
   plus a single `Unassigned` node while any included class still has no sub-domain.
 
+`DomainModels#showUmlDiagrams` is all three **on one page**: a bootstrap tab per sub-domain (labelled
+with the sub-domain name), plus the overview and the whole model — the reader switches tabs instead of
+returning to the menu.  Each tab's diagram is assembled when that tab is shown, so the page opens on the
+overview rather than waiting for ten diagrams.
+
 A per-sub-domain diagram carries only the edges **wholly inside** that sub-domain; the relations that
 leave it are the overview's job.  An `Unassigned` node in the overview is a **defect signal** — after
 the sub-domain pass (§5) there should be none.
@@ -445,6 +450,8 @@ count only classes the model actually contains.
 
 **Step 2 — render the diagrams.**  `DomainModels#listAll()` finds the model, then:
 
+- `showUmlDiagrams(domainModel)` — **all of them at once**, one tab per sub-domain (labelled with the
+  sub-domain name) plus the overview and the whole model: the way to *read* the model;
 - `generateUmlDiagram(domainModel)` — the whole model;
 - `generateSubDomainUmlDiagram(domainModel, subDomainName)` — **one diagram per sub-domain** (the
   choices come from the action);

@@ -181,9 +181,11 @@ edits: the file under `memory-bank/workflows/`, and one line here.
     Verified 2026-11-21 with the UML export:
     `POST /restful/services/domox.DomainModels/actions/generateUmlDiagram/invoke` with
     `{"domainModel":{"value":{"href":"…/objects/domox.DomainModel/16177"}}}` → **200** + a
-    `domox.UmlClassDiagram` view model whose `plantUml` member is the source and whose `diagram`
-    member is the Kroki-rendered PDF (the actions render the diagram; the source is a property, see
-    `.clinerules/d3-diagram.md`). The
+    `domox.UmlClassDiagram` view model whose one member is `d3Graph` — the D3 payload the browser
+    draws (there is no PDF/Kroki path any more, and the PlantUML source is a separate `.puml`
+    download action; see `.clinerules/d3-diagram.md`). `showUmlDiagrams` (same body) returns
+    `domox.UmlDiagramSet` instead: every diagram of the model, one per tab, with `wholeModelGraph`
+    as its readable member. The
     body shape is the thing to remember: a nested `{"<param>":{"value":{"href":H}}}`, not a bare string
     and not a bare `{"href":H}`.
   - `--out FILE` writes the result to a file and prints its size instead of dumping it; a scalar

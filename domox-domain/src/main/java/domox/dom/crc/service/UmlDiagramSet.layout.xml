@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<bs:grid
+        xmlns:bs="https://causeway.apache.org/applib/layout/grid/bootstrap3"
+        xmlns:cpt="https://causeway.apache.org/applib/layout/component">
+
+    <!-- Top Header & Unassigned Actions.
+         Causeway requires a column (or tabGroup) carrying unreferencedCollections="true"
+         in EVERY layout XML, even when the type has no collections — without it the
+         whole grid is rejected with a metadataError and silently replaced by the default. -->
+    <bs:row>
+        <bs:col span="12" unreferencedActions="true" unreferencedCollections="true">
+            <cpt:domainObject/>
+        </bs:col>
+    </bs:row>
+
+    <!-- THE FALLBACK GRID, NOT THE PAGE.
+
+         This object's page is rendered by domox.webapp.config.UmlDiagramTabsPanel (one tab per
+         sub-domain), through a ComponentFactory that applies EXCLUSIVELY for UmlDiagramSet — so on the
+         Wicket viewer this file is never consulted and the grid below is never built.
+
+         It is here anyway, because the tab panel is a viewer component and the object must stand on its
+         own without it: the fallback shows the whole-model diagram, through the same @D3Graph property
+         the single-diagram pages use.  Without this file Causeway would fall back to its bundled
+         GridFallbackLayout.xml and put that diagram in a span-4 column — a third of the width, which is
+         the same reason UmlClassDiagram.layout.xml exists.
+
+         The memento property (domainModel) is hidden (Where.EVERYWHERE) and already shown in the object
+         title; unreferencedProperties must still be set somewhere, or the whole grid is rejected. -->
+    <bs:row>
+        <bs:col span="12">
+            <bs:tabGroup>
+                <bs:tab name="Diagram">
+                    <bs:row>
+                        <bs:col span="12">
+                            <cpt:fieldSet name="Diagram" id="content" unreferencedProperties="true">
+                                <cpt:property id="wholeModelGraph"/>
+                            </cpt:fieldSet>
+                        </bs:col>
+                    </bs:row>
+                </bs:tab>
+            </bs:tabGroup>
+        </bs:col>
+    </bs:row>
+</bs:grid>

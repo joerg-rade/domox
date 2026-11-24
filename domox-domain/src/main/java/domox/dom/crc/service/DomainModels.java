@@ -42,6 +42,12 @@ import java.util.List;
  * same three diagrams as text: it is the artifact the assembly pass measures (class/attribute/operation/edge
  * counts) and what a reviewer pastes into PlantUML tooling, and a file is the right shape for it — a page
  * is for the picture.</p>
+ *
+ * <p><b>One page, or one diagram per page.</b>  {@link #showUmlDiagrams(DomainModel)} is the page a reader
+ * of the model wants: every diagram at once, one tab per sub-domain ({@link UmlDiagramSet}).  The three
+ * single-diagram actions are kept because they are also addressed one at a time — from the RestfulObjects
+ * API, and by the assembly pass, which measures one sub-domain's diagram — and a page that shows one
+ * diagram is still the right shape for one diagram.</p>
  */
 @DomainService
 @Named(DomainModule.NAMESPACE + ".DomainModels")
@@ -70,11 +76,28 @@ public class DomainModels {
     }
 
     /**
+     * Every diagram of the model at once — one page, one tab per sub-domain.
+     *
+     * <p>The single-diagram actions below show one diagram each, so reading a ten-sub-domain model meant
+     * opening ten pages; this returns the same content as <em>one</em> page whose tabs are the sub-domains
+     * ({@link UmlDiagramSet#tabNames()}).  Each tab is assembled when it is shown rather than when the page
+     * is — assembling one diagram reads the whole model (~2 s for the 970-class model) — so the page opens
+     * on the sub-domain overview, the map of what the other tabs hold.</p>
+     */
+    @ActionLayout(
+            sequence = "3",
+            describedAs = "Every diagram at once: one tab per sub-domain, plus the overview and the whole model")
+    public UmlDiagramSet showUmlDiagrams(DomainModel domainModel) {
+        return UmlDiagramSet.of(domainModel, this);
+    }
+
+    /**
      * The assembled model's class diagram — the whole-model diagram.
      *
      * <p>Review-aware: only approved classes that carry approved content are drawn, and only the
      * approved members and material edges between them appear.  See {@link ClassDiagram#graph}.</p>
      */
+    @ActionLayout(sequence = "4")
     public UmlClassDiagram generateUmlDiagram(DomainModel domainModel) {
         return umlClassDiagram(domainModel, UmlClassDiagram.KIND_MODEL, null);
     }
@@ -90,7 +113,7 @@ public class DomainModels {
      *                      {@link #choices1GenerateSubDomainUmlDiagram(DomainModel)}
      */
     @ActionLayout(
-            sequence = "3",
+            sequence = "5",
             describedAs = "The diagram of one sub-domain: its approved classes and the relations inside it")
     public UmlClassDiagram generateSubDomainUmlDiagram(DomainModel domainModel, String subDomainName) {
         return umlClassDiagram(domainModel, UmlClassDiagram.KIND_SUB_DOMAIN, subDomainName);
@@ -110,7 +133,7 @@ public class DomainModels {
      * partition is visible rather than silent.  See {@link ClassDiagram#graphOverview}.</p>
      */
     @ActionLayout(
-            sequence = "4",
+            sequence = "6",
             describedAs = "How the sub-domains relate: one node per sub-domain, one edge per relation between them")
     public UmlClassDiagram generateSubDomainOverviewDiagram(DomainModel domainModel) {
         return umlClassDiagram(domainModel, UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW, null);
@@ -135,7 +158,7 @@ public class DomainModels {
      * @param subDomainName the sub-domain, for {@code KIND_SUB_DOMAIN} only; ignored otherwise
      */
     @ActionLayout(
-            sequence = "5",
+            sequence = "7",
             describedAs = "Download the PlantUML source of one of the diagrams (the whole model by default)")
     public Blob downloadPlantUml(
             final DomainModel domainModel,
