@@ -91,11 +91,15 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   first one on the classpath — the webapp's own `target/classes` wins, which the appended file
   appender confirms.
 
-- **Long `mvn` / boot commands must run detached** → the shell tool caps one call at ~30 s, so
-  `mvn test` (≈50 s) or `run-app.sh` (install + boot) die mid-run and their output is lost. Run them
-  in the background into a log, then poll:
-  `setsid mvn … > /tmp/x.log 2>&1 < /dev/null &` then `grep -E 'Tests run|BUILD' /tmp/x.log`.
-  (`run-app.sh` already does this for the boot itself; this applies to everything else.)
+- **Long `mvn` / `check.sh` / mutation runs → `scripts/run-bg.sh`, never a `sleep` poll** → the shell tool
+  caps one call at ~30 s, so `mvn test` (≈50 s), `check.sh` (~4 min) and `check-mutation.sh` (~2 min) die
+  mid-run and their output is lost. `bash scripts/run-bg.sh <logfile> [--wait 25] [--tail 40] [--grep PAT]
+  -- <cmd…>` starts the command **detached** (own session, so it survives this shell) and then *waits
+  inside the same call*: it prints the tail — or the `--grep` matches — plus the exit code when the command
+  finished, or "still running" plus the poll hint when it did not (exit code 124, like `timeout`). Either
+  way the log path is printed, so the follow-up is a plain `tail` / `grep` / `cat <logfile>.exit`, and a
+  `sleep 25; grep …` loop — 21 of one session's 178 shell calls — is never needed. (`run-app.sh` and
+  `verify-boot.sh` already wait for their own boot; this is for everything else.)
 - **Webapp integration tests need the dev docker services up** → `domox-webapp`'s `*IntegTest` classes
   boot the full Spring context against a throwaway Testcontainers Postgres (self-contained), but some of
   them also reach the dev docker stack. `CorpusCandidateDedupIntegTest` calls the **real Stanford CoreNLP**
@@ -112,35 +116,11 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   `docker ps --format '{{.Names}} {{.Status}}'`. NEVER boot a second instance against the same
   Postgres: the shared `domox.SEQ_GEN` sequence makes parallel boots fail with
   `seq_gen already exists`.
-- **Docker services: restart policy, healthchecks, named volume** → all four compose services
-  (`db`, `nlp`, `kroki`, `fuseki`) carry `restart: unless-stopped`, so they return after a
-  host/daemon reboot instead of needing a hand-start — that hand-start step is what left CoreNLP down
-  for 5 hours and failed `CorpusCandidateDedupIntegTest`. `db` also mounts the **named** volume
-  `domox-db-data` (`/var/lib/postgresql`), deliberately **not** the postgres image's anonymous
-  volume, which `docker compose down` would drop along with the 971 `classcdd` rows and the 302
-  review decisions.
-  The restart policy is **runtime** state and applies with no recreate
-  (`docker update --restart unless-stopped <ctr> …`), but **healthchecks and volume mounts are
-  create-time only** — activating them needs `docker compose up -d --no-build --wait` (≈45 s, so run
-  it detached; `--no-build` avoids rebuilding the fuseki/kroki images). It recreates all four and
-  blocks until each reports healthy. Compose then warns
-  *`volume "domox-db-data" already exists but was not created by Docker Compose`* — benign, it still
-  uses the volume; `external: true` is deliberately **not** set, because that would make `up` fail on
-  a fresh clone.
-  **Copying a volume's data** — how the named volume was seeded from the old anonymous one. Back up
-  first (`scripts/db-backup.sh`), **stop the DB** (`docker stop domox-db`) so the cluster is shut
-  down cleanly, then copy and prove the copy:
-  ```shell
-  docker run --rm -v <src-vol>:/from:ro -v domox-db-data:/to \
-      postgres:18-alpine sh -c 'cp -a /from/. /to/'
-  # verify: file count, byte count and the pg_control checksum must match on both sides
-  docker run --rm -v <src-vol>:/from:ro -v domox-db-data:/to postgres:18-alpine sh -c \
-      'find /from -type f | wc -l; find /to -type f | wc -l; md5sum /from/18/docker/global/pg_control /to/18/docker/global/pg_control'
-  ```
-  **Never** let a recreate start Postgres against an EMPTY volume: it would `initdb` a fresh cluster
-  and the analysis data would be gone. Afterwards confirm the mount with
-  `docker inspect domox-db --format '{{range .Mounts}}{{.Name}}{{end}}'` and the rows with
-  `docker exec domox-db psql -U postgres -d postgres -c 'SELECT count(*) FROM domox.classcdd;'`.
+- **Docker services: restart policy, healthchecks, the named DB volume, copying a volume's data** →
+  `.clinerules/memory-bank/technical/DOCKER.md` (why all four services carry `restart: unless-stopped`,
+  why healthchecks and volume mounts are create-time only, and the stop-copy-verify recipe that seeded
+  `domox-db-data` from the old anonymous volume — with the "never start Postgres against an empty volume"
+  warning that goes with it).
 - **A verification boot, in one call** → `bash scripts/verify-boot.sh` brings up a throwaway Postgres
   (`domox-db-verify`, port 5433) and boots the app on a free port (8082), **waiting until it actually
   serves** and printing the log path. It rebuilds `domox-domain`/`domox-adapter` only when their sources
@@ -159,37 +139,15 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   classpath and fails at **startup**, not at build time (e.g. `MetricsAutoConfiguration … NoSuchMethodError`).
   `bash scripts/check-dependency-alignment.sh` — part of `scripts/check.sh` — reports it; align the
   properties, then rebuild.
-- **Inspecting the running app** → Wicket pages need a session and the sign-in form is an Ajax form
-  that curl cannot drive. Use the RestfulObjects API with basic auth instead (users in `shiro.ini`,
-  e.g. `sven:pass`) — or better, `scripts/ro.py`:
-  `ro.py invoke <service> <action> [k=v…] [--out FILE]` (e.g. `ro.py invoke domox.OntologyDiagrams
-  searchOntologyAsD3Graph searchTerm=Pet`, then it dumps the returned object's members),
-  `ro.py property <objectRef> <member>`, `ro.py layout <objectRef>` (top-level columns with their
-  span — the fastest way to see whether a layout XML was actually applied),
-  `ro.py members|object <objectRef>`. It reads `DOMOX_URL` (default `http://localhost:8080`) and
-  `DOMOX_USER`/`DOMOX_PASS`. Two things it used to make you write a throwaway script for:
-  - a parameter that is an **object reference** is written `@<ref>` —
-    `ro.py invoke domox.Reviews findByCandidate candidate=@/restful/objects/domox.ClassCdd/6640`,
-    or `@` + the `self:` URL an earlier `invoke` printed. Without the `@` the value goes as a plain
-    string and RO rejects it: `Expected a link (because this object's type is not a value) but found
-    no 'href'`. ⚠️ `@` only *builds* the reference. Two different things then happen, and only the first
-    is a failure: an **entity href is valid as an action parameter** — the server resolves the oid
-    itself — but a **`GET` on an entity is not exposed** by this app's RO viewer:
-    `GET /restful/objects/domox.ClassCdd/6640` → **404**
-    `{"message":"Could not determine adapter for bookmark: 'domox.ClassCdd:6640'"}`. So do not try to
-    *read* an entity over RO; do pass an entity href when an action declares an entity parameter.
-    Verified 2026-11-21 with the UML export:
-    `POST /restful/services/domox.DomainModels/actions/generateUmlDiagram/invoke` with
-    `{"domainModel":{"value":{"href":"…/objects/domox.DomainModel/16177"}}}` → **200** + a
-    `domox.UmlClassDiagram` view model whose one member is `d3Graph` — the D3 payload the browser
-    draws (there is no PDF/Kroki path any more, and the PlantUML source is a separate `.puml`
-    download action; see `.clinerules/d3-diagram.md`). `showUmlDiagrams` (same body) returns
-    `domox.UmlDiagramSet` instead: every diagram of the model, one per tab, with `wholeModelGraph`
-    as its readable member. The
-    body shape is the thing to remember: a nested `{"<param>":{"value":{"href":H}}}`, not a bare string
-    and not a bare `{"href":H}`.
-  - `--out FILE` writes the result to a file and prints its size instead of dumping it; a scalar
-    result prints as `result: …`. Use one of them before pasting a diagram payload into a transcript.
+- **Inspecting the running app (RestfulObjects API)** → Wicket pages need a session and the sign-in form
+  is an Ajax form curl cannot drive, so read the instance over the RO API with basic auth (users in
+  `shiro.ini`, e.g. `sven:pass`) — or better, `scripts/ro.py`: `invoke` (run an action), `property`,
+  `layout` (top-level columns with their span — the fastest way to see whether a layout XML was actually
+  applied), `members|object`. The four things that cost a cycle to learn — the `@<ref>` syntax for an
+  object-reference parameter, the nested `{"<param>":{"value":{"href":H}}}` body for an
+  entity-parameter action, why a `GET` on an entity is a 404 while an entity href is fine as a
+  parameter, and `--out` for anything you would otherwise paste into a transcript — are in
+  `.clinerules/memory-bank/technical/RO-API.md`.
   For rendered HTML/CSS questions, prefer `scripts/verify-ui-render.sh` over reasoning about CSS.
 - **Causeway layouts / view models / `@D3Graph`** → `.clinerules/memory-bank/technical/CAUSEWAY-LAYOUT.md`
   (verified facts: layout-XML resolution and the silent fallback grid, the `unreferenced*` markers,
@@ -206,6 +164,17 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   which can look like a config override working when it never did.
 - **`git` after a package move** → the new path is UNTRACKED, so `git diff <new path>` prints nothing
   while the old path shows as deleted. Use `git status --short`, or `git add -N <path>` to diff it.
+- **A Wicket unit test, a `WicketTester`, or taking over a Causeway panel** → extend
+  `domox.webapp.unittests.WicketTestSupport` (it installs the three things a bare Wicket app needs for a
+  D3 panel or a bootstrap tab strip — `WicketWebjars`, `Bootstrap`, and the `.mjs`/`.css` guard patterns —
+  which is three differently-worded test failures if you miss one). The takeover pattern
+  (`ObjectComponentFactoryAbstract` + `appliesExclusivelyIf`, the `Component` name clash, never holding
+  the pojo in the panel), tab labels coming from the layout XML, and when the bootstrap is *not* needed →
+  `.clinerules/memory-bank/technical/CAUSEWAY-LAYOUT.md` §9.
+- **Finding code** → use the `search_codebase` tool for a regex/text hunt, and the JetBrains tools
+  (`search_symbol`, then `analyze_calls` for who-calls-what — the IDE's call hierarchy, not text search).
+  `grep -rn` + `find` still work, but a session that used 31 greps and 11 finds and **zero**
+  `search_codebase` calls spent more turns on locating code than it needed to.
 - **IDE (JetBrains) MCP tools** → always pass `projectPath=/home/jrade/projects/domox`, otherwise they
   fail with "Unable to determine the target project".
 - **Coding standards (review)** → `CODING_STANDARDS.md` (repo root), esp. the
@@ -222,45 +191,22 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   - **archive** (completed-milestone how-to's: `RULES_*`, `COMPLETION_CHECKLIST.md`, `SYNONYMS.md`,
     implementation summaries) — on-demand only; skim with `head` first, never a full read.
 
-- **Mutation testing (pitest)** → **one command**: `bash scripts/check-mutation.sh` (opt-in, ~2 min —
-  it runs `mvn -o -pl domox-domain verify -Pmutation`, then `python3 scripts/pitest-floors.py --check`
-  for you, in that order).  Deliberately *not* in `mvn verify` or `check.sh`.  `--no-run` checks the
-  report already on disk (no Maven); `--allow-stale` accepts one older than `domox-domain/src` (a build
-  cache can restore it with a checkout-fresh mtime).  It exceeds the shell tool's ~30 s cap, so detach
-  and poll: `setsid bash scripts/check-mutation.sh >/tmp/mutation.log 2>&1 </dev/null &`.
-  **To read** the report rather than gate on it: `python3 scripts/pitest-floors.py --table` (every
-  class — killed/total/rate/no-coverage, plus the module total and the `MEMORY_ERROR`/`TIMED_OUT`
-  count) and `--detail <Class>` (each mutant no test killed, with line, method, mutator, description —
-  `<Class>` is a name fragment, so a package selector covers the whole package at once); those two
-  replace hand-parsing `mutations.xml`.  Exit codes: 0 ok, 1 below floor, 2 no report / no such class,
-  3 stale.  Traps the script cannot tell you: the JUnit-5 plugin must be a *plugin* dependency (or
-  pitest runs no test at all) and the minion heap needs `-Xmx3g`; the plugin's version and config live in
-  the root pom's `<pluginManagement>`, the `mutation` profile in `domox-domain/pom.xml` only declares it.
-  A `NO_COVERAGE` mutant means no test *reaches* the code, a `SURVIVED` one means a test reaches it but
-  asserts nothing — different fixes, and a `NO_COVERAGE` mutant on a defensive null-guard usually marks
-  an *unreachable* branch: delete the guard rather than test it.  **The mutation profile is the last
-  thing you run**: pitest takes the *test* classes as input, so `domox-domain/src` is frozen from launch
-  until the floors report — an edit made while polling the run is the one the guard used to miss, and
-  `check-mutation.sh` now stamps the run's start so it does not.  pitest is scoped to `domox-domain`, so
-  a class whose only test is a `domox-webapp` integration test reads 0 % however well tested it is —
-  ~19 % of the mutants (751/4037) sit in classes no domain test reaches, so read the module rate against
-  that, check the no-coverage column for any class you changed, and save `--table` first when a run's
-  point is to close a gap (pitest overwrites the report, so the "before" numbers are otherwise gone).
-  Baseline: ~3 700 mutants, ~54 % killed (~73 % of the ones a test can reach),
-  test strength ~79 %; the per-class floors cover the collaborators extracted across the four SRP
-  waves — the UML-layout eight (`RouteScoring`, `LabelLayout`, `LabelMetrics`, `RouteGeometry`,
-  `PortLayout`, `OrthogonalRouter`, `DiagramIndex`, `DiagramJsonWriter`), the diagram/vocabulary
-  extractions, the candidate-neighbourhood/legend wave, and the wave-4 splits
-  (`CandidateReviewWorkflow`, `RuleMatchSignature`, the `Dependency*Predicates` trio, the
-  `LexicalGraph*`/`DotLiterals` group and the `Rdf*` group).
+- **Mutation testing (pitest)** → **one command**: `bash scripts/check-mutation.sh` (opt-in, ~2 min,
+  deliberately *not* in `mvn verify` or `check.sh`; run it through `scripts/run-bg.sh`). **Reading** the
+  report (`pitest-floors.py --table` / `--detail <Class>`), the exit codes, the plugin/heap traps, what a
+  `NO_COVERAGE` mutant means versus a `SURVIVED` one, why the profile is the *last* thing you run, and the
+  baseline numbers → `.clinerules/memory-bank/workflows/mutation-testing.md`.
 
 
-Quick checks after an entity change: run `bash scripts/check.sh` — bundles schema drift,
-enforcer rules (by execution id, `@enforce-constraints` — a bare `mvn enforcer:enforce` checks
-nothing), domain unit tests, and the metamodel guardrail (the same checks CI runs in
-`.github/workflows/ci.yml`). For a faster check use `bash scripts/check.sh --quick`
-(the five instant, Maven-free steps: drift, layout XML, .mjs/.py syntax, dependency alignment,
-mermaid styling).
+Quick checks after a change: run `bash scripts/check.sh` — all 11 steps (schema drift, layout XML, script
+syntax, dependency alignment, mermaid styling, doc drift, enforcer rules by execution id
+(`@enforce-constraints` — a bare `mvn enforcer:enforce` checks nothing), unit tests, four headless-browser
+renders, a webjar probe against the running app, and the metamodel guardrail). That is what CI runs in
+`.github/workflows/ci.yml` plus two local-only steps (schema drift, doc drift). Two cheaper tiers:
+`bash scripts/check.sh --units` — steps 1–8, the iteration gate: no browser, no running instance, no
+container, ~1 min; and `bash scripts/check.sh --quick` — the six instant, Maven-free steps (drift, layout
+XML, .mjs/.py syntax, dependency alignment, mermaid styling, doc drift), which is what the pre-commit hook
+runs.
 
 # Shell Execution Formatting Rules
 

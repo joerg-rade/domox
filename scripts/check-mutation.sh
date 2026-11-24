@@ -27,8 +27,9 @@
 # minutes.  For the report's contents — whole-module table, per-class detail of what no test killed —
 # run `python3 scripts/pitest-floors.py --table` / `--detail <Class>`.
 #
-# NOTE for a tool-driven run: ~2 min exceeds a ~30 s command cap, so detach it and poll the log:
-#   setsid bash scripts/check-mutation.sh >/tmp/mutation.log 2>&1 </dev/null &
+# NOTE for a tool-driven run: ~2 min exceeds a ~30 s command cap, so run it through scripts/run-bg.sh,
+# which starts it detached and waits a bounded time for it — one call, no `sleep` loop:
+#   bash scripts/run-bg.sh /tmp/mutation.log --wait 28 -- bash scripts/check-mutation.sh
 set -uo pipefail
 
 cd "$(dirname "$0")/.."   # repo root
@@ -39,7 +40,7 @@ for arg in "$@"; do
   case "$arg" in
     --no-run)      RUN=0 ;;
     --allow-stale) FLOOR_ARGS+=(--allow-stale) ;;
-    -h|--help)     sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)     sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown option: $arg (try --help)" >&2; exit 2 ;;
   esac
 done

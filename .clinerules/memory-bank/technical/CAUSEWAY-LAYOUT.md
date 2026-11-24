@@ -144,3 +144,59 @@ Worth re-reading before a layout change: `LayoutResourceLookup` (resource-name c
   the *fixed* `Scale._1_00`, so the container-width auto-scale branch is never taken). A
   **force-layout** D3 panel does not: it lays out in `initialWidth || 800`.
 
+## 9. Wicket in this repo — test bootstrap, taking over a panel, tab names
+
+Loaded on demand. Three things that each cost a test-fix loop to learn; the first now lives in code
+(`domox.webapp.unittests.WicketTestSupport`), so a new Wicket unit test starts from a passing render
+instead of three failures.
+
+### 9.1 A bare `WicketTester` is not enough for a D3/bootstrap component
+
+`new WicketTester(new WebApplication(){…})` renders a plain panel fine, but a **D3 panel** or an
+**`AjaxBootstrapTabbedPanel`** needs three things the real application does at init — and each one fails
+differently:
+
+| Missing | Symptom |
+|---|---|
+| `WicketWebjars.install(app)` | the D3 panel's header references are webjar references; the resource URL cannot be resolved |
+| `Bootstrap.install(app)` | `AjaxBootstrapTabbedPanel` has no bootstrap theme or behaviour |
+| the package-resource guard's `+*.mjs` / `+*.css` | Wicket's default `SecurePackageResourceGuard` blocks them, so the integration script's URL cannot be generated |
+
+**Extend `domox.webapp.unittests.WicketTestSupport`** — or call
+`WicketTestSupport.installD3Prerequisites(app)` on your own application — instead of re-deriving this.
+`WicketTestSupport.newTester()` returns a `WicketTester` whose app already does all three, and
+`UmlDiagramTabsPanelTest` shows the panel-in-a-synthetic-page idiom
+(`tester.startComponentInPage(new XPanel("id", source))`; no markup file of its own is needed).
+
+A test that renders neither a D3 panel nor a bootstrap tab strip does **not** need it:
+`StaleComponentRecoveryEndToEndTest` keeps its own plain `WebApplication`.
+
+### 9.2 Taking over a Causeway panel: `ObjectComponentFactoryAbstract`
+
+`ObjectComponentFactoryAbstract` + `appliesExclusivelyIf(…)` is how a *view model* gets a hand-built Wicket
+component instead of the generated table — the same mechanism the D3 extension uses. Three traps:
+
+- **A `ComponentFactory` that returns a Wicket `Component` cannot also import
+  `org.springframework.stereotype.Component`** (name clash). Write the annotation fully qualified
+  (`@org.springframework.stereotype.Component`) — that is why the extension does.
+- **Do not hold the view-model pojo in the panel.** A Wicket page is serialized into the session, and the
+  pojo holds the model and its entities. Take a small `Serializable` source that reads the object model's
+  current pojo on demand (`UmlDiagramTabsPanel.Source` is the pattern).
+- Pin the applicability rule as a **pure function of the object's class** — that is what makes
+  `UmlDiagramTabsPanelComponentFactoryTest` a guardrail rather than a smoke test.
+
+### 9.3 A tab's label comes from the layout XML — unless the tabs are built in code
+
+A `bs:tab name="…"` label is fixed in the layout XML, and one layout serves every instance of the view
+model (`BSTab` exposes `getName`/`setName` only, and `TabGroupPanel.tabsFor` labels each tab from it —
+verified against `causeway-applib`). So a tab label **cannot** carry a per-instance value. Two ways out,
+both used in this repo:
+
+- a **member-support method** on the view model (`UmlClassDiagram#namedD3Graph()`,
+  `MemberNamedFacetViaMethod`) — re-read per instance, which is how the sub-domain name reaches the tab;
+- **build the tabs in code** (`UmlDiagramTabsPanel extends AjaxBootstrapTabbedPanel`, one `ITab` per name,
+  each payload assembled lazily inside `ITab#getPanel` — the shown tab only).
+
+Only the selected tab's panel is in the DOM, so a panel that measures its container at init never sees a
+hidden one (see §8). What the payload then means is in `.clinerules/d3-diagram.md`.
+

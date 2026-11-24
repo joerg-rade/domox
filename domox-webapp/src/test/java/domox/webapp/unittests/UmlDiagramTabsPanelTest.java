@@ -1,11 +1,6 @@
 package domox.webapp.unittests;
 
-import de.agilecoders.wicket.core.Bootstrap;
-import de.agilecoders.wicket.webjars.WicketWebjars;
 import domox.webapp.config.UmlDiagramTabsPanel;
-import org.apache.wicket.markup.html.SecurePackageResourceGuard;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.Test;
 
@@ -26,45 +21,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ten-sub-domain page that assembled eagerly would take ~18 s to appear.</p>
  *
  * <p>No Spring context, no Causeway session and no browser: the panel takes plain data (its
- * {@link UmlDiagramTabsPanel.Source}), so it renders in a bare {@code WicketTester} — the same cheap
- * harness {@code StaleComponentRecoveryEndToEndTest} uses, which is why this runs in
- * {@code scripts/check.sh}.</p>
+ * {@link UmlDiagramTabsPanel.Source}), so it renders in a bare {@code WicketTester} — the harness
+ * {@link WicketTestSupport} provides, which is why this runs in {@code scripts/check.sh}.</p>
  */
 class UmlDiagramTabsPanelTest {
-
-    /**
-     * The three things a bare Wicket app needs before a D3 panel renders, all of which the real viewer
-     * does for the application: install wicket-webjars (the D3 panel's header references are webjar
-     * references), install wicket-bootstrap (the tab strip is {@code AjaxBootstrapTabbedPanel}), and let
-     * the package-resource guard serve {@code .mjs}/{@code .css} (Wicket's default guard blocks them, so
-     * the integration script's URL cannot be generated).  Mirrors the extension's own
-     * {@code D3TestApplication}, which does the first and third.
-     */
-    public static class TestApp extends WebApplication {
-        @Override
-        protected void init() {
-            super.init();
-            WicketWebjars.install(this);
-            Bootstrap.install(this);
-            final SecurePackageResourceGuard resourceGuard =
-                    (SecurePackageResourceGuard) getResourceSettings().getPackageResourceGuard();
-            // '+…' allows, '-…' denies: the guard's pattern syntax
-            resourceGuard.addPattern("+*.mjs");
-            resourceGuard.addPattern("+*.css");
-        }
-
-        @Override
-        public Class<? extends WebPage> getHomePage() {
-            return null;
-        }
-    }
 
     /**
      * The panel, rendered into a synthetic page — the Wicket idiom for a panel test, and the reason this
      * class needs no markup file of its own.
      */
     private static WicketTester render(final UmlDiagramTabsPanel.Source diagrams) {
-        final var tester = new WicketTester(new TestApp());
+        final var tester = WicketTestSupport.newTester();
         tester.startComponentInPage(new UmlDiagramTabsPanel("tabs", diagrams));
         return tester;
     }

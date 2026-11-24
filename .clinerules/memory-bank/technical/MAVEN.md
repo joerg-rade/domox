@@ -41,4 +41,4 @@ disable-model-invocation: true
   To run it **alone**, select it by execution id:
   `mvn -o -B enforcer:enforce@enforce-constraints`. A bare `mvn enforcer:enforce` ignores the
   execution's `<configuration>` and runs **no rules at all** — a guardrail reporting "passed" while
-  checking nothing. `scripts/check.sh` step 6/10 uses the `@enforce-constraints` form.
+  checking nothing. `scripts/check.sh` step 7/11 uses the `@enforce-constraints` form.

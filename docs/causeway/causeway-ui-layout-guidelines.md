@@ -149,7 +149,7 @@ a fieldset that is merely empty at runtime (e.g. a diagram that failed to render
 `message`) still keeps its tab — but a tab with no members at all would disappear and shift every
 tab index after it.
 
-**Guardrail:** `scripts/check-layout-xml.sh` (step 2/10 of `bash scripts/check.sh`, and of
+**Guardrail:** `scripts/check-layout-xml.sh` (step 2/11 of `bash scripts/check.sh`, and of
 `--quick`, so the pre-commit hook runs it). It strips comments first — a layout's own comment names
 the markers, so a naive grep passes a file that would be discarded.
 
