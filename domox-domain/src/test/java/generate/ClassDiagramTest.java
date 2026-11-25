@@ -1,5 +1,6 @@
 package generate;
 
+import domox.dom.AbstractEntity;
 import domox.dom.crc.model.AttributeCdd;
 import domox.dom.crc.model.AssociationType;
 import domox.dom.crc.model.Candidate;
@@ -353,6 +354,30 @@ class ClassDiagramTest {
                 new UmlDiagramLayout.Edge("Identifiable", "Store", UmlDiagramLayout.GENERALIZATION, "implements"));
     }
 
+    /**
+     * A class box states the row it stands for — its id, and its <b>Causeway</b> object type — so the
+     * picture can make the class name a click-through to that class's own page.  The object type is read
+     * from {@link Candidate#getObjectType()} (the {@code @Named} value the framework knows), never from the
+     * Java class name: a click-through URL that names the wrong type fails on the server, and it fails
+     * silently — the box simply does not open.
+     */
+    @Test
+    void graph_tiesEachClassBoxToTheRowItStandsFor() {
+        // given — an approved class with an id, as the database would give it
+        final ClassCdd store = withApprovedResponsibility("Store");
+        setId(store, 42L);
+        final DomainModel model = new DomainModel();
+        model.classList.add(approved(store));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graph(model);
+
+        // then
+        final UmlDiagramLayout.Node box = nodeNamed(graph, "Store");
+        assertThat(box.candidateId()).isEqualTo(42L);
+        assertThat(box.objectType()).isEqualTo("domox.ClassCdd");
+    }
+
     // --- the sub-domain overview's D3 graph -----------------------------------
 
     /**
@@ -419,7 +444,45 @@ class ClassDiagramTest {
                 "Inventory (CORE)", "Checkout (SUPPORTING)", UmlDiagramLayout.ASSOCIATION, "2"));
     }
 
+    /**
+     * The overview's packages are <em>sub-domains</em>, not rows: they carry no click-through target, so
+     * the client draws them inert.  A package that linked somewhere would have to pick an arbitrary class
+     * of the sub-domain to link to, which is not what the reader clicked.
+     */
+    @Test
+    void graphOverview_leavesItsPackagesWithoutAClickThroughTarget() {
+        // given — two sub-domains with one relation between them
+        final ClassCdd store = withApprovedResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd till = withApprovedResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING));
+        final DomainModel model = new DomainModel();
+        approved(collaboration(model, "has", store, till));
+        model.classList.add(approved(store));
+        model.classList.add(approved(till));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graphOverview(model);
+
+        // then
+        assertThat(graph.getNodes()).isNotEmpty().allSatisfy(node -> {
+            assertThat(node.candidateId()).isNull();
+            assertThat(node.objectType()).isNull();
+        });
+    }
+
     // --- helpers --------------------------------------------------------------
+
+    /** Gives a hand-built entity the id the database would have given it. */
+    private static void setId(final ClassCdd entity, final long id) {
+        try {
+            final java.lang.reflect.Field field = AbstractEntity.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(entity, id);
+        } catch (final Exception e) {
+            throw new RuntimeException("failed to set id on " + entity, e);
+        }
+    }
 
     /** The graph's node with the given id — the overview labels each package with its sub-domain. */
     private static UmlDiagramLayout.Node nodeNamed(final ClassDiagram.Graph graph, final String id) {

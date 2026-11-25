@@ -126,6 +126,27 @@ const MEASURE_FORCE = `(() => {
   const legend = svg.querySelector('g.uml-legend');
   const rel = Array.from(layer.querySelectorAll('text.uml-link-label'))
       .find(t => t.textContent === 'rel');
+  // The click-through: a box the payload ties to a domain row must open that row's page, and a box with
+  // no row behind it must do nothing.  window.open is stubbed for the duration of the probe, so the
+  // fixture needs no second page — and the URL is read back exactly as the client built it.
+  const byName = n => boxes.find(g => { const t = g.querySelector('text.uml-name'); return t && t.textContent === n; });
+  // What makes the name read as a link.  Chromium computes text-decoration-line from the
+  // text-decoration attribute the renderer sets; the shorthand is the fallback for a build that
+  // reports only that.  The check is a regex test on the string, so either spelling answers.
+  const decorationOf = el => {
+    const s = getComputedStyle(el);
+    return s.textDecorationLine || s.textDecoration || '';
+  };
+  const realOpen = window.open;
+  let opened = null;
+  window.open = function (url) { opened = url; return null; };
+  const clickable = byName('Alpha'), inert = byName('Beta');
+  if (clickable) clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+  const clickableUrl = opened;
+  opened = null;
+  if (inert) inert.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+  const inertUrl = opened;
+  window.open = realOpen;
   return JSON.stringify({
     settled: svg.getAttribute('data-uml-settled'),
     viewBox: svg.getAttribute('viewBox'),
@@ -146,6 +167,11 @@ const MEASURE_FORCE = `(() => {
     worstOverlap: worst,
     linkLabel: rel ? { x: parseFloat(rel.getAttribute('x')), y: parseFloat(rel.getAttribute('y')),
                        stroke: rel.getAttribute('stroke'), paintOrder: rel.getAttribute('paint-order') } : null,
+    cursors: boxes.map(g => { const t = g.querySelector('text.uml-name');
+                              return { name: t ? t.textContent : null, cursor: getComputedStyle(g).cursor,
+                                       decoration: t ? decorationOf(t) : null }; }),
+    clickableUrl: clickableUrl,
+    inertUrl: inertUrl,
     legend: !!legend,
     legendRows: legend ? legend.querySelectorAll('text').length : 0
   });
@@ -185,7 +211,14 @@ const MEASURE_PACKAGES = `(() => {
       nameInTab: (tb && nb)
           ? (nb.x >= tb.x - 1 && nb.x + nb.width <= tb.x + tb.width + 1
              && nb.y >= tb.y - 1 && nb.y + nb.height <= tb.y + tb.height + 1)
-          : false
+          : false,
+      // A package stands for a *sub-domain*, not a domain row: it is never a click-through, so its name
+      // must not carry the underline that marks one.  text-decoration-line is what Chromium computes
+      // from the attribute; the shorthand is the fallback.
+      underlined: name
+          ? /underline/.test(getComputedStyle(name).textDecorationLine
+                             || getComputedStyle(name).textDecoration || '')
+          : null
     };
   });
   const legend = svg.querySelector('g.uml-legend');
@@ -314,6 +347,27 @@ check('the legend is drawn', f.legend);
 check('the legend explains the archetype as well as the node and both link kinds',
     f.legendRows === 4, String(f.legendRows));
 
+// A class box tied to a domain row is a click-through to that row's own page — the class name in an
+// assembled diagram opens the ClassCdd the review works with.  A box with no row behind it stays inert.
+// The affordance is threefold and has to be consistent: the name is underlined (the cue that is visible
+// before the pointer arrives), the cursor is a pointer, and a click opens the page.
+const cursorOf = n => (f.cursors.find(c => c.name === n) || {}).cursor;
+const decorationOfName = n => (f.cursors.find(c => c.name === n) || {}).decoration;
+check('a clickable class name is underlined — the cue shows before the pointer arrives',
+    /underline/.test(decorationOfName('Alpha')), JSON.stringify(f.cursors.map(c => [c.name, c.decoration])));
+check('a name with no row behind it is not underlined',
+    !/underline/.test(decorationOfName('Beta'))
+        && !/underline/.test(decorationOfName('ServiceProviderOnNegotiation')),
+    JSON.stringify(f.cursors.map(c => [c.name, c.decoration])));
+check('a box tied to a domain row is a click-through (pointer cursor)',
+    cursorOf('Alpha') === 'pointer', JSON.stringify(f.cursors));
+check('a click on that box opens its own page in a new tab',
+    f.clickableUrl === '/wicket/object/domox.ClassCdd:42', String(f.clickableUrl));
+check('a box with no row behind it is inert — no pointer cursor, and a click opens nothing',
+    cursorOf('Beta') === 'default' && cursorOf('ServiceProviderOnNegotiation') === 'default'
+        && f.inertUrl === null,
+    JSON.stringify(f.cursors) + ' inertUrl=' + String(f.inertUrl));
+
 // ---- assertions: the package branch (the sub-domain overview) ----------------
 
 if (p.error) {
@@ -341,6 +395,9 @@ check('a package has a body, not compartments — no separator is drawn',
 check('a package lists the classes that relate outside its sub-domain',
     JSON.stringify(p.memberLines.slice().sort()) === JSON.stringify(['Order', 'OrderLine', 'Till']),
     JSON.stringify(p.memberLines));
+check('a package name is not underlined — a package is not a click-through',
+    p.measured.every(b => b.underlined === false),
+    JSON.stringify(p.measured.map(b => [b.name, b.underlined])));
 check('a long package name is shrunk into the tab it can have, and stays readable',
     p.measured.some(b => b.name === 'CheckoutAndPaymentProcessing' && b.font < 12 && b.font >= 8),
     JSON.stringify(p.measured.map(b => ({ name: b.name, font: b.font }))));

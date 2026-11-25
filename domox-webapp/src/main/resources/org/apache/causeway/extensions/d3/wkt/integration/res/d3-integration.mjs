@@ -41,6 +41,27 @@
     /** The UML name compartment's height — the server sizes a box's members against the same figure. */
     var UML_NAME_H = 20;
 
+    /**
+     * The Causeway page of one domain row: `/wicket/object/<objectType>:<id>`.
+     *
+     * `objectType` is the *framework's* type — what the payload read back from `@Named` — never a name
+     * derived from the Java class, or the URL would name a type Causeway does not know.
+     */
+    function entityPageUrl(contextPath, objectType, id) {
+        return (contextPath || '') + '/wicket/object/' + encodeURIComponent(objectType) + ':' + id;
+    }
+
+    /**
+     * Whether a box is a click-through: it stands for a domain row only when the payload gave it **both**
+     * `objectType` and `candidateId`, and only then.
+     *
+     * One predicate for the whole affordance — the pointer cursor, the click handler and the underlined
+     * name — so the cue a reader sees can never disagree with what a click actually does.
+     */
+    function isClickable(d) {
+        return d.candidateId != null && !!d.objectType;
+    }
+
     /** Between a compartment's separator and its first member line, and before each later compartment. */
     var UML_MEMBER_PAD = 8;
 
@@ -179,6 +200,10 @@
      * sizes each box with these same figures ({@link UML_NAME_H} etc.), so a compartment is never clipped —
      * `scripts/verify-uml-render.sh` is what keeps the two in step.
      *
+     * A box the payload ties to a domain row (`candidateId` + `objectType`) is a **click-through** to that
+     * row's own page, in a new tab — the class name in an assembled diagram opens the {@code ClassCdd} the
+     * review works with.  A box with no row behind it carries neither key and is drawn inert.
+     *
      * The simulation is run to completion **before** anything is drawn, so the first paint is the settled
      * picture rather than a jump: the seed is deterministic and so are the forces, which is also what lets
      * the render test assert on positions.  The timer is started by the first drag, not before.
@@ -216,6 +241,11 @@
                 // (the UML convention for an abstract class) so a reader can see which boxes a
                 // generalization below belongs to.
                 superclass: n.superclass === true,
+                // The domain row behind the box, when the server named one: what a click on the box
+                // opens.  Carried through unchanged — a box with no row behind it keeps both absent, and
+                // the box is drawn inert.
+                objectType: n.objectType,
+                candidateId: n.candidateId,
                 w: w,
                 h: h,
                 // The simulation works in box *centres*, the payload states the top-left corner.
@@ -317,6 +347,29 @@
             .attr('stroke', '#3498db').attr('stroke-width', 1.5);
 
         appendUmlCompartments(box, asPackage);
+
+        // ---- a class box is a click-through to the class it stands for -----------
+        // The payload states the row behind each box (`candidateId` + `objectType`, emitted by
+        // `DiagramJsonWriter` for a node `ClassDiagram` built from a ClassCdd), and the reader expects a
+        // class name to open that class's page — the same click-through the CRC candidate diagrams have
+        // always had, and the same vocabulary, so one rule covers both.  A box with no row behind it
+        // (the sub-domain overview's packages, a diagram whose nodes are not model rows) carries neither
+        // key and stays inert.
+        //
+        // The affordance is stated three times, and all three read {@link isClickable}: the name is
+        // underlined (above, in `appendUmlCompartments` — the same cue the CRC diagrams use for a
+        // clickable name, and the only one that is visible *before* the pointer arrives), the cursor is a
+        // pointer, and the click opens the page.
+        //
+        // The handler sits on the box `<g>`, beside the drag handler below: d3-drag suppresses the click
+        // only when the pointer actually moved, so a click opens the page and a drag still moves the box.
+        box.style('cursor', function (d) {
+                return isClickable(d) ? 'pointer' : 'default';
+            })
+            .on('click', function (event, d) {
+                if (!isClickable(d)) return;
+                window.open(entityPageUrl(config.contextPath, d.objectType, d.candidateId), '_blank');
+            });
 
         // ---- position everything, then wire up dragging and zoom -----------------
         function ticked() {
@@ -422,6 +475,10 @@
                 .attr('text-anchor', 'middle').attr('x', 0).attr('y', -d.h / 2 + 14)
                 .attr('font-size', 12).attr('font-weight', 'bold').attr('fill', '#1b3b57')
                 .attr('font-style', d.superclass ? 'italic' : null)
+                // Underlined when the box is a click-through, so the name itself says it is a link — the
+                // cue has to be visible before the pointer arrives.  The CRC diagrams already underline a
+                // clickable name, so this is the same affordance, not a second one.
+                .attr('text-decoration', isClickable(d) ? 'underline' : null)
                 .text(d.name), d.w - 10, 12);
 
             // Both separators are always drawn: the name / attributes / methods structure *is* the box.
@@ -470,6 +527,9 @@
         var name = g.append('text').attr('class', 'uml-name')
             .attr('text-anchor', 'middle').attr('y', top + 14)
             .attr('font-size', 12).attr('font-weight', 'bold').attr('fill', '#1b3b57')
+            // The same rule as a class box's name, so the cue can never drift from the handler that the
+            // box `<g>` carries: a package has no row behind it today, and so is never underlined.
+            .attr('text-decoration', isClickable(d) ? 'underline' : null)
             .text(d.name);
         // The tab is sized to the name (measured, like every other label here), capped by the box so it can
         // never overhang; the name is then shrunk into whatever tab that leaves.
@@ -1171,11 +1231,9 @@
                 })
                 .on('click', function (event, d) {
                     if (event.defaultPrevented) return;
-                    var basePath = config.contextPath || '';
                     if (d.candidateId && d.objectType) {
                         // A CRC candidate: its entity page, always in a new tab.
-                        var entityUrl = basePath + '/wicket/object/' + encodeURIComponent(d.objectType) + ':' + d.candidateId;
-                        window.open(entityUrl, '_blank');
+                        window.open(entityPageUrl(config.contextPath, d.objectType, d.candidateId), '_blank');
                         return;
                     }
                     // Only ontology payloads opt in (`reSearch`): a CRC diagram's synthetic nodes have

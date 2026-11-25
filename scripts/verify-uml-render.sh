@@ -93,12 +93,15 @@ WicketStuff.D3.init({ canvasId: 'd3CanvasFixture', graphData: JSON.stringify(PAY
 // routes at all), members and an archetype on the boxes, and the legend's archetype row.  Box `c` is the
 // overflow case: the server now *builds* a box to fit its widest line, so a narrow box with a long member
 // line in it is what a payload from an older server looks like — it is here to keep the client's
-// shrink-to-fit fallback honest.
+// shrink-to-fit fallback honest.  Box `a` carries the pair `ClassDiagram` now puts on a class box
+// (`objectType` + `candidateId`), so the client's click-through to that class's own page is asserted
+// rather than assumed; `b` and `c` carry neither and must stay inert.
 var FORCE_PAYLOAD = {
   "layout": "uml", "force": true, "title": "Fixture", "canvas": {"width": 600, "height": 400},
   "nodes": [
     {"id": "a", "name": "Alpha", "kind": "Class", "x": 40, "y": 40, "w": 160, "h": 60,
-     "attributes": ["id: Long", "name: String"], "methods": [], "superclass": true},
+     "attributes": ["id: Long", "name: String"], "methods": [], "superclass": true,
+     "objectType": "domox.ClassCdd", "candidateId": 42},
     {"id": "b", "name": "Beta", "kind": "Class", "x": 40, "y": 260, "w": 160, "h": 48,
      "attributes": [], "methods": ["approve()"]},
     {"id": "c", "name": "ServiceProviderOnNegotiation", "kind": "Class", "x": 300, "y": 40, "w": 159, "h": 60,

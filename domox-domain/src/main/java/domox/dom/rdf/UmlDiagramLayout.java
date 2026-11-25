@@ -128,14 +128,32 @@ public final class UmlDiagramLayout {
      * outside it (see {@code ClassDiagram#graphOverview}).  There is no separate field for them: a package's
      * contents occupy the same place in the box the server sizes as a class's members do, so the geometry
      * needs no special case — only the client's drawing differs.</p>
+     *
+     * <p><b>{@code objectType} / {@code candidateId} — the row behind the box.</b>  A box that stands for a
+     * domain row states which one, and the client makes the box a click-through to that row's page
+     * ({@code /wicket/object/<objectType>:<id>}).  The pair is the vocabulary the CRC diagrams already use
+     * ({@code CandidateD3Graph}), so both pictures are handled by one rule on the client; {@code objectType}
+     * is the <em>Causeway</em> object type — read back from {@code @Named} by
+     * {@code Candidate#getObjectType()}, never derived from the class name, or the URL would name a type
+     * the framework does not know.  <b>The two are set together or not at all</b>: a box with no row behind
+     * it (the sub-domain overview's packages, the reconstruction of an export's own geometry) leaves both
+     * {@code null} and stays inert.</p>
      */
     public record Node(String id, String name, String group,
                        List<String> attributes, List<String> methods,
-                       String archetype, String color) {
+                       String archetype, String color,
+                       Long candidateId, String objectType) {
 
-        /** A box with no members and no archetype — a class nothing is drawn inside. */
+        /** A box with no members, no archetype and no row behind it — a class nothing is drawn inside. */
         public Node(final String id, final String name, final String group) {
-            this(id, name, group, List.of(), List.of(), null, null);
+            this(id, name, group, List.of(), List.of(), null, null, null, null);
+        }
+
+        /** The same, for a box that draws members but stands for no row — a caller with only a picture. */
+        public Node(final String id, final String name, final String group,
+                    final List<String> attributes, final List<String> methods,
+                    final String archetype, final String color) {
+            this(id, name, group, attributes, methods, archetype, color, null, null);
         }
     }
 
@@ -602,8 +620,8 @@ public final class UmlDiagramLayout {
     }
 
     /**
-     * The members and archetype of each box, keyed by id — the first node given for an id wins, as in
-     * {@link #nameOf}.  A box the caller did not describe (or an id with no node) reads as
+     * The members, the archetype and the row behind each box, keyed by id — the first node given for an id
+     * wins, as in {@link #nameOf}.  A box the caller did not describe (or an id with no node) reads as
      * {@link DiagramJsonWriter.NodeDetail#NONE}, so the writer never has to null-check.
      */
     private static Function<String, DiagramJsonWriter.NodeDetail> detailOf(final List<Node> nodes) {
@@ -613,7 +631,8 @@ public final class UmlDiagramLayout {
                 details.putIfAbsent(node.id(), new DiagramJsonWriter.NodeDetail(
                         node.attributes() == null ? List.of() : node.attributes(),
                         node.methods() == null ? List.of() : node.methods(),
-                        node.archetype(), node.color(), false));
+                        node.archetype(), node.color(), false,
+                        node.objectType(), node.candidateId()));
             }
         }
         return id -> details.getOrDefault(id, DiagramJsonWriter.NodeDetail.NONE);

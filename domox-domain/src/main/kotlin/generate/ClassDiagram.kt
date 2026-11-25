@@ -295,6 +295,10 @@ class ClassDiagram {
      *
      * <p>A class with no name is dropped rather than drawn as an unnamed box: {@link #render} skips it
      * for the same reason, and an edge could not be attached to it anyway.</p>
+     *
+     * <p>Each box also states the row it stands for (its {@code id} and its Causeway {@code objectType}),
+     * so the picture can make the class name a click-through to that class's own page — the
+     * {@code ClassCdd} the reviewer works with, not just a name in a drawing.</p>
      */
     private fun nodesOf(included: List<ClassCdd>): List<UmlDiagramLayout.Node> =
         included
@@ -312,6 +316,11 @@ class ClassDiagram {
                     it.approvedResponsibilityLines(),
                     it.classType.label,
                     it.classType.cssColor,
+                    // The row this box *is*: the picture makes a class name a click-through to the
+                    // class's own page.  `objectType` is read back from `@Named` (not derived from the
+                    // class name), because it is what the `/wicket/object/<objectType>:<id>` URL needs.
+                    it.id,
+                    it.objectType,
                 )
             }
 

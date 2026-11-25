@@ -536,6 +536,61 @@ class UmlDiagramLayoutTest {
         assertThat(json).contains("{\"kind\":\"node\",\"color\":\"#3498DB\",\"label\":\"Class\","
                 + "\"description\":\"a class box, where the model puts it\"}");
     }
+    // --- the row behind a box -------------------------------------------------
+
+    /**
+     * A box that stands for a domain row carries the pair the client clicks through on: the <b>Causeway</b>
+     * {@code objectType} and the row's id.  The pair is the vocabulary the CRC diagrams already use
+     * ({@code CandidateD3Graph}), so one client rule covers both pictures — and the object type is stated
+     * by the caller rather than derived from the class name, because the URL
+     * ({@code /wicket/object/<objectType>:<id>}) must name the type the framework knows.
+     */
+    @Test
+    void marksABoxWithTheRowItStandsFor() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(new UmlDiagramLayout.Node("Store", "Store", "Inventory",
+                        List.of("name: String"), List.of("browse(): void"),
+                        "Party", "#ffe0b2", 42L, "domox.ClassCdd")),
+                List.of());
+
+        assertThat(nodeValue(json, "Store", "objectType")).isEqualTo("\"domox.ClassCdd\"");
+        assertThat(nodeValue(json, "Store", "candidateId")).isEqualTo("42");
+    }
+
+    /**
+     * A box with no row behind it — a package, or a diagram assembled from something other than the model's
+     * own rows — carries <b>neither</b> key, so the client draws it inert rather than linking to half an
+     * address.
+     */
+    @Test
+    void leavesABoxWithNoRowBehindItInert() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("a", "Alpha", "g"), node("b", "Beta", "g", List.of(), List.of())),
+                List.of());
+
+        assertThat(nodeBody(json, "a")).doesNotContain("objectType").doesNotContain("candidateId");
+        assertThat(nodeBody(json, "b")).doesNotContain("objectType").doesNotContain("candidateId");
+        assertThat(count(json, "\"candidateId\"")).as("not on any node, and not in the legend").isZero();
+    }
+
+    /**
+     * Half a target is no target: an id with no object type, or a type with no id, emits neither key.  A
+     * URL built from half a pair would name a page that cannot exist, so the box is drawn inert instead.
+     */
+    @Test
+    void ignoresHalfAStatedRow() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(new UmlDiagramLayout.Node("a", "Alpha", "g", List.of(), List.of(), null, null,
+                                7L, null),
+                        new UmlDiagramLayout.Node("b", "Beta", "g", List.of(), List.of(), null, null,
+                                null, "domox.ClassCdd")),
+                List.of());
+
+        assertThat(count(json, "\"candidateId\"")).isZero();
+        assertThat(count(json, "\"objectType\"")).isZero();
+    }
+
+
 
     /**
      * The two archetype keys are independent — the writer states what the caller gave it — but a

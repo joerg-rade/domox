@@ -28,10 +28,14 @@ import domox.dom.rdf.geometry.Pt;
  * <pre>
  *   { "layout":"uml", "force":true, "title":"…", "canvas":{"width":…,"height":…},
  *     "nodes":[{"id","name","kind","x","y","w","h","attributes":[…],"methods":[…],
- *               "archetype","color"}],
+ *               "archetype","color","superclass","objectType","candidateId"}],
  *     "links":[{"source","target","kind","label","arrow"}],
  *     "legend":[{"kind","color","label","description"}] }
  * </pre>
+ *
+ * <p>{@code objectType} / {@code candidateId} appear on a box that stands for a domain row, and are the
+ * client's click-through target ({@code /wicket/object/<objectType>:<id>}); a box with no row behind it
+ * omits both.</p>
  *
  * <p>{@code "packages":true} is added to the force flavour when the boxes are <b>sub-domains</b> rather
  * than classes — the sub-domain overview.  The geometry is unchanged; only the {@code kind} of each node
@@ -59,8 +63,8 @@ final class DiagramJsonWriter {
     }
 
     /**
-     * What the force flavour draws inside a box, beyond its name: its members, and the archetype that
-     * colours it.
+     * What the force flavour emits for one box beyond its name: its members, the archetype that colours
+     * it, whether anything inherits from it — and the domain row the box stands for, when there is one.
      *
      * <p>Empty on the static flavour, which draws none of it — the reconstruction is a picture of where
      * the model's author put things, not of what the classes contain.</p>
@@ -68,16 +72,21 @@ final class DiagramJsonWriter {
      * <p>{@code superclass} is set on a box the is-a arrows point at, so the client can draw its name in
      * italics — the UML convention for an abstract class, and the one thing that tells a reader which
      * boxes the generalizations below belong to.</p>
+     *
+     * <p>{@code objectType} / {@code candidateId} name the row behind the box, and the client makes the box
+     * a click-through to {@code /wicket/object/<objectType>:<id>} when both are set.  <b>They travel
+     * together</b> — a box with no row behind it (a package, an export's own geometry) carries neither, and
+     * the client draws it inert rather than linking to half an address.</p>
      */
     record NodeDetail(List<String> attributes, List<String> methods, String archetype, String color,
-                      boolean superclass) {
+                      boolean superclass, String objectType, Long candidateId) {
 
-        /** A box with no members, no archetype, and nothing inheriting from it. */
-        static final NodeDetail NONE = new NodeDetail(List.of(), List.of(), null, null, false);
+        /** A box with no members, no archetype, nothing inheriting from it and no row behind it. */
+        static final NodeDetail NONE = new NodeDetail(List.of(), List.of(), null, null, false, null, null);
 
         /** The same detail, marked as a box the is-a arrows point at. */
         NodeDetail asSuperclass() {
-            return new NodeDetail(attributes, methods, archetype, color, true);
+            return new NodeDetail(attributes, methods, archetype, color, true, objectType, candidateId);
         }
     }
 
@@ -258,6 +267,12 @@ final class DiagramJsonWriter {
         }
         if (detail.superclass()) {
             json.append(",\"superclass\":true");
+        }
+        // The row behind the box, when there is one — the client's click-through target.  Emitted as a
+        // pair, the vocabulary the CRC diagrams already use, so one client rule covers both pictures.
+        if (detail.candidateId() != null && detail.objectType() != null) {
+            json.append(",\"objectType\":\"").append(escape(detail.objectType())).append('"')
+                    .append(",\"candidateId\":").append(detail.candidateId());
         }
     }
 
