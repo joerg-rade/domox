@@ -128,6 +128,9 @@ WicketStuff.D3.init({ canvasId: 'd3CanvasForce', graphData: JSON.stringify(FORCE
 // present but unused — no link is one — so the check also pins the client's "only explain what is actually
 // drawn" filter.  The second node is the overflow case: `CheckoutAndPaymentProcessing` is wider than the
 // tab it can have (159 units), so the client must shrink it into the tab and keep it readable.
+// The two edges stand for *different numbers* of collaborations (2 and 7), which is what pins the
+// connector weight: on the overview the label is a count, and the line is drawn the thicker the more
+// relations it stands for.
 var PACKAGE_PAYLOAD = {
   "layout": "uml", "force": true, "packages": true, "title": "Fixture — sub-domain overview",
   "canvas": {"width": 600, "height": 400},
@@ -135,10 +138,13 @@ var PACKAGE_PAYLOAD = {
     {"id": "Inventory", "name": "Inventory", "kind": "Package", "x": 40, "y": 40, "w": 180, "h": 56,
      "attributes": ["Order", "OrderLine"], "methods": []},
     {"id": "Checkout", "name": "CheckoutAndPaymentProcessing", "kind": "Package", "x": 300, "y": 40, "w": 159, "h": 44,
-     "attributes": ["Till"], "methods": []}
+     "attributes": ["Till"], "methods": []},
+    {"id": "Delivery", "name": "Delivery", "kind": "Package", "x": 40, "y": 240, "w": 140, "h": 44,
+     "attributes": [], "methods": []}
   ],
   "links": [
-    {"source": "Inventory", "target": "Checkout", "kind": "association", "label": "2"}
+    {"source": "Inventory", "target": "Checkout", "kind": "association", "label": "2"},
+    {"source": "Inventory", "target": "Delivery", "kind": "association", "label": "7"}
   ],
   "legend": [
     {"kind": "node", "color": "#3498DB", "label": "Package",

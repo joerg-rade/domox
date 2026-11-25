@@ -71,6 +71,38 @@
     /** The font size of the member lines. */
     var UML_MEMBER_FONT = 9;
 
+    /** The weight of a connector that stands for a single thing — every connector but the overview's. */
+    var UML_LINK_W = 1.5;
+
+    /** Each further relation an overview connector stands for, on top of {@link UML_LINK_W}. */
+    var UML_OVERVIEW_LINK_STEP = 0.6;
+
+    /** The heaviest an overview connector is drawn, however many relations it stands for. */
+    var UML_OVERVIEW_LINK_MAX = 6;
+
+    /**
+     * The weight of one connector: {@link UML_LINK_W}, or — on the sub-domain overview — the number of
+     * relations the line stands for.
+     *
+     * The overview is the one diagram whose edge label is a *count* rather than a verb: the server
+     * aggregates every collaboration that leaves one sub-domain for another into a single edge and labels
+     * it with how many it stands for.  Drawing that figure as the line's weight is a second reading of the
+     * same number — a reader can see which pair of sub-domains the model leans on without reading twenty
+     * labels — and it is the only thing that makes a many-to-one hub legible at a glance.
+     *
+     * The count is read only in the package flavour, which the payload states once (`"packages":true`):
+     * a per-sub-domain diagram labels its edges with the verb ("owns", "is a"), and parsing those as
+     * numbers would be meaningless.  A label that is not a positive integer — an empty one, a verb, a
+     * cardinality — keeps the plain weight.
+     */
+    function umlLinkWeight(link, asPackage) {
+        var count = asPackage ? parseInt(link.label, 10) : NaN;
+        if (!isFinite(count) || count < 1) {
+            return UML_LINK_W;
+        }
+        return Math.min(UML_LINK_W + (count - 1) * UML_OVERVIEW_LINK_STEP, UML_OVERVIEW_LINK_MAX);
+    }
+
     /**
      * Draws a UML class diagram from the geometry the model itself stores.
      *
@@ -113,7 +145,7 @@
                 .attr('d', d)
                 .attr('fill', 'none')
                 .attr('stroke', link.kind === 'generalization' ? '#000000' : '#7f8c8d')
-                .attr('stroke-width', 1.5);
+                .attr('stroke-width', UML_LINK_W);
             if (link.kind === 'generalization' && link.arrow !== false) {
                 path.attr('marker-end', 'url(#uml-generalization-arrow)');
             }
@@ -307,12 +339,17 @@
         containerEl._d3Simulation = simulation;
 
         // ---- the connectors ------------------------------------------------------
+        // `asPackage` is read once here, ahead of both the connectors and the boxes: the connector weight
+        // is the count on an overview edge (see {@link umlLinkWeight}) and the box is a package symbol
+        // there, and both must read the same flag.
+        var asPackage = data.packages === true;
+
         var linkSel = layer.selectAll('line.uml-link')
             .data(links)
             .enter().append('line')
             .attr('class', function (d) { return 'uml-link uml-link-' + d.kind; })
             .attr('stroke', function (d) { return d.kind === 'generalization' ? '#000000' : '#7f8c8d'; })
-            .attr('stroke-width', 1.5)
+            .attr('stroke-width', function (d) { return umlLinkWeight(d, asPackage); })
             .attr('marker-end', function (d) { return d.arrow ? 'url(#uml-generalization-arrow)' : null; });
 
         var labelSel = layer.selectAll('text.uml-link-label')
@@ -330,7 +367,6 @@
         // ---- the class boxes, one <g> each so it can be dragged whole ------------
         // On the sub-domain overview each box *is* a sub-domain, so it is drawn as a UML package
         // (`uml-package`) rather than as a class box; the rectangle the simulation moves is the same one.
-        var asPackage = data.packages === true;
         var box = layer.selectAll('g.uml-class')
             .data(nodes, function (d) { return d.id; })
             .enter().append('g')

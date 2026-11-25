@@ -161,6 +161,9 @@ const MEASURE_FORCE = `(() => {
     routedPaths: layer.querySelectorAll('path').length,
     arrowed: lines.filter(l => l.getAttribute('marker-end')).length,
     strokes: lines.map(l => l.getAttribute('stroke')),
+    // The weight of each connector, in payload order.  On a *class* diagram every edge keeps the plain
+    // weight: the label is the verb of the relation ("owns", "is a"), so it is not a count to draw.
+    linkWidths: lines.map(l => parseFloat(l.getAttribute('stroke-width'))),
     memberLines: Array.from(layer.querySelectorAll('text.uml-member')).map(t => t.textContent),
     separators: layer.querySelectorAll('line.uml-separator').length,
     texts: texts,
@@ -229,6 +232,11 @@ const MEASURE_PACKAGES = `(() => {
     measured: measured,
     memberLines: Array.from(layer.querySelectorAll('text.uml-member')).map(t => t.textContent),
     separators: layer.querySelectorAll('line.uml-separator').length,
+    // The overview's connectors, in payload order, with the label each carries: the count is drawn twice —
+    // printed, and as the weight of the line (see umlLinkWeight).
+    linkWidths: Array.from(layer.querySelectorAll('line.uml-link'))
+        .map(l => parseFloat(l.getAttribute('stroke-width'))),
+    linkLabels: Array.from(layer.querySelectorAll('text.uml-link-label')).map(t => t.textContent),
     tabs: layer.querySelectorAll('path.uml-package-tab').length,
     bodies: layer.querySelectorAll('rect.uml-package-body').length,
     legend: !!legend,
@@ -316,6 +324,11 @@ check('no connector is a routed path — a route would be stale after the first 
 check('only the generalization draws an arrowhead', f.arrowed === 1, String(f.arrowed));
 check('the arrow is black and the association grey',
     f.strokes.includes('#000000') && f.strokes.includes('#7f8c8d'), JSON.stringify(f.strokes));
+// The count-as-weight rule reads the label, so it must stay *off* where the label is a verb: a
+// class diagram's edge says "owns" or "is a", and drawing that as a number is meaningless.
+check('a class-diagram connector keeps the plain weight — its label is a verb, not a count',
+    f.linkWidths.length === 2 && f.linkWidths.every(w => w === 1.5),
+    JSON.stringify(f.linkWidths));
 
 check('the attribute compartment is drawn',
     f.memberLines.includes('id: Long') && f.memberLines.includes('name: String'),
@@ -378,11 +391,11 @@ if (p.error) {
 check('the package renderer settles before it paints (data-uml-settled)',
     p.settled === 'true', String(p.settled));
 check('the package SVG uses the payload canvas as its viewBox', p.viewBox === '0 0 600 400', p.viewBox);
-check('one package per sub-domain', p.boxes === 2, String(p.boxes));
+check('one package per sub-domain', p.boxes === 3, String(p.boxes));
 check('every box is marked as a package, not a class box',
-    p.measured.length === 2 && p.measured.every(b => (b.classes || '').includes('uml-package')),
+    p.measured.length === 3 && p.measured.every(b => (b.classes || '').includes('uml-package')),
     JSON.stringify(p.measured.map(b => b.classes)));
-check('each package draws a tab and a body', p.tabs === 2 && p.bodies === 2,
+check('each package draws a tab and a body', p.tabs === 3 && p.bodies === 3,
     `tabs=${p.tabs} bodies=${p.bodies}`);
 check('the package name sits inside its tab, not in the body',
     p.measured.every(b => b.nameInTab),
@@ -401,6 +414,20 @@ check('a package name is not underlined — a package is not a click-through',
 check('a long package name is shrunk into the tab it can have, and stays readable',
     p.measured.some(b => b.name === 'CheckoutAndPaymentProcessing' && b.font < 12 && b.font >= 8),
     JSON.stringify(p.measured.map(b => ({ name: b.name, font: b.font }))));
+
+// The overview's edges are the one place a label is a *count*: `ClassDiagram#overviewOf` aggregates every
+// cross-sub-domain collaboration into one edge and labels it with how many it stands for.  The line is
+// drawn that thick, so the two fixture edges (2 and 7 collaborations) must differ, and differ by the
+// pinned step — 1.5 for a single collaboration, +0.6 for each further one — so that a silent retune of the
+// scale cannot pass.
+check('an overview connector is thicker the more relations it stands for',
+    p.linkWidths.length === 2 && p.linkWidths[1] > p.linkWidths[0],
+    JSON.stringify({ widths: p.linkWidths, labels: p.linkLabels }));
+check('the connector weight is the count it carries (1.5 for one collaboration, +0.6 each further one)',
+    p.linkWidths.length === 2 && Math.abs(p.linkWidths[0] - 2.1) < 0.01
+        && Math.abs(p.linkWidths[1] - 5.1) < 0.01,
+    JSON.stringify({ widths: p.linkWidths, labels: p.linkLabels }));
+
 check('the legend names the package symbol, not a class box',
     p.legendRows.length > 0 && p.legendRows[0].startsWith('Package \u2014 ')
         && !p.legendRows.some(r => r.startsWith('Class')),
