@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 #
-# Headless-render guardrail for the two UML branches of `d3-integration.mjs`: the STATIC one (the
-# OntoUML export's stored geometry, `"layout":"uml"`) and the FORCE one (`"layout":"uml","force":true`,
-# the assembled model's seed grid plus a `d3-force` simulation, which the reader can drag).
+# Headless-render guardrail for the three UML branches of `d3-integration.mjs`: the STATIC one (the
+# OntoUML export's stored geometry, `"layout":"uml"`), the FORCE one (`"layout":"uml","force":true`,
+# the assembled model's seed grid plus a `d3-force` simulation, which the reader can drag), and the
+# PACKAGE flavour of the force one (`"packages":true` — the sub-domain overview, where each node is drawn
+# as a UML package symbol rather than as a class box).
 #
 # Why: `UmlLayoutIntegrityTest` asserts the *geometry* over the real model, but nothing checked that
-# the CLIENT actually draws what the payload says.  A regression in either renderer — a lost arrow
+# the CLIENT actually draws what the payload says.  A regression in any renderer — a lost arrow
 # marker, a missing legend, the wrong viewBox, a compartment the server sized for but the client does
-# not draw, a collision force that leaves the boxes on top of one another — would pass every other
-# check in the repo.
+# not draw, a collision force that leaves the boxes on top of one another, a package drawn as a plain
+# rectangle — would pass every other check in the repo.
 #
 # Usage: bash scripts/verify-uml-render.sh
 #
@@ -56,6 +58,7 @@ cat > "$DIR/fixture.html" <<'HTML'
 <body>
 <div id="d3CanvasFixture" style="width:900px;height:600px"></div>
 <div id="d3CanvasForce" style="width:900px;height:600px"></div>
+<div id="d3CanvasPackages" style="width:900px;height:600px"></div>
 <script>var jQuery = {};</script>
 <script src="d3.min.js"></script>
 <script src="d3-integration.mjs"></script>
@@ -114,6 +117,34 @@ var FORCE_PAYLOAD = {
   ]
 };
 WicketStuff.D3.init({ canvasId: 'd3CanvasForce', graphData: JSON.stringify(FORCE_PAYLOAD), enableZoom: true });
+
+// A payload shaped exactly as `ClassDiagram#graphOverview` + `UmlDiagramLayout#render(…, packages=true)`
+// emit it: `"packages":true` in the header, `kind` "Package" on every node, each node's *attributes* the
+// classes of that sub-domain that relate to a class outside it, no methods, and a legend whose node row is
+// "Package" with no archetype row (a sub-domain has no Coad/Lefebvre archetype).  The Generalization row is
+// present but unused — no link is one — so the check also pins the client's "only explain what is actually
+// drawn" filter.  The second node is the overflow case: `CheckoutAndPaymentProcessing` is wider than the
+// tab it can have (159 units), so the client must shrink it into the tab and keep it readable.
+var PACKAGE_PAYLOAD = {
+  "layout": "uml", "force": true, "packages": true, "title": "Fixture — sub-domain overview",
+  "canvas": {"width": 600, "height": 400},
+  "nodes": [
+    {"id": "Inventory", "name": "Inventory", "kind": "Package", "x": 40, "y": 40, "w": 180, "h": 56,
+     "attributes": ["Order", "OrderLine"], "methods": []},
+    {"id": "Checkout", "name": "CheckoutAndPaymentProcessing", "kind": "Package", "x": 300, "y": 40, "w": 159, "h": 44,
+     "attributes": ["Till"], "methods": []}
+  ],
+  "links": [
+    {"source": "Inventory", "target": "Checkout", "kind": "association", "label": "2"}
+  ],
+  "legend": [
+    {"kind": "node", "color": "#3498DB", "label": "Package",
+     "description": "a sub-domain, listing the classes that relate to another sub-domain"},
+    {"kind": "association", "color": "#7f8c8d", "label": "Association", "description": "a plain line"},
+    {"kind": "generalization", "color": "#000000", "label": "Generalization", "description": "an arrow"}
+  ]
+};
+WicketStuff.D3.init({ canvasId: 'd3CanvasPackages', graphData: JSON.stringify(PACKAGE_PAYLOAD), enableZoom: true });
 </script>
 </body></html>
 HTML

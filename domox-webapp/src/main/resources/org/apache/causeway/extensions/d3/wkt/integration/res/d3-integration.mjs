@@ -298,10 +298,13 @@
             .text(function (d) { return d.label; });
 
         // ---- the class boxes, one <g> each so it can be dragged whole ------------
+        // On the sub-domain overview each box *is* a sub-domain, so it is drawn as a UML package
+        // (`uml-package`) rather than as a class box; the rectangle the simulation moves is the same one.
+        var asPackage = data.packages === true;
         var box = layer.selectAll('g.uml-class')
             .data(nodes, function (d) { return d.id; })
             .enter().append('g')
-            .attr('class', 'uml-class');
+            .attr('class', asPackage ? 'uml-class uml-package' : 'uml-class');
 
         box.append('rect')
             .attr('class', 'uml-box')
@@ -313,7 +316,7 @@
             .attr('fill', function (d) { return d.color; })
             .attr('stroke', '#3498db').attr('stroke-width', 1.5);
 
-        appendUmlCompartments(box);
+        appendUmlCompartments(box, asPackage);
 
         // ---- position everything, then wire up dragging and zoom -----------------
         function ticked() {
@@ -401,8 +404,16 @@
      * `max(BOX_H, UML_NAME_H + attributes + methods)`, so a compartment is never clipped.  A line that is
      * still too wide for its box is **shrunk**, never clipped and never allowed to cross into the
      * neighbouring box.
+     *
+     * With `asPackage` set the same rectangle is drawn as a UML **package** instead — see
+     * {@link appendUmlPackage}.  Only what is drawn inside the box differs, so the box the server sized
+     * and the simulation moves is unchanged.
      */
-    function appendUmlCompartments(box) {
+    function appendUmlCompartments(box, asPackage) {
+        if (asPackage) {
+            box.each(function (d) { appendUmlPackage(d3.select(this), d); });
+            return;
+        }
         box.each(function (d) {
             var g = d3.select(this);
             var attributeH = umlCompartmentHeight(d.attributes);
@@ -427,6 +438,63 @@
                         .text(row.text), d.w - 12, UML_MEMBER_FONT);
                 });
         });
+    }
+
+    /**
+     * A UML **package**: a tab across the top-left carrying the name, and a body below it holding the
+     * package's contents.  This is how the sub-domain overview draws a node, because there a node *is* a
+     * sub-domain and its contents are the classes of that sub-domain that relate to a class outside it
+     * (`ClassDiagram#graphOverview`).
+     *
+     * The tab is as tall as the name compartment ({@link UML_NAME_H}) and the body fills the rest of the
+     * rectangle, so the server's box size — and therefore the geometry and the forces that place it — is
+     * exactly the class box's; only what is drawn inside the rectangle differs.  There are **no**
+     * compartment separators: a package has a body, not compartments.  The body's member lines reuse
+     * {@link umlMemberLines} at the same offsets, so a long contents list shrinks exactly as a class's
+     * member list does.
+     */
+    function appendUmlPackage(g, d) {
+        var left = -d.w / 2;
+        var top = -d.h / 2;
+        var bodyTop = top + UML_NAME_H;
+
+        // The tab is drawn first and the body over it: the two rectangles meet along the tab's bottom edge,
+        // which is the line that separates the package's name from its contents.
+        var tab = g.append('path').attr('class', 'uml-package-tab')
+            .attr('fill', '#ffffff').attr('stroke', '#3498db').attr('stroke-width', 1.5);
+        g.append('rect').attr('class', 'uml-package-body')
+            .attr('x', left).attr('y', bodyTop)
+            .attr('width', d.w).attr('height', Math.max(0, d.h - UML_NAME_H))
+            .attr('fill', d.color).attr('stroke', '#3498db').attr('stroke-width', 1.5);
+
+        var name = g.append('text').attr('class', 'uml-name')
+            .attr('text-anchor', 'middle').attr('y', top + 14)
+            .attr('font-size', 12).attr('font-weight', 'bold').attr('fill', '#1b3b57')
+            .text(d.name);
+        // The tab is sized to the name (measured, like every other label here), capped by the box so it can
+        // never overhang; the name is then shrunk into whatever tab that leaves.
+        var tabW = Math.min(d.w, Math.max(56, Math.round(name.node().getComputedTextLength()) + 16));
+        name.attr('x', left + tabW / 2);
+        shrinkToFit(name, tabW - 10, 12);
+        tab.attr('d', umlPackageTabPath(left, top, tabW));
+
+        umlMemberLines(d, d.attributes, 0).forEach(function (row) {
+            shrinkToFit(g.append('text').attr('class', 'uml-member')
+                .attr('x', left + 6).attr('y', row.y)
+                .attr('font-size', UML_MEMBER_FONT).attr('fill', '#33475b')
+                .text(row.text), d.w - 12, UML_MEMBER_FONT);
+        });
+    }
+
+    /** The tab's outline: rounded at the top, square where it meets the body. */
+    function umlPackageTabPath(left, top, tabW) {
+        var r = Math.min(3, tabW / 2);
+        return 'M' + left + ',' + (top + UML_NAME_H)
+            + 'L' + left + ',' + (top + r)
+            + 'Q' + left + ',' + top + ' ' + (left + r) + ',' + top
+            + 'L' + (left + tabW - r) + ',' + top
+            + 'Q' + (left + tabW) + ',' + top + ' ' + (left + tabW) + ',' + (top + r)
+            + 'L' + (left + tabW) + ',' + (top + UML_NAME_H) + 'Z';
     }
 
     /** One compartment separator, spanning the box at `y` (relative to the box's centre). */
@@ -661,12 +729,27 @@
                 .attr('transform', 'translate(' + pad + ',' + midY + ')');
 
             if (item.kind === 'node') {
-                swatch.append('rect')
-                    .attr('y', -7 * k)
-                    .attr('width', sample).attr('height', 14 * k)
-                    .attr('rx', 2 * k)
-                    .attr('fill', '#eaf3fb')
-                    .attr('stroke', item.color).attr('stroke-width', 1.5);
+                if (data.packages === true) {
+                    // The overview's boxes are packages, so the legend shows the symbol they are drawn
+                    // as: a tab over a body, in the same blue the boxes are stroked in.
+                    swatch.append('rect')
+                        .attr('y', -7 * k)
+                        .attr('width', sample).attr('height', 14 * k)
+                        .attr('fill', '#eaf3fb')
+                        .attr('stroke', item.color).attr('stroke-width', 1.5);
+                    swatch.append('rect')
+                        .attr('y', -7 * k)
+                        .attr('width', sample * 0.45).attr('height', 4 * k)
+                        .attr('fill', '#ffffff')
+                        .attr('stroke', item.color).attr('stroke-width', 1.5);
+                } else {
+                    swatch.append('rect')
+                        .attr('y', -7 * k)
+                        .attr('width', sample).attr('height', 14 * k)
+                        .attr('rx', 2 * k)
+                        .attr('fill', '#eaf3fb')
+                        .attr('stroke', item.color).attr('stroke-width', 1.5);
+                }
             } else if (item.kind === 'archetype') {
                 // A filled swatch in the archetype's own colour — which is exactly what a box is filled
                 // with, so the legend can be matched to the picture at a glance.

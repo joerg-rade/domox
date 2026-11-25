@@ -473,6 +473,71 @@ class UmlDiagramLayoutTest {
     }
 
     /**
+     * The sub-domain overview draws each node as a UML <b>package</b>: the payload says so once, with
+     * {@code "packages":true} in the header, and again on every node with {@code "kind":"Package"} — so the
+     * client can branch on either without matching on the title.  The box itself is unchanged: a package
+     * occupies exactly the rectangle a class box would.
+     */
+    @Test
+    void marksTheSubDomainOverviewAsPackages() {
+        final String json = UmlDiagramLayout.render("Sub-domain overview",
+                List.of(node("a", "Inventory", "g", List.of("Order", "OrderLine"), List.of()),
+                        node("b", "Billing", "g", List.of("Invoice"), List.of())),
+                List.of(new UmlDiagramLayout.Edge("a", "b", UmlDiagramLayout.ASSOCIATION, "2")),
+                true);
+
+        assertThat(json).startsWith("{\"layout\":\"uml\",\"force\":true,\"packages\":true,");
+        assertThat(nodeValue(json, "a", "kind")).isEqualTo("\"Package\"");
+        assertThat(nodeValue(json, "b", "kind")).isEqualTo("\"Package\"");
+        // The package's contents ride in the attributes slot — the classes that relate outside the
+        // sub-domain — and no package carries methods, because a sub-domain has none.
+        assertThat(nodeValue(json, "a", "attributes")).isEqualTo("[\"Order\",\"OrderLine\"]");
+        assertThat(nodeValue(json, "a", "methods")).isEqualTo("[]");
+        assertThat(nodeValue(json, "a", "w")).as("a package is drawn in the same rectangle a class box is")
+                .isEqualTo("180");
+    }
+
+    /**
+     * The overview's legend describes a <b>package</b>, not a class, and carries no archetype row: its boxes
+     * are sub-domains, which have no Coad/Lefebvre archetype, so an archetype row would explain a colour no
+     * box is painted in.
+     */
+    @Test
+    void givesThePackageLegendOnTheOverview() {
+        final String json = UmlDiagramLayout.render("Sub-domain overview",
+                List.of(new UmlDiagramLayout.Node("a", "Inventory", "g", List.of("Order"), List.of(),
+                                "Place", "#c8e6c9"),
+                        new UmlDiagramLayout.Node("b", "Billing", "g", List.of(), List.of(),
+                                "Party", "#ffe0b2")),
+                List.of(), true);
+
+        assertThat(json).contains("{\"kind\":\"node\",\"color\":\"#3498DB\",\"label\":\"Package\","
+                + "\"description\":\"a sub-domain, listing the classes that relate to another sub-domain\"}");
+        assertThat(json).doesNotContain("\"label\":\"Class\"");
+        assertThat(count(json, "\"kind\":\"archetype\"")).as("a sub-domain has no archetype to explain")
+                .isZero();
+        assertThat(json).as("the two line rows still read the same").contains("\"label\":\"Association\"")
+                .contains("\"label\":\"Generalization\"");
+    }
+
+    /**
+     * The three-argument overload is a class diagram, and says nothing about packages at all — not even
+     * {@code "packages":false}.  The key's presence is the mode, so a payload that carries it as {@code false}
+     * would be a second way to state the same thing.
+     */
+    @Test
+    void leavesTheClassFlavourUnmarkedAsPackages() {
+        final String json = UmlDiagramLayout.render("Demo",
+                List.of(node("a", "Alpha", "g"), node("b", "Beta", "g")), List.of());
+
+        assertThat(json).startsWith("{\"layout\":\"uml\",\"force\":true,\"title\":\"Demo\",");
+        assertThat(json).doesNotContain("packages");
+        assertThat(nodeValue(json, "a", "kind")).isEqualTo("\"Class\"");
+        assertThat(json).contains("{\"kind\":\"node\",\"color\":\"#3498DB\",\"label\":\"Class\","
+                + "\"description\":\"a class box, where the model puts it\"}");
+    }
+
+    /**
      * The two archetype keys are independent — the writer states what the caller gave it — but a
      * <b>legend row needs both</b>, because the client's swatch is the box's own fill: an archetype with no
      * colour would name a swatch no box carries, and a colour with no archetype would draw an unlabelled

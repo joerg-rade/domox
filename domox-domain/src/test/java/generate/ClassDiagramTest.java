@@ -353,7 +353,79 @@ class ClassDiagramTest {
                 new UmlDiagramLayout.Edge("Identifiable", "Store", UmlDiagramLayout.GENERALIZATION, "implements"));
     }
 
+    // --- the sub-domain overview's D3 graph -----------------------------------
+
+    /**
+     * The overview's graph is marked as <b>packages</b>, so the client draws each node as a UML package
+     * symbol rather than as a class box — the one thing that tells this picture apart from the other two,
+     * which share every other field with it.  It is carried on the graph, not inferred from the title.
+     */
+    @Test
+    void graphOverview_marksTheGraphAsPackages() {
+        // given — two sub-domains with one relation between them
+        final ClassCdd store = withApprovedResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd till = withApprovedResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING));
+        final DomainModel model = new DomainModel();
+        approved(collaboration(model, "has", store, till));
+        model.classList.add(approved(store));
+        model.classList.add(approved(till));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graphOverview(model);
+
+        // then
+        assertThat(graph.getPackages()).isTrue();
+        assertThat(graph.getTitle()).endsWith("sub-domain overview");
+        assertThat(graph.getNodes()).extracting(UmlDiagramLayout.Node::id)
+                .containsExactly("Inventory (CORE)", "Checkout (SUPPORTING)");
+    }
+
+    /**
+     * A package lists the classes of its sub-domain that take part in a relation <em>leaving</em> it — the
+     * classes the connectors between packages actually belong to, so a reader can see what an edge stands
+     * for without opening the sub-domain's own diagram.  A class that relates only to its own neighbours
+     * says nothing about how the packages fit together, so it is left out.
+     */
+    @Test
+    void graphOverview_listsOnlyTheOutwardClassesOfEachPackage() {
+        // given — Inventory: Store and Shelf, where only Store reaches out; Checkout: Till
+        final ClassCdd store = withApprovedResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd shelf = withApprovedResponsibility("Shelf",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd till = withApprovedResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING));
+        final DomainModel model = new DomainModel();
+        approved(collaboration(model, "has", store, shelf));      // inside Inventory: not package content
+        approved(collaboration(model, "has", store, till));       // leaves Inventory
+        approved(collaboration(model, "reportsTo", till, store)); // leaves Checkout
+        model.classList.add(approved(store));
+        model.classList.add(approved(shelf));
+        model.classList.add(approved(till));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graphOverview(model);
+
+        // then — each package carries its outward classes in the attributes slot, sorted; no methods, and
+        // the aggregated edge is unchanged by any of it
+        final UmlDiagramLayout.Node inventory = nodeNamed(graph, "Inventory (CORE)");
+        assertThat(inventory.attributes()).as("Shelf relates only inside its own sub-domain")
+                .containsExactly("Store");
+        assertThat(inventory.methods()).isEmpty();
+        assertThat(nodeNamed(graph, "Checkout (SUPPORTING)").attributes()).containsExactly("Till");
+        assertThat(graph.getEdges()).containsExactly(new UmlDiagramLayout.Edge(
+                "Inventory (CORE)", "Checkout (SUPPORTING)", UmlDiagramLayout.ASSOCIATION, "2"));
+    }
+
     // --- helpers --------------------------------------------------------------
+
+    /** The graph's node with the given id — the overview labels each package with its sub-domain. */
+    private static UmlDiagramLayout.Node nodeNamed(final ClassDiagram.Graph graph, final String id) {
+        return graph.getNodes().stream().filter(node -> node.id().equals(id)).findFirst()
+                .orElseThrow(() -> new AssertionError("no node " + id + " in " + graph.getTitle()));
+    }
 
     /** A class with no members at all. */
     private static ClassCdd empty(final String name) {

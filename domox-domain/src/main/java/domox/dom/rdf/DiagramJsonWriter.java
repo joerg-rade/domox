@@ -33,6 +33,11 @@ import domox.dom.rdf.geometry.Pt;
  *     "legend":[{"kind","color","label","description"}] }
  * </pre>
  *
+ * <p>{@code "packages":true} is added to the force flavour when the boxes are <b>sub-domains</b> rather
+ * than classes — the sub-domain overview.  The geometry is unchanged; only the {@code kind} of each node
+ * ({@code "Package"} instead of {@code "Class"}) and the legend's node row differ, so the client draws a
+ * package symbol and reads each node's {@code attributes} as that package's outward classes.</p>
+ *
  * <p>The export's coordinates are absolute within a much larger sheet, so every coordinate is translated
  * to start at {@link #PADDING} and the canvas is the drawing's bounding box plus that margin.</p>
  *
@@ -46,6 +51,9 @@ final class DiagramJsonWriter {
 
     /** The model element kinds the reconstructed nodes carry. */
     private static final String NODE_KIND = "Class";
+
+    /** The kind a <b>sub-domain overview</b> node carries — the client draws it as a package symbol. */
+    private static final String PACKAGE_KIND = "Package";
 
     private DiagramJsonWriter() {
     }
@@ -122,29 +130,34 @@ final class DiagramJsonWriter {
      * @param nameOf   the class name a view draws, for the node label
      * @param links    the connectors, already routed and clipped on the static flavour
      * @param force    {@code true} for the force flavour: members and archetype per node, no link points
+     * @param packages {@code true} when the boxes are sub-domains to be drawn as packages; only meaningful
+     *                 with {@code force}, and it only changes each node's {@code kind} and the legend
      * @param detailOf the members and archetype of each box, read only when {@code force} is set; may be
      *                 {@code null} otherwise
      */
     static String write(final String title, final Bounds bounds, final List<String> nodeIds,
                         final Map<String, Box> boxes, final Function<String, String> nameOf,
-                        final List<Link> links, final boolean force,
+                        final List<Link> links, final boolean force, final boolean packages,
                         final Function<String, NodeDetail> detailOf) {
         final Origin origin = Origin.of(bounds);
         final StringBuilder json = new StringBuilder(1024);
-        appendHeader(json, title, bounds, force);
-        appendNodes(json, nodeIds, boxes, nameOf, force, detailOf, origin);
+        appendHeader(json, title, bounds, force, packages);
+        appendNodes(json, nodeIds, boxes, nameOf, force, packages, detailOf, origin);
         appendLinks(json, links, force, origin);
-        appendLegend(json, nodeIds, detailOf, force);
+        appendLegend(json, nodeIds, detailOf, force, packages);
         json.append('}');
         return json.toString();
     }
 
     /** The opening of the payload: the flavour, the title, and the canvas the drawing is padded into. */
     private static void appendHeader(final StringBuilder json, final String title, final Bounds bounds,
-                                     final boolean force) {
+                                     final boolean force, final boolean packages) {
         json.append("{\"layout\":\"uml\",");
         if (force) {
             json.append("\"force\":true,");
+        }
+        if (force && packages) {
+            json.append("\"packages\":true,");
         }
         json.append("\"title\":\"").append(escape(title)).append("\",")
                 .append("\"canvas\":{\"width\":").append(num(bounds.width() + 2 * PADDING))
@@ -154,14 +167,16 @@ final class DiagramJsonWriter {
     /** Every box, in the order given. */
     private static void appendNodes(final StringBuilder json, final List<String> nodeIds,
                                     final Map<String, Box> boxes, final Function<String, String> nameOf,
-                                    final boolean force, final Function<String, NodeDetail> detailOf,
+                                    final boolean force, final boolean packages,
+                                    final Function<String, NodeDetail> detailOf,
                                     final Origin origin) {
         json.append("\"nodes\":[");
         for (int i = 0; i < nodeIds.size(); i++) {
             if (i > 0) {
                 json.append(',');
             }
-            appendNode(json, nodeIds.get(i), boxes.get(nodeIds.get(i)), nameOf, force, detailOf, origin);
+            appendNode(json, nodeIds.get(i), boxes.get(nodeIds.get(i)), nameOf, force, packages,
+                    detailOf, origin);
         }
         json.append("],");
     }
@@ -169,10 +184,11 @@ final class DiagramJsonWriter {
     /** One box: where it is, what it is called, and what the force flavour draws inside it. */
     private static void appendNode(final StringBuilder json, final String id, final Box box,
                                    final Function<String, String> nameOf, final boolean force,
+                                   final boolean packages,
                                    final Function<String, NodeDetail> detailOf, final Origin origin) {
         json.append("{\"id\":\"").append(escape(id)).append('"')
                 .append(",\"name\":\"").append(escape(nameOf.apply(id))).append('"')
-                .append(",\"kind\":\"").append(NODE_KIND).append('"')
+                .append(",\"kind\":\"").append(packages ? PACKAGE_KIND : NODE_KIND).append('"')
                 .append(",\"x\":").append(num(origin.x(box.x())))
                 .append(",\"y\":").append(num(origin.y(box.y())))
                 .append(",\"w\":").append(num(box.w()))
@@ -262,11 +278,18 @@ final class DiagramJsonWriter {
     /**
      * The legend: the box and the two line kinds, then — on the force flavour — one row per archetype the
      * diagram actually draws.
+     *
+     * <p>On the overview the node row says <em>package</em> rather than <em>class</em>, and carries the
+     * package symbol's blue: the row has to describe what is on screen, and a reader of the overview is
+     * looking at sub-domains, not at classes.</p>
      */
     private static void appendLegend(final StringBuilder json, final List<String> nodeIds,
-                                     final Function<String, NodeDetail> detailOf, final boolean force) {
-        final List<LegendEntry> entries = new ArrayList<>(BASE_LEGEND);
-        if (force) {
+                                     final Function<String, NodeDetail> detailOf, final boolean force,
+                                     final boolean packages) {
+        final List<LegendEntry> entries = new ArrayList<>();
+        entries.addAll(packages ? List.of(PACKAGE_LEGEND) : CLASS_LEGEND);
+        entries.addAll(LINE_LEGEND);
+        if (force && !packages) {
             entries.addAll(archetypesDrawn(nodeIds, detailOf));
         }
         json.append("\"legend\":[");
@@ -280,14 +303,22 @@ final class DiagramJsonWriter {
     }
 
     /**
-     * The entries every diagram's legend opens with — the box and the two line kinds.
+     * The legend row that opens a diagram's legend: the box itself, described as what the boxes actually
+     * are — a class on every diagram but the overview, where they are sub-domains.
      *
-     * <p>Each carries the {@code kind} the client draws its swatch from, so the legend cannot drift from
-     * what the drawing actually looks like; keeping the colours and the wording here, rather than in the
-     * JSON-building code, is what makes that checkable at a glance.</p>
+     * <p>Each row carries the {@code kind} the client draws its swatch from, so the legend cannot drift
+     * from what the drawing actually looks like; keeping the colours and the wording here, rather than in
+     * the JSON-building code, is what makes that checkable at a glance.</p>
      */
-    private static final List<LegendEntry> BASE_LEGEND = List.of(
-            new LegendEntry("node", "#3498DB", "Class", "a class box, where the model puts it"),
+    private static final List<LegendEntry> CLASS_LEGEND = List.of(
+            new LegendEntry("node", "#3498DB", "Class", "a class box, where the model puts it"));
+
+    /** The same row for the sub-domain overview, whose boxes are packages rather than classes. */
+    private static final LegendEntry PACKAGE_LEGEND = new LegendEntry("node", "#3498DB", "Package",
+            "a sub-domain, listing the classes that relate to another sub-domain");
+
+    /** The two line kinds, which read the same in every UML diagram. */
+    private static final List<LegendEntry> LINE_LEGEND = List.of(
             new LegendEntry("association", "#7f8c8d", "Association", "a plain line between two classes"),
             new LegendEntry("generalization", "#000000", "Generalization",
                     "the arrow points at the super-class (is-a)"));

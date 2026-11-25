@@ -6,6 +6,10 @@
  * own canvas as the SVG viewBox.  The *geometry* is asserted over the real model by
  * `UmlLayoutIntegrityTest`; this is about the client not dropping any of it.
  *
+ * It does the same for the FORCE branch (the assembled model's seed grid) and for the PACKAGE flavour of
+ * it (`"packages":true`, the sub-domain overview) — there each node is drawn as a UML package symbol
+ * instead of a class box, with the sub-domain's outward classes in the body.
+ *
  * Usage:  node scripts/verify-uml-render.mjs <cdp-port>
  * Exit:   0 = all assertions hold, 1 = at least one failed, 2 = usage/connection error.
  */
@@ -150,6 +154,58 @@ const MEASURE_FORCE = `(() => {
 const outForce = await send('Runtime.evaluate', { expression: MEASURE_FORCE, returnByValue: true });
 const f = JSON.parse(outForce.result.value);
 
+// ---- measurement: the package branch (the sub-domain overview) ---------------
+
+// `"packages":true` is the sub-domain overview: each node is a sub-domain drawn as a UML *package* — a tab
+// carrying the name over a body listing the classes of that sub-domain that relate to a class outside it.
+// The box the simulation moves is the class box's rectangle, so the geometry is unchanged; what is asserted
+// here is that the client draws the symbol and the contents, and that it draws no compartment separators
+// (a package has a body, not compartments).
+const MEASURE_PACKAGES = `(() => {
+  const svg = document.querySelector('#d3CanvasPackages svg');
+  if (!svg) return JSON.stringify({ error: 'the package renderer produced no svg' });
+  const layer = svg.querySelector('g.uml-layer');
+  if (!layer) return JSON.stringify({ error: 'the package renderer produced no uml-layer' });
+  const boxes = Array.from(layer.querySelectorAll('g.uml-class'));
+  const measured = boxes.map(g => {
+    const tab = g.querySelector('path.uml-package-tab');
+    const body = g.querySelector('rect.uml-package-body');
+    const name = g.querySelector('text.uml-name');
+    const box = g.querySelector('rect.uml-box');
+    const tb = tab ? tab.getBBox() : null, nb = name ? name.getBBox() : null, bb = body ? body.getBBox() : null;
+    return {
+      classes: g.getAttribute('class'),
+      name: name ? name.textContent : null,
+      font: name ? parseFloat(getComputedStyle(name).fontSize) : null,
+      tab: tb ? { x: tb.x, y: tb.y, w: tb.width, h: tb.height } : null,
+      body: bb ? { x: bb.x, y: bb.y, w: bb.width, h: bb.height } : null,
+      boxH: box ? parseFloat(box.getAttribute('height')) : null,
+      // The name must sit *in* the tab — horizontally and vertically — which is what makes the tab read as
+      // the package's name compartment rather than as a stray rectangle behind the text.
+      nameInTab: (tb && nb)
+          ? (nb.x >= tb.x - 1 && nb.x + nb.width <= tb.x + tb.width + 1
+             && nb.y >= tb.y - 1 && nb.y + nb.height <= tb.y + tb.height + 1)
+          : false
+    };
+  });
+  const legend = svg.querySelector('g.uml-legend');
+  return JSON.stringify({
+    settled: svg.getAttribute('data-uml-settled'),
+    viewBox: svg.getAttribute('viewBox'),
+    boxes: boxes.length,
+    measured: measured,
+    memberLines: Array.from(layer.querySelectorAll('text.uml-member')).map(t => t.textContent),
+    separators: layer.querySelectorAll('line.uml-separator').length,
+    tabs: layer.querySelectorAll('path.uml-package-tab').length,
+    bodies: layer.querySelectorAll('rect.uml-package-body').length,
+    legend: !!legend,
+    legendRows: legend ? Array.from(legend.querySelectorAll('text')).map(t => t.textContent) : []
+  });
+})()`;
+
+const outPackages = await send('Runtime.evaluate', { expression: MEASURE_PACKAGES, returnByValue: true });
+const p = JSON.parse(outPackages.result.value);
+
 // ---- assertions -------------------------------------------------------------
 
 const failures = [];
@@ -258,9 +314,47 @@ check('the legend is drawn', f.legend);
 check('the legend explains the archetype as well as the node and both link kinds',
     f.legendRows === 4, String(f.legendRows));
 
+// ---- assertions: the package branch (the sub-domain overview) ----------------
+
+if (p.error) {
+    console.error(`UML RENDER CHECK FAILED (package branch): ${p.error}`);
+    process.exit(1);
+}
+
+check('the package renderer settles before it paints (data-uml-settled)',
+    p.settled === 'true', String(p.settled));
+check('the package SVG uses the payload canvas as its viewBox', p.viewBox === '0 0 600 400', p.viewBox);
+check('one package per sub-domain', p.boxes === 2, String(p.boxes));
+check('every box is marked as a package, not a class box',
+    p.measured.length === 2 && p.measured.every(b => (b.classes || '').includes('uml-package')),
+    JSON.stringify(p.measured.map(b => b.classes)));
+check('each package draws a tab and a body', p.tabs === 2 && p.bodies === 2,
+    `tabs=${p.tabs} bodies=${p.bodies}`);
+check('the package name sits inside its tab, not in the body',
+    p.measured.every(b => b.nameInTab),
+    JSON.stringify(p.measured.map(b => ({ name: b.name, tab: b.tab, inTab: b.nameInTab }))));
+check('the tab is the name compartment\'s height and the body fills the rest of the rectangle',
+    p.measured.every(b => Math.abs(b.tab.h - 20) < 0.5 && Math.abs(b.tab.h + b.body.h - b.boxH) < 0.5),
+    JSON.stringify(p.measured.map(b => ({ tabH: b.tab.h, bodyH: b.body.h, boxH: b.boxH }))));
+check('a package has a body, not compartments — no separator is drawn',
+    p.separators === 0, String(p.separators));
+check('a package lists the classes that relate outside its sub-domain',
+    JSON.stringify(p.memberLines.slice().sort()) === JSON.stringify(['Order', 'OrderLine', 'Till']),
+    JSON.stringify(p.memberLines));
+check('a long package name is shrunk into the tab it can have, and stays readable',
+    p.measured.some(b => b.name === 'CheckoutAndPaymentProcessing' && b.font < 12 && b.font >= 8),
+    JSON.stringify(p.measured.map(b => ({ name: b.name, font: b.font }))));
+check('the legend names the package symbol, not a class box',
+    p.legendRows.length > 0 && p.legendRows[0].startsWith('Package \u2014 ')
+        && !p.legendRows.some(r => r.startsWith('Class')),
+    JSON.stringify(p.legendRows));
+check('the overview\'s legend explains the package and the association it draws — and no archetype',
+    p.legendRows.length === 2 && p.legendRows[1].startsWith('Association \u2014 '),
+    JSON.stringify(p.legendRows));
+
 if (failures.length) {
     console.error(`\nUML RENDER CHECK FAILED (${failures.length}): ${failures.join('; ')}`);
     process.exit(1);
 }
-console.log('OK: both UML renderers draw boxes, connectors, arrows and the legend.');
+console.log('OK: the UML renderers draw boxes, packages, connectors, arrows and the legend.');
 process.exit(0);

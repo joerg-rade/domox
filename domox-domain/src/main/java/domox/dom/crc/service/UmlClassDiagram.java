@@ -143,6 +143,10 @@ public class UmlClassDiagram {
      * <p>The layout is {@link UmlDiagramLayout}'s job, not this view model's: it assigns the bands, sizes
      * the boxes, orders each inheritance row and emits the JSON.  It is a pure function of the graph, so
      * the same graph always produces the same picture.</p>
+     *
+     * <p>The sub-domain overview's graph is marked as <em>packages</em>, so its nodes are drawn as package
+     * symbols listing the classes that relate outside their sub-domain (see
+     * {@code ClassDiagram#graphOverview}).</p>
      */
     @D3Graph
     @Property(optionality = Optionality.OPTIONAL)
@@ -154,7 +158,8 @@ public class UmlClassDiagram {
         ensureDerived();
         return graph == null
                 ? UmlDiagramLayout.EMPTY_GRAPH
-                : UmlDiagramLayout.render(graph.getTitle(), graph.getNodes(), graph.getEdges());
+                : UmlDiagramLayout.render(graph.getTitle(), graph.getNodes(), graph.getEdges(),
+                        graph.getPackages());
     }
 
     /**

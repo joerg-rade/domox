@@ -121,14 +121,19 @@ public final class UmlDiagramLayout {
      * ({@code name: type}, {@code name(params): ret}), one line each, and may be empty.  {@code archetype}
      * is the archetype's display name and {@code color} its CSS colour, or both {@code null} for a box
      * with no archetype (the sub-domain overview, which is a picture of the model's shape rather than of
-     * its classes).  The three-argument constructor below is that no-members case, and is what the
-     * overview uses.</p>
+     * its classes).</p>
+     *
+     * <p><b>A package reuses {@code attributes}.</b>  On the overview each node is a sub-domain, drawn as a
+     * package symbol, and its {@code attributes} are the classes of that sub-domain that relate to a class
+     * outside it (see {@code ClassDiagram#graphOverview}).  There is no separate field for them: a package's
+     * contents occupy the same place in the box the server sizes as a class's members do, so the geometry
+     * needs no special case — only the client's drawing differs.</p>
      */
     public record Node(String id, String name, String group,
                        List<String> attributes, List<String> methods,
                        String archetype, String color) {
 
-        /** A box with no members and no archetype — the sub-domain overview's nodes. */
+        /** A box with no members and no archetype — a class nothing is drawn inside. */
         public Node(final String id, final String name, final String group) {
             this(id, name, group, List.of(), List.of(), null, null);
         }
@@ -154,6 +159,23 @@ public final class UmlDiagramLayout {
      * @return the {@code {"layout":"uml","force":true,…}} JSON the client simulates
      */
     public static String render(final String title, final List<Node> nodes, final List<Edge> edges) {
+        return render(title, nodes, edges, false);
+    }
+
+    /**
+     * The same, with each node drawn as a UML <b>package</b> rather than as a class box when {@code
+     * packages} is set — the sub-domain overview, where a node <em>is</em> a sub-domain and its members are
+     * the classes of that sub-domain that relate to a class outside it.
+     *
+     * <p>Nothing about the geometry changes: the seed grid, the bands and the box sizes are the same, and
+     * the client swaps only what it draws inside each rectangle.  That is deliberate — the two flavours
+     * must stay one code path, or the overview would drift away from the per-sub-domain diagrams it sits
+     * beside.</p>
+     *
+     * @param packages whether the nodes are sub-domains to be drawn as packages
+     */
+    public static String render(final String title, final List<Node> nodes, final List<Edge> edges,
+                                final boolean packages) {
         final Function<String, String> nameOf = nameOf(nodes);
         // Each box is built to fit its content, so nothing has to be widened afterwards — a box widened
         // after it was placed would overhang its neighbours, and the client's collision force sizes itself
@@ -168,7 +190,7 @@ public final class UmlDiagramLayout {
         final Function<String, DiagramJsonWriter.NodeDetail> details = detailOf(nodes);
 
         return DiagramJsonWriter.write(title == null ? "" : title, Bounds.of(boxes.values()),
-                nodeIdsOf(boxes, nameOf), boxes, nameOf, links, true,
+                nodeIdsOf(boxes, nameOf), boxes, nameOf, links, true, packages,
                 id -> markIfSuperclass(details.apply(id), superclasses.contains(id)));
     }
 
