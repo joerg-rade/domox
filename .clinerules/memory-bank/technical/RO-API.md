@@ -15,7 +15,7 @@ Use the RestfulObjects API with basic auth (users are in `shiro.ini`, e.g. `sven
 
 It reads `DOMOX_URL` (default `http://localhost:8080`) and `DOMOX_USER` / `DOMOX_PASS`.
 
-## The four things that cost a cycle to learn
+## The five things that cost a cycle to learn
 
 1. **An object-reference parameter is written `@<ref>`**:
    `ro.py invoke domox.Reviews findByCandidate candidate=@/restful/objects/domox.ClassCdd/6640`, or `@`
@@ -37,5 +37,14 @@ It reads `DOMOX_URL` (default `http://localhost:8080`) and `DOMOX_USER` / `DOMOX
    See `.clinerules/d3-diagram.md` for what the payload means.
 4. **`--out FILE` writes the result to a file and prints its size** instead of dumping it; a scalar result
    prints as `result: …`. Use one of them before pasting a diagram payload into a transcript.
+5. **Only *one* diagram is readable over RO, and a bad href lies about why.** `showUmlDiagrams` returns
+   `domox.UmlDiagramSet`, whose only readable member is **`wholeModelGraph`** — the *whole-model* diagram.
+   `tabNames` / `payloadOf` are `@Programmatic`, and so is `DomainModels#umlClassDiagram`, so the
+   **sub-domain overview and the per-sub-domain payloads are page-only** — do not chase them over RO; read
+   an *assembled* payload offline instead (`ClassDiagramTest` dumps the overview to
+   `domox-domain/target/uml-payloads`; `UmlLayoutIntegrityTest` dumps the static flavour to
+   `domox-adapter/target/uml-payloads`). A **bogus entity href surfaces as `'<X>' is mandatory`**, not as a
+   bad-reference error — resolve a real id first: `select id from domox.domainmodel` (that table has only
+   `id` + `version`), or the list's `collections/objects` link (its elements are not inlined).
 
 For rendered HTML/CSS questions, prefer `scripts/verify-ui-render.sh` over reasoning about CSS.

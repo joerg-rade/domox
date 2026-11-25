@@ -14,10 +14,17 @@ Usage:
   scripts/uml-diagram-report.py --payload target/uml-payloads   # a whole dumped directory
   scripts/uml-diagram-report.py --check              # exit 1 when any invariant is violated
 
-The payloads come from `UmlLayoutIntegrityTest`'s dump, so a measurement run needs **no running
-instance** — `mvn -o -pl domox-adapter test -Dtest=UmlLayoutIntegrityTest` writes every diagram to
-`domox-adapter/target/uml-payloads/` and this reads them back.  That is the fast path; the live
-instance path is for checking what the app actually serves.
+The payloads come from two offline dumps, so a measurement run needs **no running instance**:
+`mvn -o -pl domox-adapter test -Dtest=UmlLayoutIntegrityTest` writes every *static* diagram to
+`domox-adapter/target/uml-payloads/`, and `ClassDiagramTest` writes the assembled sub-domain
+*overview* (`"packages":true`) to `domox-domain/target/uml-payloads/` — this reads both back
+(`scripts/check.sh` passes the two directories).  That is the fast path; the live instance path is
+for checking what the app actually serves.
+
+Besides the geometry invariants, a `"packages":true` payload is checked for package pairing: every
+line in a package body must state the class row it stands for (`objectType` + `candidateId`), or a
+click on it would open nothing.  A line with no pair still draws, as inert text, so the count is
+printed per diagram and an unpaired line fails `--check`.
 
 Env: DOMOX_URL (default http://localhost:8080), DOMOX_USER / DOMOX_PASS (default sven / pass).
 Mirrors `UmlLayoutDiagrams`'s constants, so the thresholds mean the same thing as in the domain.
@@ -221,9 +228,25 @@ def analyse(payload):
                         and abs(group[i][0][1] - group[j][0][1]) <= 1.0):
                     report["shared"] += 1
 
+    # A `"packages":true` payload is the sub-domain overview: each package body lists the classes of that
+    # sub-domain that take part in a relation *leaving* it, and every one of those lines must state the class
+    # row it stands for (`objectType` + `candidateId`) — the pair the client links on.  A line with no pair
+    # still draws, as plain inert text, so a regression here is invisible on screen: count it and fail.
+    # Counted for every payload (0 lines on a class diagram) so the report says plainly when it has no
+    # package sample at all, instead of the invariant merely being absent.
+    report["packages"] = bool(payload.get("packages"))
+    report["packageLines"] = 0
+    report["packageUnpaired"] = 0
+    for node in payload.get("nodes", []):
+        for line in node.get("contents") or []:
+            report["packageLines"] += 1
+            if not line.get("objectType") or line.get("candidateId") is None:
+                report["packageUnpaired"] += 1
+
     report["ok"] = not any(report[key] for key in
                            ("dangling", "hiddenTips", "floatingTips", "backtracks", "strays",
-                            "corners", "shared", "sideways", "shortTrunks", "departed"))
+                            "corners", "shared", "sideways", "shortTrunks", "departed",
+                            "packageUnpaired"))
     return report
 
 
@@ -262,7 +285,8 @@ def main():
                     sys.exit(1)
 
     print(f"  {'diagram':<38} {'nodes':>5} {'links':>5} {'hidden':>6} {'float':>5}"
-          f" {'back':>4} {'stray':>5} {'corn':>4} {'shar':>4} {'side':>4} {'shrt':>4} {'dept':>4}  canvas")
+          f" {'back':>4} {'stray':>5} {'corn':>4} {'shar':>4} {'side':>4} {'shrt':>4} {'dept':>4}"
+          f" {'plines':>6} {'unpair':>6}  canvas")
     failed = 0
     for payload in payloads:
         r = analyse(payload)
@@ -271,13 +295,14 @@ def main():
         print(f"  {r['title']:<38} {r['nodes']:>5} {r['links']:>5}"
               f" {r['hiddenTips']:>6} {r['floatingTips']:>5} {r['backtracks']:>4} {r['strays']:>5}"
               f" {r['corners']:>4} {r['shared']:>4} {r['sideways']:>4} {r['shortTrunks']:>4}"
-              f" {r['departed']:>4}  {canvas.get('width', '?')}x{canvas.get('height', '?')}")
+              f" {r['departed']:>4} {r['packageLines']:>6} {r['packageUnpaired']:>6}"
+              f"  {canvas.get('width', '?')}x{canvas.get('height', '?')}")
 
     if failed:
         print(f"\n{failed} of {len(payloads)} diagram(s) violate the geometry invariants"
               " (hidden tips / floating tips / backtracks / strays / dangling links / corner"
               " attachments / shared attachment points / sideways or short trunks / departures"
-              " off the top middle).")
+              " off the top middle / unpaired package content lines).")
         sys.exit(1 if args.check else 0)
     print(f"\nOK: {len(payloads)} diagram(s), no geometry violations.")
     sys.exit(0)

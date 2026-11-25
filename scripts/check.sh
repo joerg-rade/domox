@@ -185,16 +185,21 @@ else
   bad "RDF adapter tests failed (log: $LOG — last lines: $(tail -5 "$LOG" | tr '\n' ' '))"
 fi
 
-# UmlLayoutIntegrityTest dumps every diagram's payload to domox-adapter/target/uml-payloads, and the
-# Python report asserts the SAME geometry invariants over that dump.  Running it here keeps the two
-# implementations from drifting apart, and is the offline half of the measurement loop — no instance,
+# UmlLayoutIntegrityTest dumps every *static* diagram's payload to domox-adapter/target/uml-payloads, and
+# ClassDiagramTest dumps the assembled sub-domain *overview* ("packages":true) to
+# domox-domain/target/uml-payloads — the one flavour the report otherwise had no sample of.  The Python
+# report asserts the SAME geometry (and package-pairing) invariants over both dumps.  Running it here keeps
+# the two implementations from drifting apart, and is the offline half of the measurement loop — no instance,
 # no database, no endpoint (see .clinerules/d3-diagram.md).
-DUMP=domox-adapter/target/uml-payloads
+PAYLOAD_ARG=""
+for d in domox-adapter/target/uml-payloads domox-domain/target/uml-payloads; do
+  [ -d "$d" ] && PAYLOAD_ARG="$PAYLOAD_ARG --payload $d"
+done
 if ! command -v python3 >/dev/null 2>&1; then
   skip "python3 not available — the offline payload report can't run"
-elif [ ! -d "$DUMP" ]; then
-  skip "$DUMP not written (the adapter test above did not run)"
-elif python3 scripts/uml-diagram-report.py --check --payload "$DUMP" >/tmp/domox-check-uml.log 2>&1; then
+elif [ -z "$PAYLOAD_ARG" ]; then
+  skip "no uml-payloads dump written (the tests above did not run)"
+elif python3 scripts/uml-diagram-report.py --check $PAYLOAD_ARG >/tmp/domox-check-uml.log 2>&1; then
   ok "uml-diagram-report.py agrees on the dumped payloads"
 else
   bad "uml-diagram-report.py disagrees (log: /tmp/domox-check-uml.log)"

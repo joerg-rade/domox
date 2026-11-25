@@ -15,6 +15,8 @@ import domox.dom.crc.model.SubDomainClassification;
 import domox.dom.rdf.UmlDiagramLayout;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -507,6 +509,42 @@ class ClassDiagramTest {
         assertThat(checkout.contents().get(0).candidateId()).isEqualTo(43L);
         assertThat(inventory.candidateId()).as("a package is a sub-domain, not a row").isNull();
         assertThat(inventory.objectType()).isNull();
+    }
+
+    // --- the offline dump the report consumes ---------------------------------
+
+    /**
+     * Writes the assembled <b>overview</b> payload where {@code scripts/uml-diagram-report.py --check} can
+     * read it, so the one flavour the report otherwise had no sample of — {@code "packages":true}, whose
+     * package bodies must each state the class row they stand for — is measured offline beside the static
+     * diagrams.  The report fails on an unpaired content line; this test only guarantees the sample exists.
+     */
+    @Test
+    void dumpsTheAssembledOverviewPayloadForOfflineAnalysis() throws Exception {
+        // given — Inventory reaches out to Checkout through Store, with ids as the database would give them
+        final ClassCdd store = withApprovedResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd till = withApprovedResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING));
+        setId(store, 42L);
+        setId(till, 43L);
+        final DomainModel model = new DomainModel();
+        approved(collaboration(model, "has", store, till));
+        model.classList.add(approved(store));
+        model.classList.add(approved(till));
+
+        // when — the same payload the panel ships to the browser
+        final ClassDiagram.Graph graph = classUnderTest.graphOverview(model);
+        final String payload = UmlDiagramLayout.render(
+                graph.getTitle(), graph.getNodes(), graph.getEdges(), graph.getPackages());
+
+        // then — the dump is written (surefire's working directory is the module root)
+        final Path dumpDir = Path.of("target", "uml-payloads");
+        Files.createDirectories(dumpDir);
+        final Path dump = dumpDir.resolve("sub-domain-overview.json");
+        Files.writeString(dump, payload);
+        assertThat(dump).exists();
+        assertThat(Files.readString(dump)).contains("\"packages\":true").contains("\"contents\"");
     }
 
     // --- helpers --------------------------------------------------------------

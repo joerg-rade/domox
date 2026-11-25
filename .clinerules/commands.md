@@ -97,9 +97,12 @@ edits: the file under `memory-bank/workflows/`, and one line here.
   -- <cmd…>` starts the command **detached** (own session, so it survives this shell) and then *waits
   inside the same call*: it prints the tail — or the `--grep` matches — plus the exit code when the command
   finished, or "still running" plus the poll hint when it did not (exit code 124, like `timeout`). Either
-  way the log path is printed, so the follow-up is a plain `tail` / `grep` / `cat <logfile>.exit`, and a
-  `sleep 25; grep …` loop — 21 of one session's 178 shell calls — is never needed. (`run-app.sh` and
-  `verify-boot.sh` already wait for their own boot; this is for everything else.)
+  way the log path is printed, so the follow-up is a plain `tail` / `grep` / `cat <logfile>.exit`.
+  **A run already going → `bash scripts/wait-for-bg.sh <logfile>`** — one call, capped at 25 s, printing
+  the exit code and the tail (or the last `n/11` progress line), or "still running" and exit 124. A bare
+  `sleep` over ~20 s is killed *with its output lost*, which reads like the task failed; this is the cheap
+  correct move, so reach for it rather than a `sleep 25; grep …` loop (21 of one session's 178 shell
+  calls). (`run-app.sh` and `verify-boot.sh` already wait for their own boot; this is for everything else.)
 - **Webapp integration tests need the dev docker services up** → `domox-webapp`'s `*IntegTest` classes
   boot the full Spring context against a throwaway Testcontainers Postgres (self-contained), but some of
   them also reach the dev docker stack. `CorpusCandidateDedupIntegTest` calls the **real Stanford CoreNLP**
@@ -174,7 +177,10 @@ edits: the file under `memory-bank/workflows/`, and one line here.
 - **Finding code** → use the `search_codebase` tool for a regex/text hunt, and the JetBrains tools
   (`search_symbol`, then `analyze_calls` for who-calls-what — the IDE's call hierarchy, not text search).
   `grep -rn` + `find` still work, but a session that used 31 greps and 11 finds and **zero**
-  `search_codebase` calls spent more turns on locating code than it needed to.
+  `search_codebase` calls spent more turns on locating code than it needed to. Keep the pattern
+  **selective**: a bare punctuation char or a common word fills the ~48 KB cap and answers nothing (anchor
+  it — `\bLegend\b`, or two alternatives), and for who-calls-what go straight to `search_symbol` →
+  `analyze_calls`, which return locations rather than file bodies.
 - **IDE (JetBrains) MCP tools** → always pass `projectPath=/home/jrade/projects/domox`, otherwise they
   fail with "Unable to determine the target project".
 - **Coding standards (review)** → `CODING_STANDARDS.md` (repo root), esp. the
@@ -254,14 +260,19 @@ Any command whose first whitespace-delimited token is one of the exact commands 
 
 ### Examples of pre-approved commands (all variants):
 - source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn compile -pl domox-domain -q 2>&1
-- source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn compile -pl domox-domain 2>&1 | tail -15
-- source "$HOME/.sdkman/bin/sdkman-init.sh" && cd /home/jrade/projects/domox && mvn test -pl domox-domain 2>&1 | tail -60
+- source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn compile -pl domox-domain 2>&1 | tail -15
+- source "$HOME/.sdkman/bin/sdkman-init.sh" && mvn test -pl domox-domain 2>&1 | tail -60
 - grep -n "ResponsibilityCdd" /home/jrade/projects/domox/domox-domain/src/main/java/domox/dom/crc/model/ResponsibilityCdd.java
 - cat -n /home/jrade/projects/domox/domox-domain/src/test/java/domox/dom/rules/RuleMatchesTest.java | sed -n '83,100p'
 - cat -n /home/jrade/projects/domox/domox-domain/src/main/java/domox/dom/rules/RuleMatches.java | sed -n '100,218p'
-- docker exec domox-db psql -U postgres -d postgres -c "SELECT ..."
+- docker exec domox-db psql -U postgres -d postgres -c "SELECT ... FROM domox.<table>"   # every table is in schema domox; public is empty
 - docker ps --format '{{.Names}} {{.Image}} {{.Status}}' 2>/dev/null | head -5
 - sdk current java 2>&1 | head -5
+
+The shell tool **already starts in the repo root** (`/home/jrade/projects/domox`), so a `cd
+/home/jrade/projects/domox && …` prefix is a no-op — `cd` only when you changed directory earlier in the
+same call. (`run-app.sh` relies on the repo root as the CWD, so a wrong assumption about it does break
+things.)
 
 ## Strictly Forbidden / Require Manual Confirmation
 DO NOT run these commands without explicit approval or if there is any doubt:

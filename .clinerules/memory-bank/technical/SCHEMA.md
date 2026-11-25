@@ -15,6 +15,20 @@ start at the REPO ROOT or startup dies with EclipseLink-7018 FileNotFound. Suref
 the repo root in `domox-webapp/pom.xml` (`<workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>`);
 CLI boots need `-Dspring-boot.run.workingDirectory=<repo root>`.
 
+## The live DB is schema `domox` — `public` is empty
+
+Every table lives in the **`domox`** schema; a query against `public` returns nothing and reads as *"the
+database is empty"*.  Qualify it, or `\dn` to see `domox, public`:
+
+```bash
+docker exec domox-db psql -U postgres -d postgres -c "SELECT table_name FROM information_schema.tables WHERE table_schema='domox'"
+docker exec domox-db psql -U postgres -d postgres -c "SELECT id FROM domox.domainmodel"   # domainmodel has ONLY id + version
+```
+
+`domox.domainmodel` has **no name column** — a model row is identified by its `id` alone (the model's
+title is derived, not stored).  Every script qualifies the schema (`domox.classcdd` in
+`scripts/db-backup.sh`, `migrate-crc-persisted-names.sql`).
+
 ## TABLE_PER_CLASS inheritance (Candidate & friends)
 
 `Candidate` uses `TABLE_PER_CLASS`. Real rows live in the **per-type tables**, not the base:
