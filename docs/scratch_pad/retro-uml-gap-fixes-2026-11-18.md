@@ -125,9 +125,14 @@ first attempt printed `chars: 0` because the result arrives as `resulttype: scal
 **Proposed fix.** Teach `ro.py` two things:
 
 ```shell
-scripts/ro.py invoke domox.DomainModels generateUmlDiagram domainModel=@domox.DomainModel/653
-scripts/ro.py invoke domox.DomainModels generateUmlDiagram domainModel=@653 --out /tmp/export.txt
+scripts/ro.py invoke domox.DomainModels generateUmlDiagram domainModel=@domox.DomainModel/653   # action removed since
+scripts/ro.py invoke domox.DomainModels generateUmlDiagram domainModel=@653 --out /tmp/export.txt   # action removed since
 ```
+
+**Fix note (later).**  Both proposals landed: `ro.py` now takes `@<ref>` and `--out`.  The
+`generateUmlDiagram` action itself was removed once `showUmlDiagrams` (one page, a tab per sub-domain) and
+`downloadPlantUml` (the text) covered reading the model — the commands above are historical, and the same
+body shapes are what those two actions take today.
 
 i.e. a `@<objectRef>` value → `{"value": {"href": to_path(ref)}}` (`to_path` already exists), and
 `--out FILE` / a `result.value` print for scalar-returning actions (`show()` already special-cases a

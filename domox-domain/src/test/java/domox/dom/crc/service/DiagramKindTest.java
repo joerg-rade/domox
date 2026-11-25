@@ -33,8 +33,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ({@link DiagramKind#fileName}).</p>
  *
  * <p>No mocks and no Spring: the enum is a pure function of the model, and the model is three entities.
- * That the <em>actions</em> wire to the right kind is {@code DomainModelsTest}'s subject; this class checks
- * the kind table itself.</p>
+ * That the view-model factory wires to the right kind is {@code DomainModelsTest}'s subject; this class
+ * checks the kind table itself.</p>
  */
 class DiagramKindTest {
 

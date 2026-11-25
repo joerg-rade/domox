@@ -311,7 +311,7 @@ Shell: `docker exec domox-db psql -U postgres -d postgres -c "..."`.
       Follow `.clinerules/memory-bank/workflows/mcp-subdomain-pass.md` — and remember **`suggestSubDomains()` lists only
       unassigned *approved* classes**, so it is empty until Pass 1 lands.
 - [ ] **Re-measure the diagram.** `python3 scripts/ro.py invoke domox.DomainModels
-      generateUmlDiagram domainModel=DomainModel:653`, then compare against the review's §2 table
+      downloadPlantUml domainModel=DomainModel:653 kind=model`, then compare against the review's §2 table
       (971 classes / 842 empty bodies / 109 attribute lines / 149 operation lines / 237 edges /
       0 cardinalities). The approved subset is the number that matters.
 - [ ] **Update `MODEL_UML_READINESS_REVIEW.md`** with the post-pass measurements, and close the

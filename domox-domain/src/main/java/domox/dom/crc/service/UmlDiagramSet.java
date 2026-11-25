@@ -31,10 +31,11 @@ import java.util.Map;
  * the model at once, one per tab — the sub-domain overview, one diagram per sub-domain, and the whole
  * model.
  *
- * <p><b>One page instead of one page per sub-domain.</b>  The three single-diagram actions of
- * {@link DomainModels} each show one diagram, so reading a ten-sub-domain model meant opening ten pages.
- * This view model is the same content as <em>one</em> page whose tabs are the sub-domains: the reader
- * switches tabs instead of going back to the menu.</p>
+ * <p><b>One page instead of one page per sub-domain.</b>  Before this view model there were three
+ * single-diagram actions on {@link DomainModels}, each showing one diagram, so reading a ten-sub-domain
+ * model meant opening ten pages.  Those actions are removed; this view model is the same content as
+ * <em>one</em> page whose tabs are the sub-domains: the reader switches tabs instead of going back to the
+ * menu.</p>
  *
  * <p><b>The tab labels are the sub-domain names, and that is why this page has a Wicket panel of its
  * own.</b>  A Causeway tab label comes from the layout XML ({@code BSTab} carries nothing but a name, and
@@ -69,7 +70,7 @@ public class UmlDiagramSet {
      * The model every tab is drawn from.
      *
      * <p>Kept as a metamodel property (rather than a plain field) so the view-model memento round-trips
-     * through a bookmark — the same shape as {@link UmlClassDiagram#domainModel}, and for the same reason:
+     * through a bookmark — the same shape as {@link UmlClassDiagram#getDomainModel()}, and for the same reason:
      * Causeway mementoes the <em>settable</em> properties.</p>
      */
     @Getter
@@ -186,8 +187,8 @@ public class UmlDiagramSet {
     }
 
     /**
-     * One diagram's payload, through the same {@link UmlClassDiagram} view model the single-diagram actions
-     * return — so the picture on a tab and the picture on that action's own page are the same picture.
+     * One diagram's payload, through the same {@link UmlClassDiagram} view model the diagram page uses
+     * — so the picture on a tab and the picture on the view model are the same picture.
      */
     private String payloadOfKind(final DiagramKind kind, final String subDomainName) {
         return domainModels.umlClassDiagram(domainModel, kind.key(), subDomainName).getD3Graph();

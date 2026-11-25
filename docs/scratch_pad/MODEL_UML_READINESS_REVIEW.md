@@ -5,7 +5,8 @@ analysis run (`domox.DomainModel/653`, 15 use-case documents), against what a UM
 needs, plus an assessment of the Fuseki reference ontologies.
 **Method.** All numbers below are read from the live database (`domox-db`) and from the **real
 PlantUML export** produced by the running instance
-(`domox.DomainModels#generateUmlDiagram(DomainModel/653)` → 63 490 chars, `/tmp/domain-model-653.puml`).
+(`domox.DomainModels#generateUmlDiagram(DomainModel/653)`, since removed — the text form is
+`downloadPlantUml(DomainModel/653, kind=model)` → 63 490 chars, `/tmp/domain-model-653.puml`).
 **Date.** 2026-11-18.
 **Follow-up plans.** The code changes that close these gaps: `UML_GAP_FIX_PLAN.md`
 (severity/priority/ordering). The review work these gaps need: `MODEL_REVIEW_PLAN.md`.
@@ -47,7 +48,8 @@ operations and associations with multiplicities".
 
 ## 2. What the exporter actually emits
 
-`domox.DomainModels#generateUmlDiagram` → `generate.ClassDiagram` (Kotlin) →
+`domox.DomainModels#downloadPlantUml` (formerly `#generateUmlDiagram`, since removed) →
+`generate.ClassDiagram` (Kotlin) →
 `ClassCdd/AttributeCdd/ResponsibilityCdd/CollaboratorCdd.toPlantUmlString()` → `PumlCode`.
 
 > **⚠ Superseded 2026-11-23 — the exporter is now review-aware.**  The pipeline line above is still
@@ -140,8 +142,9 @@ approved content or take part in a material relation.  One predicate —
 (`DomainModels#rejectEmptyClasses`) that rejects a contentless approved class with
 `INSUFFICIENT_INFORMATION`, so the review and the model cannot disagree
 (`REVIEW_PLAYBOOK.md` §4.6).  The same run also produces **one diagram per sub-domain**
-(`DomainModels#generateSubDomainUmlDiagram`) and a **sub-domain overview**
-(`DomainModels#generateSubDomainOverviewDiagram`).  A re-measure under the new exporter is therefore a
+(one tab per sub-domain of `DomainModels#showUmlDiagrams`) and a **sub-domain overview**
+(the overview tab; the single-diagram actions `generateSubDomainUmlDiagram` /
+`generateSubDomainOverviewDiagram` are removed).  A re-measure under the new exporter is therefore a
 *different* measurement from the one tabulated above: every count there is the pre-change baseline.
 In particular, the 89 % empty-bodied figure is now partly **acted on** rather than merely reported —
 an approved class with no approved content and no material relation is no longer in the model at all.

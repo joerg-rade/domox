@@ -86,8 +86,8 @@ class ClassDiagram {
         render(dm, subDomainClasses(dm, subDomainName))
 
     /**
-     * The names of the sub-domains that would produce a non-empty diagram — the choices for the
-     * {@code generateSubDomainUmlDiagram} action, and the "one diagram per sub-domain" list.
+     * The names of the sub-domains that would produce a non-empty diagram — the sub-domain tabs of
+     * {@code UmlDiagramSet}, i.e. the "one diagram per sub-domain" list.
      *
      * <p>Classes with no sub-domain are not a diagram of their own; they appear as the
      * {@code Unassigned} node of the overview instead.</p>

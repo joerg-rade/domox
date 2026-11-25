@@ -54,7 +54,8 @@ import org.apache.causeway.extensions.d3.applib.annotations.D3Graph;
 public class UmlClassDiagram {
 
     /**
-     * The whole model, flat — {@link DomainModels#generateUmlDiagram(DomainModel)}.
+     * The whole model, flat — {@link DomainModels#umlClassDiagram(DomainModel, String, String)} with
+     * {@link DiagramKind#MODEL}.
      *
      * <p>This is the <em>memento value</em> only.  What the kind does — which assembler call builds it, what
      * its label says and what its download is called — is {@link DiagramKind#MODEL}'s, so a fourth kind is
@@ -63,13 +64,13 @@ public class UmlClassDiagram {
     public static final String KIND_MODEL = DiagramKind.MODEL.key();
 
     /**
-     * One sub-domain — {@link DomainModels#generateSubDomainUmlDiagram(DomainModel, String)}; see
+     * One sub-domain — {@link DomainModels#umlClassDiagram(DomainModel, String, String)} with
      * {@link DiagramKind#SUB_DOMAIN}.
      */
     public static final String KIND_SUB_DOMAIN = DiagramKind.SUB_DOMAIN.key();
 
     /**
-     * The sub-domains as nodes — {@link DomainModels#generateSubDomainOverviewDiagram(DomainModel)}; see
+     * The sub-domains as nodes — {@link DomainModels#umlClassDiagram(DomainModel, String, String)} with
      * {@link DiagramKind#SUB_DOMAIN_OVERVIEW}.
      */
     public static final String KIND_SUB_DOMAIN_OVERVIEW = DiagramKind.SUB_DOMAIN_OVERVIEW.key();

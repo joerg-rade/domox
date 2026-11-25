@@ -108,7 +108,7 @@ one parameter → `notify(message: String): void`; two → comma-separated; `nul
 assert the shape:
 
 ```shell
-python3 scripts/ro.py invoke domox.DomainModels generateUmlDiagram domainModel=DomainModel:653 \
+python3 scripts/ro.py invoke domox.DomainModels downloadPlantUml domainModel=DomainModel:653 kind=model \
   | grep -c '(: void'        # must be 0
 ```
 
@@ -449,7 +449,7 @@ when a rule match is present, and `source_target` when it is not.
 | **Domain unit tests** | `bash scripts/run-bg.sh /tmp/domain-tests.log -- mvn -o -pl domox-domain test` | FIX-1/2/3/5/6 — **detached**, the shell caps a call at ~30 s |
 | **Schema drift** | `bash scripts/check-schema-drift.sh` | after any entity-field change (FIX-7, FIX-8) |
 | **Mutation floors** | `setsid bash scripts/check-mutation.sh >/tmp/mutation.log 2>&1 </dev/null &` | after FIX-2/5/6 touch a floored class — **run last** (pitest consumes test classes) |
-| **Live export** | `python3 scripts/ro.py invoke domox.DomainModels generateUmlDiagram domainModel=DomainModel:653` | re-measure the diagram against the review's baseline table |
+| **Live export** | `python3 scripts/ro.py invoke domox.DomainModels downloadPlantUml domainModel=DomainModel:653 kind=model` | re-measure the diagram against the review's baseline table |
 | **RO regression** | `python3 scripts/ro.py invoke domox.DomainModels listAll` | FIX-4 |
 | **Boot smoke** | `bash scripts/verify-boot.sh` | after FIX-4 — an entity-annotation change can break boot, not just the build |
 

@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * <b>Which class diagram a request is for — and everything that differs between the three.</b>
  *
- * <p>The kind is a value the three diagram actions and the PlantUML download all carry (it is the
+ * <p>The kind is a value the diagram view model and the PlantUML download both carry (it is the
  * {@code kind} of a {@link UmlClassDiagram} memento), and the fact behind it used to be re-<em>switched</em>
  * in five methods across three classes: the two {@link ClassDiagram} assembler calls, the two wordings of
  * the diagram's name, and the download's file name.  A fourth view of the model therefore meant finding all

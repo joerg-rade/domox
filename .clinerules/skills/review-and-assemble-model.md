@@ -111,10 +111,12 @@ candidates are real and which area each belongs to. Read the assembled model bac
 - `DomainModels#listAll()` finds the model; `DomainModels#showUmlDiagrams(domainModel)` is the page to
   *read* the model on — one tab per sub-domain, labelled with the sub-domain name, plus the overview and
   the whole model (each tab's diagram is assembled when that tab is shown, so the page opens on the
-  overview).  `DomainModels#generateUmlDiagram(domainModel)` returns a
-  `UmlClassDiagram` view model whose `d3Graph` property is the diagram — the payload the D3 panel
-  draws in the browser. The text form is `DomainModels#downloadPlantUml(domainModel, kind,
-  subDomainName)`, a `.puml` download, and that is what the re-measure counts. The D3 model diagram
+  overview).  Each tab is a `UmlClassDiagram` view model whose `d3Graph` property is the diagram — the
+  payload the D3 panel draws in the browser — and the whole model is also readable directly as
+  `UmlDiagramSet#wholeModelGraph`.  The single-diagram actions that used to open one of these on its own
+  page (`generateUmlDiagram`, `generateSubDomainUmlDiagram`, `generateSubDomainOverviewDiagram`) have been
+  removed: the tabs cover reading, and `DomainModels#downloadPlantUml(domainModel, kind, subDomainName)` —
+  a `.puml` download — is the text form and **that is what the re-measure counts**. The D3 model diagram
   seeds from the **approved** candidates only, so a model with zero approvals diagrams as empty and
   says so in the log instead of failing.
 - Record the numbers (classes, attribute lines, operation lines, edges, cardinalities) against the

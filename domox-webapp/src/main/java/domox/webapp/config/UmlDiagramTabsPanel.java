@@ -29,7 +29,7 @@ import java.util.List;
  * {@link ITab#getPanel}, which Wicket calls for the shown tab only, so opening the page assembles one
  * diagram rather than all of them — assembling one reads the whole model (~2 s for the 970-class
  * model).  The panel itself draws each diagram with the extension's own {@code D3Panel}, so a tab is
- * the same picture, drawn by the same renderer, as the single-diagram pages.</p>
+ * the same picture, drawn by the same renderer, as the diagram page.</p>
  *
  * <p><b>The data comes through {@link Source}, not through the domain object.</b>  A Wicket page is
  * serialized into the session, so a component must not hold the view model pojo (which holds the model

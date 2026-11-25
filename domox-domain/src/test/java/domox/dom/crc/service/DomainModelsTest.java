@@ -47,7 +47,7 @@ class DomainModelsTest {
     }
 
     @Test
-    void generateUmlDiagramDrawsClassesAndAssociations() {
+    void umlClassDiagram_drawsClassesAndAssociations() {
         // given — an approved class with approved members, and a material association to a second class
         final List<AttributeCdd> attributeList = new ArrayList<>();
         attributeList.add(approved(new AttributeCdd("property1", "int")));
@@ -73,7 +73,8 @@ class DomainModelsTest {
         domainModel.classList.add(clazz2);
 
         // when
-        final UmlClassDiagram result = classUnderTest.generateUmlDiagram(domainModel);
+        final UmlClassDiagram result =
+                classUnderTest.umlClassDiagram(domainModel, UmlClassDiagram.KIND_MODEL, null);
 
         // then — the payload the D3 panel draws: one box per class, the members in their compartments,
         // and the association as a link
@@ -92,7 +93,7 @@ class DomainModelsTest {
     // --- one diagram per sub-domain, and the overview -------------------------
 
     @Test
-    void generateSubDomainUmlDiagramDrawsOnlyThatSubDomain() {
+    void umlClassDiagram_drawsOnlyThatSubDomain() {
         // given — one class in each of two sub-domains
         final DomainModel model = new DomainModel();
         model.classList.add(approved(withResponsibility("Store",
@@ -101,7 +102,8 @@ class DomainModelsTest {
                 subDomain("Checkout", SubDomainClassification.SUPPORTING))));
 
         // when
-        final UmlClassDiagram result = classUnderTest.generateSubDomainUmlDiagram(model, "Inventory");
+        final UmlClassDiagram result =
+                classUnderTest.umlClassDiagram(model, UmlClassDiagram.KIND_SUB_DOMAIN, "Inventory");
 
         // then — the payload draws one box, and the label names the sub-domain the reader is looking at
         assertThat(result.getD3Graph()).contains("\"id\":\"Store\"").doesNotContain("\"id\":\"Till\"");
@@ -109,21 +111,7 @@ class DomainModelsTest {
     }
 
     @Test
-    void choices1GenerateSubDomainUmlDiagram_listsTheSubDomainsOfTheModel() {
-        // given — the choices a reviewer picks from, in name order
-        final DomainModel model = new DomainModel();
-        model.classList.add(approved(withResponsibility("Till",
-                subDomain("Checkout", SubDomainClassification.SUPPORTING))));
-        model.classList.add(approved(withResponsibility("Store",
-                subDomain("Inventory", SubDomainClassification.CORE))));
-
-        // when / then
-        assertThat(classUnderTest.choices1GenerateSubDomainUmlDiagram(model))
-                .containsExactly("Checkout", "Inventory");
-    }
-
-    @Test
-    void generateSubDomainOverviewDiagramDrawsNodesAndCrossEdges() {
+    void umlClassDiagram_drawsSubDomainOverviewNodesAndCrossEdges() {
         // given — a relation that crosses from Inventory into Checkout
         final DomainModel model = new DomainModel();
         final ClassCdd store = approved(withResponsibility("Store",
@@ -135,7 +123,8 @@ class DomainModelsTest {
         model.classList.add(till);
 
         // when
-        final UmlClassDiagram result = classUnderTest.generateSubDomainOverviewDiagram(model);
+        final UmlClassDiagram result =
+                classUnderTest.umlClassDiagram(model, UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW, null);
 
         // then — one node per sub-domain (labelled with its classification), one edge, labelled with the
         // number of collaborations it stands for
@@ -252,8 +241,8 @@ class DomainModelsTest {
 
     @Test
     void choices1DownloadPlantUml_listsTheThreeDiagramKinds() {
-        // when / then — the kinds the three diagram actions produce, so a caller can ask for any of them
-        assertThat(classUnderTest.choices1DownloadPlantUml(new DomainModel()))
+        // when / then — the kinds the diagram set draws, so a caller can ask for any of them
+        assertThat(classUnderTest.choices1DownloadPlantUml())
                 .containsExactly(UmlClassDiagram.KIND_MODEL, UmlClassDiagram.KIND_SUB_DOMAIN,
                         UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW);
     }

@@ -28,12 +28,13 @@ It reads `DOMOX_URL` (default `http://localhost:8080`) and `DOMOX_USER` / `DOMOX
    *read* an entity over RO; do pass an entity href when an action declares an entity parameter.
 3. **The body shape for an entity-parameter action is a nested `{"<param>":{"value":{"href":H}}}`** —
    not a bare string, and not a bare `{"href":H}`. Verified 2026-11-21 with the UML export:
-   `POST /restful/services/domox.DomainModels/actions/generateUmlDiagram/invoke` with
+   `POST /restful/services/domox.DomainModels/actions/showUmlDiagrams/invoke` with
    `{"domainModel":{"value":{"href":"…/objects/domox.DomainModel/16177"}}}` → **200** plus a
-   `domox.UmlClassDiagram` view model whose one member is `d3Graph` — the D3 payload the browser draws.
-   `showUmlDiagrams` (same body) returns `domox.UmlDiagramSet` instead: every diagram of the model, one
-   per tab, with `wholeModelGraph` as its readable member. See `.clinerules/d3-diagram.md` for what the
-   payload means.
+   `domox.UmlDiagramSet` view model: every diagram of the model, one per tab, with `wholeModelGraph` as
+   its readable member. The same body shape served the single-diagram actions
+   `generateUmlDiagram` / `generateSubDomainUmlDiagram` / `generateSubDomainOverviewDiagram`, which have
+   since been removed (`showUmlDiagrams` covers reading the model, and `downloadPlantUml` the text).
+   See `.clinerules/d3-diagram.md` for what the payload means.
 4. **`--out FILE` writes the result to a file and prints its size** instead of dumping it; a scalar result
    prints as `result: …`. Use one of them before pasting a diagram payload into a transcript.
 

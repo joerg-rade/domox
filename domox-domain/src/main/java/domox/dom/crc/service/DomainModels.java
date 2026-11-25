@@ -43,11 +43,13 @@ import java.util.List;
  * counts) and what a reviewer pastes into PlantUML tooling, and a file is the right shape for it — a page
  * is for the picture.</p>
  *
- * <p><b>One page, or one diagram per page.</b>  {@link #showUmlDiagrams(DomainModel)} is the page a reader
- * of the model wants: every diagram at once, one tab per sub-domain ({@link UmlDiagramSet}).  The three
- * single-diagram actions are kept because they are also addressed one at a time — from the RestfulObjects
- * API, and by the assembly pass, which measures one sub-domain's diagram — and a page that shows one
- * diagram is still the right shape for one diagram.</p>
+ * <p><b>One page — and the menu carries no single-diagram action.</b>  {@link #showUmlDiagrams(DomainModel)}
+ * is the page a reader of the model wants: every diagram at once, one tab per sub-domain
+ * ({@link UmlDiagramSet}).  The three single-diagram actions that used to sit beside it in the menu (whole
+ * model, one sub-domain, sub-domain overview) have been removed: each showed one diagram, which is exactly
+ * what a tab does, and {@link #downloadPlantUml(DomainModel, String, String)} still serves any one of the
+ * three as text.  What the menu offers is the model list, the create action, the one-page diagram set and
+ * the download.</p>
  */
 @DomainService
 @Named(DomainModule.NAMESPACE + ".DomainModels")
@@ -78,65 +80,18 @@ public class DomainModels {
     /**
      * Every diagram of the model at once — one page, one tab per sub-domain.
      *
-     * <p>The single-diagram actions below show one diagram each, so reading a ten-sub-domain model meant
-     * opening ten pages; this returns the same content as <em>one</em> page whose tabs are the sub-domains
-     * ({@link UmlDiagramSet#tabNames()}).  Each tab is assembled when it is shown rather than when the page
-     * is — assembling one diagram reads the whole model (~2 s for the 970-class model) — so the page opens
-     * on the sub-domain overview, the map of what the other tabs hold.</p>
+     * <p>Before this action there were three single-diagram actions, each showing one diagram, so reading
+     * a ten-sub-domain model meant opening ten pages; this returns the same content as <em>one</em> page
+     * whose tabs are the sub-domains ({@link UmlDiagramSet#tabNames()}).  Each tab is assembled when it is
+     * shown rather than when the page is — assembling one diagram reads the whole model (~2 s for the
+     * 970-class model) — so the page opens on the sub-domain overview, the map of what the other tabs
+     * hold.</p>
      */
     @ActionLayout(
             sequence = "3",
             describedAs = "Every diagram at once: one tab per sub-domain, plus the overview and the whole model")
     public UmlDiagramSet showUmlDiagrams(DomainModel domainModel) {
         return UmlDiagramSet.of(domainModel, this);
-    }
-
-    /**
-     * The assembled model's class diagram — the whole-model diagram.
-     *
-     * <p>Review-aware: only approved classes that carry approved content are drawn, and only the
-     * approved members and material edges between them appear.  See {@link ClassDiagram#graph}.</p>
-     */
-    @ActionLayout(sequence = "4")
-    public UmlClassDiagram generateUmlDiagram(DomainModel domainModel) {
-        return umlClassDiagram(domainModel, UmlClassDiagram.KIND_MODEL, null);
-    }
-
-    /**
-     * One sub-domain's diagram — the "one diagram per sub-domain" of the assembly pass.
-     *
-     * <p>Draws the approved classes assigned to {@code subDomainName} and the material edges wholly
-     * inside that sub-domain; relations that leave it are shown by
-     * {@link #generateSubDomainOverviewDiagram(DomainModel)} instead.</p>
-     *
-     * @param subDomainName the sub-domain's name, matched case-insensitively; the choices come from
-     *                      {@link #choices1GenerateSubDomainUmlDiagram(DomainModel)}
-     */
-    @ActionLayout(
-            sequence = "5",
-            describedAs = "The diagram of one sub-domain: its approved classes and the relations inside it")
-    public UmlClassDiagram generateSubDomainUmlDiagram(DomainModel domainModel, String subDomainName) {
-        return umlClassDiagram(domainModel, UmlClassDiagram.KIND_SUB_DOMAIN, subDomainName);
-    }
-
-    /** The sub-domains that have a diagram to draw — the choices for the action above. */
-    @MemberSupport
-    public List<String> choices1GenerateSubDomainUmlDiagram(DomainModel domainModel) {
-        return DiagramKind.subDomainNames(domainModel);
-    }
-
-    /**
-     * The overview diagram: the sub-domains as nodes, their cross-sub-domain relations as edges.
-     *
-     * <p>Each edge is labelled with the number of collaborations it aggregates.  A class with no
-     * sub-domain is drawn as one {@code Unassigned} node rather than dropped, so an incomplete
-     * partition is visible rather than silent.  See {@link ClassDiagram#graphOverview}.</p>
-     */
-    @ActionLayout(
-            sequence = "6",
-            describedAs = "How the sub-domains relate: one node per sub-domain, one edge per relation between them")
-    public UmlClassDiagram generateSubDomainOverviewDiagram(DomainModel domainModel) {
-        return umlClassDiagram(domainModel, UmlClassDiagram.KIND_SUB_DOMAIN_OVERVIEW, null);
     }
 
     /**
@@ -158,7 +113,7 @@ public class DomainModels {
      * @param subDomainName the sub-domain, for {@code KIND_SUB_DOMAIN} only; ignored otherwise
      */
     @ActionLayout(
-            sequence = "7",
+            sequence = "4",
             describedAs = "Download the PlantUML source of one of the diagrams (the whole model by default)")
     public Blob downloadPlantUml(
             final DomainModel domainModel,
@@ -178,14 +133,23 @@ public class DomainModels {
                 source.getBytes(StandardCharsets.UTF_8));
     }
 
-    /** The diagram kinds {@link #downloadPlantUml} can export — the choices for its {@code kind} parameter. */
+    /**
+     * The diagram kinds {@link #downloadPlantUml} can export — the choices for its {@code kind} parameter.
+     *
+     * <p>Deliberately argument-less, unlike most {@code choicesN} methods: the choices are the enum's
+     * constants and nothing about the model narrows them, so the {@code domainModel} the action carries
+     * would be a parameter the method never reads.  Causeway matches a supporting method's arguments as a
+     * <em>prefix</em> of the action's own (and a prefix may be empty), so dropping it changes nothing but
+     * the signature.</p>
+     */
     @MemberSupport
-    public List<String> choices1DownloadPlantUml(final DomainModel domainModel) {
+    public List<String> choices1DownloadPlantUml() {
         return DiagramKind.keys();
     }
 
     /**
-     * Builds one class diagram's view model — the three diagram actions' entry point.
+     * Builds one class diagram's view model — the diagram entry point shared by
+     * {@link UmlDiagramSet} and the PlantUML export.
      *
      * <p>This is also the re-derivation entry point for a view model rebuilt from its memento (see
      * {@link UmlClassDiagram}), so the diagram survives a page reload.</p>

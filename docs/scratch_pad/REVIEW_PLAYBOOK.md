@@ -316,10 +316,11 @@ claim the concept is irrelevant — a different, stronger judgement.
 
 **Three diagrams, one model.**  The export produces:
 
-- one **whole-model** diagram — `DomainModels#generateUmlDiagram`;
-- one **per sub-domain** diagram — `DomainModels#generateSubDomainUmlDiagram` (the choices come from the
-  sub-domain names, i.e. one diagram per sub-domain that has classes);
-- one **sub-domain overview** — `DomainModels#generateSubDomainOverviewDiagram`: a node per sub-domain,
+- one **whole-model** diagram — the *Whole model* tab of the one-page set, or
+  `downloadPlantUml(kind=model)` for the text;
+- one **per sub-domain** diagram — one tab per sub-domain (the tab names come from the sub-domain names,
+  i.e. one diagram per sub-domain that has classes);
+- one **sub-domain overview** — the *Sub-domain overview* tab: a node per sub-domain,
   an edge per **cross-sub-domain** relation labelled with the number of collaborations it aggregates,
   plus a single `Unassigned` node while any included class still has no sub-domain.
 
@@ -327,6 +328,10 @@ claim the concept is irrelevant — a different, stronger judgement.
 with the sub-domain name), plus the overview and the whole model — the reader switches tabs instead of
 returning to the menu.  Each tab's diagram is assembled when that tab is shown, so the page opens on the
 overview rather than waiting for ten diagrams.
+
+The menu no longer carries a per-diagram action: the single-diagram actions (`generateUmlDiagram`,
+`generateSubDomainUmlDiagram`, `generateSubDomainOverviewDiagram`) have been removed — a tab already
+shows one diagram, and the `.puml` download serves any one of the three as text.
 
 A per-sub-domain diagram carries only the edges **wholly inside** that sub-domain; the relations that
 leave it are the overview's job.  An `Unassigned` node in the overview is a **defect signal** — after
@@ -451,11 +456,10 @@ count only classes the model actually contains.
 **Step 2 — render the diagrams.**  `DomainModels#listAll()` finds the model, then:
 
 - `showUmlDiagrams(domainModel)` — **all of them at once**, one tab per sub-domain (labelled with the
-  sub-domain name) plus the overview and the whole model: the way to *read* the model;
-- `generateUmlDiagram(domainModel)` — the whole model;
-- `generateSubDomainUmlDiagram(domainModel, subDomainName)` — **one diagram per sub-domain** (the
-  choices come from the action);
-- `generateSubDomainOverviewDiagram(domainModel)` — **how the sub-domains relate** to each other.
+  sub-domain name) plus the overview and the whole model: the way to *read* the model.  This is the only
+  diagram action in the menu: the three single-diagram actions (`generateUmlDiagram`,
+  `generateSubDomainUmlDiagram`, `generateSubDomainOverviewDiagram`) were removed, because a tab already
+  shows one diagram and the `.puml` download below serves any one of the three as text.
 
 Each returns a **`UmlClassDiagram` view model** whose `d3Graph` property is the diagram: the payload the
 D3 panel draws in the browser, so nothing has to be rendered by a service and there is no failure mode
