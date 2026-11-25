@@ -68,7 +68,10 @@ const MEASURE = `(() => {
           italic: getComputedStyle(t).fontStyle === 'italic'
         }))
       };
-    })
+    }),
+    // The legend: a row prints its label; the explanation the payload carries for it is the row's tooltip.
+    legendTexts: Array.from(svg.querySelectorAll('g.d3-legend text')).map(t => t.textContent),
+    legendTitles: Array.from(svg.querySelectorAll('g.d3-legend title')).map(t => t.textContent)
   });
 })()`;
 
@@ -120,6 +123,16 @@ if (gist) {
         !!pos && !!onto && onto.y > pos.y, pos && onto ? `pos.y=${pos.y} onto.y=${onto.y}` : 'missing line');
     check('the ontology line is italic', !!onto && onto.italic);
 }
+
+// The legend of this path (the CRC / ontology force renderer) reads the same way: a row is its label.
+// It used to print the payload's explanation after a dash, which made the longest row — and with it the
+// whole legend box — as wide as its prose.
+check('the legend is drawn with one row per entry, plus its own title',
+    JSON.stringify(m.legendTexts) === JSON.stringify(['Node Type Legend', 'Class', 'Individual']),
+    JSON.stringify(m.legendTexts));
+check('each legend row keeps its explanation, as the row\'s tooltip',
+    JSON.stringify(m.legendTitles) === JSON.stringify(['a concept', 'an instance']),
+    JSON.stringify(m.legendTitles));
 
 if (failures.length) {
     console.error(`\nONTOLOGY RENDER CHECK FAILED (${failures.length}): ${failures.join('; ')}`);

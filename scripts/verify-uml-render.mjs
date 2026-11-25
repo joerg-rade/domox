@@ -80,7 +80,10 @@ const MEASURE = `(() => {
                      anchor: t.getAttribute('text-anchor'), stroke: t.getAttribute('stroke'),
                      paintOrder: t.getAttribute('paint-order') })) : [],
     legend: !!legend,
-    legendRows: legend ? legend.querySelectorAll('text').length : 0
+    legendRows: legend ? legend.querySelectorAll('text').length : 0,
+    // A legend row prints its label only; the explanation the payload carries for it is the row's tooltip.
+    legendTexts: legend ? Array.from(legend.querySelectorAll('text')).map(t => t.textContent) : [],
+    legendTitles: legend ? Array.from(legend.querySelectorAll('title')).map(t => t.textContent) : []
   });
 })()`;
 
@@ -176,7 +179,10 @@ const MEASURE_FORCE = `(() => {
     clickableUrl: clickableUrl,
     inertUrl: inertUrl,
     legend: !!legend,
-    legendRows: legend ? legend.querySelectorAll('text').length : 0
+    legendRows: legend ? legend.querySelectorAll('text').length : 0,
+    // A legend row prints its label only; the explanation the payload carries for it is the row's tooltip.
+    legendTexts: legend ? Array.from(legend.querySelectorAll('text')).map(t => t.textContent) : [],
+    legendTitles: legend ? Array.from(legend.querySelectorAll('title')).map(t => t.textContent) : []
   });
 })()`;
 
@@ -240,7 +246,16 @@ const MEASURE_PACKAGES = `(() => {
     tabs: layer.querySelectorAll('path.uml-package-tab').length,
     bodies: layer.querySelectorAll('rect.uml-package-body').length,
     legend: !!legend,
-    legendRows: legend ? Array.from(legend.querySelectorAll('text')).map(t => t.textContent) : []
+    legendRows: legend ? Array.from(legend.querySelectorAll('text')).map(t => t.textContent) : [],
+    legendTitles: legend ? Array.from(legend.querySelectorAll('title')).map(t => t.textContent) : [],
+    // How much of the legend box stands empty to the right of the widest row, in screen pixels: the box is
+    // measured to the label, so this is its padding and nothing more.
+    legendGap: legend ? (function () {
+        var boxRight = legend.getBoundingClientRect().right;
+        var widest = Math.max.apply(null, Array.from(legend.querySelectorAll('text'))
+            .map(function (t) { return t.getBoundingClientRect().right; }));
+        return Math.round(boxRight - widest);
+    })() : null
   });
 })()`;
 
@@ -293,6 +308,14 @@ check('the connector label carries a white halo, so a line behind it cannot hide
 
 check('the legend is drawn', m.legend);
 check('the legend explains all three kinds', m.legendRows === 3, String(m.legendRows));
+// A row is its label — the explanation the payload carries for it is the row's tooltip, not a sentence
+// printed after a dash, which is what used to make every row as wide as its prose.
+check('a legend row prints its label and nothing after it',
+    JSON.stringify(m.legendTexts) === JSON.stringify(['Class', 'Association', 'Generalization']),
+    JSON.stringify(m.legendTexts));
+check('the row keeps its explanation, as the row\'s tooltip',
+    m.legendTitles.length === 3 && m.legendTitles.every(t => t.length > 0),
+    JSON.stringify(m.legendTitles));
 
 // ---- assertions: the force branch -------------------------------------------
 
@@ -359,6 +382,17 @@ check('the connector label carries a white halo, so a line behind it cannot hide
 check('the legend is drawn', f.legend);
 check('the legend explains the archetype as well as the node and both link kinds',
     f.legendRows === 4, String(f.legendRows));
+// The archetype row's label is the model's own (the fixture's is "Party"), so the check pins the shape:
+// four labels, none of them carrying an explanation after a dash.  The dash is built by code point so
+// that the check cannot be defeated by an escaping slip.
+const EM_DASH = String.fromCharCode(0x2014);
+check('no legend row carries an explanation after a dash — the tooltip does',
+    f.legendTexts.length === 4 && f.legendTexts.every(t => t.indexOf(EM_DASH) === -1)
+        && f.legendTexts.slice(0, 3).join('|') === 'Class|Association|Generalization',
+    JSON.stringify(f.legendTexts));
+check('every legend row keeps its explanation as a tooltip',
+    f.legendTitles.length === 4 && f.legendTitles.every(t => t.length > 0),
+    JSON.stringify(f.legendTitles));
 
 // A class box tied to a domain row is a click-through to that row's own page — the class name in an
 // assembled diagram opens the ClassCdd the review works with.  A box with no row behind it stays inert.
@@ -429,12 +463,20 @@ check('the connector weight is the count it carries (1.5 for one collaboration, 
     JSON.stringify({ widths: p.linkWidths, labels: p.linkLabels }));
 
 check('the legend names the package symbol, not a class box',
-    p.legendRows.length > 0 && p.legendRows[0].startsWith('Package \u2014 ')
+    p.legendRows.length > 0 && p.legendRows[0] === 'Package'
         && !p.legendRows.some(r => r.startsWith('Class')),
     JSON.stringify(p.legendRows));
 check('the overview\'s legend explains the package and the association it draws — and no archetype',
-    p.legendRows.length === 2 && p.legendRows[1].startsWith('Association \u2014 '),
+    p.legendRows.length === 2 && p.legendRows[1] === 'Association',
     JSON.stringify(p.legendRows));
+// The overview's package row is the one whose explanation used to run longest, so it is the row that
+// proves the shortening: the label is the word, the explanation is a tooltip, and the box is measured to
+// the label instead of standing at a fixed width over empty space.
+check('the overview\'s rows carry their explanations as tooltips',
+    p.legendTitles.length === 2 && p.legendTitles.some(t => t.indexOf('sub-domain') !== -1),
+    JSON.stringify(p.legendTitles));
+check('the legend box is measured to its widest row, not fixed wide',
+    p.legendGap !== null && p.legendGap >= 0 && p.legendGap <= 40, `gap ${p.legendGap}px`);
 
 if (failures.length) {
     console.error(`\nUML RENDER CHECK FAILED (${failures.length}): ${failures.join('; ')}`);

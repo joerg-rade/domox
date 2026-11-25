@@ -784,6 +784,9 @@
      * Every size is multiplied by `canvasWidth / availableWidth` — the inverse of the fit that maps the
      * model's own canvas onto the cell — so the legend keeps a constant on-screen size whatever the
      * model's canvas happens to be.
+     *
+     * A row prints its **label** and nothing else: the explanation the payload carries for it is the
+     * row's tooltip (`<title>`), so the legend reads as a key rather than as a paragraph of prose.
      */
     function appendUmlLegend(svg, data, canvasWidth, availableWidth) {
         var linkKinds = {};
@@ -805,14 +808,16 @@
         var row = 22 * k;
         var fontSize = 12 * k;
         var sample = 26 * k;
-        // Never wider than the canvas itself (a very narrow cell would otherwise clip the legend).
+        // The default width — what the box gets when no label can be measured.  It is never wider than the
+        // canvas itself (a very narrow cell would otherwise clip the legend); a measurable label narrows it
+        // further, at the end of this function.
         var boxWidth = Math.min(330 * k, canvasWidth - 24 * k);
 
         var legend = svg.append('g')
             .attr('class', 'uml-legend')
             .attr('transform', 'translate(' + 12 * k + ',' + 12 * k + ')');
 
-        legend.append('rect')
+        var box = legend.append('rect')
             .attr('width', boxWidth)
             .attr('height', entries.length * row + pad * 2)
             .attr('rx', 4 * k)
@@ -872,13 +877,26 @@
                 }
             }
 
+            // The row prints its label; the explanation rides as the row's tooltip, so the legend stays a
+            // key.  The `<title>` hangs off the swatch group rather than off the text, so the row's own
+            // `textContent` is the label and nothing else.
+            swatch.append('title').text(item.description || item.label);
+
             legend.append('text')
                 .attr('x', pad + sample + 8 * k)
                 .attr('y', midY + fontSize * 0.36)
                 .attr('font-size', fontSize)
                 .attr('fill', '#333333')
-                .text(item.label + ' \u2014 ' + (item.description || ''));
+                .text(item.label);
         });
+
+        // The box hugs the widest label instead of standing at the default width over empty space.  A
+        // panel that is not on screen measures 0, and then the default width stands.
+        var widest = 0;
+        legend.selectAll('text').each(function () { widest = Math.max(widest, this.getComputedTextLength()); });
+        if (widest > 0) {
+            box.attr('width', Math.min(pad * 2 + sample + 8 * k + widest, canvasWidth - 24 * k));
+        }
     }
 
     /**
@@ -1323,10 +1341,12 @@
                 var legendGroup = svg.append('g')
                     .attr('class', 'd3-legend')
                     .attr('transform', 'translate(20, 20)');
-                // Compute the widest row text to size the background box.
+                // Compute the widest row text to size the background box.  A row is its label: the
+                // explanation rides as the row's tooltip (below), so a long description can no longer
+                // stretch the legend across the canvas.
                 var maxTextWidth = 240;
                 legend.forEach(function (item) {
-                    var text = (item.label || '') + ' \u2014 ' + (item.description || '');
+                    var text = item.label || '';
                     // Approximate width: ~5.6 px per character at font-size 10
                     var w = 8 + 20 + text.length * 5.6 + 8;
                     if (w > maxTextWidth) maxTextWidth = w;
@@ -1349,10 +1369,13 @@
                         .attr('x', 8).attr('y', rowY)
                         .attr('width', 14).attr('height', 14)
                         .attr('fill', item.color).attr('rx', 2);
+                    if (item.description) {
+                        swatch.append('title').text(item.description);
+                    }
                     swatch.append('text')
                         .attr('x', 28).attr('y', rowY + 11)
                         .attr('font-size', 10).attr('fill', '#444')
-                        .text((item.label || '') + ' \u2014 ' + (item.description || ''));
+                        .text(item.label || '');
                 });
             }
 
