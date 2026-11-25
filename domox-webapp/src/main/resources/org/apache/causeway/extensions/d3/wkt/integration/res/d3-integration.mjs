@@ -52,11 +52,13 @@
     }
 
     /**
-     * Whether a box is a click-through: it stands for a domain row only when the payload gave it **both**
-     * `objectType` and `candidateId`, and only then.
+     * Whether a thing the payload described stands for a domain row — a **box**, or a line of a package's
+     * **contents** — and so is a click-through: only when the payload gave it **both** `objectType` and
+     * `candidateId`, and only then.
      *
      * One predicate for the whole affordance — the pointer cursor, the click handler and the underlined
-     * name — so the cue a reader sees can never disagree with what a click actually does.
+     * name — so the cue a reader sees can never disagree with what a click actually does.  A class box and
+     * a package's content line carry the same pair, so the same rule covers both.
      */
     function isClickable(d) {
         return d.candidateId != null && !!d.objectType;
@@ -268,6 +270,9 @@
                 name: n.name || n.id,
                 attributes: n.attributes || [],
                 methods: n.methods || [],
+                // A package's contents: the same lines as `attributes`, each with the class row it stands
+                // for, so a name in the body can be a link (see `appendUmlPackage`).  Empty on a class box.
+                contents: n.contents || [],
                 color: n.color || '#eaf3fb',
                 // A box the is-a arrows point at: the server marks it, and its name is drawn in italics
                 // (the UML convention for an abstract class) so a reader can see which boxes a
@@ -382,7 +387,7 @@
             .attr('fill', function (d) { return d.color; })
             .attr('stroke', '#3498db').attr('stroke-width', 1.5);
 
-        appendUmlCompartments(box, asPackage);
+        appendUmlCompartments(box, asPackage, config);
 
         // ---- a class box is a click-through to the class it stands for -----------
         // The payload states the row behind each box (`candidateId` + `objectType`, emitted by
@@ -497,10 +502,13 @@
      * With `asPackage` set the same rectangle is drawn as a UML **package** instead — see
      * {@link appendUmlPackage}.  Only what is drawn inside the box differs, so the box the server sized
      * and the simulation moves is unchanged.
+     *
+     * `config` carries the context path the click-through URLs are built from; only the package branch
+     * needs it, and only for the content lines that stand for a class.
      */
-    function appendUmlCompartments(box, asPackage) {
+    function appendUmlCompartments(box, asPackage, config) {
         if (asPackage) {
-            box.each(function (d) { appendUmlPackage(d3.select(this), d); });
+            box.each(function (d) { appendUmlPackage(d3.select(this), d, config); });
             return;
         }
         box.each(function (d) {
@@ -545,8 +553,17 @@
      * compartment separators: a package has a body, not compartments.  The body's member lines reuse
      * {@link umlMemberLines} at the same offsets, so a long contents list shrinks exactly as a class's
      * member list does.
+     *
+     * **A content line that stands for a class is a link.**  The package itself is not clickable — it is a
+     * sub-domain, and there is no one row a click on it could mean — so the payload gives *each line* its
+     * own `objectType` / `candidateId` (`contents`), and a click on a name opens that class's page in a new
+     * tab.  The affordance is the same threefold one a class box carries, and it reads the same predicate
+     * ({@link isClickable}): the name is underlined — the cue visible before the pointer arrives, and the
+     * one the CRC diagrams already use for a clickable name — the cursor is a pointer, and the click opens
+     * the page.  A line with no row behind it (a payload built from a picture, or a class whose row is
+     * unknown) keeps all three absent and is drawn as plain text.
      */
-    function appendUmlPackage(g, d) {
+    function appendUmlPackage(g, d, config) {
         var left = -d.w / 2;
         var top = -d.h / 2;
         var bodyTop = top + UML_NAME_H;
@@ -574,12 +591,54 @@
         shrinkToFit(name, tabW - 10, 12);
         tab.attr('d', umlPackageTabPath(left, top, tabW));
 
-        umlMemberLines(d, d.attributes, 0).forEach(function (row) {
-            shrinkToFit(g.append('text').attr('class', 'uml-member')
+        umlMemberLines(d, umlContentNames(d), 0).forEach(function (row, i) {
+            var content = umlContentAt(d, i);
+            // A content line that stands for a class is a link, and the line itself carries the affordance:
+            // underlined (the cue visible before the pointer arrives), a pointer cursor, and the click.  A
+            // line with no row behind it keeps all three absent.
+            var link = isClickable(content);
+            var line = g.append('text')
+                .attr('class', link ? 'uml-member uml-content-link' : 'uml-member')
                 .attr('x', left + 6).attr('y', row.y)
                 .attr('font-size', UML_MEMBER_FONT).attr('fill', '#33475b')
-                .text(row.text), d.w - 12, UML_MEMBER_FONT);
+                .attr('text-decoration', link ? 'underline' : null)
+                .style('cursor', link ? 'pointer' : null)
+                .text(row.text);
+            shrinkToFit(line, d.w - 12, UML_MEMBER_FONT);
+            if (link) {
+                line.on('click', function (event) {
+                    // The line is inside the box's `<g>`, which is draggable and carries the box's own click
+                    // handler: stop the event so a click on a name cannot be read as a click on the package.
+                    // d3-drag still moves the box — it suppresses the click only when the pointer moved.
+                    event.stopPropagation();
+                    window.open(entityPageUrl(config.contextPath, content.objectType, content.candidateId),
+                        '_blank');
+                });
+            }
         });
+    }
+
+    /**
+     * A package's content lines: the payload's own list, each entry `{name, objectType, candidateId}`.
+     *
+     * A payload from an older server (or a hand-written one) carries only the names in `attributes`, so
+     * those are read as lines with no row behind them — the body still draws, just without links.
+     */
+    function umlContentLines(d) {
+        if (d.contents && d.contents.length) {
+            return d.contents;
+        }
+        return (d.attributes || []).map(function (name) { return { name: name }; });
+    }
+
+    /** The names a package's body draws, in the order {@link umlContentLines} lists them. */
+    function umlContentNames(d) {
+        return umlContentLines(d).map(function (content) { return content.name; });
+    }
+
+    /** The `i`th content line, or an empty one — so a line the payload did not describe is simply inert. */
+    function umlContentAt(d, i) {
+        return umlContentLines(d)[i] || {};
     }
 
     /** The tab's outline: rounded at the top, square where it meets the body. */

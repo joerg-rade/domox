@@ -471,6 +471,44 @@ class ClassDiagramTest {
         });
     }
 
+    /**
+     * Every line a package lists states the class row it stands for — the pair the picture links on — so a
+     * click on a name in the package body opens that class's own page.  The <em>package</em> still carries
+     * none: it is a sub-domain, and a click on it could mean no single row.  The object type is the
+     * <b>Causeway</b> one, read back from {@code @Named}, or the URL would name a type the framework does
+     * not know.
+     */
+    @Test
+    void graphOverview_tiesEachContentLineToTheClassItStandsFor() {
+        // given — Inventory reaches out to Checkout through Store, with ids as the database would give them
+        final ClassCdd store = withApprovedResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd till = withApprovedResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING));
+        setId(store, 42L);
+        setId(till, 43L);
+        final DomainModel model = new DomainModel();
+        approved(collaboration(model, "has", store, till));
+        model.classList.add(approved(store));
+        model.classList.add(approved(till));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graphOverview(model);
+
+        // then
+        final UmlDiagramLayout.Node inventory = nodeNamed(graph, "Inventory (CORE)");
+        assertThat(inventory.contents()).hasSize(1);
+        assertThat(inventory.contents().get(0).name()).isEqualTo("Store");
+        assertThat(inventory.contents().get(0).objectType()).isEqualTo("domox.ClassCdd");
+        assertThat(inventory.contents().get(0).candidateId()).isEqualTo(42L);
+        final UmlDiagramLayout.Node checkout = nodeNamed(graph, "Checkout (SUPPORTING)");
+        assertThat(checkout.contents()).hasSize(1);
+        assertThat(checkout.contents().get(0).name()).isEqualTo("Till");
+        assertThat(checkout.contents().get(0).candidateId()).isEqualTo(43L);
+        assertThat(inventory.candidateId()).as("a package is a sub-domain, not a row").isNull();
+        assertThat(inventory.objectType()).isNull();
+    }
+
     // --- helpers --------------------------------------------------------------
 
     /** Gives a hand-built entity the id the database would have given it. */

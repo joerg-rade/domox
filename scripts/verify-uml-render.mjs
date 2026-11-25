@@ -8,7 +8,8 @@
  *
  * It does the same for the FORCE branch (the assembled model's seed grid) and for the PACKAGE flavour of
  * it (`"packages":true`, the sub-domain overview) — there each node is drawn as a UML package symbol
- * instead of a class box, with the sub-domain's outward classes in the body.
+ * instead of a class box, with the sub-domain's outward classes in the body — each of those a link to the
+ * class it stands for, so a line the payload tied to no row must stay plain text that opens nothing.
  *
  * Usage:  node scripts/verify-uml-render.mjs <cdp-port>
  * Exit:   0 = all assertions hold, 1 = at least one failed, 2 = usage/connection error.
@@ -231,12 +232,31 @@ const MEASURE_PACKAGES = `(() => {
     };
   });
   const legend = svg.querySelector('g.uml-legend');
+  // A package's *content line* that stands for a class is a link: underlined (the cue that shows before the
+  // pointer arrives), a pointer cursor, and a click that opens that class's page.  A line the payload did
+  // not tie to a row keeps all three absent.  window.open is stubbed for the duration of the probe, so
+  // every line can be clicked in one pass and the URL read back exactly as the client built it.
+  const decorationOf = el => {
+    const s = getComputedStyle(el);
+    return s.textDecorationLine || s.textDecoration || '';
+  };
+  const realOpen = window.open;
+  let opened = null;
+  window.open = function (url) { opened = url; return null; };
+  const contentLines = Array.from(layer.querySelectorAll('text.uml-member')).map(el => {
+    opened = null;
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    return { name: el.textContent, decoration: decorationOf(el),
+             cursor: getComputedStyle(el).cursor, url: opened };
+  });
+  window.open = realOpen;
   return JSON.stringify({
     settled: svg.getAttribute('data-uml-settled'),
     viewBox: svg.getAttribute('viewBox'),
     boxes: boxes.length,
     measured: measured,
     memberLines: Array.from(layer.querySelectorAll('text.uml-member')).map(t => t.textContent),
+    contentLines: contentLines,
     separators: layer.querySelectorAll('line.uml-separator').length,
     // The overview's connectors, in payload order, with the label each carries: the count is drawn twice —
     // printed, and as the weight of the line (see umlLinkWeight).
@@ -448,6 +468,25 @@ check('a package name is not underlined — a package is not a click-through',
 check('a long package name is shrunk into the tab it can have, and stays readable',
     p.measured.some(b => b.name === 'CheckoutAndPaymentProcessing' && b.font < 12 && b.font >= 8),
     JSON.stringify(p.measured.map(b => ({ name: b.name, font: b.font }))));
+
+// A name in a package's body is a link to the class it stands for, and the *line* carries all three cues —
+// so a reader can neither see an underline on a name that does nothing nor miss one that does.  A line the
+// payload tied to no row (`Till`) must keep all three absent.
+const content = n => (p.contentLines.find(c => c.name === n) || {});
+check('a content line tied to a class is underlined — the cue shows before the pointer arrives',
+    /underline/.test(content('Order').decoration) && /underline/.test(content('OrderLine').decoration),
+    JSON.stringify(p.contentLines));
+check('a content line tied to a class is a click-through (pointer cursor)',
+    content('Order').cursor === 'pointer' && content('OrderLine').cursor === 'pointer',
+    JSON.stringify(p.contentLines.map(c => [c.name, c.cursor])));
+check('a click on a content line opens that class\'s own page in a new tab',
+    content('Order').url === '/wicket/object/domox.ClassCdd:7'
+    && content('OrderLine').url === '/wicket/object/domox.ClassCdd:8',
+    JSON.stringify(p.contentLines.map(c => [c.name, c.url])));
+check('a content line with no row behind it is inert — plain text, no pointer, and a click opens nothing',
+    content('Till').name === 'Till' && !/underline/.test(content('Till').decoration)
+    && content('Till').cursor !== 'pointer' && content('Till').url === null,
+    JSON.stringify(content('Till')));
 
 // The overview's edges are the one place a label is a *count*: `ClassDiagram#overviewOf` aggregates every
 // cross-sub-domain collaboration into one edge and labels it with how many it stands for.  The line is

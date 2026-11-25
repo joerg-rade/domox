@@ -28,7 +28,7 @@ import domox.dom.rdf.geometry.Pt;
  * <pre>
  *   { "layout":"uml", "force":true, "title":"…", "canvas":{"width":…,"height":…},
  *     "nodes":[{"id","name","kind","x","y","w","h","attributes":[…],"methods":[…],
- *               "archetype","color","superclass","objectType","candidateId"}],
+ *               "archetype","color","superclass","objectType","candidateId","contents":[…]}],
  *     "links":[{"source","target","kind","label","arrow"}],
  *     "legend":[{"kind","color","label","description"}] }
  * </pre>
@@ -40,7 +40,10 @@ import domox.dom.rdf.geometry.Pt;
  * <p>{@code "packages":true} is added to the force flavour when the boxes are <b>sub-domains</b> rather
  * than classes — the sub-domain overview.  The geometry is unchanged; only the {@code kind} of each node
  * ({@code "Package"} instead of {@code "Class"}) and the legend's node row differ, so the client draws a
- * package symbol and reads each node's {@code attributes} as that package's outward classes.</p>
+ * package symbol and reads each node's {@code attributes} as that package's outward classes.  Each of
+ * those lines is also listed in {@code contents} with the class row it stands for
+ * ({@code {"name","objectType","candidateId"}}), because a package is a <em>list</em> of rows: the reader
+ * who clicks a name in the body means that class, not the sub-domain it sits in.</p>
  *
  * <p>The export's coordinates are absolute within a much larger sheet, so every coordinate is translated
  * to start at {@link #PADDING} and the canvas is the drawing's bounding box plus that margin.</p>
@@ -64,7 +67,8 @@ final class DiagramJsonWriter {
 
     /**
      * What the force flavour emits for one box beyond its name: its members, the archetype that colours
-     * it, whether anything inherits from it — and the domain row the box stands for, when there is one.
+     * it, whether anything inherits from it, the domain row the box stands for and — for a package — the
+     * rows its contents stand for.
      *
      * <p>Empty on the static flavour, which draws none of it — the reconstruction is a picture of where
      * the model's author put things, not of what the classes contain.</p>
@@ -77,16 +81,43 @@ final class DiagramJsonWriter {
      * a click-through to {@code /wicket/object/<objectType>:<id>} when both are set.  <b>They travel
      * together</b> — a box with no row behind it (a package, an export's own geometry) carries neither, and
      * the client draws it inert rather than linking to half an address.</p>
+     *
+     * <p>{@code contents} is the package's own list, and is empty on every class box: a package is a
+     * <em>list</em> of rows rather than one, so each of its lines carries the pair
+     * ({@link ContentLine}) — see {@code UmlDiagramLayout.Node.Content}.</p>
      */
     record NodeDetail(List<String> attributes, List<String> methods, String archetype, String color,
-                      boolean superclass, String objectType, Long candidateId) {
+                      boolean superclass, String objectType, Long candidateId,
+                      List<ContentLine> contents) {
 
         /** A box with no members, no archetype, nothing inheriting from it and no row behind it. */
-        static final NodeDetail NONE = new NodeDetail(List.of(), List.of(), null, null, false, null, null);
+        static final NodeDetail NONE = new NodeDetail(List.of(), List.of(), null, null, false, null, null,
+                List.of());
 
         /** The same detail, marked as a box the is-a arrows point at. */
         NodeDetail asSuperclass() {
-            return new NodeDetail(attributes, methods, archetype, color, true, objectType, candidateId);
+            return new NodeDetail(attributes, methods, archetype, color, true, objectType, candidateId,
+                    contents);
+        }
+    }
+
+    /**
+     * One line of a package's contents: the name the body draws, and the row it stands for — the class box
+     * a click on that line opens.
+     *
+     * <p>Emitted with the pair set or not at all, like a box's own, so one client rule covers both: a line
+     * with no row behind it is drawn inert.</p>
+     */
+    record ContentLine(String name, String objectType, Long candidateId) {
+
+        /** This line as one JSON object, in the order the client reads it. */
+        String toJson() {
+            final StringBuilder json = new StringBuilder("{\"name\":\"").append(escape(name)).append('"');
+            if (objectType != null && candidateId != null) {
+                json.append(",\"objectType\":\"").append(escape(objectType)).append('"')
+                        .append(",\"candidateId\":").append(candidateId);
+            }
+            return json.append('}').toString();
         }
     }
 
@@ -273,6 +304,21 @@ final class DiagramJsonWriter {
         if (detail.candidateId() != null && detail.objectType() != null) {
             json.append(",\"objectType\":\"").append(escape(detail.objectType())).append('"')
                     .append(",\"candidateId\":").append(detail.candidateId());
+        }
+        // A package's contents, each line with the row it stands for — emitted only where there is one, so
+        // a class box's JSON is untouched by it.  A line with no row behind it is written as its name
+        // alone, and the client draws it inert.
+        if (detail.contents() != null && !detail.contents().isEmpty()) {
+            json.append(",\"contents\":[");
+            boolean first = true;
+            for (final ContentLine line : detail.contents()) {
+                if (!first) {
+                    json.append(',');
+                }
+                first = false;
+                json.append(line.toJson());
+            }
+            json.append(']');
         }
     }
 

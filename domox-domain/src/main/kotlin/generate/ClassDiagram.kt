@@ -154,7 +154,10 @@ class ClassDiagram {
      *
      * <p>The graph is marked [Graph.getPackages], so the picture draws each node as a UML <b>package</b>
      * rather than as a class box, and each node lists the classes of its sub-domain that take part in a
-     * relation leaving it — the classes the connectors between packages belong to.</p>
+     * relation leaving it — the classes the connectors between packages belong to.  Each of those lines
+     * also states the class row it stands for, so the picture can make a name in the package body a
+     * click-through to that class's own page: a package is a list of rows, and the reader who clicks one
+     * of them means the class, not the sub-domain.</p>
      */
     fun graphOverview(dm: DomainModel): Graph {
         val overview = overviewOf(dm)
@@ -163,14 +166,24 @@ class ClassDiagram {
             // sub-domain that take part in a relation leaving it.  Those are the classes the connectors
             // between packages actually belong to, so the reader can see what an edge stands for without
             // opening the sub-domain's own diagram.
+            //
+            // The same lines are listed again as `contents`, each with its own `objectType` / `id` — the
+            // pair the client links on.  The *package* itself carries none: it is a sub-domain, and a
+            // click on the body means the class whose name was clicked.
+            val contents = overview.members[label].orEmpty().map { cls ->
+                UmlDiagramLayout.Node.Content(cls.candidateName, cls.objectType, cls.id)
+            }
             UmlDiagramLayout.Node(
                 label,
                 label,
                 null,
-                overview.members[label].orEmpty(),
+                contents.map { it.name() },
                 emptyList(),
                 null,
                 null,
+                null,
+                null,
+                contents,
             )
         }
         val edges = overview.edges.entries.map { entry ->
@@ -221,11 +234,15 @@ class ClassDiagram {
      *
      * <p>Shared by {@link #buildSubDomainOverview} (PlantUML) and {@link #graphOverview} (D3), so the
      * overview cannot aggregate its edges one way on paper and another on screen.</p>
+     *
+     * <p>A member is the {@link ClassCdd} row itself, not only its name: the D3 picture lists those
+     * classes inside the package and makes each one a click-through to its own page, which needs the
+     * row's id and Causeway object type.  The PlantUML form draws the names alone.</p>
      */
     private class Overview(
         val nodeIndex: LinkedHashMap<String, Int>,
         val edges: LinkedHashMap<Pair<String, String>, Int>,
-        val members: LinkedHashMap<String, List<String>>,
+        val members: LinkedHashMap<String, List<ClassCdd>>,
     )
 
     private fun overviewOf(dm: DomainModel): Overview {
@@ -247,7 +264,7 @@ class ClassDiagram {
         // leaves its sub-domain is one of the classes the reader has to know about, and a class that
         // relates only to its own neighbours says nothing about how the packages fit together.
         val edges = LinkedHashMap<Pair<String, String>, Int>()
-        val members = LinkedHashMap<String, LinkedHashSet<String>>()
+        val members = LinkedHashMap<String, LinkedHashMap<String, ClassCdd>>()
         for (asc in ModelContent.materialCollaborations(dm)) {
             val (source, target) = endsWithin(asc, inModel) ?: continue
             val from = labelOf(source)
@@ -255,26 +272,30 @@ class ClassDiagram {
             if (from == to) continue
             val key = if (nodeIndex.getValue(from) <= nodeIndex.getValue(to)) from to to else to to from
             edges.merge(key, 1) { a, b -> a + b }
-            addMember(members, from, source.candidateName)
-            addMember(members, to, target.candidateName)
+            addMember(members, from, source)
+            addMember(members, to, target)
         }
 
         // Sorted, so the list a package draws does not follow the model's collaboration order.
-        val memberList = LinkedHashMap<String, List<String>>()
-        for ((label, names) in members) {
-            memberList[label] = names.sorted()
+        val memberList = LinkedHashMap<String, List<ClassCdd>>()
+        for ((label, rows) in members) {
+            memberList[label] = rows.values.sortedBy { it.candidateName }
         }
         return Overview(nodeIndex, edges, memberList)
     }
 
-    /** Records that {@code name} is one of {@code node}'s outward classes; a nameless class is skipped. */
+    /**
+     * Records that {@code cls} is one of {@code node}'s outward classes; a nameless class is skipped, and
+     * a class that reaches out along two relations is recorded once.
+     */
     private fun addMember(
-        members: MutableMap<String, LinkedHashSet<String>>,
+        members: MutableMap<String, LinkedHashMap<String, ClassCdd>>,
         node: String,
-        name: String?,
+        cls: ClassCdd,
     ) {
+        val name = cls.candidateName
         if (name.isNullOrEmpty()) return
-        members.getOrPut(node) { LinkedHashSet() }.add(name)
+        members.getOrPut(node) { LinkedHashMap() }.putIfAbsent(name, cls)
     }
 
     // -- assembling a class diagram's graph --------------------------------------

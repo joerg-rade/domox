@@ -127,7 +127,9 @@ public final class UmlDiagramLayout {
      * package symbol, and its {@code attributes} are the classes of that sub-domain that relate to a class
      * outside it (see {@code ClassDiagram#graphOverview}).  There is no separate field for them: a package's
      * contents occupy the same place in the box the server sizes as a class's members do, so the geometry
-     * needs no special case — only the client's drawing differs.</p>
+     * needs no special case — only the client's drawing differs.  Those same lines are listed again in
+     * {@code contents}, each with the class row it stands for — which is what makes a content line a link
+     * (see {@link Content}).</p>
      *
      * <p><b>{@code objectType} / {@code candidateId} — the row behind the box.</b>  A box that stands for a
      * domain row states which one, and the client makes the box a click-through to that row's page
@@ -142,18 +144,44 @@ public final class UmlDiagramLayout {
     public record Node(String id, String name, String group,
                        List<String> attributes, List<String> methods,
                        String archetype, String color,
-                       Long candidateId, String objectType) {
+                       Long candidateId, String objectType,
+                       List<Content> contents) {
 
-        /** A box with no members, no archetype and no row behind it — a class nothing is drawn inside. */
+        /**
+         * One line of a package's <b>contents</b>: the class name the body draws, and the class row that
+         * name stands for.
+         *
+         * <p>A class box <em>is</em> one row, and states it once with {@code objectType} /
+         * {@code candidateId}.  A package is a <em>list</em> of rows, so every line has to state its own:
+         * a reader who clicks {@code Order} inside the Inventory package means that class, not the
+         * sub-domain it happens to sit in — which is why a package itself carries no pair at all.</p>
+         *
+         * <p>{@code objectType} / {@code candidateId} are set together or not at all, exactly as on a box:
+         * a line whose row is unknown (a package built from a picture alone) leaves both {@code null} and
+         * the client draws it inert rather than linking to half an address.</p>
+         */
+        public record Content(String name, String objectType, Long candidateId) {
+        }
+
+        /** A box with no members, no archetype, no row behind it and no contents — a class drawn empty. */
         public Node(final String id, final String name, final String group) {
-            this(id, name, group, List.of(), List.of(), null, null, null, null);
+            this(id, name, group, List.of(), List.of(), null, null, null, null, List.of());
         }
 
         /** The same, for a box that draws members but stands for no row — a caller with only a picture. */
         public Node(final String id, final String name, final String group,
                     final List<String> attributes, final List<String> methods,
                     final String archetype, final String color) {
-            this(id, name, group, attributes, methods, archetype, color, null, null);
+            this(id, name, group, attributes, methods, archetype, color, null, null, List.of());
+        }
+
+        /** The same, for a box that stands for a row but lists no contents — a class box. */
+        public Node(final String id, final String name, final String group,
+                    final List<String> attributes, final List<String> methods,
+                    final String archetype, final String color,
+                    final Long candidateId, final String objectType) {
+            this(id, name, group, attributes, methods, archetype, color, candidateId, objectType,
+                    List.of());
         }
     }
 
@@ -620,9 +648,9 @@ public final class UmlDiagramLayout {
     }
 
     /**
-     * The members, the archetype and the row behind each box, keyed by id — the first node given for an id
-     * wins, as in {@link #nameOf}.  A box the caller did not describe (or an id with no node) reads as
-     * {@link DiagramJsonWriter.NodeDetail#NONE}, so the writer never has to null-check.
+     * The members, the contents, the archetype and the row behind each box, keyed by id — the first node
+     * given for an id wins, as in {@link #nameOf}.  A box the caller did not describe (or an id with no
+     * node) reads as {@link DiagramJsonWriter.NodeDetail#NONE}, so the writer never has to null-check.
      */
     private static Function<String, DiagramJsonWriter.NodeDetail> detailOf(final List<Node> nodes) {
         final Map<String, DiagramJsonWriter.NodeDetail> details = new LinkedHashMap<>();
@@ -632,9 +660,26 @@ public final class UmlDiagramLayout {
                         node.attributes() == null ? List.of() : node.attributes(),
                         node.methods() == null ? List.of() : node.methods(),
                         node.archetype(), node.color(), false,
-                        node.objectType(), node.candidateId()));
+                        node.objectType(), node.candidateId(),
+                        contentsOf(node)));
             }
         }
         return id -> details.getOrDefault(id, DiagramJsonWriter.NodeDetail.NONE);
+    }
+
+    /**
+     * A box's content lines, in the writer's own record — empty for a box that lists none (every class
+     * box), so the writer emits the key only where there is something to say.
+     */
+    private static List<DiagramJsonWriter.ContentLine> contentsOf(final Node node) {
+        final List<DiagramJsonWriter.ContentLine> lines = new ArrayList<>();
+        for (final Node.Content content : node.contents() == null
+                ? List.<Node.Content>of() : node.contents()) {
+            if (content != null && content.name() != null) {
+                lines.add(new DiagramJsonWriter.ContentLine(content.name(), content.objectType(),
+                        content.candidateId()));
+            }
+        }
+        return lines;
     }
 }

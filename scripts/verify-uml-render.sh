@@ -4,7 +4,8 @@
 # OntoUML export's stored geometry, `"layout":"uml"`), the FORCE one (`"layout":"uml","force":true`,
 # the assembled model's seed grid plus a `d3-force` simulation, which the reader can drag), and the
 # PACKAGE flavour of the force one (`"packages":true` — the sub-domain overview, where each node is drawn
-# as a UML package symbol rather than as a class box).
+# as a UML package symbol rather than as a class box, and every line of its body is a link to the class it
+# stands for).
 #
 # Why: `UmlLayoutIntegrityTest` asserts the *geometry* over the real model, but nothing checked that
 # the CLIENT actually draws what the payload says.  A regression in any renderer — a lost arrow
@@ -131,14 +132,20 @@ WicketStuff.D3.init({ canvasId: 'd3CanvasForce', graphData: JSON.stringify(FORCE
 // The two edges stand for *different numbers* of collaborations (2 and 7), which is what pins the
 // connector weight: on the overview the label is a count, and the line is drawn the thicker the more
 // relations it stands for.
+// Each line of a package's body is also listed in `contents` with the class row it stands for — the pair
+// the client links on.  Inventory's two lines carry it (so both must be underlined, pointer-cursored and
+// click-through); Checkout's `Till` deliberately carries no row, so it must stay plain text that opens
+// nothing; Delivery lists nothing at all.
 var PACKAGE_PAYLOAD = {
   "layout": "uml", "force": true, "packages": true, "title": "Fixture — sub-domain overview",
   "canvas": {"width": 600, "height": 400},
   "nodes": [
     {"id": "Inventory", "name": "Inventory", "kind": "Package", "x": 40, "y": 40, "w": 180, "h": 56,
-     "attributes": ["Order", "OrderLine"], "methods": []},
+     "attributes": ["Order", "OrderLine"], "methods": [],
+     "contents": [{"name": "Order", "objectType": "domox.ClassCdd", "candidateId": 7},
+                  {"name": "OrderLine", "objectType": "domox.ClassCdd", "candidateId": 8}]},
     {"id": "Checkout", "name": "CheckoutAndPaymentProcessing", "kind": "Package", "x": 300, "y": 40, "w": 159, "h": 44,
-     "attributes": ["Till"], "methods": []},
+     "attributes": ["Till"], "methods": [], "contents": [{"name": "Till"}]},
     {"id": "Delivery", "name": "Delivery", "kind": "Package", "x": 40, "y": 240, "w": 140, "h": 44,
      "attributes": [], "methods": []}
   ],

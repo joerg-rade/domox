@@ -49,13 +49,24 @@ class UmlDiagramLayoutTest {
     /**
      * The JSON object of the node whose id is {@code id}, read out of the payload.
      * <p>
-     * A node body holds no {@code }} of its own (the member arrays are strings), so the body can be
-     * delimited by the first one.
+     * The body is found by <b>counting braces</b>, not by taking the first {@code }}: a package node now
+     * carries nested objects ({@code contents}, one per line), so the first closing brace is a content
+     * line's own, not the node's.  A brace inside a string value would still confuse it, and no node name
+     * or member line contains one.
      */
     private static String nodeBody(final String json, final String id) {
-        final Matcher body = Pattern.compile("\\{\"id\":\"" + Pattern.quote(id) + "\"[^}]*}").matcher(json);
-        assertThat(body.find()).as("the payload has a node with id %s", id).isTrue();
-        return body.group();
+        final int start = json.indexOf("{\"id\":\"" + id + "\"");
+        assertThat(start).as("the payload has a node with id %s", id).isNotNegative();
+        int depth = 0;
+        for (int at = start; at < json.length(); at++) {
+            final char c = json.charAt(at);
+            if (c == '{') {
+                depth++;
+            } else if (c == '}' && --depth == 0) {
+                return json.substring(start, at + 1);
+            }
+        }
+        throw new AssertionError("the node " + id + " is never closed");
     }
 
     /**
@@ -495,6 +506,32 @@ class UmlDiagramLayoutTest {
         assertThat(nodeValue(json, "a", "methods")).isEqualTo("[]");
         assertThat(nodeValue(json, "a", "w")).as("a package is drawn in the same rectangle a class box is")
                 .isEqualTo("180");
+    }
+
+    /**
+     * A package's content lines each carry the class row they stand for, so the client can make a name in
+     * the package body a click-through to that class's own page.  A package is a <em>list</em> of rows
+     * rather than one, which is why the pair belongs on the line and not on the package — and a line with
+     * no row behind it is written as its name alone and drawn inert.
+     */
+    @Test
+    void tiesEachPackageContentLineToTheRowItStandsFor() {
+        final String json = UmlDiagramLayout.render("Sub-domain overview",
+                List.of(new UmlDiagramLayout.Node("a", "Inventory", "g",
+                                List.of("Order", "OrderLine"), List.of(), null, null, null, null,
+                                List.of(new UmlDiagramLayout.Node.Content("Order", "domox.ClassCdd", 7L),
+                                        new UmlDiagramLayout.Node.Content("OrderLine", null, null))),
+                        new UmlDiagramLayout.Node("b", "Billing", "g")),
+                List.of(), true);
+
+        assertThat(nodeValue(json, "a", "contents")).isEqualTo(
+                "[{\"name\":\"Order\",\"objectType\":\"domox.ClassCdd\",\"candidateId\":7},"
+                        + "{\"name\":\"OrderLine\"}]");
+        // The attributes slot keeps the plain names — the geometry and the drawing order read it — so the
+        // two cannot disagree about what the body shows.
+        assertThat(nodeValue(json, "a", "attributes")).isEqualTo("[\"Order\",\"OrderLine\"]");
+        // A box that lists no contents is not given the key at all: a class box's JSON is untouched by it.
+        assertThat(nodeBody(json, "b")).doesNotContain("contents");
     }
 
     /**
