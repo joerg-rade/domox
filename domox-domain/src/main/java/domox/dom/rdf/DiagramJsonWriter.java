@@ -33,6 +33,11 @@ import domox.dom.rdf.geometry.Pt;
  *     "legend":[{"kind","color","label","description"}] }
  * </pre>
  *
+ * <p>A connector whose label is a <em>count</em> also carries {@code members}: the collaborations the count
+ * stands for, one line each.  Only the sub-domain overview has any — everywhere else a connector is one
+ * relation and its label is that relation's verb — so the key is written only when the list is non-empty
+ * and a reader of the JSON never has to tell "none" from "not applicable".</p>
+ *
  * <p>{@code objectType} / {@code candidateId} appear on a box that stands for a domain row, and are the
  * client's click-through target ({@code /wicket/object/<objectType>:<id>}); a box with no row behind it
  * omits both.</p>
@@ -255,6 +260,11 @@ final class DiagramJsonWriter {
     /**
      * One connector: its two ends, its kind, its label and its arrowhead — plus, on the static flavour, the
      * route it was drawn along.
+     *
+     * <p>{@code members} is written only when the connector has any, so a connector that stands for nothing
+     * beyond itself — every one but the sub-domain overview's — keeps the JSON it always had.  When it is
+     * there it is what the line's <em>label</em> stands for, one line each: the overview's label is a count,
+     * and these are the collaborations it counts.</p>
      */
     private static void appendLink(final StringBuilder json, final Link link, final boolean force,
                                    final Origin origin) {
@@ -263,6 +273,10 @@ final class DiagramJsonWriter {
                 .append(",\"kind\":\"").append(link.kind()).append('"')
                 .append(",\"label\":\"").append(escape(link.label())).append('"')
                 .append(",\"arrow\":").append(link.arrow());
+        if (link.members() != null && !link.members().isEmpty()) {
+            json.append(",\"members\":");
+            appendStrings(json, link.members());
+        }
         if (!force) {
             json.append(",\"points\":");
             appendPoints(json, link.points(), origin);

@@ -137,7 +137,7 @@ public class UmlLayoutDiagrams {
             links.add(new Link(route.source(), route.target(), route.kind(),
                     index.relationLabelOf(route.view()),
                     index.pointsOf(route.view(), route.targetBox(), route.sourceBox()),
-                    true));
+                    true, List.of()));
         }
         // Every connector is then routed afresh on the Hanan grid — orthogonal, never through a box, and
         // crossing as few of the routes already placed as possible (see OrthogonalRouter).
@@ -259,7 +259,8 @@ public class UmlLayoutDiagrams {
                 continue;
             }
             final boolean arrow = shared == null || i == firstOfGroup.get(link.source());
-            links.set(i, new Link(link.source(), link.target(), link.kind(), link.label(), route, arrow));
+            links.set(i, new Link(link.source(), link.target(), link.kind(), link.label(), route, arrow,
+                    link.members()));
 
             if (shared == null) {
                 RouteScoring.addSegments(placed, route);

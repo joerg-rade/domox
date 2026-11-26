@@ -443,7 +443,93 @@ class ClassDiagramTest {
         assertThat(inventory.methods()).isEmpty();
         assertThat(nodeNamed(graph, "Checkout (SUPPORTING)").attributes()).containsExactly("Till");
         assertThat(graph.getEdges()).containsExactly(new UmlDiagramLayout.Edge(
-                "Inventory (CORE)", "Checkout (SUPPORTING)", UmlDiagramLayout.ASSOCIATION, "2"));
+                "Inventory (CORE)", "Checkout (SUPPORTING)", UmlDiagramLayout.ASSOCIATION, "2",
+                // The count travels with what it counts: the two collaborations it stands for, one line
+                // each, sorted so the list does not follow the model's own collaboration order.
+                List.of("Store has Till", "Till reportsTo Store")));
+    }
+
+    /**
+     * An overview connector carries the collaborations its count stands for — the list the client shows in
+     * the connector's infobox.  Without it the reader sees "2" and cannot tell which two relations it
+     * means, which is the question a count raises and cannot answer.
+     *
+     * <p>Each line is built from the collaboration's <em>own</em> rows, not from the two packages, and the
+     * two are produced in the same pass, so the number and its explanation cannot disagree.</p>
+     */
+    @Test
+    void graphOverview_tiesEachConnectorToTheCollaborationsItsCountStandsFor() {
+        // given — two relations leaving Inventory for Checkout, in the opposite order to their labels
+        final ClassCdd store = withApprovedResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd till = withApprovedResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING));
+        final ClassCdd receipt = withApprovedResponsibility("Receipt",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING));
+        final DomainModel model = new DomainModel();
+        approved(collaboration(model, "reportsTo", till, store));
+        approved(collaboration(model, "has", store, receipt));
+        model.classList.add(approved(store));
+        model.classList.add(approved(till));
+        model.classList.add(approved(receipt));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graphOverview(model);
+
+        // then — the count and its explanation, in the same place and in the same order
+        final UmlDiagramLayout.Edge edge = graph.getEdges().getFirst();
+        assertThat(edge.label()).isEqualTo("2");
+        assertThat(edge.members()).containsExactly("Store has Receipt", "Till reportsTo Store");
+    }
+
+    /**
+     * A connector that stands for exactly one collaboration says so too — the overview's edges are the
+     * count's <em>only</em> home, so an edge with a member list of one is not the same case as an edge with
+     * none, and the client's hover box is drawn from the list rather than from the count.
+     */
+    @Test
+    void graphOverview_givesASingleCollaborationConnectorItsOneLine() {
+        // given
+        final ClassCdd store = withApprovedResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd till = withApprovedResponsibility("Till",
+                subDomain("Checkout", SubDomainClassification.SUPPORTING));
+        final DomainModel model = new DomainModel();
+        approved(collaboration(model, "has", store, till));
+        model.classList.add(approved(store));
+        model.classList.add(approved(till));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graphOverview(model);
+
+        // then
+        final UmlDiagramLayout.Edge edge = graph.getEdges().getFirst();
+        assertThat(edge.label()).isEqualTo("1");
+        assertThat(edge.members()).containsExactly("Store has Till");
+    }
+
+    /**
+     * A connector that is not the overview's — one line per collaboration — carries no member list at all,
+     * so the client draws no hover box over it: the label already <em>is</em> the relation.
+     */
+    @Test
+    void graphOfAClassDiagram_givesItsConnectorsNoMemberList() {
+        // given
+        final ClassCdd store = withApprovedResponsibility("Store",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final ClassCdd till = withApprovedResponsibility("Till",
+                subDomain("Inventory", SubDomainClassification.CORE));
+        final DomainModel model = new DomainModel();
+        approved(collaboration(model, "has", store, till));
+        model.classList.add(approved(store));
+        model.classList.add(approved(till));
+
+        // when
+        final ClassDiagram.Graph graph = classUnderTest.graphForSubDomain(model, "Inventory");
+
+        // then
+        assertThat(graph.getEdges()).isNotEmpty()
+                .allSatisfy(edge -> assertThat(edge.members()).isEmpty());
     }
 
     /**
@@ -500,13 +586,13 @@ class ClassDiagramTest {
         // then
         final UmlDiagramLayout.Node inventory = nodeNamed(graph, "Inventory (CORE)");
         assertThat(inventory.contents()).hasSize(1);
-        assertThat(inventory.contents().get(0).name()).isEqualTo("Store");
-        assertThat(inventory.contents().get(0).objectType()).isEqualTo("domox.ClassCdd");
-        assertThat(inventory.contents().get(0).candidateId()).isEqualTo(42L);
+        assertThat(inventory.contents().getFirst().name()).isEqualTo("Store");
+        assertThat(inventory.contents().getFirst().objectType()).isEqualTo("domox.ClassCdd");
+        assertThat(inventory.contents().getFirst().candidateId()).isEqualTo(42L);
         final UmlDiagramLayout.Node checkout = nodeNamed(graph, "Checkout (SUPPORTING)");
         assertThat(checkout.contents()).hasSize(1);
-        assertThat(checkout.contents().get(0).name()).isEqualTo("Till");
-        assertThat(checkout.contents().get(0).candidateId()).isEqualTo(43L);
+        assertThat(checkout.contents().getFirst().name()).isEqualTo("Till");
+        assertThat(checkout.contents().getFirst().candidateId()).isEqualTo(43L);
         assertThat(inventory.candidateId()).as("a package is a sub-domain, not a row").isNull();
         assertThat(inventory.objectType()).isNull();
     }

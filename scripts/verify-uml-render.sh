@@ -132,6 +132,10 @@ WicketStuff.D3.init({ canvasId: 'd3CanvasForce', graphData: JSON.stringify(FORCE
 // The two edges stand for *different numbers* of collaborations (2 and 7), which is what pins the
 // connector weight: on the overview the label is a count, and the line is drawn the thicker the more
 // relations it stands for.
+// The count also *travels with* what it counts: `members` lists the collaborations it stands for, one
+// line each — what the client shows when the reader points at the line.  The Inventory→Checkout edge
+// carries the two lines it counts; Inventory→Delivery deliberately carries none, so the client must
+// draw no hover box over it at all (a link with nothing to explain gets no hit line).
 // Each line of a package's body is also listed in `contents` with the class row it stands for — the pair
 // the client links on.  Inventory's two lines carry it (so both must be underlined, pointer-cursored and
 // click-through); Checkout's `Till` deliberately carries no row, so it must stay plain text that opens
@@ -150,7 +154,8 @@ var PACKAGE_PAYLOAD = {
      "attributes": [], "methods": []}
   ],
   "links": [
-    {"source": "Inventory", "target": "Checkout", "kind": "association", "label": "2"},
+    {"source": "Inventory", "target": "Checkout", "kind": "association", "label": "2",
+     "members": ["Order has OrderLine", "Till settles Order"]},
     {"source": "Inventory", "target": "Delivery", "kind": "association", "label": "7"}
   ],
   "legend": [

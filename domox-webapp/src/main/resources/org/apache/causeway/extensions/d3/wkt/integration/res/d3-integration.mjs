@@ -83,6 +83,28 @@
     var UML_OVERVIEW_LINK_MAX = 6;
 
     /**
+     * How thick the invisible line that catches the pointer over a connector is (see
+     * {@link appendUmlLinkInfo}).
+     *
+     * A drawn connector is 1.5–6 units wide — far too thin to aim at — and thickening the drawn line to
+     * make it hittable would change the picture the weight encodes. So the pointer is caught by a second,
+     * invisible line laid over it, wide enough to be reached without being seen.
+     */
+    var UML_LINK_HIT_W = 14;
+
+    /** The font size of the connector infobox's lines — the diagram's own member-line size. */
+    var UML_LINK_INFO_FONT = 9;
+
+    /** The line height of the connector infobox. */
+    var UML_LINK_INFO_LINE_H = 11;
+
+    /** The infobox's padding, inside its border and around its text. */
+    var UML_LINK_INFO_PAD = 6;
+
+    /** How far above the connector the infobox sits, so it does not cover the line it describes. */
+    var UML_LINK_INFO_LIFT = 8;
+
+    /**
      * The weight of one connector: {@link UML_LINK_W}, or — on the sub-domain overview — the number of
      * relations the line stands for.
      *
@@ -318,7 +340,11 @@
                 // *source*; the line is therefore drawn target -> source so the marker lands there.
                 // Every other connector is direction-free and is drawn source -> target.
                 reversed: l.kind === 'generalization',
-                arrow: l.kind === 'generalization' && l.arrow !== false
+                arrow: l.kind === 'generalization' && l.arrow !== false,
+                // The collaborations the count on an overview edge stands for (absent on every other
+                // connector — see {@link appendUmlLinkInfo}).  `d3.forceLink` leaves this alone; it only
+                // rewrites `source` and `target`.
+                members: l.members || []
             });
         });
 
@@ -369,6 +395,10 @@
             .attr('stroke-linejoin', 'round').attr('paint-order', 'stroke')
             .text(function (d) { return d.label; });
 
+        // The pointer-catcher for a connector that has something to explain — laid over the connectors and
+        // under the boxes (see {@link appendUmlLinkHits}).
+        var linkHits = appendUmlLinkHits(layer, links);
+
         // ---- the class boxes, one <g> each so it can be dragged whole ------------
         // On the sub-domain overview each box *is* a sub-domain, so it is drawn as a UML package
         // (`uml-package`) rather than as a class box; the rectangle the simulation moves is the same one.
@@ -412,6 +442,11 @@
                 window.open(entityPageUrl(config.contextPath, d.objectType, d.candidateId), '_blank');
             });
 
+        // ---- what an overview connector's count counts ---------------------------
+        // Appended after the boxes so the box draws over them; the hit lines themselves were appended with
+        // the connectors, above (see {@link appendUmlLinkInfo}).
+        var linkInfo = appendUmlLinkInfo(layer, linkHits);
+
         // ---- position everything, then wire up dragging and zoom -----------------
         function ticked() {
             linkSel.each(function (link) {
@@ -420,6 +455,13 @@
                     .attr('x1', ends.from.x).attr('y1', ends.from.y)
                     .attr('x2', ends.to.x).attr('y2', ends.to.y);
             });
+            linkHits.each(function (link) {
+                var ends = umlLinkEnds(link);
+                d3.select(this)
+                    .attr('x1', ends.from.x).attr('y1', ends.from.y)
+                    .attr('x2', ends.to.x).attr('y2', ends.to.y);
+            });
+            linkInfo.follow();
             labelSel.each(function (link) {
                 var ends = umlLinkEnds(link);
                 d3.select(this)
@@ -692,6 +734,27 @@
         });
     }
 
+    /**
+     * Whether a connector carries the collaborations it stands for — true only for the sub-domain
+     * overview's edges.
+     *
+     * There the label is a *count* rather than a verb (see {@link umlLinkWeight}), and a count answers
+     * "how many" while saying nothing about "which".  A connector that is one relation — every other
+     * connector in the model — has nothing to explain and so no infobox.
+     */
+    function hasUmlLinkMembers(link) {
+        return !!(link.members && link.members.length);
+    }
+
+    /**
+     * The name of a connector's end, whichever form it is in: `d3.forceLink` replaces the ids with the node
+     * objects once the simulation resolves them, so before the first tick an end is a string and after it
+     * an object whose `id` is that string.
+     */
+    function umlLinkEndName(end) {
+        return (end && typeof end === 'object') ? end.id : end;
+    }
+
     /** The two ends of a connector, as the points where its straight line leaves each box. */
     function umlLinkEnds(link) {
         var a = link.reversed ? link.target : link.source;
@@ -715,6 +778,116 @@
             Math.abs(dx) < 1e-9 ? Infinity : (node.w / 2) / Math.abs(dx),
             Math.abs(dy) < 1e-9 ? Infinity : (node.h / 2) / Math.abs(dy));
         return { x: node.x + dx * scale, y: node.y + dy * scale };
+    }
+
+    /**
+     * The invisible lines that catch the pointer over a connector — a connector's label is a *count* on the
+     * sub-domain overview, and this is how the reader asks what it counts (see {@link appendUmlLinkInfo}).
+     *
+     * They are appended with the connectors and *before* the boxes, so a box drawn over a connector keeps the
+     * pointer for itself — which is what a reader aiming at a box means.
+     *
+     * The pointer is caught by a second line rather than by the drawn one ({@link UML_LINK_HIT_W}) because a
+     * 1.5–6 unit line cannot be aimed at, and thickening the drawn line would change the picture the weight
+     * encodes.  A connector with nothing to explain gets no hit line at all, so a pointer over it finds
+     * nothing rather than an empty box.
+     */
+    function appendUmlLinkHits(layer, links) {
+        return layer.selectAll('line.uml-link-hit')
+            .data(links.filter(hasUmlLinkMembers))
+            .enter().append('line')
+            .attr('class', 'uml-link-hit')
+            .attr('stroke', 'transparent')
+            .attr('stroke-width', UML_LINK_HIT_W)
+            // `stroke` rather than the default `visiblePainted`: hit testing must not depend on the stroke
+            // being visible, or a fully transparent line would answer nothing.
+            .attr('pointer-events', 'stroke')
+            .style('cursor', 'help');
+    }
+
+    /**
+     * The infobox a connector opens on hover: the collaborations the count on it stands for.
+     *
+     * The sub-domain overview aggregates every collaboration that leaves one sub-domain for another into a
+     * single edge and labels it with how many it stands for (see {@link umlLinkWeight}).  That says how
+     * heavily two sub-domains lean on each other but not through *what*.  The payload carries the
+     * collaborations themselves (`members`, written by `DiagramJsonWriter` for an edge
+     * `ClassDiagram#overviewOf` built), and they are what a reader gets by pointing at the line — the same
+     * division the legend uses, where the row is a label and the prose rides as a tooltip.
+     *
+     * Appended to the layer *after* the boxes, so it draws over them: a box between the pointer and the
+     * connector's midpoint must not swallow the connector's own explanation.
+     */
+    function appendUmlLinkInfo(layer, hitSel) {
+        var infoBox = layer.append('g')
+            .attr('class', 'uml-link-info')
+            .style('visibility', 'hidden')
+            .style('pointer-events', 'none');
+        var content = infoBox.append('g');
+        var infoRect = content.append('rect')
+            .attr('rx', 3)
+            .attr('fill', 'rgba(255, 255, 255, 0.96)')
+            .attr('stroke', '#7f8c8d');
+        var infoText = content.append('text')
+            .attr('font-size', UML_LINK_INFO_FONT)
+            .attr('fill', '#333333');
+
+        /** Where the box goes: centred on the connector's midpoint, just clear of the line itself. */
+        function place(link) {
+            var ends = umlLinkEnds(link);
+            infoBox.attr('transform', 'translate(' + ((ends.from.x + ends.to.x) / 2)
+                + ',' + ((ends.from.y + ends.to.y) / 2) + ')');
+        }
+
+        /**
+         * Fills the box for one connector: the two sub-domains it joins, then one line per collaboration it
+         * stands for.  The header names the ends because the same list of class names would read very
+         * differently between two other sub-domains.
+         */
+        function fill(link) {
+            var from = umlLinkEndName(link.reversed ? link.target : link.source);
+            var to = umlLinkEndName(link.reversed ? link.source : link.target);
+            var rows = [from + ' \u2192 ' + to].concat(link.members);
+            infoText.selectAll('tspan').remove();
+            rows.forEach(function (row, i) {
+                infoText.append('tspan')
+                    .attr('x', UML_LINK_INFO_PAD)
+                    .attr('dy', i === 0 ? 0 : UML_LINK_INFO_LINE_H)
+                    .attr('font-weight', i === 0 ? 'bold' : 'normal')
+                    .text(row);
+            });
+            infoText.attr('y', UML_LINK_INFO_PAD + UML_LINK_INFO_FONT);
+            // Measured *before* the content group is shifted: `getBBox()` reports the element's own user
+            // space, so the transform below is not in the numbers it returns.
+            var bbox = infoText.node().getBBox();
+            var boxW = bbox.width + UML_LINK_INFO_PAD * 2;
+            var boxH = bbox.height + UML_LINK_INFO_PAD * 2;
+            var left = bbox.x - UML_LINK_INFO_PAD;
+            var top = bbox.y - UML_LINK_INFO_PAD;
+            infoRect.attr('x', left).attr('y', top).attr('width', boxW).attr('height', boxH);
+            content.attr('transform', 'translate(' + (-(left + boxW / 2)) + ','
+                + (-(top + boxH + UML_LINK_INFO_LIFT)) + ')');
+        }
+
+        hitSel.on('mouseenter', function (event, d) {
+                infoBox.datum(d);
+                place(d);
+                fill(d);
+                infoBox.style('visibility', 'visible');
+            })
+            .on('mouseleave', function () { infoBox.style('visibility', 'hidden'); });
+
+        return {
+            /**
+             * Re-places a *shown* box after the boxes moved — a drag ticks the simulation, and a box that
+             * stayed where the pointer left it would describe the wrong connector.  The connector is read
+             * from the box's own datum, because a drag is a different callback than the hover that showed it.
+             */
+            follow: function () {
+                var shown = infoBox.datum();
+                if (shown && infoBox.style('visibility') === 'visible') place(shown);
+            }
+        };
     }
 
     /**

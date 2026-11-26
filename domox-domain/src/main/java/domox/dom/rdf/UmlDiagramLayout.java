@@ -192,8 +192,20 @@ public final class UmlDiagramLayout {
      * {@link #GENERALIZATION} the <em>source is the super-class</em> — the arrow points at it.  A CRC
      * {@code CollaboratorCdd} states the opposite (its source is the sub-class), so the caller swaps the
      * ends when it maps one.</p>
+     *
+     * <p>{@code members} is what the connector stands for, one line each, and is empty for every edge but
+     * the sub-domain overview's: there one edge aggregates many collaborations and its label is only the
+     * count of them, so the collaborations themselves are carried along for the reader to open.</p>
      */
-    public record Edge(String source, String target, String kind, String label) {
+    public record Edge(String source, String target, String kind, String label, List<String> members) {
+
+        /**
+         * An edge that stands for nothing beyond itself — one line per collaboration, which is every edge
+         * but the overview's.
+         */
+        public Edge(final String source, final String target, final String kind, final String label) {
+            this(source, target, kind, label, List.of());
+        }
     }
 
     /**
@@ -257,7 +269,8 @@ public final class UmlDiagramLayout {
             }
             final String kind = edge.kind() == null ? ASSOCIATION : edge.kind();
             links.add(new Link(edge.source(), edge.target(), kind,
-                    edge.label() == null ? "" : edge.label(), List.of(), GENERALIZATION.equals(kind)));
+                    edge.label() == null ? "" : edge.label(), List.of(), GENERALIZATION.equals(kind),
+                    edge.members() == null ? List.of() : edge.members()));
         }
         return links;
     }
@@ -675,7 +688,7 @@ public final class UmlDiagramLayout {
         final List<DiagramJsonWriter.ContentLine> lines = new ArrayList<>();
         for (final Node.Content content : node.contents() == null
                 ? List.<Node.Content>of() : node.contents()) {
-            if (content != null && content.name() != null) {
+            if (content.name() != null) {
                 lines.add(new DiagramJsonWriter.ContentLine(content.name(), content.objectType(),
                         content.candidateId()));
             }

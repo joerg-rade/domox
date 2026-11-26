@@ -263,6 +263,38 @@ const MEASURE_PACKAGES = `(() => {
     linkWidths: Array.from(layer.querySelectorAll('line.uml-link'))
         .map(l => parseFloat(l.getAttribute('stroke-width'))),
     linkLabels: Array.from(layer.querySelectorAll('text.uml-link-label')).map(t => t.textContent),
+    // The count on an overview connector is explained by *hovering* the line: the payload carries the
+    // collaborations the count stands for (the payload's 'members') and the client draws them in a box.  A headless probe
+    // has no pointer, so the hover is dispatched — but the box is then read back out of the DOM, so a
+    // the payload's members list that arrives and is never drawn cannot pass.  A connector with no members must have no
+    // hit line at all, or a pointer over it would open an empty box.
+    linkHits: layer.querySelectorAll('line.uml-link-hit').length,
+    linkInfo: (function () {
+        var hit = layer.querySelector('line.uml-link-hit');
+        if (!hit) return null;
+        var hr = hit.getBoundingClientRect();
+        hit.dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+        var box = layer.querySelector('g.uml-link-info');
+        var spans = box ? Array.from(box.querySelectorAll('text tspan')) : [];
+        var rect = box ? box.querySelector('rect') : null;
+        var out = {
+            visible: box ? getComputedStyle(box).visibility === 'visible' : false,
+            rows: spans.map(t => t.textContent),
+            bold: spans.map(t => t.getAttribute('font-weight')),
+            cursor: getComputedStyle(hit).cursor,
+            hitWidth: parseFloat(getComputedStyle(hit).strokeWidth),
+            rectW: rect ? parseFloat(rect.getAttribute('width')) : null,
+            rectH: rect ? parseFloat(rect.getAttribute('height')) : null,
+            // The box is lifted clear of the line it explains rather than drawn over it: its bottom edge is
+            // above the connector's own midpoint, in screen space (the zoom transform is in these numbers).
+            aboveLine: rect
+                ? rect.getBoundingClientRect().bottom <= (hr.top + hr.bottom) / 2
+                : null
+        };
+        hit.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+        out.hiddenAfterLeave = box ? getComputedStyle(box).visibility !== 'visible' : false;
+        return out;
+    })(),
     tabs: layer.querySelectorAll('path.uml-package-tab').length,
     bodies: layer.querySelectorAll('rect.uml-package-body').length,
     legend: !!legend,
@@ -500,6 +532,34 @@ check('the connector weight is the count it carries (1.5 for one collaboration, 
     p.linkWidths.length === 2 && Math.abs(p.linkWidths[0] - 2.1) < 0.01
         && Math.abs(p.linkWidths[1] - 5.1) < 0.01,
     JSON.stringify({ widths: p.linkWidths, labels: p.linkLabels }));
+
+// A count says how many, not which — so the collaborations it stands for must be reachable from the line.
+// Only the connector that *has* them gets a hit line (a wider transparent one, because 2.1 units cannot be
+// aimed at), and hovering it opens a box listing them; the connector with no members opens nothing.
+check('only the connector that carries collaborations can be hovered',
+    p.linkHits === 1, `hits ${p.linkHits}`);
+check('a hoverable connector is caught by a wide transparent line, not by the drawn one',
+    p.linkInfo !== null && p.linkInfo.hitWidth >= 10 && p.linkInfo.cursor === 'help'
+        && Math.abs(p.linkWidths[0] - 2.1) < 0.01,
+    JSON.stringify(p.linkInfo && { hitWidth: p.linkInfo.hitWidth, cursor: p.linkInfo.cursor }));
+check('hovering a connector opens a box listing the collaborations its count stands for',
+    !!p.linkInfo && p.linkInfo.visible && p.linkInfo.rectW > 0 && p.linkInfo.rectH > 0,
+    JSON.stringify(p.linkInfo && { visible: p.linkInfo.visible, w: p.linkInfo.rectW, h: p.linkInfo.rectH }));
+check('the box names the two sub-domains it joins, then one line per collaboration',
+    !!p.linkInfo && p.linkInfo.rows.length === 3
+        && p.linkInfo.rows[0].indexOf('Inventory') !== -1 && p.linkInfo.rows[0].indexOf('Checkout') !== -1
+        && p.linkInfo.rows[1] === 'Order has OrderLine'
+        && p.linkInfo.rows[2] === 'Till settles Order',
+    JSON.stringify(p.linkInfo && p.linkInfo.rows));
+check('the box\u2019s header stands out from the collaborations it introduces',
+    !!p.linkInfo && p.linkInfo.bold[0] === 'bold'
+        && p.linkInfo.bold.slice(1).every(w => w === 'normal'),
+    JSON.stringify(p.linkInfo && p.linkInfo.bold));
+check('the box is lifted clear of the connector rather than drawn over it',
+    !!p.linkInfo && p.linkInfo.aboveLine === true, String(p.linkInfo && p.linkInfo.aboveLine));
+check('the box closes when the pointer leaves the connector',
+    !!p.linkInfo && p.linkInfo.hiddenAfterLeave === true,
+    String(p.linkInfo && p.linkInfo.hiddenAfterLeave));
 
 check('the legend names the package symbol, not a class box',
     p.legendRows.length > 0 && p.legendRows[0] === 'Package'

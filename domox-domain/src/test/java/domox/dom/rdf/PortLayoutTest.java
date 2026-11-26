@@ -30,11 +30,11 @@ class PortLayoutTest {
     }
 
     private static Link association(final String source, final String target, final Pt... points) {
-        return new Link(source, target, Link.ASSOCIATION, "", List.of(points), false);
+        return new Link(source, target, Link.ASSOCIATION, "", List.of(points), false, List.of());
     }
 
     private static Link generalization(final String superId, final String subId) {
-        return new Link(superId, subId, Link.GENERALIZATION, "", List.of(), false);
+        return new Link(superId, subId, Link.GENERALIZATION, "", List.of(), false, List.of());
     }
 
     // -- portFor ---------------------------------------------------------------

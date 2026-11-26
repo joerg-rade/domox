@@ -152,7 +152,7 @@ class ClassDiagram {
      * <p>Every node is in one band: an overview node <em>is</em> a sub-domain, so grouping the nodes
      * would turn the diagram's own content into whitespace.</p>
      *
-     * <p>The graph is marked [Graph.getPackages], so the picture draws each node as a UML <b>package</b>
+     * <p>The graph is marked [Graph.getPackages()], so the picture draws each node as a UML <b>package</b>
      * rather than as a class box, and each node lists the classes of its sub-domain that take part in a
      * relation leaving it — the classes the connectors between packages belong to.  Each of those lines
      * also states the class row it stands for, so the picture can make a name in the package body a
@@ -192,6 +192,11 @@ class ClassDiagram {
                 entry.key.second,
                 UmlDiagramLayout.ASSOCIATION,
                 entry.value.toString(),
+                // The count is the *label*, so what it counts has to travel with the edge: the reader who
+                // wants to know which classes two sub-domains lean on through points at the line and reads
+                // these (see `overviewOf`).  A count and its explanation are built in the same pass, so they
+                // cannot disagree about how many collaborations there are.
+                overview.edgeMembers[entry.key].orEmpty().toList(),
             )
         }
         return Graph(titleOf(dm, "sub-domain overview"), nodes, edges, packages = true)
@@ -229,8 +234,9 @@ class ClassDiagram {
 
     /**
      * The overview's content, before either renderer draws it: node label → position, undirected
-     * edge → the number of collaborations it stands for, and node label → the classes of that
-     * sub-domain that take part in a relation leaving it.
+     * edge → the number of collaborations it stands for, node label → the classes of that
+     * sub-domain that take part in a relation leaving it, and undirected edge → the collaborations
+     * themselves, one line each.
      *
      * <p>Shared by {@link #buildSubDomainOverview} (PlantUML) and {@link #graphOverview} (D3), so the
      * overview cannot aggregate its edges one way on paper and another on screen.</p>
@@ -238,11 +244,16 @@ class ClassDiagram {
      * <p>A member is the {@link ClassCdd} row itself, not only its name: the D3 picture lists those
      * classes inside the package and makes each one a click-through to its own page, which needs the
      * row's id and Causeway object type.  The PlantUML form draws the names alone.</p>
+     *
+     * <p>{@code edgeMembers} is keyed the same way {@code edges} is, and is the answer to the question the
+     * count raises but cannot answer: <em>which</em> collaborations is the edge standing for.  It is filled
+     * in the same pass as the count, so the two always agree — one line per collaboration counted.</p>
      */
     private class Overview(
         val nodeIndex: LinkedHashMap<String, Int>,
         val edges: LinkedHashMap<Pair<String, String>, Int>,
         val members: LinkedHashMap<String, List<ClassCdd>>,
+        val edgeMembers: LinkedHashMap<Pair<String, String>, List<String>>,
     )
 
     private fun overviewOf(dm: DomainModel): Overview {
@@ -265,6 +276,10 @@ class ClassDiagram {
         // relates only to its own neighbours says nothing about how the packages fit together.
         val edges = LinkedHashMap<Pair<String, String>, Int>()
         val members = LinkedHashMap<String, LinkedHashMap<String, ClassCdd>>()
+        // Undirected edge -> what the count on that edge stands for, one line per collaboration counted.
+        // A reader who sees "7" between two packages cannot tell which seven relations it means; this is
+        // the list the connector's infobox prints, built in the same pass as the count so the two agree.
+        val edgeMembers = LinkedHashMap<Pair<String, String>, MutableList<String>>()
         for (asc in ModelContent.materialCollaborations(dm)) {
             val (source, target) = endsWithin(asc, inModel) ?: continue
             val from = labelOf(source)
@@ -272,6 +287,10 @@ class ClassDiagram {
             if (from == to) continue
             val key = if (nodeIndex.getValue(from) <= nodeIndex.getValue(to)) from to to else to to from
             edges.merge(key, 1) { a, b -> a + b }
+            // The same key the count is filed under, so the line and its explanation are one pass and
+            // cannot drift apart.  The list is built here rather than derived later because only here is
+            // the collaboration's own row (`asc`) in hand.
+            edgeMembers.getOrPut(key) { mutableListOf() } += collaborationLine(asc, source, target)
             addMember(members, from, source)
             addMember(members, to, target)
         }
@@ -281,7 +300,13 @@ class ClassDiagram {
         for ((label, rows) in members) {
             memberList[label] = rows.values.sortedBy { it.candidateName }
         }
-        return Overview(nodeIndex, edges, memberList)
+        // Sorted too, for the same reason: the order the model happens to list its collaborations in is
+        // not something the reader can see, and an infobox that reorders between runs reads as a bug.
+        val edgeMemberList = LinkedHashMap<Pair<String, String>, List<String>>()
+        for ((key, lines) in edgeMembers) {
+            edgeMemberList[key] = lines.sorted()
+        }
+        return Overview(nodeIndex, edges, memberList, edgeMemberList)
     }
 
     /**
@@ -358,6 +383,20 @@ class ClassDiagram {
         val source = asc.source ?: return null
         val target = asc.target ?: return null
         return if (inModel.contains(source) && inModel.contains(target)) source to target else null
+    }
+
+    /**
+     * One counted collaboration as a single line — {@code "Source owns Target"}, the ends named exactly as
+     * the boxes and package content lines are, so a reader can match the line to what they see.
+     *
+     * <p>{@code asc.label()} is the model's own verb ("owns", "is a") and is absent for some rows, in which
+     * case the relation is stated with {@code "->"} rather than invented.  The ends are taken from the
+     * collaboration's own rows, not from the two labels the edge is keyed by, so a line can never read
+     * {@code "A -> A"} because two sub-domains happen to name a class the same way.</p>
+     */
+    private fun collaborationLine(asc: CollaboratorCdd, source: ClassCdd, target: ClassCdd): String {
+        val verb = asc.label()?.takeIf { it.isNotBlank() } ?: "->"
+        return "${source.candidateName} $verb ${target.candidateName}"
     }
 
     /**
